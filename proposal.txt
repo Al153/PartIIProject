@@ -1,0 +1,5 @@
+QueryLayer?? - not strictly the same project
+
+- The project is to build a purely functional graph oriented query layer DSL over a database.
+- The end result should be a tightly integrated Scala DSL, which returns results in a Monadic datatype for
+  asynchronous operation
