@@ -41,6 +41,6 @@ trait DBExecutor {
    * add a collection of relations to the database, creating a new view
    */
 
-  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]]): Operation[E, Unit]
+  def insert[A <: NodeDef, B <: NodeDef](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]]): Operation[E, Unit]
   // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
 }

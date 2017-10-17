@@ -1,12 +1,13 @@
 package examples
 
-import core.dsl.Commands.{find, insert}
-import schema.Pattern.?
-import view.View
-import Schema._
+import core.dsl.Commands.find
 import db._
+import examples.Schema._
+import view.View
 
 import scalaz.\/-
+import scala.concurrent.ExecutionContext.Implicits.global // global execution context
+
 
 /**
   * Created by Al on 15/10/2017.

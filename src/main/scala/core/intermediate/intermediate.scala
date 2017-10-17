@@ -1,7 +1,7 @@
 package core
 
 import core.dsl.RelationalQuery
-import schema.Pattern.Pattern
+import prototyping.Findable
 
 /**
   * Created by Al on 09/10/2017.
@@ -12,7 +12,7 @@ package object intermediate {
   sealed trait IntermediateTree[A] {}
 
   // Initial node find
-  case class GetNode[A <: NodeDef](p: Pattern[A])(implicit conv: A => schema.SchemaObject[A]) extends IntermediateTree[A]
+  case class GetNode[A <: NodeDef](p: Findable[A]) extends IntermediateTree[A]
 
   // Find a relation
   case class GetRelation[A <: NodeDef, B <: NodeDef, R](a: IntermediateTree[A], r: R)(implicit f: R => RelationAttributes[A, B]) extends IntermediateTree[(A, B)]
@@ -40,7 +40,7 @@ package object intermediate {
   case class Union[A](left: IntermediateTree[A], right: IntermediateTree[A]) extends IntermediateTree[A]
 
   // filter results by a pattern. Semantically should be the same as a Union, but tagged so as to imply less work
-  case class Narrow[A, B](t: IntermediateTree[(A, B)], p: Pattern[B]) extends IntermediateTree[(A, B)]
+  case class Narrow[A, B](t: IntermediateTree[(A, B)], p: Findable[B]) extends IntermediateTree[(A, B)]
 
   // transitive relation causes denormalisation against a view to get a cached value
   case class Transitive[A](intermediateTree: IntermediateTree[A], f: A => Any) extends IntermediateTree[Any] // todo fill in
@@ -56,6 +56,4 @@ package object intermediate {
   case class Dup[A](a: IntermediateTree[A]) extends IntermediateTree[(A, A)]
   // TODO: Implementors
 
-
-  implicit def fromPattern[A <: NodeDef](p: Pattern[A]): GetNode[A] = GetNode(p)
 }

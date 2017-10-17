@@ -6,7 +6,7 @@ import core.containers.{Operation, Path}
 import core.error.E
 import core.intermediate.IntermediateTree
 import db.interfaces.DBExecutor
-import schema.Pattern.Pattern
+
 
 import scala.concurrent.ExecutionContext
 
@@ -41,5 +41,5 @@ object Commands {
    * add a collection of relations to the database, creating a new view
    */
 
-  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]])(implicit d: DBExecutor, e: ExecutionContext): Operation[E, Unit] = d.insert(t) // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
+  def insert[A <: NodeDef, B <: NodeDef](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]])(implicit d: DBExecutor, e: ExecutionContext): Operation[E, Unit] = d.insert(t) // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
 }

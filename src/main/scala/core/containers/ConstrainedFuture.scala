@@ -22,12 +22,13 @@ class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E
     )
   )
 
-  def andThen(f: E \/ A => Unit): ConstrainedFuture[E, A] = new ConstrainedFuture(EitherT(underlying.run.andThen{case scala.util.Success(ea) => f(ea)}))
+  def andThen(pf: PartialFunction[E \/ A, Unit]): ConstrainedFuture[E, A] = new ConstrainedFuture(EitherT(underlying.run.andThen{case scala.util.Success(ea) => pf(ea)}))
+
 
 }
 
-object ConstrainedFuture{
-    def apply[E, A](a: => A)(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+object ConstrainedFuture {
+    def point[E, A](a: => A)(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
       EitherT(
         Future {
           try {
@@ -39,7 +40,7 @@ object ConstrainedFuture{
       )
     )
 
-  def apply[E, A](ea: => E \/ A)(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+  def either[E, A](ea: => E \/ A)(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
     EitherT(
       Future {
         try {ea} catch {case e: Throwable => recover(e).left}
@@ -47,7 +48,7 @@ object ConstrainedFuture{
     )
   )
 
-  def apply[E, A](fea: Future[E \/ A])(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+  def future[E, A](fea: Future[E \/ A])(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
     EitherT(
       fea.recover {
         case e: Throwable =>

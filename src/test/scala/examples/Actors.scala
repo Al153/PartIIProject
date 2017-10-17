@@ -1,15 +1,15 @@
 package examples
 
-import core.RelationAttributes
 import core.concrete.relations.CompletedRelation
 import core.dsl.Commands._
+import core.{RelationAttributes, Singleton}
 import db._
 import examples.Schema.{Borders, Country}
-import schema.Pattern._
-import schema.Singleton
 import view.View
 
 import scalaz.\/-
+
+import scala.concurrent.ExecutionContext.Implicits.global // global execution context
 
 /**
   * Created by Al on 15/10/2017.

@@ -2,7 +2,6 @@ package core
 
 import core.dsl.RelationalQuery
 import core.intermediate.{GetRelation, IntermediateTree}
-import schema.SchemaRelation
 
 
 /**

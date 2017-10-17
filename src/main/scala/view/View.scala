@@ -14,8 +14,5 @@ import core.containers.{ConstrainedFuture, Operation}
 trait View {
   val id: Long
   val dependents: Set[View]
-
-  def diff: Operation[E, Diff] = Operation{v: View => new ConstrainedFuture[E, (Diff, View)](???)(???)}
-
   def execute[A](q: Operation[E, A]): ConstrainedFuture[E, (A, View)] = q.runView(this)
 }
