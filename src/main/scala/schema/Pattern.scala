@@ -2,7 +2,7 @@ package schema
 
 import core.intermediate
 import core.intermediate.GetNode
-import schema.typeclasses.PrimitiveDatabaseValue
+import schema.typeclasses.DatabaseValue
 
 /**
   * Created by Al on 01/10/2017
@@ -185,5 +185,5 @@ object Pattern {
   def ?[T](implicit protoType: Pattern[T]) = protoType
 
   // Primitives can be a single unknown
-  implicit def prototypePrimitive[T](implicit p: PrimitiveDatabaseValue[T]): Pattern[T] = Pattern0[T]()
+  implicit def prototypePrimitive[T](implicit p: DatabaseValue[T]): Pattern[T] = Pattern0[T]()
 }
