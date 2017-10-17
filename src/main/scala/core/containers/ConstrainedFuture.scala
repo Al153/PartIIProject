@@ -23,8 +23,6 @@ class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E
   )
 
   def andThen(pf: PartialFunction[E \/ A, Unit]): ConstrainedFuture[E, A] = new ConstrainedFuture(EitherT(underlying.run.andThen{case scala.util.Success(ea) => pf(ea)}))
-
-
 }
 
 object ConstrainedFuture {
