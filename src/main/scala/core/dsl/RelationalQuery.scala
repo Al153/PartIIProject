@@ -3,7 +3,7 @@ package core.dsl
 import core.NodeDef
 import core.intermediate._
 import RelationSyntax._
-import prototyping.{Findable, SchemaObject}
+import schema.{Findable, SchemaObject}
 
 import scalaz._
 import Scalaz._

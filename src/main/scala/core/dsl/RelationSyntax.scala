@@ -1,7 +1,7 @@
 package core.dsl
 
 import core.NodeDef
-import prototyping.{??, Findable, SchemaObject}
+import schema.{??, Findable, SchemaObject}
 
 /**
   * Created by Al on 11/10/2017.

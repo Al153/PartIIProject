@@ -2,7 +2,7 @@ package core
 
 import core.dsl.UnaryQuery
 import core.intermediate.IntermediateTree
-import prototyping.{DBTuple0, SchemaObject, SchemaObject0, TableName}
+import schema.{DBTuple0, SchemaObject, SchemaObject0, TableName}
 
 
 /**

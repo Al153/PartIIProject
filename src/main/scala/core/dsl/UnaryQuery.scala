@@ -2,7 +2,7 @@ package core.dsl
 
 import core.intermediate._
 import core.{NodeDef, RelationAttributes, Singleton}
-import prototyping.{Findable, SchemaObject, _}
+import schema.{Findable, SchemaObject, _}
 
 
 /**

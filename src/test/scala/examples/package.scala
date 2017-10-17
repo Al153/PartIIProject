@@ -5,8 +5,8 @@ import core.dsl.{RelationalQuery, UnaryQuery}
 import core.intermediate.IntermediateTree
 import db.interfaces.DBExecutor
 import examples.Schema.{Actor, ActsIn, Genre, LinkedToTomCruise, Movie, _}
-import prototyping.Pattern
-import prototyping._
+import schema.Pattern
+import schema._
 
 import scalaz._
 import Scalaz._

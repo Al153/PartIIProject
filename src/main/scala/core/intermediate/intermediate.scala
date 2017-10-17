@@ -1,7 +1,7 @@
 package core
 
 import core.dsl.RelationalQuery
-import prototyping.Findable
+import schema.Findable
 
 /**
   * Created by Al on 09/10/2017.
