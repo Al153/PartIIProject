@@ -1,16 +1,15 @@
-import core.{NodeDef, RelationAttributes, Singleton}
 import core.concrete.relations.CompletedRelation
 import core.dsl.RelationSyntax._
 import core.dsl.{RelationalQuery, UnaryQuery}
 import core.intermediate.IntermediateTree
+import core.{NodeDef, RelationAttributes, Singleton}
 import db.interfaces.DBExecutor
 import examples.Schema.{Actor, ActsIn, Genre, LinkedToTomCruise, Movie, _}
-import schema.Pattern
 import schema._
 
-import scalaz._
-import Scalaz._
 import scala.concurrent.ExecutionContext
+import scalaz.Scalaz._
+import scalaz._
 /**
   * Created by Al on 15/10/2017.
   */
@@ -32,8 +31,7 @@ package object examples {
   val produced = hasNationality.reverse -->--> ActsIn
 
   def coactorWithGenre(g: Genre) = {
-    val m: Findable[Movie] = ?(movieSchema)(None, g.some.map(_.g))
-    ActsIn --> m  <-- ActsIn
+    ActsIn --> ?(movieSchema)(None, g.some.map(_.g)) <-- ActsIn
   }
 
   val getLinked: UnaryQuery[Schema.Actor] = point --> LinkedToTomCruise

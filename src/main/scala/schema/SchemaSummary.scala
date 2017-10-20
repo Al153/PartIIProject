@@ -7,3 +7,4 @@ trait SchemaSummary {}
 case object IntCell extends SchemaSummary
 case object StringCell extends SchemaSummary
 case object BoolCell extends SchemaSummary
+case object DoubleCell extends SchemaSummary

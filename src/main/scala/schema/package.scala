@@ -7,15 +7,7 @@ import view.Commit
   */
 package object schema {
 
-  case class DatabaseRow(tableName: TableName, commit: Commit, fields: Map[ColumnName, CellValue])
 
-  case class ColumnName(value: String) extends AnyVal
-  case class TableName(value: String) extends AnyVal
-
-  sealed trait CellValue
-  case class Cell[A](a: A)(implicit t: Storeable[A]) extends CellValue {
-
-  }
 
   sealed trait Findable[A] // Can be found in the database (not necessarily complete data)
   sealed trait Writeable[A] // can be written to the database (necessarily complete data)

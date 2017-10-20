@@ -17,7 +17,7 @@ trait DBExecutor {
   /*
    * Find a multiset of all results that fit a particular query
    */
-  def findAll[A](t: IntermediateTree[A])(implicit e: ExecutionContext): Operation[E, Vector[A]] // a multiset
+  def findAll[A](t: IntermediateTree[A])(implicit e: ExecutionContext, extractor: Extractor[A]): Operation[E, Vector[A]] // a multiset
 
   /*
    * Find a set of distinct elements that match a query
