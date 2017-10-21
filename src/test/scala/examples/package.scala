@@ -1,11 +1,14 @@
 import core.concrete.relations.CompletedRelation
+import core.containers.{Operation, Path}
 import core.dsl.RelationSyntax._
 import core.dsl.{RelationalQuery, UnaryQuery}
+import core.error.E
 import core.intermediate.IntermediateTree
-import core.{NodeDef, RelationAttributes, Singleton}
+import core.{RelationAttributes, Singleton}
 import db.interfaces.DBExecutor
 import examples.Schema.{Actor, ActsIn, Genre, LinkedToTomCruise, Movie, _}
 import schema._
+import db.interfaces.Extractor
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
@@ -36,15 +39,16 @@ package object examples {
 
   val getLinked: UnaryQuery[Schema.Actor] = point --> LinkedToTomCruise
 
-  implicit def dbExecutor = new DBExecutor {override def insert[A <: NodeDef, B <: NodeDef](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]]) = ???
+  implicit def dbExecutor = new DBExecutor {
+    override def insert[A, B](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] = ???
 
-    override def findAll[A](t: IntermediateTree[A])(implicit e: ExecutionContext) = ???
+    override def findAll[A](t: IntermediateTree[A])(implicit e: ExecutionContext, ea: Extractor[A]) = ???
 
     override def findDistinct[A](t: IntermediateTree[A])(implicit e: ExecutionContext) = ???
 
-    override def allShortestPaths[A <: NodeDef](start: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext) = ???
+    override def allShortestPaths[A](start: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A]): Operation[E, Set[Path[A]]] = ???
 
-    override def shortestPath[A <: NodeDef](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext) = ???
+    override def shortestPath[A](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A]): Operation[E, Option[Path[A]]] = ???
   }
 
 }

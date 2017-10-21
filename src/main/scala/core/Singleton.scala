@@ -8,7 +8,7 @@ import schema.{DBTuple0, SchemaObject, SchemaObject0, TableName}
 /**
   * Created by Al on 09/10/2017.
   */
-case class Singleton() extends UnaryQuery[Singleton] with NodeDef {
+case class Singleton() extends UnaryQuery[Singleton]()(Singleton.SingletonSchema) {
   override def tree(a: IntermediateTree[Singleton]): IntermediateTree[(Singleton, Singleton)] = ???
 
   override def apply: IntermediateTree[Singleton] = ???
@@ -17,7 +17,7 @@ case class Singleton() extends UnaryQuery[Singleton] with NodeDef {
 object Singleton {
   val point = Singleton()
 
-  implicit def SingletonSchema = new SchemaObject0[Singleton] {
+  implicit def SingletonSchema: SchemaObject0[Singleton] = new SchemaObject0[Singleton] {
     override def construct(): Singleton = point
 
     override def name: TableName = TableName("Singleton")

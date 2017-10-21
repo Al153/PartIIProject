@@ -14,13 +14,13 @@ sealed trait SchemaObject[A] extends Extractor[A] {
   def getSchemaSummary: List[SchemaSummary]
   def generalPattern: Pattern[A]
   def findable(a: A): Findable[A]
-
+  def name: TableName
 
 }
 
 trait SchemaObject0[A] extends SchemaObject[A] {
   def construct(): A
-  def name: TableName
+  override def name: TableName
   def toTuple(a: A): DBTuple0[A]
 
   final def fromTuple(tuple0: DBTuple0[A]): A = construct()
@@ -36,7 +36,7 @@ trait SchemaObject0[A] extends SchemaObject[A] {
 
 abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaObject[A] {
   def construct(a1: A1): A
-  def name: TableName
+  override def name: TableName
   def toTuple(a: A): DBTuple1[A, A1]
 
   final def fromTuple(tuple1: DBTuple1[A, A1]): A = construct(tuple1.a1)
@@ -53,7 +53,7 @@ abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaOb
 
 abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeable[A2]) extends SchemaObject[A] {
   def construct(a1: A1, a2: A2): A
-  def name: TableName
+  override def name: TableName
   def toTuple(a: A): DBTuple2[A, A1, A2]
 
   final def fromTuple(tuple2: DBTuple2[A, A1, A2]): A = construct(tuple2.a1, tuple2.a2)

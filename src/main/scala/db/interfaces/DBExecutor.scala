@@ -1,12 +1,12 @@
 package db.interfaces
 
-import core.{NodeDef, RelationAttributes}
+import core.RelationAttributes
 import core.concrete.relations.CompletedRelation
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
 import core.intermediate.IntermediateTree
-import view.View
+import schema.SchemaObject
 
 import scala.concurrent.ExecutionContext
 
@@ -29,18 +29,18 @@ trait DBExecutor {
    * given a pair of nodes and a relational query, try to find a path from start to end
    */
 
-  def shortestPath[A <: NodeDef](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext): Operation[E, Option[Path]]
+  def shortestPath[A](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A]): Operation[E, Option[Path[A]]]
 
   /*
    * find all shortest paths to nodes from a start node to reachable nodes
    */
 
-  def allShortestPaths[A <: NodeDef](start: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext): Operation[E, Set[Path]]
+  def allShortestPaths[A](start: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A]): Operation[E, Set[Path[A]]]
 
   /*
    * add a collection of relations to the database, creating a new view
    */
 
-  def insert[A <: NodeDef, B <: NodeDef](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]]): Operation[E, Unit]
+  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit]
   // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
 }

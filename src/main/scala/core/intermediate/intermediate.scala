@@ -1,7 +1,7 @@
 package core
 
 import core.dsl.RelationalQuery
-import schema.Findable
+import schema.{Findable, SchemaObject}
 
 /**
   * Created by Al on 09/10/2017.
@@ -12,23 +12,19 @@ package object intermediate {
   sealed trait IntermediateTree[A] {}
 
   // Initial node find
-  case class GetNode[A <: NodeDef](p: Findable[A]) extends IntermediateTree[A]
+  case class GetNode[A](p: Findable[A])(implicit sa: SchemaObject[A]) extends IntermediateTree[A]
 
   // Find a relation
-  case class GetRelation[A <: NodeDef, B <: NodeDef, R](a: IntermediateTree[A], r: R)(implicit f: R => RelationAttributes[A, B]) extends IntermediateTree[(A, B)]
+  case class GetRelation[A, B, R](a: IntermediateTree[A], r: R)(implicit f: R => RelationAttributes[A, B], sa: SchemaObject[A], sb: SchemaObject[B]) extends IntermediateTree[(A, B)]
 
   // Chain a relation onto an existing one
-  case class Chain[
-    A <: NodeDef,
-    B <: NodeDef,
-    C <: NodeDef
-  ](
+  case class Chain[A, B, C](
                        left: IntermediateTree[(A, B)],
                        r: RelationalQuery[B, C]
-                     ) extends IntermediateTree[(A, C)]
+                     )(implicit sa: SchemaObject[A], sb: SchemaObject[B], sc: SchemaObject[C]) extends IntermediateTree[(A, C)]
 
   // Not to be used
-  case class Join[A <: NodeDef, B <: NodeDef, C <: NodeDef](left: IntermediateTree[(A, B)], r: IntermediateTree[(B, C)]) extends IntermediateTree[(A, C)]
+  case class Join[A, B, C](left: IntermediateTree[(A, B)], r: IntermediateTree[(B, C)])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sc: SchemaObject[C]) extends IntermediateTree[(A, C)]
 
   // Do nothing and return an empty set of results
   case class Pass[A]() extends IntermediateTree[A]

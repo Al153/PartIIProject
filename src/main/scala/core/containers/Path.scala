@@ -1,11 +1,11 @@
 package core.containers
 
-import core.{NodeDef, RelationAttributes}
+import schema.SchemaObject
 
 /**
   * Created by Al on 09/10/2017.
   */
-trait Path {
-  def getStart[A <: NodeDef]: A // todo: proper type bounds
-  def getSteps[A <: NodeDef, B <: NodeDef]: Vector[(RelationAttributes[A, B], NodeDef)] // get all steps in the path
+trait Path[A] {
+  def getStart(implicit sa: SchemaObject[A]): A // todo: proper type bounds
+  def getSteps(implicit sa: SchemaObject[A]): Vector[(A, A)] // get all steps in the path. Todo: can we get more information out here
 }

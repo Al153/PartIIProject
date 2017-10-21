@@ -1,21 +1,21 @@
 package examples
 
-import core.{NodeDef, RelationAttributes, Singleton}
+import core.{RelationAttributes, Singleton}
 import schema._
 
 /**
   * Created by Al on 15/10/2017.
   */
 object Schema {
-  case class Actor(n: String) extends NodeDef { def name: String = n}
-  case class Movie(n: String, g: Genre) extends NodeDef { def name: String = n}
+  case class Actor(n: String) { def name: String = n}
+  case class Movie(n: String, g: Genre) { def name: String = n}
 
-  case class Genre(g: String) extends NodeDef // todo: this should be more typesafe to avoid mispellings - need a tagged table type
+  case class Genre(g: String) // todo: this should be more typesafe to avoid mispellings - need a tagged table type
 
-  case class Date(year: Int, month: Int, day: Int) extends NodeDef
+  case class Date(year: Int, month: Int, day: Int)
 
 
-  sealed trait Country extends NodeDef // todo: tagged type
+  sealed trait Country // todo: tagged type
   case object UK extends Country
   case object USA extends Country
   case object NoCountry extends Country

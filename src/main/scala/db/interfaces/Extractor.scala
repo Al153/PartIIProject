@@ -12,7 +12,7 @@ trait Extractor[A] {
   def fromRow(row: Vector[DBCell]): ExtractError \/ A
 }
 
-object  Extractor {
+object Extractor {
   implicit def pair[A, B](implicit a: Extractor[A], b: Extractor[B]) = new Extractor[(A, B)] {
     override def fromRow(row: Vector[DBCell]): \/[ExtractError, (A, B)] = ???
   }
