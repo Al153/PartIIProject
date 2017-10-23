@@ -12,28 +12,27 @@ import Scalaz._
   * Created by Al on 12/10/2017.
   */
 abstract class RelationalQuery[A, B](implicit sa: SchemaObject[A], sb: SchemaObject[B]) {
-  def tree(a: IntermediateTree[A]): IntermediateTree[(A, B)]
+  def tree: FindPair[A, B]
 
-  def from(a: A)(implicit schema: SchemaObject[A]): IntermediateTree[B] = {
-    schema.findable(a)
-    ???
+  def from(a: Findable[A])(implicit schema: SchemaObject[A]): FindSingle[B] = {
+    From(Find(a), tree)
   }
 
 
   // chain together two queries in sequence
   private[dsl] def plus[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]) = {
-      val left = this
-      new RelationalQuery[A, C] {
-        override def tree(a: IntermediateTree[A]): IntermediateTree[(A, C)] =
-          Chain[A, B, C](Narrow(left.tree(a), middle), right)
-      }
+    val left = this
+    new RelationalQuery[A, C] {
+      override def tree: FindPair[A, C] =
+        Chain(Narrow(left.tree, middle), right.tree)
     }
+  }
 
   // union two queries
   private[dsl] def union(right: RelationalQuery[A, B]) = {
     val left = this
     new RelationalQuery[A, B] {
-      override def tree(a: IntermediateTree[A]): IntermediateTree[(A,B)] = Union(left.tree(a), right.tree(a))
+      override def tree: FindPair[A, B] = Or(left.tree, right.tree)
     }
   }
 
@@ -41,26 +40,34 @@ abstract class RelationalQuery[A, B](implicit sa: SchemaObject[A], sb: SchemaObj
   private[dsl] def intersection(right: RelationalQuery[A, B]) = {
     val left = this
     new RelationalQuery[A, B] {
-      override def tree(a: IntermediateTree[A]): IntermediateTree[(A, B)] = Intersection(left.tree(a), right.tree(a))
+      override def tree: FindPair[A, B] = And(left.tree, right.tree)
     }
   }
 
-  def reverse: RelationalQuery[B, A] = ??? // todo
-
-  def pair: IntermediateTree[(A, B)] = ???
-
+  def reverse: RelationalQuery[B, A] = {
+    val left = this
+    new RelationalQuery[B, A] {
+      override def tree: FindPair[B, A] = left.tree.reverse
+    }
+  }
 
 }
 
 object RelationalQuery {
-  implicit class SymmetricQuery[A](u: RelationalQuery[A, A])(implicit monoid: Monoid[RelationalQuery[A, A]], sa: SchemaObject[A]) {
-    def |*|(n: Int): RelationalQuery[A, A] = List.fill(n)(u).fold(emptyRelation)(_ |+| _)
-    def * : RelationalQuery[A, A] = ???
-    def ? : RelationalQuery[A, A] = u.union(emptyRelation[A](sa))
+  implicit class SymmetricQuery[A](u: RelationalQuery[A, A]) {
+    def |*|(n: Int): RelationalQuery[A, A] = new RelationalQuery[A, A] {
+      override def tree: FindPair[A, A] = Exactly(n, u.tree)
+    }
+    def * : RelationalQuery[A, A] = new RelationalQuery[A, A] {
+      override def tree: FindPair[A, A] = AtLeast(0, u.tree)
+    }
+    def ? : RelationalQuery[A, A] = new RelationalQuery[A, A] {
+      override def tree: FindPair[A, A] = Upto(1, u.tree)
+    }
   }
 
   def emptyRelation[A](implicit sa: SchemaObject[A]): RelationalQuery[A, A] = new RelationalQuery[A, A] {
-    def tree(a: IntermediateTree[A]): IntermediateTree[(A, A)] = Dup(a)
+    override def tree: FindPair[A, A] = Pass[A]
   }
 
   implicit def relationMonoid[A](implicit schema: SchemaObject[A]) = new Monoid[RelationalQuery[A, A]] {

@@ -31,7 +31,6 @@ object Schema {
    * This is getting into category theory; we define a set of objects  by
    * a relation (morphism) to each member object from the singleton
    */
-
   case object LinkedToTomCruise extends RelationAttributes[Singleton, Actor]
 
   implicit def actorSchema = new SchemaObject1[Actor, String] {
@@ -60,5 +59,7 @@ object Schema {
     override def toTuple(a: Country): DBTuple1[Country, String] = DBTuple1(reverseLookup.getOrElse(a, "n/a"))
   }
 
+
+  val description = new SchemaDescription(Set[SchemaObject[Any]](actorSchema, movieSchema, DateSchema, CountrySchema), Set(ActsIn, Birthday, Borders, hasNationality, Borders, LinkedToTomCruise))
 
 }

@@ -17,12 +17,12 @@ abstract class UnaryQuery[A](implicit sa: SchemaObject[A]) extends RelationalQue
   }
 
   def +[B](that: RelationalQuery[A, B])(implicit sb: SchemaObject[B]): UnaryQuery[B] = unaryPlus(this, ??(sa), that)
-  def -[B, R](a: Findable[A])(implicit f: R => RelationalQuery[A, B]) = HalfUnaryQuery(this, a)
+  def -(a: Findable[A]) = HalfUnaryQuery(this, a)
 
-  def -->[B, R](that: R)(implicit f: R => RelationalQuery[A, B], sb: SchemaObject[B]): UnaryQuery[B] = unaryPlus(this, ??(sa), that)
+  def -->[B](that: RelationAttributes[A, B])(implicit sb: SchemaObject[B]): UnaryQuery[B] = unaryPlus(this, ??(sa), that)
 
-  case class HalfUnaryQuery[B](left: UnaryQuery[A], middle: Findable[A])(implicit sb: SchemaObject[B]) {
-    def ->[R](that: R)(implicit f: R => RelationalQuery[A, B]): UnaryQuery[B] = left.unaryPlus(left, middle, that)
+  case class HalfUnaryQuery(left: UnaryQuery[A], middle: Findable[A]) {
+    def ->[B](that: RelationAttributes[A, B])(implicit sb: SchemaObject[B]): UnaryQuery[B] = left.unaryPlus(left, middle, that)
   }
 }
 

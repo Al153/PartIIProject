@@ -1,11 +1,10 @@
 package db.interfaces
 
-import core.RelationAttributes
 import core.concrete.relations.CompletedRelation
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
-import core.intermediate.IntermediateTree
+import core.intermediate.{FindPair, FindSingle}
 import schema.SchemaObject
 
 import scala.concurrent.ExecutionContext
@@ -13,17 +12,31 @@ import scala.concurrent.ExecutionContext
 /**
   * Created by Al on 14/10/2017.
   */
+// Todo: the sets should probably be an arbitary Collections, to allow the backend to implement lazy collections
+
 trait DBExecutor {
   /*
    * Find a multiset of all results that fit a particular query
    */
-  def findAll[A](t: IntermediateTree[A])(implicit e: ExecutionContext, extractor: Extractor[A]): Operation[E, Vector[A]] // a multiset
+  def findAll[A](t: FindSingle[A])(implicit e: ExecutionContext, extractor: Extractor[A]): Operation[E, Vector[A]] // a multiset
+
+  /*
+   * Find a multiset of all pairs that match a relational query
+   */
+
+  def findAllPairs[A, B](t: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]] // a multiset
 
   /*
    * Find a set of distinct elements that match a query
    */
 
-  def findDistinct[A](t: IntermediateTree[A])(implicit e: ExecutionContext): Operation[E, Set[A]]
+  def findDistinct[A](t: FindSingle[A])(implicit e: ExecutionContext): Operation[E, Set[A]]
+
+  /*
+   * Find a set of distinct pairs that match a query
+   */
+
+  def findDistinctPairs[A, B](t: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]]
 
   /*
    * given a pair of nodes and a relational query, try to find a path from start to end
@@ -41,6 +54,6 @@ trait DBExecutor {
    * add a collection of relations to the database, creating a new view
    */
 
-  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B, RelationAttributes[A, B]]])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit]
-  // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
+  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit]
+  // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid query
 }
