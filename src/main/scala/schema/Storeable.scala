@@ -11,6 +11,7 @@ import scalaz.Scalaz._
   */
 trait Storeable[T] {
   def SchemaComponent: SchemaComponent
+  def toDBCell(t: T): DBCell
   def get(dBCell: DBCell): ExtractError \/ T
 }
 object Storeable {

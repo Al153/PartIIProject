@@ -5,7 +5,7 @@ package db.common
   */
 sealed trait DBObject
 case class DBRow(fields: Vector[DBCell]) extends DBObject
-case class Pair(d1: DBObject, d2: DBObject) extends DBObject
+
 
 sealed trait DBCell
 case class DBInt(i: Int) extends DBCell

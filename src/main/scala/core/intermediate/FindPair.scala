@@ -8,10 +8,13 @@ import schema.{Findable, SchemaObject}
   */
 sealed abstract class FindPair[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B]) {
   def reverse: FindPair[B, A]
+  def getUnsafe: UnsafeFindPair
 }
 // basic
 case class Rel[A, B](r: RelationAttributes[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
   override def reverse: FindPair[B, A] = RevRel(r)
+
+  override def getUnsafe = USRel
 }
 case class RevRel[A, B](r: RelationAttributes[B, A])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
  override def reverse: FindPair[B, A] = Rel(r)

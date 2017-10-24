@@ -2,18 +2,21 @@ package db.memory
 
 import core.RelationAttributes
 import core.concrete.relations.CompletedRelation
-import core.containers.{ConstrainedFuture, Operation, Path}
+import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
 import core.intermediate._
-import db.common.{DBObject, MissingTableName, MissingViewError}
+import db.common.{DBObject, MissingTableName}
 import db.interfaces.{DBExecutor, Extractor}
 import schema.{Findable, RelationName, SchemaObject, TableName}
 import view.View
 
+import utils._
+
 import scala.concurrent.ExecutionContext
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
+
 
 /**
   * Created by Al on 22/10/2017.
@@ -34,6 +37,7 @@ class InMemoryExecutor extends DBExecutor {
   override def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] = ???
 
   type MemoryTree = Map[TableName, MemoryTable]
+  type RelatedPair = (MemoryObject, MemoryObject)
 
   sealed trait MemoryTable {
     def objects: Vector[MemoryObject]
@@ -41,6 +45,7 @@ class InMemoryExecutor extends DBExecutor {
 
   sealed trait MemoryObject {
     def relations: Map[RelationName, Vector[MemoryObject]]
+    def revRelations: Map[RelationName, Vector[MemoryObject]]
     def value: Vector[DBObject]
   }
 
@@ -74,32 +79,145 @@ class InMemoryExecutor extends DBExecutor {
     }
   }
 
-  def findPairs(t: FindPair[Any, Any], left: Vector[MemoryObject])(tree: MemoryTree): E \/ Vector[(MemoryObject, MemoryObject)] = {
+  def findPairs(t: FindPair[Any, Any], left: Vector[MemoryObject])(tree: MemoryTree): E \/ Vector[RelatedPair] = {
     def recurse(t: FindPair[Any, Any], left: Vector[MemoryObject]) = findPairs(t, left)(tree)
 
     t match {
-      case And(l, r) =>
-      case Or(l, r) =>
+      case And(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- recurse(r, left)
+      } yield leftRes.intersect(rightRes)
+      case Or(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- recurse(r, left)
+      } yield leftRes.union(rightRes)
+
       case Chain(l, r) => for {
         lres <- recurse(l, left)
-        rres <- recu
-      }
+        rres <- recurse(r, lres.map(_._2))
+      } yield join(lres, rres)
+
       case Id() => left.map(x => (x, x)).right
+
       case Narrow(l, p) => for {
         broad <- recurse(l, left)
       } yield broad.filter(pair => matches(pair._2, p))
-      case Rel(rel) =>
-      case RevRel(rel) =>
 
-      case Upto(n, rel) => ???
-      case Between(low, high, rel) => ???
-      case AtLeast(n, rel) => ???
-      case Exactly(n, rel) => ???
+      case Rel(rel) => \/-(left.flatMap(o => o.relations.getOrElse(rel.name, Vector()).map((o, _))))
 
+      case RevRel(rel) => \/-(left.flatMap(o => o.revRelations.getOrElse(rel.name, Vector()).map((o, _))))
 
+      case Upto(n, rel) =>
+        if (n <= 0) left.map(x => (x, x)).right
+        else for {
+          lres <- recurse(rel, left)
+          rres <- fixedPoint(left => findPairsSet(rel, left)(tree), lres.mapProj2.toSet.map(x => (x, x)), Number(n))
+        } yield join(lres, rres.toVector)
+      case Between(low, high, rel) => recurse(Chain(Exactly(low, rel), Upto(high - low, rel)), left)
+      case AtLeast(n, rel) =>
+        if (n > 0) {
+          recurse(Chain(Exactly(n, rel), AtLeast(0, rel)), left)
+        } else {
+          // otherwise find a fixed point
+          for {
+            res <- fixedPoint(left => findPairsSet(rel, left)(tree), left.toSet.map(x => (x, x)), NoLimit)
+          } yield res.toVector
+        }
+      case Exactly(n, rel) => if (n <= 0) {
+        left.map(x => (x, x)).right
+      } else {
+        recurse(Chain(rel, Exactly(n-1, rel)), left) // todo: this is probably quite slow
+      }
     }
   }
 
+  def findPairsSet(t: FindPair[Any, Any], left: Set[MemoryObject])(tree: MemoryTree): E \/ Set[RelatedPair] = {
+    def recurse(t: FindPair[Any, Any], left: Set[MemoryObject]) = findPairsSet(t, left)(tree)
+    t match {
+      case And(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- recurse(r, left)
+      } yield leftRes.intersect(rightRes)
+      case Or(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- recurse(r, left)
+      } yield leftRes.union(rightRes)
+
+      case Chain(l, r) => for {
+        lres <- recurse(l, left)
+        rres <- recurse(r, lres.map(_._2))
+      } yield joinSet(lres, rres)
+
+      case Id() => left.map(x => (x, x)).right
+
+      case Narrow(l, p) => for {
+        broad <- recurse(l, left)
+      } yield broad.filter(pair => matches(pair._2, p))
+
+      case Rel(rel) => \/-(left.flatMap(o => o.relations.getOrElse(rel.name, Vector()).map((o, _))))
+
+      case RevRel(rel) => \/-(left.flatMap(o => o.revRelations.getOrElse(rel.name, Vector()).map((o, _))))
+
+      case Upto(n, rel) =>
+        if (n <= 0) left.map(x => (x, x)).right
+        else for {
+          lres <- recurse(rel, left)
+          rres <- fixedPoint(left => findPairsSet(rel, left)(tree), lres.mapProj2.map(x => (x, x)), Number(n))
+        } yield joinSet(lres, rres)
+      case Between(low, high, rel) => recurse(Chain(Exactly(low, rel), Upto(high - low, rel)), left)
+      case AtLeast(n, rel) =>
+        if (n > 0) {
+          recurse(Chain(Exactly(n, rel), AtLeast(0, rel)), left)
+        } else {
+          // otherwise find a fixed point
+          for {
+            res <- fixedPoint(left => findPairsSet(rel, left)(tree), left.map(x => (x, x)), NoLimit)
+          } yield res
+        }
+      case Exactly(n, rel) => if (n <= 0) {
+        left.map(x => (x, x)).right
+      } else {
+        recurse(Chain(rel, Exactly(n-1, rel)), left) // todo: this is probably quite slow
+      }
+    }
+  }
+
+  def fixedPoint(searchStep: (Set[MemoryObject]) => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
+    def aux(pairsToExplore: Set[RelatedPair], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = for {
+        foundPairs <- searchStep(pairsToExplore)
+        newPairs = foundPairs.filter {case (_, r) => !alreadyExplored.contains(r)}
+        newAcc = acc | joinSet(acc, newPairs)
+        res <- limit match {
+          case Number(n) => if (newPairs.isEmpty || n <= 1) newAcc.right else aux(newPairs, alreadyExplored | newPairs.map(_._1), newAcc, Number(n-1))
+          case NoLimit => if (newPairs.isEmpty) newAcc.right else aux(newPairs, alreadyExplored | newPairs.map(_._1), newAcc, NoLimit)
+        }
+      } yield res
+
+    limit match {
+      case Number(0) => initial.right
+      case _ => aux(initial, initial.mapProj1, initial, limit)
+    }
+  }
+
+  // slow join
+
+  def join(leftRes: Vector[RelatedPair], rightRes: Vector[RelatedPair]): Vector[RelatedPair] =
+    for {
+      (from, to) <- leftRes
+      right <- rightRes.collect {case (f, t) if f == to => t}
+    } yield (from, right)
+
+  def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] =
+    for {
+      (from, to) <- leftRes
+      right <- rightRes.collect {case (f, t) if f == to => t}
+    } yield (from, right)
+
 
   def readOp[A](f: MemoryTree => E \/ A): Operation[E, A] = ???
+
+
+  sealed trait Limit
+  case object NoLimit extends Limit
+  case class Number(n: Int) extends Limit
 }

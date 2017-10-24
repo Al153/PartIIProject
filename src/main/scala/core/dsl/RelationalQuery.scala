@@ -67,7 +67,7 @@ object RelationalQuery {
   }
 
   def emptyRelation[A](implicit sa: SchemaObject[A]): RelationalQuery[A, A] = new RelationalQuery[A, A] {
-    override def tree: FindPair[A, A] = Pass[A]
+    override def tree: FindPair[A, A] = Id[A]()
   }
 
   implicit def relationMonoid[A](implicit schema: SchemaObject[A]) = new Monoid[RelationalQuery[A, A]] {
