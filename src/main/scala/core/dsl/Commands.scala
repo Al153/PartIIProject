@@ -1,10 +1,9 @@
 package core.dsl
 
-import core.RelationAttributes
 import core.concrete.relations.CompletedRelation
 import core.containers.{Operation, Path}
 import core.error.E
-import core.intermediate.{FindPair, FindSingle, IntermediateTree}
+import core.intermediate.{FindPair, FindSingle}
 import db.interfaces.{DBInstance, Extractor}
 import schema.SchemaObject
 

@@ -12,6 +12,6 @@ class MemoryDB extends DBBackend {
   val executor = new InMemoryExecutor
 
   override def open(address: DatabaseAddress, schema: SchemaDescription): ConstrainedFuture[E, DBInstance] = {
-
+    ???
   }
 }
