@@ -14,11 +14,11 @@ sealed abstract class FindPair[A, B](implicit val sa: SchemaObject[A], val sb: S
 // basic
 case class Rel[A, B](r: RelationAttributes[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
   override def reverse: FindPair[B, A] = RevRel(r)
-  override def getUnsafe = USRel(UnsafeRelationAttributes(r))
+  override def getUnsafe = USRel(ErasedRelationAttributes(r))
 }
 case class RevRel[A, B](r: RelationAttributes[B, A])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
  override def reverse: FindPair[B, A] = Rel(r)
-  override def getUnsafe = USRevRel(UnsafeRelationAttributes(r))
+  override def getUnsafe = USRevRel(ErasedRelationAttributes(r))
 }
 case class And[A, B](left: FindPair[A, B], right: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
   override def reverse: FindPair[B, A] = And(left.reverse, right.reverse)

@@ -15,7 +15,7 @@ case class USExactly(n: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 case object USId extends UnsafeFindPair
 case class USNarrow(left: UnsafeFindPair, f: UnsafeFindable) extends UnsafeFindPair
 case class USOr(left: UnsafeFindPair, right: UnsafeFindPair) extends UnsafeFindPair
-case class USRel(r: UnsafeRelationAttributes) extends UnsafeFindPair
-case class USRevRel(r: UnsafeRelationAttributes) extends UnsafeFindPair
+case class USRel(r: ErasedRelationAttributes) extends UnsafeFindPair
+case class USRevRel(r: ErasedRelationAttributes) extends UnsafeFindPair
 case class USUpto(n: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 

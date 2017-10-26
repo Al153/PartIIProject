@@ -60,6 +60,9 @@ object Schema {
   }
 
 
-  val description = new SchemaDescription(Set[SchemaObject[Any]](actorSchema, movieSchema, DateSchema, CountrySchema), Set(ActsIn, Birthday, Borders, hasNationality, Borders, LinkedToTomCruise))
+  val description = new SchemaDescription(
+    Set(actorSchema.erased, movieSchema.erased, DateSchema.erased, CountrySchema.erased),
+    Set(ActsIn.erased, Birthday.erased, Borders.erased, hasNationality.erased, Borders.erased, LinkedToTomCruise.erased)
+  )
 
 }

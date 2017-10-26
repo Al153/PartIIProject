@@ -4,6 +4,7 @@ import core.containers.Operation
 import core.error.E
 import core.intermediate.unsafe._
 import db.common.{Limit, MissingTableName, NoLimit, Number}
+import db.interfaces.DBInstance
 import schema.TableName
 import utils._
 
@@ -21,6 +22,8 @@ package object memory {
 
   def matches(o: MemoryObject, p: UnsafeFindable): Boolean = ??? // check that the object matches the pattern
   def readOp[A](f: MemoryTree => E \/ A): Operation[E, A] = ???
+
+  def instance: DBInstance = ???
 
 
 

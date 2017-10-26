@@ -25,7 +25,7 @@ class Actors {
     * This might be loaded from a file or a library
    */
 
-
+  implicit val instance = memory.instance
 
 
   def query(): Unit = {
@@ -43,7 +43,8 @@ class Actors {
       * finally, from the same view, we collect all of the actors in the set LinkedToTomCruise using a predefined query, and print their names
       */
 
-    using(DBOpen("/path/to/sql/database", Schema)){
+
+    using(DBOpen("/path/to/sql/database", Schema.description)){
       view: View => view.execute(
         for {
           actors <- find((coactor |*| 4).from(tomCruise))
@@ -56,7 +57,7 @@ class Actors {
   }
 
   def paths(): Unit = {
-    using(DBOpen("/path/to/database", Schema)){
+    using(DBOpen("/path/to/database", Schema.description)){
       view: View => view.execute(
         allShortestPaths(jenniferLawrence, coactor)
       ).proj
@@ -64,7 +65,7 @@ class Actors {
   }
 
   def borders(): Unit = {
-    using(DBOpen("/path/to/database", Schema)){
+    using(DBOpen("/path/to/database", Schema.description)){
       view: View => view.execute(
         for {
           pairs <- findPairsDistinct(Borders.*.tree)

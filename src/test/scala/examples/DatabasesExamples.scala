@@ -13,8 +13,10 @@ import scala.concurrent.ExecutionContext.Implicits.global // global execution co
   * Created by Al on 15/10/2017.
   */
 class DatabasesExamples {
+  implicit val instance = memory.instance
+
   def query: Unit = {
-    using(DBOpen("/path/to/sql/database", Schema)){
+    using(DBOpen("/path/to/sql/database", Schema.description)){
       view: View => view.execute(
         for {
           actors <- find(coactor.from(jenniferLawrence))
