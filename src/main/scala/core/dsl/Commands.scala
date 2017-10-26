@@ -28,11 +28,11 @@ object Commands {
    * Find a set of distinct elements that match a query
    */
 
-  def findDistinct[A](t: FindSingle[A])(implicit d: DBInstance, e: ExecutionContext): Operation[E, Set[A]] = d.executor.findDistinct(t)
+  def findDistinct[A](t: FindSingle[A])(implicit d: DBInstance, e: ExecutionContext, ea: Extractor[A]): Operation[E, Set[A]] = d.executor.findDistinct(t)
   /*
    * Find distinct pairs that are related by the findpair
    */
-  def findPair[A, B](t: FindPair[A, B])(implicit d: DBInstance, e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]] = d.executor.findAllPairs(t) // a multiset
+  def findPairsDistinct[A, B](t: FindPair[A, B])(implicit d: DBInstance, e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Set[(A, B)]] = d.executor.findDistinctPairs(t) // a multiset
 
 
   /*

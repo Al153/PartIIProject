@@ -9,5 +9,5 @@ import schema.RelationName
 sealed trait MemoryObject {
   def relations: Map[RelationName, Vector[MemoryObject]]
   def revRelations: Map[RelationName, Vector[MemoryObject]]
-  def value: Vector[DBObject]
+  def value: DBObject
 }

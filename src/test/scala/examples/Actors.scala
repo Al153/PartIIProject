@@ -9,6 +9,7 @@ import view.View
 
 import scalaz.\/-
 
+import db.memory.InMemoryExecutor
 import scala.concurrent.ExecutionContext.Implicits.global // global execution context
 
 /**
@@ -66,7 +67,7 @@ class Actors {
     using(DBOpen("/path/to/database", Schema)){
       view: View => view.execute(
         for {
-          pairs <- findDistinct(Borders.*.pair)
+          pairs <- findPairsDistinct(Borders.*.tree)
           _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
         } yield ()
       ).proj

@@ -30,13 +30,13 @@ trait DBExecutor {
    * Find a set of distinct elements that match a query
    */
 
-  def findDistinct[A](t: FindSingle[A])(implicit e: ExecutionContext): Operation[E, Set[A]]
+  def findDistinct[A](t: FindSingle[A])(implicit e: ExecutionContext, extractor: Extractor[A]): Operation[E, Set[A]]
 
   /*
    * Find a set of distinct pairs that match a query
    */
 
-  def findDistinctPairs[A, B](t: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]]
+  def findDistinctPairs[A, B](t: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Set[(A, B)]]
 
   /*
    * given a pair of nodes and a relational query, try to find a path from start to end

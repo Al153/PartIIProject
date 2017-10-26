@@ -42,10 +42,28 @@ package object memory {
     }
   }
 
-  def findPairs(t: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
-    def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairs(t, left, tree)
+  def findSingleSet(t: UnsafeFindSingle, tree: MemoryTree): E \/ Set[MemoryObject] = {
+    def recurse(t: UnsafeFindSingle) = findSingleSet(t, tree)
 
     t match {
+      case USFind(pattern) =>
+        for {
+          broad <- tree.get(pattern.tableName).map(_.objects.toSet).fold(\/.left[E, Set[MemoryObject]](MissingTableName(pattern.tableName)))(_.right[E])
+        } yield broad.filter(matches(_, pattern))
+      case USFrom(start, rel) => for {
+        left <- recurse(start)
+        res <- findPairsSet(rel, left, tree).map(v => v.map(_._2))
+      } yield res
+      case USNarrowS(start, pattern) => for {
+        broad <- recurse(start)
+      } yield broad.filter(matches(_, pattern)) // todo: this should be more typesafe
+    }
+  }
+
+  def findPairs(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
+    def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairs(t, left, tree)
+
+    q match {
       case USAnd(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
@@ -74,7 +92,7 @@ package object memory {
         if (n <= 0) left.map(x => (x, x)).right
         else for {
           lres <- recurse(rel, left)
-          rres <- fixedPoint(left => findPairsSet(rel, left)(tree), lres.mapProj2.toSet.map(x => (x, x)), Number(n))
+          rres <- fixedPoint(left => findPairsSet(rel, left, tree), lres.mapProj2.toSet.mapPair, Number(n))
         } yield join(lres, rres.toVector)
       case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
       case USAtleast(n, rel) =>
@@ -83,7 +101,7 @@ package object memory {
         } else {
           // otherwise find a fixed point
           for {
-            res <- fixedPoint(left => findPairsSet(rel, left, tree), left.toSet.map(x => (x, x)), NoLimit)
+            res <- fixedPoint(left => findPairsSet(rel, left, tree), left.toSet.mapPair, NoLimit)
           } yield res.toVector
         }
       case USExactly(n, rel) => if (n <= 0) {
@@ -147,12 +165,27 @@ package object memory {
 
   def fixedPoint(searchStep: (Set[MemoryObject]) => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
     def aux(pairsToExplore: Set[RelatedPair], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = for {
-      foundPairs <- searchStep(pairsToExplore)
-      newPairs = foundPairs.filter {case (_, r) => !alreadyExplored.contains(r)}
-      newAcc = acc | joinSet(acc, newPairs)
+      foundPairs <- searchStep(pairsToExplore.mapProj2)
+      newPairs: Set[RelatedPair] = notExplored(foundPairs, alreadyExplored)
+      newAcc: Set[RelatedPair] = acc | joinSet(acc, newPairs)
+
       res <- limit match {
-        case Number(n) => if (newPairs.isEmpty || n <= 1) newAcc.right else aux(newPairs, alreadyExplored | newPairs.map(_._1), newAcc, Number(n-1))
-        case NoLimit => if (newPairs.isEmpty) newAcc.right else aux(newPairs, alreadyExplored | newPairs.mapProj1, newAcc, NoLimit)
+        case Number(n) =>
+          if (shouldContinue(newPairs, n))
+            newAcc.right
+          else {
+            val newExplored = alreadyExplored | newPairs.mapProj1
+            aux(newPairs, newExplored, newAcc, Number(n-1))
+          }
+
+        case NoLimit =>
+          if (newPairs.isEmpty)
+            newAcc.right
+          else {
+            val newExplored = alreadyExplored | newPairs.mapProj1
+            aux(newPairs, newExplored, newAcc, NoLimit)
+          }
+
       }
     } yield res
 
@@ -161,6 +194,13 @@ package object memory {
       case _ => aux(initial, initial.mapProj1, initial, limit)
     }
   }
+
+  // Filter out the unexplored pairs
+  private def notExplored(found: Set[RelatedPair], explored: Set[MemoryObject]): Set[(MemoryObject, MemoryObject)] = found.filter {case (_, r) => !explored.contains(r)}
+
+  // Determine whether to continue
+
+  private def shouldContinue(newPairs: Set[RelatedPair], n: Int): Boolean = newPairs.isEmpty || n <= 1
 
   // slow join
 

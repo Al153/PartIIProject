@@ -19,13 +19,18 @@ abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: S
     From(Find(a), tree)
   }
 
+  def from(a: A) = {
+    From(Find(sa.findable(a)), tree)
+  }
+
 
   // chain together two queries in sequence
   private[dsl] def plus[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]) = {
     val left = this
+    implicit val outerSb = sb
     new RelationalQuery[A, C] {
       override def tree: FindPair[A, C] =
-        Chain(Narrow(left.tree, middle), right.tree)
+        Chain(Narrow(left.tree, middle), right.tree)(sa, outerSb, sc)
     }
   }
 
@@ -60,7 +65,7 @@ object RelationalQuery {
       override def tree: FindPair[A, A] = Exactly(n, u.tree)(u.sa)
     }
     def * : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
-      override def tree: FindPair[A, A] = Atleast(0, u.tree)
+      override def tree: FindPair[A, A] = Atleast(0, u.tree)(u.sa)
     }
     def ? : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
       override def tree: FindPair[A, A] = Upto(1, u.tree)(u.sa)
@@ -68,11 +73,11 @@ object RelationalQuery {
   }
 
   def emptyRelation[A](implicit sa: SchemaObject[A]): RelationalQuery[A, A] = new RelationalQuery[A, A] {
-    override def tree: FindPair[A, A] = intermediate.Id[A]()
+    override def tree: FindPair[A, A] = intermediate.Id[A]()(sa)
   }
 
-  implicit def relationMonoid[A](implicit schema: SchemaObject[A]) = new Monoid[RelationalQuery[A, A]] {
-    override def zero: RelationalQuery[A, A] = emptyRelation[A](schema)
+  implicit def relationMonoid[A](implicit sa: SchemaObject[A]) = new Monoid[RelationalQuery[A, A]] {
+    override def zero: RelationalQuery[A, A] = emptyRelation[A](sa)
 
     override def append(f1: RelationalQuery[A, A], f2: => RelationalQuery[A, A]): RelationalQuery[A, A] = f1 -->--> f2
   }

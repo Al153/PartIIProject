@@ -36,19 +36,19 @@ object Schema {
   implicit def actorSchema = new SchemaObject1[Actor, String] {
     override def construct(a1: String): Actor = Actor(a1)
     override def name: TableName = TableName("Actors")
-    override def toTuple(a: Actor): DBTuple1[Actor, String] = DBTuple1(a.name)
+    override def toTuple(a: Actor): DBTuple1[Actor, String] = DBTuple1(name, a.name)
   }
 
   implicit def movieSchema = new schema.SchemaObject2[Movie, String, String] {
     override def construct(a1: String, a2: String): Movie = Movie(a1, Genre(a2))
     override def name: TableName = TableName("Movies")
-    override def toTuple(m: Movie): DBTuple2[Movie, String, String] = DBTuple2(m.name, m.g.g)
+    override def toTuple(m: Movie): DBTuple2[Movie, String, String] = DBTuple2(name, m.name, m.g.g)
   }
 
   implicit def DateSchema = new SchemaObject3[Date, Int, Int, Int] {
     override def construct(year: Int, month: Int, day: Int): Date = Date(year, month, day)
     override def name: TableName = TableName("Dates")
-    override def toTuple(a: Date): DBTuple3[Date, Int, Int, Int] = DBTuple3(a.year, a.month, a.day)
+    override def toTuple(a: Date): DBTuple3[Date, Int, Int, Int] = DBTuple3(name, a.year, a.month, a.day)
   }
 
   implicit def CountrySchema = new SchemaObject1[Country, String] {
@@ -56,7 +56,7 @@ object Schema {
     private val reverseLookup = lookup.map { case (a, b) => b -> a }
     override def construct(a1: String): Country = lookup.getOrElse(a1, NoCountry)
     override def name: TableName = TableName("Countries")
-    override def toTuple(a: Country): DBTuple1[Country, String] = DBTuple1(reverseLookup.getOrElse(a, "n/a"))
+    override def toTuple(a: Country): DBTuple1[Country, String] = DBTuple1(name, reverseLookup.getOrElse(a, "n/a"))
   }
 
 

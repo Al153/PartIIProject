@@ -6,29 +6,69 @@ import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
 import core.intermediate._
-import core.intermediate.unsafe._
-import db.common._
 import db.interfaces.{DBExecutor, Extractor}
-import schema.{Findable, RelationName, SchemaObject, TableName}
-import view.View
+import schema.{RelationName, SchemaObject}
 import utils._
+import view.View
 
 import scala.concurrent.ExecutionContext
-import scalaz.Scalaz._
-import scalaz._
 
 
 /**
   * Created by Al on 22/10/2017.
   */
 class InMemoryExecutor extends DBExecutor {
-  override def findAll[A](q: FindSingle[A])(implicit e: ExecutionContext, extractor: Extractor[A]): Operation[E, Vector[A]] = readOp(t => findSingle(q.getUnsafe, t).flatMap(extractor.fromRow))
+  override def findAll[A](q: FindSingle[A])(implicit e: ExecutionContext, ea: Extractor[A]): Operation[E, Vector[A]] =
+    readOp(
+      t =>
+        for {
+          v <- findSingle(q.getUnsafe, t)
+          res <- EitherOps.sequence(v.map(o => ea.fromRow(o.value)))
+        } yield res
+    )
 
-  override def findAllPairs[A, B](t: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]] = readOp(???)
+  override def findAllPairs[A, B](q: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]] =
+    readOp {
+      t =>
+        for {
+          initial <- findSingle(Find(q.sa.generalPattern)(q.sa).getUnsafe, t)
+          v <- findPairs(q.getUnsafe, initial, t)
+          res <- EitherOps.sequence(
+            v.map {
+              case (l, r) =>
+                for {
+                  a <- ea.fromRow(l.value)
+                  b <- eb.fromRow(r.value)
+                } yield (a, b)
+            })
+        } yield res
+    }
 
-  override def findDistinct[A](t: FindSingle[A])(implicit e: ExecutionContext): Operation[E, Set[A]] = ???
+  override def findDistinct[A](q: FindSingle[A])(implicit e: ExecutionContext, ea: Extractor[A]): Operation[E, Set[A]] =
+    readOp(
+      t =>
+        for {
+          v <- findSingleSet(q.getUnsafe, t)
+          res <- EitherOps.sequence(v.map(o => ea.fromRow(o.value)))
+        } yield res
+    )
 
-  override def findDistinctPairs[A, B](t: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Vector[(A, B)]] = ???
+  override def findDistinctPairs[A, B](q: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B]): Operation[E, Set[(A, B)]] =
+    readOp {
+      t =>
+        for {
+          initial <- findSingleSet(Find(q.sa.generalPattern)(q.sa).getUnsafe, t)
+          v <- findPairsSet(q.getUnsafe, initial, t)
+          res <- EitherOps.sequence(
+            v.map {
+              case (l, r) =>
+                for {
+                  a <- ea.fromRow(l.value)
+                  b <- eb.fromRow(r.value)
+                } yield (a, b)
+            })
+        } yield res
+    }
 
   override def shortestPath[A](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A]): Operation[E, Option[Path[A]]] = ???
 
