@@ -1,13 +1,14 @@
 package db
 
-import core.containers.Operation
+import core.containers.{ErasedPath, Operation}
 import core.error.E
 import core.intermediate.unsafe._
-import db.common.{Limit, MissingTableName, NoLimit, Number}
+import db.common._
 import db.interfaces.DBInstance
 import schema.TableName
 import utils._
 
+import scala.collection.immutable.Queue
 import scalaz.Scalaz._
 import scalaz._
 
@@ -166,7 +167,7 @@ package object memory {
     }
   }
 
-  def fixedPoint(searchStep: (Set[MemoryObject]) => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
+  def fixedPoint(searchStep: Set[MemoryObject] => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
     def aux(pairsToExplore: Set[RelatedPair], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = for {
       foundPairs <- searchStep(pairsToExplore.mapProj2)
       newPairs: Set[RelatedPair] = notExplored(foundPairs, alreadyExplored)
@@ -199,7 +200,7 @@ package object memory {
   }
 
   // Filter out the unexplored pairs
-  private def notExplored(found: Set[RelatedPair], explored: Set[MemoryObject]): Set[(MemoryObject, MemoryObject)] = found.filter {case (_, r) => !explored.contains(r)}
+  private def notExplored(found: Set[RelatedPair], explored: Set[MemoryObject]): Set[RelatedPair] = found.filter {case (_, r) => !explored.contains(r)}
 
   // Determine whether to continue
 
@@ -220,7 +221,79 @@ package object memory {
     } yield (from, right)
 
 
+  // Breadth first == dijkstra's
+
+  def allShortestPaths(start: Set[MemoryObject], searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ Set[MemoryPath] = {
+    def aux(fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject], acc: Set[MemoryPath]): E \/ Set[MemoryPath] = {
+      for {
+        stepResult <- doStep(searchStep, fringe, alreadyExplored)
+
+        (newFringe, path, objects) = stepResult
+
+        newExplored = alreadyExplored | objects
+        newAcc = acc | objects.map(path + _)
+        res <-
+        if (newFringe.isEmpty)
+          newAcc.right
+        else
+          aux(newFringe, newExplored, newAcc)
+      } yield res
+    }
+
+    aux(toQueue(start.map(MemoryPath.apply)), Set(), Set())
+  }
+
+  // Step function, fringe => NewFringe, pickedPath, newlyFound
+  private def doStep(searchStep: MemoryObject => E \/ Set[RelatedPair], fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject]): E \/ (Queue[MemoryPath], MemoryPath, Set[MemoryObject]) =
+    if (fringe.nonEmpty) {
+      val top = fringe.head
+      val newFringe = fringe.tail
+
+      for {
+        next <- searchStep(top.getLast)
+        newObjects = next.mapProj2.diff(alreadyExplored)
+      } yield (newFringe, top, newObjects)
+    } else {
+      ??? // todo return some error
+    }
+
+  private def toQueue[A](s: Set[A]): Queue[A] = ??? // todo: convert a set to queue, order doesn't matter
 
 
+  def singleShortestsPath(start: Set[MemoryObject], end: UnsafeFindable, searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ MemoryPath = {
+    def aux(fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject], acc: Set[MemoryPath]): E \/ MemoryPath = {
+      for {
+        stepResult <- doStep(searchStep, fringe, alreadyExplored)
+        (newFringe, path, objects) = stepResult
+      
+        res <- objects.find(matches(_, end)) match {
+          case None =>
+            val newExplored = alreadyExplored | objects
+            val newAcc = acc | objects.map(path + _)
+            if (newFringe.isEmpty) ??? // todo: return some error
+            else aux(newFringe, newExplored, newAcc)
+          case Some(o) => (path + o).right
+        }
+      } yield res
+    }
+
+    aux(toQueue(start.map(MemoryPath.apply)), Set(), Set())
+  }
+
+
+  case class MemoryPath private (p: Vector[MemoryObject]) {
+    def toErasedPath = new ErasedPath {
+      override def getSteps: Vector[(DBObject, DBObject)] = ???
+      override def getStart: DBObject = getSteps.head._1
+      override def getEnd: DBObject = getSteps.last._2
+    }
+
+    def +(m: MemoryObject): MemoryPath = MemoryPath(p :+ m)
+    def getLast: MemoryObject = p.last
+  }
+
+  object MemoryPath {
+    def apply(p: MemoryObject): MemoryPath = new MemoryPath(Vector(p))
+  }
 
 }
