@@ -1,8 +1,5 @@
 package view
 
-import core.error.E
-import core.containers.{ConstrainedFuture, Operation}
-
 /**
   * Created by Al on 13/10/2017.
   *
@@ -12,7 +9,5 @@ import core.containers.{ConstrainedFuture, Operation}
   * queries to the underlying SQL
   */
 trait View {
-  val id: Long
-  val dependents: Set[View]
-  def execute[A](q: Operation[E, A]): ConstrainedFuture[E, (A, View)] = q.runView(this)
+  def id: Long
 }

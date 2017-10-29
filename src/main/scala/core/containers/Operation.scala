@@ -37,8 +37,10 @@ case class Operation[E, A](runView: View => ConstrainedFuture[E, (A, View)])(imp
 }
 
 object Operation {
-  implicit def extractInterface[E](implicit ec: ExecutionContext) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
+  implicit def OperationInterface[E](implicit ec: ExecutionContext) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
     def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(???))
     def bind[A, B](fa: Operation[E, A])(f: (A) => Operation[E, B]): Operation[E, B] = fa.flatMap(f)
   }
+
+  def either[E, A](f: View => E \/ (A, View))(recover: Throwable => E)(implicit ec: ExecutionContext) = Operation(v => ConstrainedFuture.either(f(v))(recover))
 }

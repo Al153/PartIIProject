@@ -8,8 +8,7 @@ import schema.SchemaDescription
 /**
   * Created by Al on 22/10/2017.
   */
-class MemoryDB extends DBBackend {
-  val executor = new InMemoryExecutor
+object MemoryDB extends DBBackend {
 
   override def open(address: DatabaseAddress, schema: SchemaDescription): ConstrainedFuture[E, DBInstance] = {
     ???

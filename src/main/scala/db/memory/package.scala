@@ -1,11 +1,12 @@
 package db
 
-import core.containers.{ErasedPath, Operation}
+import core.containers.Operation
 import core.error.E
+import core.intermediate.Find
 import core.intermediate.unsafe._
 import db.common._
 import db.interfaces.DBInstance
-import schema.TableName
+import schema.{RelationName, SchemaObject, TableName}
 import utils._
 
 import scala.collection.immutable.Queue
@@ -15,30 +16,32 @@ import scalaz._
 /**
   * Created by Al on 20/10/2017.
   *
-  * An in-memory database exectutor
+  * An in-memory database executor
   */
 package object memory {
   type MemoryTree = Map[TableName, MemoryTable]
   type RelatedPair = (MemoryObject, MemoryObject)
 
+  implicit class MemoryTreeOps(memoryTree: MemoryTree) {
+    def findObj(findable: UnsafeFindable): E \/ Vector[MemoryObject] = for {
+      table <- memoryTree.get(findable.tableName).fold(\/.left[E, MemoryTable](MissingTableName(findable.tableName)))(_.right)
+
+      res <- table.find(findable)
+    } yield res
+  }
+
   def matches(o: MemoryObject, p: UnsafeFindable): Boolean = ??? // check that the object matches the pattern
-  def readOp[A](f: MemoryTree => E \/ A): Operation[E, A] = ???
-
-  def instance: DBInstance = ???
 
 
 
-  def findSingle(t: UnsafeFindSingle, tree: MemoryTree): E \/ Vector[MemoryObject] = {
-    def recurse(t: UnsafeFindSingle) = findSingle(t, tree)
+  def findSingleImpl(t: UnsafeFindSingle, tree: MemoryTree): E \/ Vector[MemoryObject] = {
+    def recurse(t: UnsafeFindSingle) = findSingleImpl(t, tree)
 
     t match {
-      case USFind(pattern) =>
-        for {
-          broad <- tree.get(pattern.tableName).map(_.objects).fold(\/.left[E, Vector[MemoryObject]](MissingTableName(pattern.tableName)))(_.right[E])
-        } yield broad.filter(matches(_, pattern))
+      case USFind(pattern) => tree.get(pattern.tableName).fold(\/.left[E, Vector[MemoryObject]](MissingTableName(pattern.tableName)))(_.find(pattern))
       case USFrom(start, rel) => for {
         left <- recurse(start)
-        res <- findPairs(rel, left, tree).map(v => v.map(_._2))
+        res <- findPairsImpl(rel, left, tree).map(v => v.map(_._2))
       } yield res
       case USNarrowS(start, pattern) => for {
         broad <- recurse(start)
@@ -46,17 +49,14 @@ package object memory {
     }
   }
 
-  def findSingleSet(t: UnsafeFindSingle, tree: MemoryTree): E \/ Set[MemoryObject] = {
-    def recurse(t: UnsafeFindSingle) = findSingleSet(t, tree)
+  def findSingleSetImpl(t: UnsafeFindSingle, tree: MemoryTree): E \/ Set[MemoryObject] = {
+    def recurse(t: UnsafeFindSingle) = findSingleSetImpl(t, tree)
 
     t match {
-      case USFind(pattern) =>
-        for {
-          broad <- tree.get(pattern.tableName).map(_.objects.toSet).fold(\/.left[E, Set[MemoryObject]](MissingTableName(pattern.tableName)))(_.right[E])
-        } yield broad.filter(matches(_, pattern))
+      case USFind(pattern) => tree.get(pattern.tableName).fold(\/.left[E, Set[MemoryObject]](MissingTableName(pattern.tableName)))(_.find(pattern).map(_.toSet))
       case USFrom(start, rel) => for {
         left <- recurse(start)
-        res <- findPairsSet(rel, left, tree).map(v => v.map(_._2))
+        res <- findPairsSetImpl(rel, left, tree).map(v => v.map(_._2))
       } yield res
       case USNarrowS(start, pattern) => for {
         broad <- recurse(start)
@@ -64,8 +64,8 @@ package object memory {
     }
   }
 
-  def findPairs(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
-    def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairs(t, left, tree)
+  def findPairsImpl(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
+    def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairsImpl(t, left, tree)
 
     q match {
       case USAnd(l, r) => for {
@@ -88,15 +88,31 @@ package object memory {
         broad <- recurse(l, left)
       } yield broad.filter(pair => matches(pair._2, p))
 
-      case USRel(rel) => \/-(left.flatMap(o => o.relations.getOrElse(rel.name, Vector()).map((o, _))))
+      case USRel(rel) =>
+          EitherOps.sequence(left.map {
+            leftObject: MemoryObject => {
+              val relatedPatterns = leftObject.getRelated(rel.name).toVector
+              val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+              val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+              res
+            }
+          }).flatMap(identity)
 
-      case USRevRel(rel) => \/-(left.flatMap(o => o.revRelations.getOrElse(rel.name, Vector()).map((o, _))))
+
+      case USRevRel(rel) =>
+        EitherOps.sequence(left.map {
+          leftObject: MemoryObject => {
+            val relatedPatterns = leftObject.getRevRelated(rel.name).toVector
+            val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+            eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+          }
+        }).flatMap(identity)
 
       case USUpto(n, rel) =>
         if (n <= 0) left.map(x => (x, x)).right
         else for {
           lres <- recurse(rel, left)
-          rres <- fixedPoint(left => findPairsSet(rel, left, tree), lres.mapProj2.toSet.mapPair, Number(n))
+          rres <- fixedPoint(left => findPairsSetImpl(rel, left, tree), lres.mapProj2.toSet.mapPair, Number(n))
         } yield join(lres, rres.toVector)
       case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
       case USAtleast(n, rel) =>
@@ -105,7 +121,7 @@ package object memory {
         } else {
           // otherwise find a fixed point
           for {
-            res <- fixedPoint(left => findPairsSet(rel, left, tree), left.toSet.mapPair, NoLimit)
+            res <- fixedPoint(left => findPairsSetImpl(rel, left, tree), left.toSet.mapPair, NoLimit)
           } yield res.toVector
         }
       case USExactly(n, rel) => if (n <= 0) {
@@ -116,8 +132,8 @@ package object memory {
     }
   }
 
-  def findPairsSet(t: UnsafeFindPair, left: Set[MemoryObject], tree: MemoryTree): E \/ Set[RelatedPair] = {
-    def recurse(t: UnsafeFindPair, left: Set[MemoryObject]) = findPairsSet(t, left, tree)
+  def findPairsSetImpl(t: UnsafeFindPair, left: Set[MemoryObject], tree: MemoryTree): E \/ Set[RelatedPair] = {
+    def recurse(t: UnsafeFindPair, left: Set[MemoryObject]) = findPairsSetImpl(t, left, tree)
     t match {
       case USAnd(l, r) => for {
         leftRes <- recurse(l, left)
@@ -139,15 +155,28 @@ package object memory {
         broad <- recurse(l, left)
       } yield broad.filter(pair => matches(pair._2, p))
 
-      case USRel(rel) => \/-(left.flatMap(o => o.relations.getOrElse(rel.name, Vector()).map((o, _))))
+      case USRel(rel) =>  EitherOps.sequence(left.map {
+        leftObject: MemoryObject => {
+          val relatedPatterns = leftObject.getRelated(rel.name).toVector
+          val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+          eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+        }
+      }).flatMap(identity)
 
-      case USRevRel(rel) => \/-(left.flatMap(o => o.revRelations.getOrElse(rel.name, Vector()).map((o, _))))
+      case USRevRel(rel) =>
+        EitherOps.sequence(left.map {
+          leftObject: MemoryObject => {
+            val relatedPatterns = leftObject.getRelated(rel.name).toVector
+          val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+          eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+        }
+      }).flatMap(identity)
 
       case USUpto(n, rel) =>
         if (n <= 0) left.map(x => (x, x)).right
         else for {
           lres <- recurse(rel, left)
-          rres <- fixedPoint(left => findPairsSet(rel, left, tree), lres.mapProj2.map(x => (x, x)), Number(n))
+          rres <- fixedPoint(left => findPairsSetImpl(rel, left, tree), lres.mapProj2.map(x => (x, x)), Number(n))
         } yield joinSet(lres, rres)
       case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
       case USAtleast(n, rel) =>
@@ -156,7 +185,7 @@ package object memory {
         } else {
           // otherwise find a fixed point
           for {
-            res <- fixedPoint(left => findPairsSet(rel, left, tree), left.map(x => (x, x)), NoLimit)
+            res <- fixedPoint(left => findPairsSetImpl(rel, left, tree), left.map(x => (x, x)), NoLimit)
           } yield res
         }
       case USExactly(n, rel) => if (n <= 0) {
@@ -223,7 +252,7 @@ package object memory {
 
   // Breadth first == dijkstra's
 
-  def allShortestPaths(start: Set[MemoryObject], searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ Set[MemoryPath] = {
+  def allShortestPathsImpl(start: Set[MemoryObject], searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ Set[MemoryPath] = {
     def aux(fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject], acc: Set[MemoryPath]): E \/ Set[MemoryPath] = {
       for {
         stepResult <- doStep(searchStep, fringe, alreadyExplored)
@@ -254,25 +283,24 @@ package object memory {
         newObjects = next.mapProj2.diff(alreadyExplored)
       } yield (newFringe, top, newObjects)
     } else {
-      ??? // todo return some error
+      EmptyFringeError.left // todo return some error
     }
 
-  private def toQueue[A](s: Set[A]): Queue[A] = ??? // todo: convert a set to queue, order doesn't matter
+  private def toQueue[A](s: Set[A]): Queue[A] = Queue(s.toSeq: _*) // todo: is this fast?
 
 
-  def singleShortestsPath(start: Set[MemoryObject], end: UnsafeFindable, searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ MemoryPath = {
-    def aux(fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject], acc: Set[MemoryPath]): E \/ MemoryPath = {
+  def singleShortestsPathImpl(start: Set[MemoryObject], end: UnsafeFindable, searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ Option[MemoryPath] = {
+    def aux(fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject], acc: Set[MemoryPath]): E \/ Option[MemoryPath] = {
       for {
         stepResult <- doStep(searchStep, fringe, alreadyExplored)
         (newFringe, path, objects) = stepResult
-      
         res <- objects.find(matches(_, end)) match {
           case None =>
             val newExplored = alreadyExplored | objects
             val newAcc = acc | objects.map(path + _)
-            if (newFringe.isEmpty) ??? // todo: return some error
+            if (newFringe.isEmpty) None.right // return no result
             else aux(newFringe, newExplored, newAcc)
-          case Some(o) => (path + o).right
+          case Some(o) => (path + o).some.right
         }
       } yield res
     }
@@ -281,19 +309,22 @@ package object memory {
   }
 
 
-  case class MemoryPath private (p: Vector[MemoryObject]) {
-    def toErasedPath = new ErasedPath {
-      override def getSteps: Vector[(DBObject, DBObject)] = ???
-      override def getStart: DBObject = getSteps.head._1
-      override def getEnd: DBObject = getSteps.last._2
-    }
+  def find[A](a: A, t: MemoryTree)(implicit sa: SchemaObject[A]): E \/ Set[MemoryObject] = findSingleImpl(Find(sa.findable(a)).getUnsafe, t).map(_.toSet)
 
-    def +(m: MemoryObject): MemoryPath = MemoryPath(p :+ m)
-    def getLast: MemoryObject = p.last
-  }
 
-  object MemoryPath {
-    def apply(p: MemoryObject): MemoryPath = new MemoryPath(Vector(p))
+  def write[A](t: MemoryTree)(tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, tableName2: TableName, memoryObject2: UnsafeFindable): E \/ MemoryTree = {
+    for {
+      table1 <- t.get(tableName1).fold(\/.left[E, MemoryTable](MissingTableName(tableName1)))(_.right)
+      table2 <- t.get(tableName2).fold(\/.left[E, MemoryTable](MissingTableName(tableName2)))(_.right)
+
+      o1 <- table1.findOrWrite(memoryObject1)
+      updatedO1 =  o1.map(_.addRelation(relationName, memoryObject2))
+      o2 <- table2.findOrWrite(memoryObject2)
+      updatedO2 = o2.map(_.addReverseRelation(relationName, memoryObject1))
+
+
+      res = t + (tableName1 -> table1.insert(updatedO1), tableName2 -> table2.insert(updatedO2))
+    } yield res
   }
 
 }

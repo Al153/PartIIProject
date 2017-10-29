@@ -1,3 +1,4 @@
+import core.intermediate.unsafe.UnsafeFindable
 import db.common.DBCell
 
 import scalaz.Scalaz._
@@ -14,6 +15,7 @@ package object schema {
   sealed trait Findable[A] { // Can be found in the database (not necessarily complete data)
     def pattern: Vector[Option[DBCell]]
     def tableName: TableName
+    def getUnsafe = UnsafeFindable(pattern, tableName)
   }
   sealed trait Writeable[A] // can be written to the database (necessarily complete data)
 

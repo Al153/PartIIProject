@@ -3,8 +3,8 @@ package db.common
 /**
   * Created by Al on 20/10/2017.
   */
-sealed trait DBObject
-case class DBRow(fields: Vector[DBCell]) extends DBObject
+
+case class DBObject(fields: Vector[DBCell])
 
 
 sealed trait DBCell

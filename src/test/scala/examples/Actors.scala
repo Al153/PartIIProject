@@ -4,13 +4,12 @@ import core.concrete.relations.CompletedRelation
 import core.dsl.Commands._
 import core.{RelationAttributes, Singleton}
 import db._
+import db.memory.MemoryDB
 import examples.Schema.{Borders, Country}
-import view.View
 
-import scalaz.\/-
-
-import db.memory.InMemoryExecutor
-import scala.concurrent.ExecutionContext.Implicits.global // global execution context
+import scala.concurrent.ExecutionContext.Implicits.global
+import db.interfaces.DatabaseAddress._
+import scalaz.\/- // global execution context
 
 /**
   * Created by Al on 15/10/2017.
@@ -24,8 +23,6 @@ class Actors {
     * Define the schema we expect from the database
     * This might be loaded from a file or a library
    */
-
-  implicit val instance = memory.instance
 
 
   def query(): Unit = {
@@ -44,34 +41,29 @@ class Actors {
       */
 
 
-    using(DBOpen("/path/to/sql/database", Schema.description)){
-      view: View => view.execute(
-        for {
+    using(MemoryDB.open("/path/to/sql/database".db, Schema.description)){
+
+      for {
           actors <- find((coactor |*| 4).from(tomCruise))
           namedActors = actors.filter(actor => actor.name.startsWith("A"))
           _ <- insert(namedActors.map(actor => CompletedRelation(point, LinkedToTomCruise: RelationAttributes[Singleton, Actor], actor)))
           currentLinked <- find(getLinked.from(point))
         } yield currentLinked
-      ).andThen {case \/-((actors, v)) => actors.foreach(println)}
-    }
+    }.andThen {case \/-(actors) => actors.foreach(println)}
   }
 
   def paths(): Unit = {
-    using(DBOpen("/path/to/database", Schema.description)){
-      view: View => view.execute(
-        allShortestPaths(jenniferLawrence, coactor)
-      ).proj
-    }
+    using(MemoryDB.open("/path/to/database".db, Schema.description)){
+      allShortestPaths(jenniferLawrence, coactor)
+    }.andThen {case \/-(paths) => paths.foreach(println)}
   }
 
   def borders(): Unit = {
-    using(DBOpen("/path/to/database", Schema.description)){
-      view: View => view.execute(
-        for {
+    using(MemoryDB.open("/path/to/database".db, Schema.description)){
+      for {
           pairs <- findPairsDistinct(Borders.*.tree)
           _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
         } yield ()
-      ).proj
     }
   }
 }

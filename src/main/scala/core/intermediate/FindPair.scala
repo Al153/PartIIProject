@@ -34,7 +34,7 @@ case class Chain[A, B, C](left: FindPair[A, B], right: FindPair[B, C])(implicit 
 }
 case class Narrow[A, B](rel: FindPair[A, B], pattern: Findable[B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
   override def reverse: FindPair[B, A] = Chain(Narrow(Id(), pattern), rel.reverse)
-  override def getUnsafe = USNarrow(rel.getUnsafe, UnsafeFindable(pattern))
+  override def getUnsafe = USNarrow(rel.getUnsafe, pattern.getUnsafe)
 }
 case class Id[A]()(implicit sa: SchemaObject[A]) extends FindPair[A, A] {
   override def reverse: FindPair[A, A] = this

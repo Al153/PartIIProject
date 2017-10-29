@@ -18,8 +18,8 @@ object Singleton {
   implicit def SingletonSchema: SchemaObject0[Singleton] = new SchemaObject0[Singleton] {
     override def construct(): Singleton = point
 
-    override def name: TableName = TableName("Singleton")
+    override def tableName: TableName = TableName("Singleton")
 
-    override def toTuple(a: Singleton): DBTuple0[Singleton] = new DBTuple0[Singleton](name)
+    override def toTuple(a: Singleton): DBTuple0[Singleton] = new DBTuple0[Singleton](tableName)
   }
 }

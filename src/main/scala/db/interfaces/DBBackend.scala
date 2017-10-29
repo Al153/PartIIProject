@@ -17,12 +17,6 @@ trait DBBackend {
 
 }
 
-sealed trait DatabaseAddress
-sealed trait ViewId
 
-trait DBInstance {
-  def getViews: Set[View]
-  def defaultView: View
-  def runView[A](v: View)(operation: Operation[E, A]): ConstrainedFuture[E, A]
-  def executor: DBExecutor
-}
+
+
