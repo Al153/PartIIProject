@@ -96,7 +96,7 @@ package object memory {
               val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
               res
             }
-          }).flatMap(identity)
+          }).map(_.flatten)
 
 
       case USRevRel(rel) =>
@@ -104,9 +104,10 @@ package object memory {
           leftObject: MemoryObject => {
             val relatedPatterns = leftObject.getRevRelated(rel.name).toVector
             val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
-            eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+            res
           }
-        }).flatMap(identity)
+        }).map(_.flatten)
 
       case USUpto(n, rel) =>
         if (n <= 0) left.map(x => (x, x)).right
@@ -155,22 +156,25 @@ package object memory {
         broad <- recurse(l, left)
       } yield broad.filter(pair => matches(pair._2, p))
 
-      case USRel(rel) =>  EitherOps.sequence(left.map {
-        leftObject: MemoryObject => {
-          val relatedPatterns = leftObject.getRelated(rel.name).toVector
-          val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
-          eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
-        }
-      }).flatMap(identity)
+      case USRel(rel) =>
+        EitherOps.sequence(left.map {
+          leftObject: MemoryObject => {
+            val relatedPatterns = leftObject.getRelated(rel.name).toVector
+            val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+            res
+          }
+        }).map(_.flatten)
 
       case USRevRel(rel) =>
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
-            val relatedPatterns = leftObject.getRelated(rel.name).toVector
-          val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
-          eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
-        }
-      }).flatMap(identity)
+            val relatedPatterns = leftObject.getRevRelated(rel.name).toVector
+            val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
+            res
+          }
+        }).map(_.flatten)
 
       case USUpto(n, rel) =>
         if (n <= 0) left.map(x => (x, x)).right

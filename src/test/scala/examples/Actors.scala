@@ -42,25 +42,28 @@ class Actors {
 
 
     using(MemoryDB.open("/path/to/sql/database".db, Schema.description)){
-
-      for {
+      implicit instance =>
+        for {
           actors <- find((coactor |*| 4).from(tomCruise))
           namedActors = actors.filter(actor => actor.name.startsWith("A"))
           _ <- insert(namedActors.map(actor => CompletedRelation(point, LinkedToTomCruise: RelationAttributes[Singleton, Actor], actor)))
           currentLinked <- find(getLinked.from(point))
         } yield currentLinked
-    }.andThen {case \/-(actors) => actors.foreach(println)}
+      }.andThen {case \/-(actors) => actors.foreach(println)}
   }
 
   def paths(): Unit = {
     using(MemoryDB.open("/path/to/database".db, Schema.description)){
-      allShortestPaths(jenniferLawrence, coactor)
+      implicit instance =>
+        allShortestPaths(jenniferLawrence, coactor)
     }.andThen {case \/-(paths) => paths.foreach(println)}
   }
 
   def borders(): Unit = {
     using(MemoryDB.open("/path/to/database".db, Schema.description)){
-      for {
+      implicit instance =>
+        for {
+
           pairs <- findPairsDistinct(Borders.*.tree)
           _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
         } yield ()

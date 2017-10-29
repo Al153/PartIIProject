@@ -7,5 +7,5 @@ import view.View
   * Created by Al on 07/10/2017.
   */
 package object db {
-  def using[A](edb: ConstrainedFuture[E, DBInstance])(action: => Operation[E, A]): ConstrainedFuture[E, A] = ???
+  def using[A](edb: ConstrainedFuture[E, DBInstance])(action: DBInstance => Operation[E, A]): ConstrainedFuture[E, A] = ???
 }
