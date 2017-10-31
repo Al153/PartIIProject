@@ -9,6 +9,6 @@ import schema.{SchemaComponent, TableName}
 
 sealed trait ExtractError extends E
 case class LengthMismatch() extends ExtractError
-case class SchemaMismatch(expected: SchemaComponent, actual: SchemaComponent) extends ExtractError
+case class SchemaMismatch(expected: SchemaComponent, actual: DBCell) extends ExtractError
 case class SchemaNumberMismatch(expected: DBObject, actual: DBObject) extends ExtractError
 case class MissingTableName(t: TableName) extends ExtractError

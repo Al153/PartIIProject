@@ -20,7 +20,7 @@ object Storeable {
     override def toDBCell(s: String): DBCell = DBString(s)
     override def get(dBCell: DBCell): \/[SchemaMismatch, String] = dBCell match {
       case DBString(s) => s.right
-      case _ => SchemaMismatch(SchemaComponent, ???).left
+      case _ => SchemaMismatch(SchemaComponent, dBCell).left
     }
   }
   implicit val storeableInt = new Storeable[Int] {
@@ -28,7 +28,7 @@ object Storeable {
     override def toDBCell(i: Int): DBCell = DBInt(i)
     override def get(dBCell: DBCell): \/[SchemaMismatch, Int] = dBCell match {
       case DBInt(i) => i.right
-      case _ => SchemaMismatch(SchemaComponent, ???).left
+      case _ => SchemaMismatch(SchemaComponent, dBCell).left
     }
   }
   implicit val storeableBoolean = new Storeable[Boolean] {
@@ -36,7 +36,7 @@ object Storeable {
     override def toDBCell(b: Boolean): DBCell = DBBool(b)
     override def get(dBCell: DBCell): \/[SchemaMismatch, Boolean] = dBCell match {
       case DBBool(b) => b.right
-      case _ => SchemaMismatch(SchemaComponent, ???).left
+      case _ => SchemaMismatch(SchemaComponent, dBCell).left
     }
   }
   implicit val storeableDouble = new Storeable[Double] {
@@ -44,7 +44,7 @@ object Storeable {
     override def toDBCell(d: Double): DBCell = DBDouble(d)
     override def get(dBCell: DBCell): \/[SchemaMismatch, Double] = dBCell match {
       case DBDouble(d) => d.right
-      case _ => SchemaMismatch(SchemaComponent, ???).left
+      case _ => SchemaMismatch(SchemaComponent, dBCell).left
     }
   }
 }

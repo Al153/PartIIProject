@@ -1,21 +1,18 @@
 package db.memory
 
 import core.error.E
-import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
-import db.common.{DBCell, LengthMismatch, SchemaMismatch}
-import schema.SchemaDescription
+import core.intermediate.unsafe.UnsafeFindable
+import db.common.{DBCell, LengthMismatch}
 
-import scalaz.\/
-import scalaz._
-import Scalaz._
 import scala.collection.mutable
+import scalaz.Scalaz._
+import scalaz.{\/, _}
 
 /**
   * Created by Al on 25/10/2017.
   */
 
 sealed trait MemoryTable {
-  def schema: SchemaObjectErased
   def objects: Vector[MemoryObject]
 
   def index: Vector[Map[DBCell, Set[MemoryObject]]] // to speed up lookup of values
@@ -70,6 +67,4 @@ case class MemoryTableImpl(objects: Vector[MemoryObject], index: Vector[Map[DBCe
     MemoryTableImpl(newOs, newIndex)
 
   }
-
-  override def schema: SchemaObjectErased = ???
 }

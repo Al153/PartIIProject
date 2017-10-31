@@ -1,7 +1,7 @@
 package core
 
 import core.dsl.UnaryQuery
-import core.intermediate.FindPair
+import core.intermediate.{FindPair, Id}
 import schema.{DBTuple0, SchemaObject0, TableName}
 
 
@@ -9,7 +9,7 @@ import schema.{DBTuple0, SchemaObject0, TableName}
   * Created by Al on 09/10/2017.
   */
 case class Singleton() extends UnaryQuery[Singleton]()(Singleton.SingletonSchema) {
-  override def tree: FindPair[Singleton, Singleton] = ???
+  override def tree: FindPair[Singleton, Singleton] = Id()(Singleton.SingletonSchema)
 }
 
 object Singleton {

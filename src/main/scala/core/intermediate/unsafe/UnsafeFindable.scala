@@ -20,4 +20,8 @@ case class UnsafeFindable(pattern: Vector[Option[DBCell]], tableName: TableName)
         c <- oc
       } yield v :+ c
   }.map(DBObject.apply)
+
+  def matches(value: DBObject): Boolean = pattern.zip(value.fields).forall {
+    case (of, c) => of.fold(true)(_ == c)
+  }
 }

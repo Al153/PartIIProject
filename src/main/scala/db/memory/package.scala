@@ -1,11 +1,9 @@
 package db
 
-import core.containers.Operation
 import core.error.E
 import core.intermediate.Find
 import core.intermediate.unsafe._
 import db.common._
-import db.interfaces.DBInstance
 import schema.{RelationName, SchemaObject, TableName}
 import utils._
 
@@ -30,7 +28,7 @@ package object memory {
     } yield res
   }
 
-  def matches(o: MemoryObject, p: UnsafeFindable): Boolean = ??? // check that the object matches the pattern
+  def matches(o: MemoryObject, p: UnsafeFindable): Boolean = p.matches(o.value) // check that the object matches the pattern
 
 
 
@@ -200,7 +198,7 @@ package object memory {
     }
   }
 
-  def fixedPoint(searchStep: Set[MemoryObject] => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
+  private def fixedPoint(searchStep: Set[MemoryObject] => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
     def aux(pairsToExplore: Set[RelatedPair], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = for {
       foundPairs <- searchStep(pairsToExplore.mapProj2)
       newPairs: Set[RelatedPair] = notExplored(foundPairs, alreadyExplored)
@@ -241,13 +239,13 @@ package object memory {
 
   // slow join
 
-  def join(leftRes: Vector[RelatedPair], rightRes: Vector[RelatedPair]): Vector[RelatedPair] =
+  private def join(leftRes: Vector[RelatedPair], rightRes: Vector[RelatedPair]): Vector[RelatedPair] =
     for {
       (from, to) <- leftRes
       right <- rightRes.collect {case (f, t) if f == to => t}
     } yield (from, right)
 
-  def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] =
+  private def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] =
     for {
       (from, to) <- leftRes
       right <- rightRes.collect {case (f, t) if f == to => t}

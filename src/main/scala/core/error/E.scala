@@ -5,6 +5,10 @@ package core.error
   *
   * Error class
   */
-class E {
+trait E {
 
+}
+
+case class UnknownError(t: Throwable) extends E {
+  override def toString: String = "UknownError\n"+ t.getStackTrace.mkString("\n")
 }

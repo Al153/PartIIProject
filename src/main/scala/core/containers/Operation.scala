@@ -1,5 +1,6 @@
 package core.containers
 
+import core.error.UnknownError
 import view.View
 
 import scala.concurrent.{ExecutionContext, Promise}
@@ -37,8 +38,8 @@ case class Operation[E, A](runView: View => ConstrainedFuture[E, (A, View)])(imp
 }
 
 object Operation {
-  implicit def OperationInterface[E](implicit ec: ExecutionContext) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
-    def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(???))
+  implicit def OperationInterface[E](implicit ec: ExecutionContext, recover: Throwable => E) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
+    def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(recover))
     def bind[A, B](fa: Operation[E, A])(f: (A) => Operation[E, B]): Operation[E, B] = fa.flatMap(f)
   }
 
