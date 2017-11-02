@@ -22,7 +22,7 @@ import scalaz._
 class MemoryInstance(schema: SchemaDescription) extends DBInstance {
   override lazy val executor: DBExecutor = new InMemoryExecutor(this)
 
-  val relations: Set[ErasedRelationAttributes] = schema.relations
+  val relations: Set[ErasedRelationAttributes] = schema.relationMap.values.toSet
 
 
   private object Store {

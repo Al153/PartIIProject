@@ -9,5 +9,5 @@ import schema.{RelationName, TableName}
 case class ErasedRelationAttributes(name: RelationName, from: TableName, to: TableName )
 
 object ErasedRelationAttributes {
-  def apply[A, B](rab: RelationAttributes[A, B]): ErasedRelationAttributes = new ErasedRelationAttributes(rab.name, rab.tableNames._1, rab.tableNames._2)
+  def apply[A, B](name: RelationName, rab: RelationAttributes[A, B]): ErasedRelationAttributes = new ErasedRelationAttributes(name, rab.tableNames._1, rab.tableNames._2)
 }

@@ -10,6 +10,7 @@ object RelationSyntax {
     def --><--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plus(??(sb), that.reverse)
     def -->-->[C](that: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] = left.plus(??(sb), that)
     def -->[C](r: Findable[B]) = HalfQuery(left, r)
+    def -->[C](b: B) = HalfQuery(left, sb.findable(b))
 
     def |(that: RelationalQuery[A, B]): RelationalQuery[A, B] = left.union(that)
     def &(that: RelationalQuery[A, B]): RelationalQuery[A, B] = left.intersection(that)

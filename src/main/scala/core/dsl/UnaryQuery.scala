@@ -20,6 +20,8 @@ abstract class UnaryQuery[A](implicit sa: SchemaObject[A]) extends RelationalQue
     }
   }
 
+  def find: FindSingle[A] = From(Find(Singleton.findable), this.tree)
+
   def +[B](that: RelationalQuery[A, B])(implicit sb: SchemaObject[B]): UnaryQuery[B] = unaryPlus(sa.generalPattern, that)
   def -(a: Findable[A]) = HalfUnaryQuery(this, a)
 

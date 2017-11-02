@@ -23,7 +23,6 @@ package object memory {
   implicit class MemoryTreeOps(memoryTree: MemoryTree) {
     def findObj(findable: UnsafeFindable): E \/ Vector[MemoryObject] = for {
       table <- memoryTree.get(findable.tableName).fold(\/.left[E, MemoryTable](MissingTableName(findable.tableName)))(_.right)
-
       res <- table.find(findable)
     } yield res
   }
@@ -70,6 +69,12 @@ package object memory {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
       } yield leftRes.intersect(rightRes)
+
+      case USAndSingle(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- findSingleSetImpl(r, tree)
+      } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+
       case USOr(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
@@ -138,6 +143,12 @@ package object memory {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
       } yield leftRes.intersect(rightRes)
+
+      case USAndSingle(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- findSingleSetImpl(r, tree)
+      } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+
       case USOr(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)

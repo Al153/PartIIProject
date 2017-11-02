@@ -8,6 +8,7 @@ package core.intermediate.unsafe
   */
 sealed trait UnsafeFindPair {}
 case class USAnd(l: UnsafeFindPair, r: UnsafeFindPair) extends UnsafeFindPair
+case class USAndSingle(l: UnsafeFindPair, r: UnsafeFindSingle) extends UnsafeFindPair
 case class USAtleast(n: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 case class USBetween(low: Int, high: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 case class USChain(l: UnsafeFindPair, r: UnsafeFindPair) extends UnsafeFindPair

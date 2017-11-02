@@ -2,7 +2,7 @@ package core
 
 import core.dsl.UnaryQuery
 import core.intermediate.{FindPair, Id}
-import schema.{DBTuple0, SchemaObject0, TableName}
+import schema.{DBTuple0, Findable, SchemaObject0, TableName}
 
 
 /**
@@ -14,6 +14,8 @@ case class Singleton() extends UnaryQuery[Singleton]()(Singleton.SingletonSchema
 
 object Singleton {
   val point = Singleton()
+
+  val findable: Findable[Singleton] = Singleton.SingletonSchema.findable(Singleton.point)
 
   implicit def SingletonSchema: SchemaObject0[Singleton] = new SchemaObject0[Singleton] {
     override def construct(): Singleton = point

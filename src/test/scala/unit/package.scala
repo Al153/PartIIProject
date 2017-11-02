@@ -1,10 +1,7 @@
-import java.lang.AssertionError
-
+import core.RelationAttributes
 import core.containers.{ConstrainedFuture, Operation, ReadOperation}
 import core.error.E
-import core.{RelationAttributes, Singleton}
-import org.junit.{Assert, ComparisonFailure}
-import org.omg.CORBA.portable.UnknownException
+import org.junit.Assert
 import schema._
 
 import scala.concurrent.ExecutionContext
@@ -34,21 +31,14 @@ package object unit {
   case object Owns extends RelationAttributes[Person, Car]
 
 
-
-  /*
-   * This is getting into category theory; we define a set of objects  by
-   * a relation (morphism) to each member object from the singleton
-   */
-  case object LinkedToTomCruise extends RelationAttributes[Singleton, Person]
-
   val description = new SchemaDescription(
     Set(personSchema.erased, carSchema.erased),
-    Set(Knows.erased, Owns.erased)
+    Set(Knows, Owns)
   )
 
-  def assertEqOp[A](a1: A, a2: A)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
-    _ => ConstrainedFuture.point(Assert.assertEquals(a1, a2)) {
-      case e @ AssertionError | ComparisonFailure => AssertionFailure(e)
+  def assertEqOp[A](expected: A, trial: A)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
+    _ => ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
+      case e: AssertionError => AssertionFailure(e)
       case e => core.error.UnknownError(e)
     }
   )

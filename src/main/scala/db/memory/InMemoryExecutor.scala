@@ -6,7 +6,7 @@ import core.dsl.RelationalQuery
 import core.error.E
 import core.intermediate._
 import db.interfaces.{DBExecutor, Extractor}
-import schema.SchemaObject
+import schema.{SchemaDescription, SchemaObject}
 import utils._
 
 import scala.concurrent.ExecutionContext
@@ -17,7 +17,7 @@ import scalaz._
 /**
   * Created by Al on 22/10/2017.
   */
-class InMemoryExecutor(instance: MemoryInstance) extends DBExecutor {
+class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescription) extends DBExecutor {
   override def findAll[A](q: FindSingle[A])(implicit e: ExecutionContext, ea: Extractor[A]): Operation[E, Vector[A]] =
     instance.readOp(
       t =>
@@ -93,12 +93,16 @@ class InMemoryExecutor(instance: MemoryInstance) extends DBExecutor {
 
   override def insert[A, B](q: TraversableOnce[CompletedRelation[A, B]])(implicit e: ExecutionContext, sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] =
      instance.writeOp {
-      t => q.foldLeft(t.right[E]){
+      t =>
+        q.foldLeft(t.right[E]){
         (eTree, r) => { // probably very slow
-          eTree.flatMap(
-            tree =>
-              write(tree)(sa.tableName, sa.findable(r.a).getUnsafe, r.r.name, sb.tableName, sb.findable(r.b).getUnsafe)
-          )
+          schemaDescription.getRelationName(r.r).flatMap {
+            relationName =>
+              eTree.flatMap(
+                tree =>
+                  write(tree)(sa.tableName, sa.findable(r.a).getUnsafe, relationName, sb.tableName, sb.findable(r.b).getUnsafe)
+              )
+          }
         }
       }
     }
