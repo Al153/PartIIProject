@@ -63,7 +63,6 @@ class Actors {
     using(MemoryDB.open("/path/to/database".db, Schema.description)){
       implicit instance =>
         for {
-
           pairs <- findPairsDistinct(Borders.*.tree)
           _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
         } yield ()
