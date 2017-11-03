@@ -1,6 +1,6 @@
 package unit.suites
 
-import core.concrete.relations.CompletedRelation
+import core.CompletedRelation
 import core.dsl.Commands.{findPairs, insert}
 import core.dsl.RelationSyntax._
 import db.interfaces.Empty

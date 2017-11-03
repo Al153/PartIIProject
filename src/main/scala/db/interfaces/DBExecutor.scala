@@ -1,6 +1,6 @@
 package db.interfaces
 
-import core.concrete.relations.CompletedRelation
+import core.CompletedRelation
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E

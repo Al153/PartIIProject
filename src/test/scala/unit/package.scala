@@ -17,13 +17,13 @@ package object unit {
 
   implicit def personSchema = new SchemaObject1[Person, String] {
     override def construct(a1: String): Person = Person(a1)
-    override def tableName: TableName = TableName("Actors")
+    override def tableName: TableName = TableName("People")
     override def toTuple(a: Person): DBTuple1[Person, String] = DBTuple1(tableName, a.name)
   }
 
   implicit def carSchema = new SchemaObject1[Car, String] {
     override def construct(a1: String): Car = Car(a1)
-    override def tableName: TableName = TableName("Actors")
+    override def tableName: TableName = TableName("Cars")
     override def toTuple(a: Car): DBTuple1[Car, String] = DBTuple1(tableName, a.make)
   }
 
@@ -44,9 +44,7 @@ package object unit {
   )
 
   case class AssertionFailure(e: Throwable) extends E {
-    override def toString: String = s"AssertionFailure(\n${e.getMessage}\n)"
+    override def toString: String = s"AssertionFailure:\n${e.getMessage}"
   }
-
-
 }
 

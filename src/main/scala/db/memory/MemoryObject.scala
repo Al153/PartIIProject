@@ -25,4 +25,5 @@ case class MemoryObject(value: DBObject, relations: Map[RelationName, Set[Unsafe
 
   def getRelated(relationName: RelationName): Set[UnsafeFindable] = relations.getOrElse(relationName, Set())
   def getRevRelated(relationName: RelationName): Set[UnsafeFindable] = revRelations.getOrElse(relationName, Set())
+
 }

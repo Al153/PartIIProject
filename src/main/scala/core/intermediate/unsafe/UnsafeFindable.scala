@@ -2,6 +2,7 @@ package core.intermediate.unsafe
 
 import db.common.{DBCell, DBObject}
 import schema.TableName
+import utils._
 
 import scalaz.Scalaz._
 import scalaz._
@@ -11,6 +12,8 @@ import scalaz._
   */
 case class UnsafeFindable(pattern: Vector[Option[DBCell]], tableName: TableName) {
   lazy val full: Boolean = pattern.forall(_.isDefined)
+
+  override def toString: String = tableName.value + ":" + pattern.map(_.fold(" _ ")(_.toString).truncate(9)).mkString("|")
 
   // Build an object from the findable if it is possible to
   def getObject: Option[DBObject] = pattern.foldLeft(Vector[DBCell]().some){

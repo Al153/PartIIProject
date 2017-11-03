@@ -22,7 +22,7 @@ package object memory {
 
   implicit class MemoryTreeOps(memoryTree: MemoryTree) {
     def findObj(findable: UnsafeFindable): E \/ Vector[MemoryObject] = for {
-      table <- memoryTree.get(findable.tableName).fold(\/.left[E, MemoryTable](MissingTableName(findable.tableName)))(_.right)
+      table <- memoryTree.getOrError(findable.tableName, MissingTableName(findable.tableName))
       res <- table.find(findable)
     } yield res
   }
@@ -35,7 +35,7 @@ package object memory {
     def recurse(t: UnsafeFindSingle) = findSingleImpl(t, tree)
 
     t match {
-      case USFind(pattern) => tree.get(pattern.tableName).fold(\/.left[E, Vector[MemoryObject]](MissingTableName(pattern.tableName)))(_.find(pattern))
+      case USFind(pattern) => tree.getOrError(pattern.tableName, MissingTableName(pattern.tableName)).flatMap(_.find(pattern))
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairsImpl(rel, left, tree).map(v => v.map(_._2))
@@ -50,7 +50,7 @@ package object memory {
     def recurse(t: UnsafeFindSingle) = findSingleSetImpl(t, tree)
 
     t match {
-      case USFind(pattern) => tree.get(pattern.tableName).fold(\/.left[E, Set[MemoryObject]](MissingTableName(pattern.tableName)))(_.find(pattern).map(_.toSet))
+      case USFind(pattern) => tree.getOrError(pattern.tableName, MissingTableName(pattern.tableName)).flatMap(_.find(pattern).map(_.toSet))
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairsSetImpl(rel, left, tree).map(v => v.map(_._2))
@@ -62,6 +62,7 @@ package object memory {
   }
 
   def findPairsImpl(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
+    println(tree)
     def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairsImpl(t, left, tree)
 
     q match {
@@ -329,19 +330,36 @@ package object memory {
     } yield res
 
 
-  def write[A](t: MemoryTree)(tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, tableName2: TableName, memoryObject2: UnsafeFindable): E \/ MemoryTree = {
+  def write[A](t: MemoryTree, tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, tableName2: TableName, memoryObject2: UnsafeFindable): E \/ MemoryTree = {
+    if (tableName1 != tableName2) { // different behaviour
+      for {
+        table1 <- t.getOrError(tableName1, MissingTableName(tableName1))
+        table2 <- t.getOrError(tableName2, MissingTableName(tableName2))
+
+        o1 <- table1.findOrWrite(memoryObject1)
+        updatedO1 =  o1.map(_.addRelation(relationName, memoryObject2))
+        o2 <- table2.findOrWrite(memoryObject2)
+        updatedO2 = o2.map(_.addReverseRelation(relationName, memoryObject1))
+
+
+
+        res = t + (tableName1 -> table1.insert(updatedO1), tableName2 -> table2.insert(updatedO2))
+      } yield res
+    } else { // if same table need to add both to table
+      writeSelfRelation(t, tableName1, memoryObject1, relationName, memoryObject2)
+    }
+  }
+
+  private def writeSelfRelation(t: MemoryTree, tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, memoryObject2: UnsafeFindable) =
     for {
-      table1 <- t.get(tableName1).fold(\/.left[E, MemoryTable](MissingTableName(tableName1)))(_.right)
-      table2 <- t.get(tableName2).fold(\/.left[E, MemoryTable](MissingTableName(tableName2)))(_.right)
+      table1 <- t.getOrError(tableName1, MissingTableName(tableName1))
 
       o1 <- table1.findOrWrite(memoryObject1)
       updatedO1 =  o1.map(_.addRelation(relationName, memoryObject2))
-      o2 <- table2.findOrWrite(memoryObject2)
+      o2 <- table1.findOrWrite(memoryObject2)
       updatedO2 = o2.map(_.addReverseRelation(relationName, memoryObject1))
 
-
-      res = t + (tableName1 -> table1.insert(updatedO1), tableName2 -> table2.insert(updatedO2))
+      res = t + (tableName1 -> table1.insert(updatedO1).insert(updatedO2))
     } yield res
-  }
 
 }

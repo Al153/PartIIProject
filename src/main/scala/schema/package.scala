@@ -48,32 +48,32 @@ package object schema {
   }
 
   sealed trait Pattern[A] extends Findable[A] {
-    def toSchemaComponent: List[SchemaComponent]
+    def toSchemaComponent: Vector[SchemaComponent]
   }
 
   case class Pattern0[Res](n: TableName) extends Pattern[Res] {
-    override def toSchemaComponent: List[SchemaComponent] = List()
+    override def toSchemaComponent: Vector[SchemaComponent] = Vector()
     def apply(): Pattern0[Res] = this
     override def tableName: TableName = n
     override def pattern: Vector[Option[DBCell]] = Vector()
   }
 
   case class Pattern1[Res, A1](n: TableName, a1: Option[A1])(implicit s1: Storeable[A1]) extends Pattern[Res] {
-    override def toSchemaComponent: List[SchemaComponent] = List(s1.SchemaComponent)
+    override def toSchemaComponent: Vector[SchemaComponent] = Vector(s1.SchemaComponent)
     def apply(a: A1): Pattern1[Res, A1] = Pattern1(n, Some(a))
     override def tableName: TableName = n
     override def pattern: Vector[Option[DBCell]] = Vector(a1.map(s1.toDBCell))
   }
 
   case class Pattern2[Res, A1, A2](n: TableName, a1: Option[A1], a2: Option[A2])(implicit s1: Storeable[A1], s2: Storeable[A2]) extends Pattern[Res] {
-    override def toSchemaComponent: List[SchemaComponent] = List(s1.SchemaComponent, s2.SchemaComponent)
+    override def toSchemaComponent: Vector[SchemaComponent] = Vector(s1.SchemaComponent, s2.SchemaComponent)
     def apply(a1: Option[A1], a2: Option[A2]): Pattern2[Res, A1, A2] = Pattern2(n, a1, a2)
     override def tableName: TableName = n
     override def pattern: Vector[Option[DBCell]] = Vector(a1.map(s1.toDBCell), a2.map(s2.toDBCell))
   }
 
   case class Pattern3[Res, A1, A2, A3](n: TableName, a1: Option[A1], a2: Option[A2], a3: Option[A3])(implicit s1: Storeable[A1], s2: Storeable[A2], s3: Storeable[A3]) extends Pattern[Res] {
-    override def toSchemaComponent: List[SchemaComponent] = List(s1.SchemaComponent, s2.SchemaComponent, s3.SchemaComponent)
+    override def toSchemaComponent: Vector[SchemaComponent] = Vector(s1.SchemaComponent, s2.SchemaComponent, s3.SchemaComponent)
     def apply(a1: Option[A1], a2: Option[A2], a3: Option[A3]): Pattern3[Res, A1, A2, A3] = Pattern3(n, a1, a2, a3)
     override def tableName: TableName = n
     override def pattern: Vector[Option[DBCell]] = Vector(a1.map(s1.toDBCell), a2.map(s2.toDBCell), a3.map(s3.toDBCell))

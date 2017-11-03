@@ -1,15 +1,15 @@
 package examples
 
-import core.concrete.relations.CompletedRelation
 import core.dsl.Commands._
-import core.{RelationAttributes, Singleton}
+import core.{CompletedRelation, RelationAttributes, Singleton}
 import db._
 import db.memory.MemoryDB
 import examples.Schema.{Borders, Country}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import db.interfaces.DatabaseAddress._
-import scalaz.\/- // global execution context
+
+import scalaz.\/-
 import Schema._
 
 

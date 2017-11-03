@@ -13,7 +13,7 @@ import Scalaz._
   */
 
 sealed trait SchemaObject[A] extends Extractor[A] {
-  def getSchemaComponents: List[SchemaComponent]
+  def getSchemaComponents: Vector[SchemaComponent]
   def generalPattern: Pattern[A]
   def findable(a: A): Findable[A]
   def tableName: TableName
@@ -31,7 +31,7 @@ trait SchemaObject0[A] extends SchemaObject[A] {
   final def fromTuple(tuple0: DBTuple0[A]): A = construct()
   final def pattern: Pattern0[A] = Pattern0[A](tableName)
   final def generalPattern: Pattern[A] = pattern
-  final override def getSchemaComponents: List[SchemaComponent] = pattern.toSchemaComponent
+  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
   final override def findable(a: A): Findable[A] = toTuple(a)
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.isEmpty) construct().right else LengthMismatch().left
@@ -46,7 +46,7 @@ abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaOb
   final def fromTuple(tuple1: DBTuple1[A, A1]): A = construct(tuple1.a1)
   final def generalPattern: Pattern[A] = pattern
   final def pattern: Pattern1[A, A1] = Pattern1[A, A1](tableName, None)
-  final override def getSchemaComponents: List[SchemaComponent] = pattern.toSchemaComponent
+  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
   final override def findable(a: A): Findable[A] = toTuple(a)
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 1) {
@@ -63,7 +63,7 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
   final def fromTuple(tuple2: DBTuple2[A, A1, A2]): A = construct(tuple2.a1, tuple2.a2)
   final def generalPattern: Pattern[A] = pattern
   final def pattern: Pattern2[A, A1, A2] = Pattern2[A, A1, A2](tableName, None, None)
-  final override def getSchemaComponents: List[SchemaComponent] = pattern.toSchemaComponent
+  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
   final override def findable(a: A): Findable[A] = toTuple(a)
 
   final override def fromRow(row: DBObject): ExtractError \/ A =
@@ -84,7 +84,7 @@ abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Stor
   final def fromTuple(tuple3: DBTuple3[A, A1, A2, A3]): A = construct(tuple3.a1, tuple3.a2, tuple3.a3)
   final def generalPattern: Pattern[A] = pattern
   final def pattern: Pattern3[A, A1, A2, A3] = Pattern3[A, A1, A2, A3](tableName, None, None, None)
-  final override def getSchemaComponents: List[SchemaComponent] = pattern.toSchemaComponent
+  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
   final override def findable(a: A): Findable[A] = toTuple(a)
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 3) {

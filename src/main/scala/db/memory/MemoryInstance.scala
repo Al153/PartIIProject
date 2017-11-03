@@ -1,5 +1,6 @@
 package db.memory
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 import core.containers.Operation
@@ -9,8 +10,11 @@ import db.common.MissingViewError
 import db.interfaces.{DBExecutor, DBInstance}
 import schema.SchemaDescription
 import view.View
+import utils._
 
+import scala.collection.concurrent
 import scala.concurrent.ExecutionContext
+import scala.collection.JavaConverters._
 import scalaz.Scalaz._
 import scalaz._
 
@@ -23,22 +27,28 @@ class MemoryInstance(schema: SchemaDescription) extends DBInstance {
   override lazy val executor: DBExecutor = new InMemoryExecutor(this, schema)
 
   val relations: Set[ErasedRelationAttributes] = schema.relationMap.values.toSet
+  val defaultTree: MemoryTree = schema.erasedObjects.map(o => o.name -> MemoryTable(o)).toMap
 
+  private object Store { // stores the mutable state
+    private var defaultView: View = new View{val id: Long = 0}
+    private val memoryStore: concurrent.Map[View, MemoryTree] = new ConcurrentHashMap[View, MemoryTree]().asScala
+    private val viewId: AtomicLong = new AtomicLong(1)
 
-  private object Store {
-    private var memoryStore: Map[View, MemoryTree] = Map()
-    private val viewId: AtomicLong = new AtomicLong(0)
+    memoryStore(defaultView) = defaultTree
 
     def get(v: View): E \/ MemoryTree = this.synchronized {
-      memoryStore.get(v).fold(\/.left[E, MemoryTree](MissingViewError(v)))(_.right)
+      memoryStore.getOrError(v, MissingViewError(v))
     }
 
     def put(t: MemoryTree): E \/ View = this.synchronized {
       val view = new View{val id: Long = viewId.incrementAndGet()}
-
-      memoryStore += view -> t
+      memoryStore(view) = t
       return view.right
     }
+
+    def getDefaultView: View = this.synchronized(defaultView)
+    def setDefaultView(v: View): Unit = this.synchronized(defaultView = v)
+    def getViews: Set[View] = memoryStore.keys.toSet
   }
 
 
@@ -54,4 +64,10 @@ class MemoryInstance(schema: SchemaDescription) extends DBInstance {
       newTree <- f(t)
       v <- Store.put(newTree)
     } yield ((), v))(throwable => UnknownMemoryError(throwable))
+
+  override def setDefaultView(view: View): E \/ Unit = Store.setDefaultView(view).right
+
+  override def getDefaultView: E \/ View = Store.getDefaultView.right
+
+  override def getViews: Set[View] = Store.getViews
 }

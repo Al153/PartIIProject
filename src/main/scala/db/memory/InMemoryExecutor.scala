@@ -1,6 +1,6 @@
 package db.memory
 
-import core.concrete.relations.CompletedRelation
+import core.CompletedRelation
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
@@ -32,10 +32,10 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     instance.readOp {
       t =>
         for {
-          unsafeQuery <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe
-          initial <- findSingleImpl(unsafeQuery, t)
-          unsafeQuery <- q.getUnsafe
-          v <- findPairsImpl(unsafeQuery, initial, t)
+          unsafeSingle <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe
+          initial <- {println("Single = " + unsafeSingle); findSingleImpl(unsafeSingle, t)}
+          unsafeQuery <- {println("initial = " + initial) ; q.getUnsafe}
+          v <- {println("query = " + unsafeQuery) ; findPairsImpl(unsafeQuery, initial, t)}
           res <- EitherOps.sequence(
             v.map {
               case (l, r) =>
@@ -108,7 +108,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
               relationName =>
                 eTree.flatMap(
                   tree =>
-                    write(tree)(sa.tableName, sa.findable(r.a).getUnsafe, relationName, sb.tableName, sb.findable(r.b).getUnsafe)
+                    write(tree, sa.tableName, sa.findable(r.a).getUnsafe, relationName, sb.tableName, sb.findable(r.b).getUnsafe)
                 )
             }
           }

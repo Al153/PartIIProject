@@ -1,7 +1,10 @@
+import core.error.E
+
+import scala.collection.MapLike
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 import scalaz.Scalaz._
-import scalaz.{\/, _}
+import scalaz.\/
 
 /**
   * Created by Al on 24/10/2017.
@@ -37,5 +40,13 @@ package object utils {
         } yield r += a
       }.map(_.result())
     }
+  }
+
+  implicit class StringifyOps(u: Any) {
+    def truncate(len: Int): String =   String.format("%1$9s", u.toString)
+  }
+
+  implicit class MapLikeOps[K, A](u: MapLike[K, A, _]) {
+    def getOrError(k: K, e: => E): E \/ A = u.get(k).fold(\/.left[E, A](e))(_.right[E])
   }
 }

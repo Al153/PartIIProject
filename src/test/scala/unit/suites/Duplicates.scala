@@ -1,6 +1,6 @@
 package unit.suites
 
-import core.concrete.relations.CompletedRelation
+import core.CompletedRelation
 import core.dsl.Commands._
 import core.dsl.NodeSyntax._
 import core.dsl.RelationSyntax._

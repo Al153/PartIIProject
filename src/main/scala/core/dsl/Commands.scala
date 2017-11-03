@@ -1,6 +1,6 @@
 package core.dsl
 
-import core.concrete.relations.CompletedRelation
+import core.CompletedRelation
 import core.containers.{Operation, Path}
 import core.error.E
 import core.intermediate.{FindPair, FindSingle}

@@ -1,6 +1,6 @@
 package unit.suites
 
-import core.concrete.relations.CompletedRelation
+import core.CompletedRelation
 import core.dsl.Commands.{find, findPairs, insert}
 import core.dsl.NodeSyntax._
 import db.interfaces.Empty
@@ -29,7 +29,8 @@ trait ReadWrite { self: HasBackend =>
         for {
           _ <- insert(Set(CompletedRelation(Alice, Knows, Bob)))
           _ <- insert(Set(CompletedRelation(Alice, Knows, Charlie)))
-          res1 <- findPairs(Knows.tree)
+
+          res1 <- findPairs(Knows)
           _ <- assertEqOp(expectedPairs, res1)
           res2 <- find(Alice >> Knows)
           r <- assertEqOp(expectedSingle, res2)

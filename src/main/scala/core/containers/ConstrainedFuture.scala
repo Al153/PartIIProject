@@ -1,5 +1,6 @@
 package core.containers
 
+import core.error._
 import view.View
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -54,6 +55,19 @@ object ConstrainedFuture {
       }
     )
   )
+
+  /**
+    * Cop out construction.
+    * Evaluates value before it becomes a future, so more performant that the other constructs
+    */
+
+  def eitherR[A](ea: => E \/ A)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+    EitherT(
+      Promise.successful[E \/ A](try ea catch {case e: Throwable => recoverAll(e).left}).future
+    )
+  )
+
+  def recoverAll(e: Throwable): E = UnknownError(e)
 
   implicit class ConstrainedFutureViewSyntax[E, A](underlying: ConstrainedFuture[E, (A, View)]) {
     def proj: ConstrainedFuture[E, A] = underlying.map(_._1)

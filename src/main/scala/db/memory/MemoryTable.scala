@@ -1,7 +1,7 @@
 package db.memory
 
 import core.error.E
-import core.intermediate.unsafe.UnsafeFindable
+import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
 import db.common.{DBCell, LengthMismatch}
 
 import scala.collection.mutable
@@ -39,6 +39,7 @@ case class MemoryTable(objects: Vector[MemoryObject], index: Vector[Map[DBCell, 
     } else r1
 
   def insert(os: Vector[MemoryObject]): MemoryTable = {
+    // todo: need to look up the value first, potentially updating
     val newOs = objects.union(os)
     val indexBuilder = for {
       i <- 0 to index.length
@@ -57,5 +58,16 @@ case class MemoryTable(objects: Vector[MemoryObject], index: Vector[Map[DBCell, 
 
     MemoryTable(newOs, newIndex)
 
+  }
+}
+
+object MemoryTable {
+
+  // create an empty table based on a schema
+  def apply(so: SchemaObjectErased): MemoryTable = {
+    val objects = Vector[MemoryObject]()
+    val index = so.schemaComponents.map(_ => Map[DBCell, Set[MemoryObject]]())
+
+    new MemoryTable(objects, index)
   }
 }

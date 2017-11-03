@@ -4,6 +4,7 @@ import core.RelationAttributes
 import core.error.E
 import core.intermediate.unsafe.{ErasedRelationAttributes, SchemaObjectErased}
 import db.common.MissingRelation
+import utils._
 
 import scalaz._, Scalaz._
 /**
@@ -26,7 +27,7 @@ final class SchemaDescription(
 
   def erasedRelations: Set[ErasedRelationAttributes] = relationMap.values.toSet
   def getRelation[A, B](r: RelationAttributes[A, B]): E \/ ErasedRelationAttributes =
-    relationMap.get(r).fold(\/.left[E, ErasedRelationAttributes](MissingRelation(r)))(_.right[E])
+    relationMap.getOrError(r, MissingRelation(r))
   def getRelationName[A, B](r: RelationAttributes[A, B]): E \/ RelationName = getRelation(r).map(_.name)
 }
 
