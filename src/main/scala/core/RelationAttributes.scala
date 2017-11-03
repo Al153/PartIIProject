@@ -3,7 +3,7 @@ package core
 import core.dsl.RelationalQuery
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.intermediate.{FindPair, Rel}
-import schema.{RelationName, SchemaObject, TableName}
+import schema.{RelationName, SchemaDescription, SchemaObject, TableName}
 
 
 /**
@@ -11,7 +11,7 @@ import schema.{RelationName, SchemaObject, TableName}
   */
 abstract class RelationAttributes[A, B](implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends RelationalQuery[A, B]{
   def tableNames: (TableName, TableName) = (sa.tableName, sb.tableName)
-  override def tree: FindPair[A, B] = Rel(this)
+  override def tree(implicit sd: SchemaDescription): FindPair[A, B] = Rel(this)
 }
 
 

@@ -50,20 +50,20 @@ object Schema {
     override def toTuple(a: Country): DBTuple1[Country, String] = DBTuple1(tableName, reverseLookup.getOrElse(a, "n/a"))
   }
 
-  case object ActsIn extends RelationAttributes[Actor, Movie](RelationName("Acts"))
-  case object Birthday extends RelationAttributes[Actor, Date](RelationName("Birthday"))
-  case object hasNationality extends RelationAttributes[Actor, Country](RelationName("Nationality"))
-  case object Borders extends RelationAttributes[Country, Country](RelationName("Borders"))
+  case object ActsIn extends RelationAttributes[Actor, Movie]
+  case object Birthday extends RelationAttributes[Actor, Date]
+  case object hasNationality extends RelationAttributes[Actor, Country]
+  case object Borders extends RelationAttributes[Country, Country]
 
 
   /*
    * This is getting into category theory; we define a set of objects  by
    * a relation (morphism) to each member object from the singleton
    */
-  case object LinkedToTomCruise extends RelationAttributes[Singleton, Actor](RelationName("Linked"))
+  case object LinkedToTomCruise extends RelationAttributes[Singleton, Actor]
 
-  val description = new SchemaDescription(
-    Set(actorSchema.erased, movieSchema.erased, DateSchema.erased, CountrySchema.erased),
+  implicit val description: SchemaDescription = new SchemaDescription(
+    Set(actorSchema, movieSchema, DateSchema, CountrySchema),
     Set(ActsIn, Birthday, Borders, hasNationality, Borders, LinkedToTomCruise)
   )
 

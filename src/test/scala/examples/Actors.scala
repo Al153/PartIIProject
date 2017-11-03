@@ -10,6 +10,8 @@ import examples.Schema.{Borders, Country}
 import scala.concurrent.ExecutionContext.Implicits.global
 import db.interfaces.DatabaseAddress._
 import scalaz.\/- // global execution context
+import Schema._
+
 
 /**
   * Created by Al on 15/10/2017.
@@ -27,11 +29,6 @@ class Actors {
 
   def query(): Unit = {
 
-    import Schema._
-
-
-
-
      /*
       * This is the interesting bit
       * a long, chained, expression that opens up a database instant, gets the default view, then finds all Actors with a chain of 4 unique coactor relationships to Tom Cruise
@@ -42,7 +39,7 @@ class Actors {
 
 
     using(MemoryDB.open("/path/to/sql/database".db, Schema.description)){
-      implicit instance =>
+       implicit instance =>
         for {
           actors <- find((coactor |*| 4).from(tomCruise))
           namedActors = actors.filter(actor => actor.name.startsWith("A"))

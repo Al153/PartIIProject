@@ -12,11 +12,12 @@ import scalaz._, Scalaz._
   * Used by a backend to generate schema
   */
 final class SchemaDescription(
-                         val objects: Set[SchemaObjectErased],
-                         val relations: Set[RelationAttributes[_, _]]
+                               objects: Set[SchemaObject[_]],
+                               val relations: Set[RelationAttributes[_, _]]
                        ) {
   // contains a set of SchemaObjects and a set of RelationalAttributes
 
+  val erasedObjects: Set[SchemaObjectErased] = objects.map(_.erased)
   val relationMap: Map[RelationAttributes[_, _], ErasedRelationAttributes] = relations.zipWithIndex.map { case (r, index) =>
     val from = r.sa.tableName
     val to = r.sb.tableName

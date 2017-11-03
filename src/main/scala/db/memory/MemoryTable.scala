@@ -12,17 +12,8 @@ import scalaz.{\/, _}
   * Created by Al on 25/10/2017.
   */
 
-sealed trait MemoryTable {
-  def objects: Vector[MemoryObject]
-
-  def index: Vector[Map[DBCell, Set[MemoryObject]]] // to speed up lookup of values
-  def find(findable: UnsafeFindable): E \/ Vector[MemoryObject] // fast lookup index
-  def findOrWrite(findable: UnsafeFindable): E \/ Vector[MemoryObject] // lookup or return a new MemoryObject if its not present
-  def insert(os: Vector[MemoryObject]): MemoryTable
-}
-
-case class MemoryTableImpl(objects: Vector[MemoryObject], index: Vector[Map[DBCell, Set[MemoryObject]]]) extends MemoryTable {
-  override def find(findable: UnsafeFindable): E \/ Vector[MemoryObject] = {
+case class MemoryTable(objects: Vector[MemoryObject], index: Vector[Map[DBCell, Set[MemoryObject]]]) {
+  def find(findable: UnsafeFindable): E \/ Vector[MemoryObject] = {
     val pattern = findable.pattern
     if (pattern.length != index.length) LengthMismatch().left
     else {
@@ -40,14 +31,14 @@ case class MemoryTableImpl(objects: Vector[MemoryObject], index: Vector[Map[DBCe
     }
   }
 
-  override def findOrWrite(findable: UnsafeFindable): \/[E, Vector[MemoryObject]] =
+  def findOrWrite(findable: UnsafeFindable): \/[E, Vector[MemoryObject]] =
     for {
       r1 <- find(findable)
     } yield if (r1.empty) {
-      findable.getObject.fold(Vector[MemoryObject]())(v => Vector(MemoryObjectImpl(v, Map(), Map())))
+      findable.getObject.fold(Vector[MemoryObject]())(v => Vector(MemoryObject(v, Map(), Map())))
     } else r1
 
-  override def insert(os: Vector[MemoryObject]): MemoryTable = {
+  def insert(os: Vector[MemoryObject]): MemoryTable = {
     val newOs = objects.union(os)
     val indexBuilder = for {
       i <- 0 to index.length
@@ -64,7 +55,7 @@ case class MemoryTableImpl(objects: Vector[MemoryObject], index: Vector[Map[DBCe
 
     val newIndex = index.zip(indexBuilder).map {case (m1, m2) => m1 ++ m2.toMap}
 
-    MemoryTableImpl(newOs, newIndex)
+    MemoryTable(newOs, newIndex)
 
   }
 }

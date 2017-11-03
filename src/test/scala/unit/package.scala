@@ -31,8 +31,8 @@ package object unit {
   case object Owns extends RelationAttributes[Person, Car]
 
 
-  val description = new SchemaDescription(
-    Set(personSchema.erased, carSchema.erased),
+  implicit val description = new SchemaDescription(
+    Set(personSchema, carSchema),
     Set(Knows, Owns)
   )
 

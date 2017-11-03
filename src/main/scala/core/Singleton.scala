@@ -2,14 +2,14 @@ package core
 
 import core.dsl.UnaryQuery
 import core.intermediate.{FindPair, Id}
-import schema.{DBTuple0, Findable, SchemaObject0, TableName}
+import schema._
 
 
 /**
   * Created by Al on 09/10/2017.
   */
 case class Singleton() extends UnaryQuery[Singleton]()(Singleton.SingletonSchema) {
-  override def tree: FindPair[Singleton, Singleton] = Id()(Singleton.SingletonSchema)
+  override def tree(implicit sd: SchemaDescription): FindPair[Singleton, Singleton] = Id()(Singleton.SingletonSchema, sd)
 }
 
 object Singleton {

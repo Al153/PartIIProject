@@ -4,7 +4,7 @@ import core.error.E
 import core.intermediate.Find
 import core.intermediate.unsafe._
 import db.common._
-import schema.{RelationName, SchemaObject, TableName}
+import schema.{RelationName, SchemaDescription, SchemaObject, TableName}
 import utils._
 
 import scala.collection.immutable.Queue
@@ -322,7 +322,11 @@ package object memory {
   }
 
 
-  def find[A](a: A, t: MemoryTree)(implicit sa: SchemaObject[A]): E \/ Set[MemoryObject] = findSingleImpl(Find(sa.findable(a)).getUnsafe, t).map(_.toSet)
+  def find[A](a: A, t: MemoryTree)(implicit sa: SchemaObject[A], sd: SchemaDescription): E \/ Set[MemoryObject] =
+    for {
+      unsafeQuery <- Find(sa.findable(a)).getUnsafe
+      res <- findSingleImpl(unsafeQuery, t).map(_.toSet)
+    } yield res
 
 
   def write[A](t: MemoryTree)(tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, tableName2: TableName, memoryObject2: UnsafeFindable): E \/ MemoryTree = {

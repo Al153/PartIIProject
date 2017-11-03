@@ -15,12 +15,12 @@ abstract class UnaryQuery[A](implicit sa: SchemaObject[A]) extends RelationalQue
     val left = this
     implicit val outerSa = sa
     new UnaryQuery[B] {
-      override def tree: FindPair[Singleton, B] =
-        Chain(Narrow(left.tree, middle), right.tree)(Singleton.SingletonSchema, outerSa, sb)
+      override def tree(implicit sd: SchemaDescription): FindPair[Singleton, B] =
+        Chain(Narrow(left.tree, middle), right.tree)(Singleton.SingletonSchema, outerSa, sb, sd)
     }
   }
 
-  def find: FindSingle[A] = From(Find(Singleton.findable), this.tree)
+  def find(implicit sd: SchemaDescription): FindSingle[A] = From(Find(Singleton.findable), this.tree)
 
   def +[B](that: RelationalQuery[A, B])(implicit sb: SchemaObject[B]): UnaryQuery[B] = unaryPlus(sa.generalPattern, that)
   def -(a: Findable[A]) = HalfUnaryQuery(this, a)

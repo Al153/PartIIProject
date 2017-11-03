@@ -57,5 +57,6 @@ object ConstrainedFuture {
 
   implicit class ConstrainedFutureViewSyntax[E, A](underlying: ConstrainedFuture[E, (A, View)]) {
     def proj: ConstrainedFuture[E, A] = underlying.map(_._1)
+    def projView: ConstrainedFuture[E, View] = underlying.map(_._2)
   }
 }

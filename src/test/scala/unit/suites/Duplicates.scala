@@ -35,6 +35,7 @@ trait Duplicates { self: HasBackend =>
             CompletedRelation(Bob, Knows, Charlie),
             CompletedRelation(Alice, Knows, Charlie)
           ))
+
           res1 <- findPairs(Knows -->--> Knows)
           res2 <- findPairsDistinct(Knows -->--> Knows)
           res3 <- find(Alice >> (Knows -->--> Knows))
