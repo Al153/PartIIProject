@@ -33,6 +33,15 @@ abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: S
     }
   }
 
+  private[dsl] def plusDistinct[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]) = {
+    val left = this
+    implicit val outerSb = sb
+    new RelationalQuery[A, C] {
+      override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
+        Distinct(Chain(Narrow(left.tree, middle), right.tree)(sa, outerSb, sc, sd))(sa, sc, sd)
+    }
+  }
+
   // union two queries
   private[dsl] def union(right: RelationalQuery[A, B]) = {
     val left = this

@@ -7,7 +7,7 @@ import core.dsl.RelationSyntax._
 import db.interfaces.Empty
 import db.using
 import org.junit.Test
-import unit.Objects.{Alice, Bob, Charlie}
+import unit.Objects.{Alice, Bob, Charlie, David}
 import unit.{Knows, assertEqOp, description}
 
 import scala.concurrent.Await
@@ -33,7 +33,8 @@ trait Duplicates { self: HasBackend =>
           _ <- insert(Set(
             CompletedRelation(Alice, Knows, Bob), // there are two routes from Alice to Charlie
             CompletedRelation(Bob, Knows, Charlie),
-            CompletedRelation(Alice, Knows, Charlie)
+            CompletedRelation(Alice, Knows, David),
+            CompletedRelation(David, Knows, Charlie)
           ))
 
           res1 <- findPairs(Knows -->--> Knows)
@@ -41,10 +42,10 @@ trait Duplicates { self: HasBackend =>
           res3 <- find(Alice >> (Knows -->--> Knows))
           res4 <- findDistinct(Alice >> (Knows -->--> Knows))
 
-          _ <- assertEqOp(expectedAllPairs, res1)
-          _ <- assertEqOp(expectedDistinctPairs, res2)
-          _ <- assertEqOp(expectedAllSingle, res3)
-          _ <- assertEqOp(expectedDistinctSingle, res4)
+          _ <- assertEqOp(expectedAllPairs, res1, "All pairs failure")
+          _ <- assertEqOp(expectedDistinctPairs, res2, "Distinct pairs failure")
+          _ <- assertEqOp(expectedAllSingle, res3, "All single pairs failure")
+          _ <- assertEqOp(expectedDistinctSingle, res4, "Distinct single failure")
         } yield ()
     }
 

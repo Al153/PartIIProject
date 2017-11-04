@@ -74,7 +74,11 @@ package object memory {
       case USAnd(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
-      } yield leftRes.intersect(rightRes)
+      } yield {
+        println("left = " + leftRes)
+        println("right = " + rightRes)
+        leftRes.intersect(rightRes)
+      }
 
       case USAndSingle(l, r) => for {
         leftRes <- recurse(l, left)
@@ -88,14 +92,36 @@ package object memory {
 
       case USChain(l, r) => for {
         lres <- recurse(l, left)
-        rres <- recurse(r, lres.map(_._2))
-      } yield join(lres, rres)
+        rres <- recurse(r, lres.mapProj2)
+      } yield {
+        println("(Distinct) Chain right expr = " + r)
+        println("(Distinct) Chain Left result = " + lres)
+        println("(Distinct) Chain right Result = " + rres)
+        val res = join(lres, rres)
+        println("Chain res = " + res)
+        res
+      }
+
+
+      case USDistinct(r) => for {
+        rres <- recurse(r, left)
+      } yield {
+        println("Distinct Subexpr = " + r)
+        println("Distinct Before distinction = " + rres)
+        println("Distinct After distinction = " +  rres.filter{case (a, b) => a != b})
+        rres.filter{case (a, b) => a != b}
+      }
 
       case USId => left.map(x => (x, x)).right
 
       case USNarrow(l, p) => for {
         broad <- recurse(l, left)
-      } yield broad.filter(pair => matches(pair._2, p))
+      } yield {
+        println("(All) Broad = " + broad)
+        val res = broad.filter(pair => matches(pair._2, p))
+        println("(All) Narrowed = " + res)
+        res
+      }
 
       case USRel(rel) =>
           EitherOps.sequence(left.map {
@@ -148,7 +174,11 @@ package object memory {
       case USAnd(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
-      } yield leftRes.intersect(rightRes)
+      } yield {
+        println("left = " + leftRes)
+        println("right = " + rightRes)
+        leftRes.intersect(rightRes)
+      }
 
       case USAndSingle(l, r) => for {
         leftRes <- recurse(l, left)
@@ -163,18 +193,38 @@ package object memory {
       case USChain(l, r) => for {
         lres <- recurse(l, left)
         rres <- recurse(r, lres.map(_._2))
-      } yield joinSet(lres, rres)
+      } yield {
+        println("Chain Left result = " + lres)
+        println("Chain right Result = " + rres)
+        val res = joinSet(lres, rres)
+        println("Chain res = " + res)
+        res
+      }
+
+      case USDistinct(r) => for {
+        rres <- recurse(r, left)
+      } yield {
+        println("Subexpr = " + r)
+        println("Before distinction = " + rres)
+        println("After distinction = " +  rres.filter{case (a, b) => a != b})
+        rres.filter{case (a, b) => a != b}
+      }
 
       case USId => left.map(x => (x, x)).right
 
       case USNarrow(l, p) => for {
         broad <- recurse(l, left)
-      } yield broad.filter(pair => matches(pair._2, p))
+      } yield {
+        println("(Distinct) Broad = " + broad)
+        val res = broad.filter(pair => matches(pair._2, p))
+        println("(Distinct) Narrowed = " + res)
+        res
+      }
 
       case USRel(rel) =>
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
-            val related = leftObject.getRelated(rel.name).toVector
+            val related = leftObject.getRelated(rel.name)
             val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
@@ -184,8 +234,8 @@ package object memory {
       case USRevRel(rel) =>
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
-            val related = leftObject.getRelated(rel.name).toVector
-            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
+            val related = leftObject.getRevRelated(rel.name)
+            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.from, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
           }
@@ -256,11 +306,27 @@ package object memory {
 
   // slow join
 
-  private def join(leftRes: Vector[RelatedPair], rightRes: Vector[RelatedPair]): Vector[RelatedPair] =
-    for {
-      (from, to) <- leftRes
-      right <- rightRes.collect {case (f, t) if f == to => t}
-    } yield (from, right)
+  private def join(leftRes: Vector[RelatedPair], rightRes: Vector[RelatedPair]): Vector[RelatedPair] = {
+    println("\n\n\n\nJoin, left = " + leftRes.mkString("\n\t\t"))
+    println("join, right = " + rightRes.mkString("\n\t\t"))
+
+    // build an index of all values to join, prevents overduplication
+    val collectedLeft = leftRes.foldLeft(Map[MemoryObject, Vector[MemoryObject]]()) {
+      case (m, pair) =>
+        m + (pair._2 -> (m.getOrElse(pair._2, Vector[MemoryObject]()) :+ pair._1))
+    }
+
+    println("Join, index = " + collectedLeft.mkString("\n\t\t"))
+
+    val res = for {
+      (middle, to) <- rightRes
+      from <- collectedLeft.getOrElse(middle, Vector())
+    } yield (from, to)
+
+    println("Join, res = " + res.mkString("\n\t\t"))
+    res
+  }
+
 
   private def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] =
     for {
@@ -302,7 +368,7 @@ package object memory {
         newObjects = next.mapProj2.diff(alreadyExplored)
       } yield (newFringe, top, newObjects)
     } else {
-      EmptyFringeError.left // todo return some error
+      EmptyFringeError.left
     }
 
   private def toQueue[A](s: Set[A]): Queue[A] = Queue(s.toSeq: _*) // todo: is this fast?

@@ -36,15 +36,15 @@ package object unit {
     Set(Knows, Owns)
   )
 
-  def assertEqOp[A](expected: A, trial: A)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
+  def assertEqOp[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
     _ => ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
-      case e: AssertionError => AssertionFailure(e)
+      case e: AssertionError => AssertionFailure(e, msg)
       case e => core.error.UnknownError(e)
     }
   )
 
-  case class AssertionFailure(e: Throwable) extends E {
-    override def toString: String = s"AssertionFailure:\n${e.getMessage}"
+  case class AssertionFailure(e: Throwable, msg: String) extends E {
+    override def toString: String = s"AssertionFailure:\n$msg\n${e.getMessage}"
   }
 }
 

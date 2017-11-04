@@ -108,7 +108,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
               relationName =>
                 eTree.flatMap(
                   tree =>
-                    write(tree, sa.tableName, sa.findable(r.a).getUnsafe, relationName, sb.tableName, sb.findable(r.b).getUnsafe)
+                    write(tree, sa.tableName, sa.getDBObject(r.a), relationName, sb.tableName, sb.getDBObject(r.b))
                 )
             }
           }

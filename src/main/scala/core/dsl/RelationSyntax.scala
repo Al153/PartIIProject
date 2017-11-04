@@ -7,7 +7,7 @@ import schema.{??, Findable, SchemaObject}
   */
 object RelationSyntax {
   implicit class RelationalQuerySyntax[A, B](left: RelationalQuery[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) {
-    def --><--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plus(??(sb), that.reverse)
+    def --><--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plusDistinct(??(sb), that.reverse)
     def -->-->[C](that: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] = left.plus(??(sb), that)
     def -->[C](r: Findable[B]) = HalfQuery(left, r)
     def -->[C](b: B) = HalfQuery(left, sb.findable(b))
@@ -17,7 +17,7 @@ object RelationSyntax {
 
     case class HalfQuery[A, B](left: RelationalQuery[A, B], middle: Findable[B]) {
       def -->[C](that: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plus(middle,  that)
-      def <--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plus(middle, that.reverse)
+      def <--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plusDistinct(middle, that.reverse)
     }
   }
 

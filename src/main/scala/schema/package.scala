@@ -1,5 +1,5 @@
 import core.intermediate.unsafe.UnsafeFindable
-import db.common.DBCell
+import db.common.{DBCell, DBObject}
 
 import scalaz.Scalaz._
 
@@ -20,29 +20,29 @@ package object schema {
   sealed trait Writeable[A] // can be written to the database (necessarily complete data)
 
   sealed trait DBTuple[A] extends Findable[A] with Writeable[A]{
-    def toSchemaComponent: Map[ColumnName, SchemaComponent]
+    def toDBObject: DBObject
   }
 
   case class DBTuple0[Res](n: TableName) extends DBTuple[Res] {
-    override def toSchemaComponent: Map[ColumnName, SchemaComponent] = Map()
+    override def toDBObject = DBObject(Vector())
     override def pattern: Vector[Option[DBCell]] = Vector()
     override def tableName: TableName = n
   }
 
   case class DBTuple1[Res, A1](n: TableName, a1: A1)(implicit s1: Storeable[A1]) extends DBTuple[Res]{
-    override def toSchemaComponent: Map[ColumnName, SchemaComponent] = Map(ColumnName("1") -> s1.SchemaComponent)
+    override def toDBObject = DBObject(Vector(s1.toDBCell(a1)))
     override def pattern: Vector[Option[DBCell]] = Vector(s1.toDBCell(a1)).map(_.some)
     override def tableName: TableName = n
   }
 
   case class DBTuple2[Res, A1, A2](n: TableName, a1: A1, a2: A2)(implicit s1: Storeable[A1], s2: Storeable[A2]) extends DBTuple[Res]{
-    override def toSchemaComponent: Map[ColumnName, SchemaComponent] = Map(ColumnName("1") -> s1.SchemaComponent, ColumnName("2") -> s2.SchemaComponent)
+    override def toDBObject = DBObject(Vector(s1.toDBCell(a1), s2.toDBCell(a2)))
     override def pattern: Vector[Option[DBCell]] = Vector(s1.toDBCell(a1), s2.toDBCell(a2)).map(_.some)
     override def tableName: TableName = n
   }
 
   case class DBTuple3[Res, A1, A2, A3](n: TableName, a1: A1, a2: A2, a3: A3)(implicit s1: Storeable[A1], s2: Storeable[A2], s3: Storeable[A3]) extends DBTuple[Res]{
-    override def toSchemaComponent: Map[ColumnName, SchemaComponent] = Map(ColumnName("1") -> s1.SchemaComponent)
+    override def toDBObject = DBObject(Vector(s1.toDBCell(a1), s2.toDBCell(a2), s3.toDBCell(a3)))
     override def pattern: Vector[Option[DBCell]] = Vector(s1.toDBCell(a1), s2.toDBCell(a2), s3.toDBCell(a3)).map(_.some)
     override def tableName: TableName = n
   }

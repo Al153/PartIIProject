@@ -55,5 +55,4 @@ trait DBExecutor {
    */
 
   def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit e: ExecutionContext, sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit]
-  // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid query
 }

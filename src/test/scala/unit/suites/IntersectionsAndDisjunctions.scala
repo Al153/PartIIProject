@@ -1,7 +1,7 @@
 package unit.suites
 
 import core.CompletedRelation
-import core.dsl.Commands.{findPairsDistinct, insert}
+import core.dsl.Commands._
 import core.dsl.RelationSyntax._
 import db.interfaces.Empty
 import db.using
@@ -13,15 +13,15 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalaz.{-\/, \/-}
 
-trait ConjunctionsAndDisjunctions { self: HasBackend =>
+trait IntersectionsAndDisjunctions { self: HasBackend =>
 
   /**
-    * Test that conjunctions and disjunctions work
+    * Test that Intersections and disjunctions work
     */
 
 
   @Test
-  def ConjunctionsAndDisjunctions(): Unit = {
+  def IntersectionsAndDisjunctions(): Unit = {
     val expectedUnion = Set(
       Alice -> Charlie,
       Alice -> Bob,
@@ -34,7 +34,7 @@ trait ConjunctionsAndDisjunctions { self: HasBackend =>
       Fred -> Bob,
       Bob -> Fred
     )
-    val expectedConjunction = Set(Alice -> Charlie)
+    val expectedIntersection = Set(Alice -> Charlie)
 
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
@@ -54,13 +54,15 @@ trait ConjunctionsAndDisjunctions { self: HasBackend =>
             CompletedRelation(Bob, Owns, Mercedes)
           ))
 
-          res1 <- findPairsDistinct(Knows & (Owns --><-- Owns))
+          res4 <- findPairs(Knows | (Owns --><-- Owns))
+          res3 <- findPairs(Knows & (Owns --><-- Owns))
           res2 <- findPairsDistinct(Knows | (Owns --><-- Owns))
+          res1 <- findPairsDistinct((Owns --><-- Owns) & Knows)
 
-
-
-          _ <- assertEqOp(expectedConjunction, res1)
-          _ <- assertEqOp(expectedUnion, res2)
+          _ <- assertEqOp(expectedIntersection, res4, "union Failure (All)")
+          _ <- assertEqOp(expectedIntersection, res3, "intersection Failure (All)")
+          _ <- assertEqOp(expectedIntersection, res1, "Intersection failure (Distinct)")
+          _ <- assertEqOp(expectedUnion, res2, "Union failure, (Distinct)")
         } yield ()
     }
 
@@ -75,7 +77,7 @@ trait ConjunctionsAndDisjunctions { self: HasBackend =>
   }
 
   /**
-    * Test that Conjunctions by a unary query work
+    * Test that Intersections by a unary query work
     */
   // todo: implement
 }

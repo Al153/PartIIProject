@@ -12,6 +12,7 @@ case class USAndSingle(l: UnsafeFindPair, r: UnsafeFindSingle) extends UnsafeFin
 case class USAtleast(n: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 case class USBetween(low: Int, high: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 case class USChain(l: UnsafeFindPair, r: UnsafeFindPair) extends UnsafeFindPair
+case class USDistinct(r: UnsafeFindPair) extends UnsafeFindPair
 case class USExactly(n: Int, rel: UnsafeFindPair) extends UnsafeFindPair
 case object USId extends UnsafeFindPair
 case class USNarrow(left: UnsafeFindPair, f: UnsafeFindable) extends UnsafeFindPair

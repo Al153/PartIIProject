@@ -31,9 +31,9 @@ trait ReadWrite { self: HasBackend =>
           _ <- insert(Set(CompletedRelation(Alice, Knows, Charlie)))
 
           res1 <- findPairs(Knows)
-          _ <- assertEqOp(expectedPairs, res1)
+          _ <- assertEqOp(expectedPairs, res1, "Write and read pairs failure")
           res2 <- find(Alice >> Knows)
-          r <- assertEqOp(expectedSingle, res2)
+          r <- assertEqOp(expectedSingle, res2, "Write and read single failure")
         } yield r
     }
 
@@ -63,7 +63,7 @@ trait ReadWrite { self: HasBackend =>
             CompletedRelation(Alice, Knows, Charlie)
           ))
           res1 <- findPairs(Knows)
-          r <- assertEqOp(expectedPairs, res1)
+          r <- assertEqOp(expectedPairs, res1, "Write duplicates failure")
         } yield r
     }
 
