@@ -21,9 +21,14 @@ package object memory {
   type RelatedPair = (MemoryObject, MemoryObject)
 
   implicit class MemoryTreeOps(memoryTree: MemoryTree) {
-    def findObj(findable: UnsafeFindable): E \/ Vector[MemoryObject] = for {
+    def findPattern(findable: UnsafeFindable): E \/ Vector[MemoryObject] = for {
       table <- memoryTree.getOrError(findable.tableName, MissingTableName(findable.tableName))
       res <- table.find(findable)
+    } yield res
+
+    def findObj(tableName: TableName, obj: DBObject): E \/ Option[MemoryObject] = for {
+      table <- memoryTree.getOrError(tableName, MissingTableName(tableName))
+      res = table.find(obj)
     } yield res
   }
 
@@ -95,8 +100,8 @@ package object memory {
       case USRel(rel) =>
           EitherOps.sequence(left.map {
             leftObject: MemoryObject => {
-              val relatedPatterns = leftObject.getRelated(rel.name).toVector
-              val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+              val related = leftObject.getRelated(rel.name).toVector
+              val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
               val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
               res
             }
@@ -106,8 +111,8 @@ package object memory {
       case USRevRel(rel) =>
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
-            val relatedPatterns = leftObject.getRevRelated(rel.name).toVector
-            val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+            val related = leftObject.getRevRelated(rel.name).toVector
+            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.from, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
           }
@@ -169,8 +174,8 @@ package object memory {
       case USRel(rel) =>
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
-            val relatedPatterns = leftObject.getRelated(rel.name).toVector
-            val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+            val related = leftObject.getRelated(rel.name).toVector
+            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
           }
@@ -179,8 +184,8 @@ package object memory {
       case USRevRel(rel) =>
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
-            val relatedPatterns = leftObject.getRevRelated(rel.name).toVector
-            val eRelatedObjects = EitherOps.sequence(relatedPatterns.map(f => tree.findObj(f)))
+            val related = leftObject.getRelated(rel.name).toVector
+            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
           }
@@ -330,19 +335,16 @@ package object memory {
     } yield res
 
 
-  def write[A](t: MemoryTree, tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, tableName2: TableName, memoryObject2: UnsafeFindable): E \/ MemoryTree = {
+  def write[A](t: MemoryTree, tableName1: TableName, memoryObject1: DBObject, relationName: RelationName, tableName2: TableName, memoryObject2: DBObject): E \/ MemoryTree = {
     if (tableName1 != tableName2) { // different behaviour
       for {
         table1 <- t.getOrError(tableName1, MissingTableName(tableName1))
         table2 <- t.getOrError(tableName2, MissingTableName(tableName2))
 
         o1 <- table1.findOrWrite(memoryObject1)
-        updatedO1 =  o1.map(_.addRelation(relationName, memoryObject2))
+        updatedO1 =  o1.addRelation(relationName, memoryObject2)
         o2 <- table2.findOrWrite(memoryObject2)
-        updatedO2 = o2.map(_.addReverseRelation(relationName, memoryObject1))
-
-
-
+        updatedO2 = o2.addReverseRelation(relationName, memoryObject1)
         res = t + (tableName1 -> table1.insert(updatedO1), tableName2 -> table2.insert(updatedO2))
       } yield res
     } else { // if same table need to add both to table
@@ -350,14 +352,14 @@ package object memory {
     }
   }
 
-  private def writeSelfRelation(t: MemoryTree, tableName1: TableName, memoryObject1: UnsafeFindable, relationName: RelationName, memoryObject2: UnsafeFindable) =
+  private def writeSelfRelation(t: MemoryTree, tableName1: TableName, memoryObject1: DBObject, relationName: RelationName, memoryObject2: DBObject) =
     for {
       table1 <- t.getOrError(tableName1, MissingTableName(tableName1))
 
       o1 <- table1.findOrWrite(memoryObject1)
-      updatedO1 =  o1.map(_.addRelation(relationName, memoryObject2))
+      updatedO1 =  o1.addRelation(relationName, memoryObject2)
       o2 <- table1.findOrWrite(memoryObject2)
-      updatedO2 = o2.map(_.addReverseRelation(relationName, memoryObject1))
+      updatedO2 = o2.addReverseRelation(relationName, memoryObject1)
 
       res = t + (tableName1 -> table1.insert(updatedO1).insert(updatedO2))
     } yield res

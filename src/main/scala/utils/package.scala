@@ -49,4 +49,8 @@ package object utils {
   implicit class MapLikeOps[K, A](u: MapLike[K, A, _]) {
     def getOrError(k: K, e: => E): E \/ A = u.get(k).fold(\/.left[E, A](e))(_.right[E])
   }
+
+  implicit class MaplikePrefixOps[A](a: A) {
+    def in[B](m: MapLike[A, B, _]): Boolean = m.contains(a)
+  }
 }
