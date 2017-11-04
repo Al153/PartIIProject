@@ -1,7 +1,6 @@
 import core.containers.{ConstrainedFuture, Operation}
 import core.error.E
 import db.interfaces.DBInstance
-import schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
 
