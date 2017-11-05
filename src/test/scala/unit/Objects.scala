@@ -8,6 +8,9 @@ object Objects {
   val Eve = Person("Eve")
   val Fred = Person("Fred")
   val Georgie = Person("Georgie")
+  val Hannah = Person("Hannah")
+  val Ian = Person("Ian")
+  val Jane = Person("Jane")
 
   val Mercedes = Car("Mercedes")
   val Ford = Car("Ford")

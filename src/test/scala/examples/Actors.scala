@@ -41,7 +41,7 @@ class Actors {
     using(MemoryDB.open("/path/to/sql/database".db, Schema.description)){
        implicit instance =>
         for {
-          actors <- find((coactor |*| 4).from(tomCruise))
+          actors <- find((coactor * 4).from(tomCruise))
           namedActors = actors.filter(actor => actor.name.startsWith("A"))
           _ <- insert(namedActors.map(actor => CompletedRelation(point, LinkedToTomCruise: RelationAttributes[Singleton, Actor], actor)))
           currentLinked <- find(getLinked.from(point))
@@ -60,7 +60,7 @@ class Actors {
     using(MemoryDB.open("/path/to/database".db, Schema.description)){
       implicit instance =>
         for {
-          pairs <- findPairsDistinct(Borders.*.tree)
+          pairs <- findPairsDistinct(Borders.**.tree)
           _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
         } yield ()
     }

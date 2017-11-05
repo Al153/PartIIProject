@@ -30,6 +30,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
       Alice -> Eve,
       Eve -> Alice,
       Charlie -> Eve,
+      Charlie -> Alice,
       Eve -> Charlie,
       Fred -> Bob,
       Bob -> Fred
@@ -59,8 +60,8 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
           res2 <- findPairsDistinct(Knows | (Owns --><-- Owns))
           res1 <- findPairsDistinct((Owns --><-- Owns) & Knows)
 
-          _ <- assertEqOp(expectedIntersection, res4, "union Failure (All)")
-          _ <- assertEqOp(expectedIntersection, res3, "intersection Failure (All)")
+          _ <- assertEqOp(expectedUnion, res4.toSet, "union Failure (All)")
+          _ <- assertEqOp(expectedIntersection, res3.toSet, "intersection Failure (All)")
           _ <- assertEqOp(expectedIntersection, res1, "Intersection failure (Distinct)")
           _ <- assertEqOp(expectedUnion, res2, "Union failure, (Distinct)")
         } yield ()

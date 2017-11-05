@@ -69,12 +69,29 @@ abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: S
 
 object RelationalQuery {
   implicit class SymmetricQuery[A](u: RelationalQuery[A, A]) {
-    def |*|(n: Int): RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
+    def *(n: Int): RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
       override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Exactly(n, u.tree)(u.sa, sd)
     }
-    def * : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
+
+    def * (p: (Int, Int)) = new RelationalQuery[A, A]()(u.sa, u.sa) {
+      override def tree(implicit sd: SchemaDescription): FindPair[A, A] = {
+        val (from, to) = p
+        Between(from, to, u.tree)(u.sa, sd)
+      }
+    }
+
+    def *+ (n: Int) = new RelationalQuery[A, A]()(u.sa, u.sa) {
+      override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Atleast(n, u.tree)(u.sa, sd)
+    }
+
+    def ** : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
       override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Atleast(0, u.tree)(u.sa, sd)
     }
+
+    def ++ : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
+      override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Atleast(1, u.tree)(u.sa, sd)
+    }
+
     def ? : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {
       override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Upto(1, u.tree)(u.sa, sd)
     }

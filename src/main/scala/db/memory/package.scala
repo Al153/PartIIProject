@@ -92,11 +92,11 @@ package object memory {
 
       case USChain(l, r) => for {
         lres <- recurse(l, left)
-        rres <- recurse(r, lres.mapProj2)
+        rres <- recurse(r, lres.mapProj2.distinct) // reduce double joining
       } yield {
-        println("(Distinct) Chain right expr = " + r)
-        println("(Distinct) Chain Left result = " + lres)
-        println("(Distinct) Chain right Result = " + rres)
+        println("(All) Chain right expr = " + r)
+        println("(All) Chain Left result = " + lres)
+        println("(All) Chain right Result = " + rres)
         val res = join(lres, rres)
         println("Chain res = " + res)
         res
@@ -135,9 +135,11 @@ package object memory {
 
 
       case USRevRel(rel) =>
+        println("RevRel Left = " + left)
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
             val related = leftObject.getRevRelated(rel.name).toVector
+            println("Rev related = " + related.mkString("\n"))
             val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.from, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
@@ -194,8 +196,8 @@ package object memory {
         lres <- recurse(l, left)
         rres <- recurse(r, lres.map(_._2))
       } yield {
-        println("Chain Left result = " + lres)
-        println("Chain right Result = " + rres)
+        println("(Distinct) Chain Left result = " + lres)
+        println("(Distinct) Chain right Result = " + rres)
         val res = joinSet(lres, rres)
         println("Chain res = " + res)
         res
