@@ -68,7 +68,7 @@ trait Transitive { self: HasBackend =>
 
           res1 <- findPairs(Owns --><-- Owns)
           res2 <- findPairsDistinct(Owns --><-- Owns)
-          _ <- assertEqOp(expectedPairs.toSet, res1.toSet, "Reverse transitive failure (all)")
+          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Reverse transitive failure (all)")
           _ <- assertEqOp(expectedPairs.toSet, res2, "Reverse transitive failure (distinct)")
         } yield ()
     }
@@ -119,8 +119,8 @@ trait Transitive { self: HasBackend =>
 
 
 
-          _ <- assertEqOp(expectedOwnsPairs, res1, "Restricted reverse transitive failed")
-          _ <- assertEqOp(expectedKnowsPairs, res2, "Restricted transitive failed")
+          _ <- assertEqOp(expectedOwnsPairs.sorted, res1.sorted, "Restricted reverse transitive failed")
+          _ <- assertEqOp(expectedKnowsPairs.sorted, res2.sorted, "Restricted transitive failed")
           _ <- assertEqOp(expectedOwnsPairs.toSet, res3, "Restricted reverse transitive distinct failed")
           _ <- assertEqOp(expectedKnowsPairs.toSet, res4, "Restricted transitive distinct  failed")
 

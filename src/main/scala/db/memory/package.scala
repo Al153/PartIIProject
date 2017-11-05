@@ -148,18 +148,26 @@ package object memory {
 
       case USUpto(n, rel) =>
         if (n <= 0) left.map(x => (x, x)).right
-        else for {
-          lres <- recurse(rel, left)
-          rres <- fixedPoint(left => findPairsSetImpl(rel, left, tree), lres.mapProj2.toSet.mapPair, Number(n))
-        } yield join(lres, rres.toVector)
-      case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
+        else {
+          val stepFunction: Set[MemoryObject] => E \/ Set[RelatedPair] = left => findPairsSetImpl(rel, left, tree)
+          for {
+            rres <- fixedPoint(stepFunction, left.toSet.mapPair, Number(n))
+          } yield rres.toVector
+        }
+
+      case USBetween(low, high, rel) => {
+        recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
+      }
       case USAtleast(n, rel) =>
         if (n > 0) {
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
         } else {
           // otherwise find a fixed point
+          println("Atleast: Finding fixed point")
+          println("Atleast: Left = " + left.mkString("\n\t\t\t"))
+          val stepFunction: Set[MemoryObject] => E \/ Set[RelatedPair] = left => findPairsSetImpl(rel, left, tree)
           for {
-            res <- fixedPoint(left => findPairsSetImpl(rel, left, tree), left.toSet.mapPair, NoLimit)
+            res <- fixedPoint(stepFunction, left.toSet.mapPair, NoLimit)
           } yield res.toVector
         }
       case USExactly(n, rel) => if (n <= 0) {
@@ -246,15 +254,16 @@ package object memory {
       case USUpto(n, rel) =>
         if (n <= 0) left.map(x => (x, x)).right
         else for {
-          lres <- recurse(rel, left)
-          rres <- fixedPoint(left => findPairsSetImpl(rel, left, tree), lres.mapProj2.map(x => (x, x)), Number(n))
-        } yield joinSet(lres, rres)
+          rres <- fixedPoint(left => findPairsSetImpl(rel, left, tree), left.mapPair, Number(n))
+        } yield rres
+
       case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
       case USAtleast(n, rel) =>
         if (n > 0) {
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
         } else {
           // otherwise find a fixed point
+          println("Atleast: Left = " + left.mkString("\n\t\t\t"))
           for {
             res <- fixedPoint(left => findPairsSetImpl(rel, left, tree), left.map(x => (x, x)), NoLimit)
           } yield res
@@ -267,44 +276,46 @@ package object memory {
     }
   }
 
+  /**
+    *   Find the fixed point of the search step function
+    */
+
+  // TODO: this is incorrect - assumes no loops, etc
+  // need separate fixed point and non-fixed point algos
+
   private def fixedPoint(searchStep: Set[MemoryObject] => E \/ Set[RelatedPair], initial: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = {
-    def aux(pairsToExplore: Set[RelatedPair], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] = for {
-      foundPairs <- searchStep(pairsToExplore.mapProj2)
-      newPairs: Set[RelatedPair] = notExplored(foundPairs, alreadyExplored)
-      newAcc: Set[RelatedPair] = acc | joinSet(acc, newPairs)
 
-      res <- limit match {
-        case Number(n) =>
-          if (shouldContinue(newPairs, n))
-            newAcc.right
-          else {
-            val newExplored = alreadyExplored | newPairs.mapProj1
-            aux(newPairs, newExplored, newAcc, Number(n-1))
-          }
+    /*
+     * Algorithm idea:
+     *  keep a fringe of pairs to explore, an accumulator of found pairs, and an accumulator of found left hand sides
+     *
+     *  In each step, find all the pairs that are reachable from each value in the fringe
+     *
+     *
+     */
 
-        case NoLimit =>
-          if (newPairs.isEmpty)
-            newAcc.right
-          else {
-            val newExplored = alreadyExplored | newPairs.mapProj1
-            aux(newPairs, newExplored, newAcc, NoLimit)
-          }
+    def aux(fringe: Set[MemoryObject], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair], limit: Limit): E \/ Set[RelatedPair] =
+      limit match {
+        case Number(n) if n <= 0 => acc.right
+        case _ =>
+          for {
+            foundPairs <- searchStep(fringe)
 
+            newRight = foundPairs.mapProj2.diff(alreadyExplored)
+            newAcc = acc | joinSet(acc, foundPairs)
+
+            res <-
+              if (newRight.isEmpty)
+                newAcc.right
+              else {
+                val newExplored = alreadyExplored | fringe
+                aux(newRight, newExplored, newAcc, limit.newLimit)
+              }
+          } yield res
       }
-    } yield res
-
-    limit match {
-      case Number(0) => initial.right
-      case _ => aux(initial, initial.mapProj1, initial, limit)
-    }
+    aux(initial.mapProj2, Set(), initial, limit)
   }
 
-  // Filter out the unexplored pairs
-  private def notExplored(found: Set[RelatedPair], explored: Set[MemoryObject]): Set[RelatedPair] = found.filter {case (_, r) => !explored.contains(r)}
-
-  // Determine whether to continue
-
-  private def shouldContinue(newPairs: Set[RelatedPair], n: Int): Boolean = newPairs.isEmpty || n <= 1
 
   // slow join
 
@@ -330,11 +341,26 @@ package object memory {
   }
 
 
-  private def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] =
-    for {
-      (from, to) <- leftRes
-      right <- rightRes.collect {case (f, t) if f == to => t}
-    } yield (from, right)
+  private def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] = {
+    println("\n\n\n\nJoin, left = " + leftRes.mkString("\n\t\t"))
+    println("join, right = " + rightRes.mkString("\n\t\t"))
+
+    // build an index of all values to join, prevents overduplication
+    val collectedLeft = leftRes.foldLeft(Map[MemoryObject, Set[MemoryObject]]()) {
+      case (m, pair) =>
+        m + (pair._2 -> (m.getOrElse(pair._2, Set[MemoryObject]()) ++ Set(pair._1)))
+    }
+
+    println("Join, index = " + collectedLeft.mkString("\n\t\t"))
+
+    val res = for {
+      (middle, to) <- rightRes
+      from <- collectedLeft.getOrElse(middle, Set())
+    } yield (from, to)
+
+    println("Join, res = " + res.mkString("\n\t\t"))
+    res
+}
 
 
   // Breadth first == dijkstra's
@@ -362,18 +388,17 @@ package object memory {
   // Step function, fringe => NewFringe, pickedPath, newlyFound
   private def doStep(searchStep: MemoryObject => E \/ Set[RelatedPair], fringe: Queue[MemoryPath], alreadyExplored: Set[MemoryObject]): E \/ (Queue[MemoryPath], MemoryPath, Set[MemoryObject]) =
     if (fringe.nonEmpty) {
-      val top = fringe.head
-      val newFringe = fringe.tail
-
+      val top = fringe.head // pop the top off of the fringe
       for {
         next <- searchStep(top.getLast)
         newObjects = next.mapProj2.diff(alreadyExplored)
+        newFringe = fringe.tail ++ newObjects.diff(alreadyExplored).map(top + _) // todo: Probably slow
       } yield (newFringe, top, newObjects)
     } else {
       EmptyFringeError.left
     }
 
-  private def toQueue[A](s: Set[A]): Queue[A] = Queue(s.toSeq: _*) // todo: is this fast?
+  private def toQueue[A](s: Set[A]): Queue[A] = Queue() ++ s
 
 
   def singleShortestsPathImpl(start: Set[MemoryObject], end: UnsafeFindable, searchStep: MemoryObject => E \/ Set[RelatedPair]): E \/ Option[MemoryPath] = {

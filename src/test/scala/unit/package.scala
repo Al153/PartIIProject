@@ -46,5 +46,9 @@ package object unit {
   case class AssertionFailure(e: Throwable, msg: String) extends E {
     override def toString: String = s"AssertionFailure:\n$msg\n${e.getMessage}"
   }
+
+  implicit def PersonOrdering(implicit os: Ordering[String]) = new Ordering[Person] {
+    override def compare(x: Person, y: Person): Int = os.compare(x.name, y.name)
+  }
 }
 

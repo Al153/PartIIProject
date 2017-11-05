@@ -13,10 +13,7 @@ import scala.concurrent.ExecutionContext
   * A database connection can open
   */
 trait DBBackend {
-
-
   def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance]
-
 }
 
 

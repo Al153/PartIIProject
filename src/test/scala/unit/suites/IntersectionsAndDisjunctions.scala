@@ -22,7 +22,8 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
 
   @Test
   def IntersectionsAndDisjunctions(): Unit = {
-    val expectedUnion = Set(
+    val expectedUnion = Vector(
+      Alice -> Charlie,
       Alice -> Charlie,
       Alice -> Bob,
       Alice -> Fred,
@@ -35,7 +36,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
       Fred -> Bob,
       Bob -> Fred
     )
-    val expectedIntersection = Set(Alice -> Charlie)
+    val expectedIntersection = Vector(Alice -> Charlie)
 
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
@@ -60,10 +61,10 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
           res2 <- findPairsDistinct(Knows | (Owns --><-- Owns))
           res1 <- findPairsDistinct((Owns --><-- Owns) & Knows)
 
-          _ <- assertEqOp(expectedUnion, res4.toSet, "union Failure (All)")
-          _ <- assertEqOp(expectedIntersection, res3.toSet, "intersection Failure (All)")
-          _ <- assertEqOp(expectedIntersection, res1, "Intersection failure (Distinct)")
-          _ <- assertEqOp(expectedUnion, res2, "Union failure, (Distinct)")
+          _ <- assertEqOp(expectedUnion.sorted, res4.sorted, "union Failure (All)")
+          _ <- assertEqOp(expectedIntersection.sorted, res3.sorted, "intersection Failure (All)")
+          _ <- assertEqOp(expectedIntersection.toSet, res1, "Intersection failure (Distinct)")
+          _ <- assertEqOp(expectedUnion.toSet, res2, "Union failure, (Distinct)")
         } yield ()
     }
 

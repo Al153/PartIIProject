@@ -80,7 +80,7 @@ object RelationalQuery {
       }
     }
 
-    def *+ (n: Int) = new RelationalQuery[A, A]()(u.sa, u.sa) {
+    def *+ (n: Int) = new RelationalQuery[A, A]()(u.sa, u.sa) { // todo: better syntax
       override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Atleast(n, u.tree)(u.sa, sd)
     }
 
