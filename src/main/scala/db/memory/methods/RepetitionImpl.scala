@@ -1,64 +1,69 @@
 package db.memory.methods
 
 import core.error.E
-import db.common.{Limit, Number}
 import db.memory.{MemoryObject, RelatedPair}
-
-import scalaz._
-import Scalaz._
 import utils._
 
-import scalaz.\/
+import scalaz.Scalaz._
+import scalaz.{\/, _}
 
 trait RepetitionImpl { self: ExecutorMethods with Joins =>
   /**
     *   Find the fixed point of the search step function
     */
 
-  // TODO: this is incorrect - assumes no loops, etc
-  // need separate fixed point and non-fixed point algos
+  protected def fixedPoint(searchStep: Set[MemoryObject] => E \/ Set[MemoryObject], initial: Set[RelatedPair]): E \/ Set[RelatedPair] = {
+    println("Finding fixed points")
 
-  protected def fixedPoint(searchStep: Set[MemoryObject] => E \/ Set[RelatedPair], initial: Set[RelatedPair]): E \/ Set[RelatedPair] = {
+    def reachableFrom(root: MemoryObject, memo: Map[MemoryObject, Set[MemoryObject]]): E \/ Set[MemoryObject] = {
+      // fromMemo: found -> keysFoundInMemo, ValuesFromMemo
+      def fromMemo(found: Set[MemoryObject]): (Set[MemoryObject], Set[MemoryObject]) = {
+        val keys = found.filter(_ in memo)
+        val values = keys.flatMap(memo)
+        (keys, values)
+      }
 
-    /* Algorithm Idea:
-     * - Step 1: Find a set of all reachable pairs: Iteratively search for all linked pairs
-     *
-     * - Step 2: Find transitive closure of all pairs
-     */
+      def aux(fringe: Set[MemoryObject], acc: Set[MemoryObject]): E \/ Set[MemoryObject] = {
+        if (fringe.isEmpty) acc.right
+        else for {
+          found <- searchStep(fringe)
+          (memoized, memoizedValues) = {println("found = " + found) ; fromMemo(found)}
+          newFringe = {println("Acc = " + acc + "Memoized = " + memoized); found.diff(acc).diff(memoized)}
+          newAcc = { println("New fringe = " + newFringe) ;acc.union(newFringe).union(memoizedValues)}
+          res <- aux(newFringe, newAcc)
+        } yield res
+      }
 
-    def findPairs(fringe: Set[MemoryObject], alreadyExplored: Set[MemoryObject], acc: Set[RelatedPair]): E \/ Set[RelatedPair] =
+      aux(Set(root), Set(root))
+    }
+
+    def combinator(root: MemoryObject, eacc: E \/ Map[MemoryObject, Set[MemoryObject]]): E \/ Map[MemoryObject, Set[MemoryObject]] = {
       for {
-        foundPairs <- searchStep(fringe)
-        newExplored = alreadyExplored | fringe
-        newRight = foundPairs.mapProj2.diff(newExplored)
-        newAcc = acc | foundPairs
-        res <-
-          if (newRight.isEmpty)
-            newAcc.right
-          else {
-            findPairs(newRight, newExplored, newAcc)
-          }
-      } yield res
+        acc <- eacc
+        reachable <- reachableFrom(root, acc)
+      } yield acc + (root -> reachable)
+    }
 
-    val subGraph = findPairs(initial.mapProj2, Set(), initial)
+    val allPairs = initial.mapProj2.foldRight(Map[MemoryObject, Set[MemoryObject]]().right[E])(combinator)
 
-    ??? // next step is to do a mega join over these pairs starting from the initial set.
-
-    def traverseSubgraph()
+    for {
+      dict <- allPairs
+    } yield doJoin(initial, dict)
   }
 
 
   protected def upTo(
-                      searchStep: MemoryObject => E \/ Set[MemoryObject],
+                      searchStep: Set[MemoryObject] => E \/ Set[MemoryObject],
                       initial: Set[MemoryObject],
                       limit: Int): E \/ Set[RelatedPair] = {
     // do A depth first search up to a limit
 
     def fromRoot(root: MemoryObject, limit: Int): E \/ Set[RelatedPair] = {
       def aux(limit: Int, fringe: Set[MemoryObject], acc: Set[MemoryObject]): E \/ Set[MemoryObject] = {
-        if (limit <= 0) acc.right
+        if (limit <= 0 || fringe.isEmpty) acc.right
         else for {
-          newFringe <- fringe.map(searchStep).flattenE
+          found <- searchStep(fringe)
+          newFringe = found.diff(acc) // all those that haven't yet been found
           newAcc = acc.union(newFringe)
           res <- aux(limit - 1, newFringe, newAcc)
         } yield res
@@ -72,5 +77,9 @@ trait RepetitionImpl { self: ExecutorMethods with Joins =>
       root <- initial
     } yield fromRoot(root, limit)).flattenE
 
+  }
+
+  private def doJoin(left: Set[RelatedPair], right: Map[MemoryObject, Set[MemoryObject]]): Set[RelatedPair] = {
+    left.flatMap { case (from, middle) => right.getOrElse(middle, Set()).map((from, _))}
   }
 }
