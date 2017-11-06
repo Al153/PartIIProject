@@ -40,11 +40,10 @@ case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[D
     find(findable).getOrElse(MemoryObject(findable, name, Map(), Map())).right[E]
 
   def  insert(o: MemoryObject): MemoryTable = {
-    // todo: need to look up the value first, potentially updating
     if (o.value in objects){
       // need to replace updated value in each table
       val newObjects = objects + (o.value -> o)
-      val newIndex = for { // todo
+      val newIndex = for {
         (cell, map) <- o.value.fields.zip(index)
       } yield map + (cell -> (map.getOrElse(cell, Set()) - o + o)) // since we remove by the hash value, then insert the updated version
 

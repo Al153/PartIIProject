@@ -23,7 +23,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           unsafeQuery <- q.getUnsafe
-          v <- findSingleImpl(unsafeQuery, t)
+          v <- methods.findSingleImpl(unsafeQuery, t)
           res <- EitherOps.sequence(v.map(o => ea.fromRow(o.value)))
         } yield res
     )
@@ -33,9 +33,9 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           unsafeSingle <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe
-          initial <- {println("Single = " + unsafeSingle); findSingleImpl(unsafeSingle, t)}
+          initial <- {println("Single = " + unsafeSingle); methods.findSingleImpl(unsafeSingle, t)}
           unsafeQuery <- {println("initial = " + initial) ; q.getUnsafe}
-          v <- {println("query = " + unsafeQuery) ; findPairsImpl(unsafeQuery, initial, t)}
+          v <- {println("query = " + unsafeQuery) ; methods.findPairsImpl(unsafeQuery, initial, t)}
           res <- EitherOps.sequence(
             v.map {
               case (l, r) =>
@@ -52,7 +52,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           unsafeQuery <- q.getUnsafe
-          v <- findSingleSetImpl(unsafeQuery, t)
+          v <- methods.findSingleSetImpl(unsafeQuery, t)
           res <- EitherOps.sequence(v.map(o => ea.fromRow(o.value)))
         } yield res
     )
@@ -62,9 +62,9 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           unsafeQuery <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe
-          initial <- findSingleSetImpl(unsafeQuery, t)
+          initial <- methods.findSingleSetImpl(unsafeQuery, t)
           unsafeQuery <- q.getUnsafe
-          v <- findPairsSetImpl(unsafeQuery, initial, t)
+          v <- methods.findPairsSetImpl(unsafeQuery, initial, t)
           res <- EitherOps.sequence(
             v.map {
               case (l, r) =>
@@ -80,9 +80,9 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     instance.readOp {
       tree =>
         for {
-          initial <- find(start, tree)
+          initial <- methods.find(start, tree)
           unsafeQuery <- relationalQuery.tree.getUnsafe
-          erasedRes <- singleShortestsPathImpl(initial, sa.findable(end).getUnsafe, o => findPairsSetImpl(unsafeQuery, Set(o), tree))
+          erasedRes <- methods.singleShortestsPathImpl(initial, sa.findable(end).getUnsafe, o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree))
           res <-  erasedRes.map(r => Path.from(r.toErasedPath, sa)).fold(Option.empty[Path[A]].right[E])(_.map(_.some))
         } yield res
     }
@@ -91,9 +91,9 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     instance.readOp {
       tree =>
         for {
-          initial <- find(start, tree)
+          initial <- methods.find(start, tree)
           unsafeQuery <- relationalQuery.tree.getUnsafe
-          erasedRes <- allShortestPathsImpl(initial, o => findPairsSetImpl(unsafeQuery, Set(o), tree))
+          erasedRes <- methods.allShortestPathsImpl(initial, o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree))
           res <- EitherOps.sequence(erasedRes.map(p => Path.from(p.toErasedPath, sa)))
         } yield res
 
@@ -108,7 +108,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
               relationName =>
                 eTree.flatMap(
                   tree =>
-                    write(tree, sa.tableName, sa.getDBObject(r.a), relationName, sb.tableName, sb.getDBObject(r.b))
+                    methods.write(tree, sa.tableName, sa.getDBObject(r.a), relationName, sb.tableName, sb.getDBObject(r.b))
                 )
             }
           }

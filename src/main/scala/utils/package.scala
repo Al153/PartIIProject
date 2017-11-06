@@ -1,4 +1,5 @@
 import core.error.E
+import db.memory.RelatedPair
 
 import scala.collection.MapLike
 import scala.collection.generic.CanBuildFrom
@@ -22,6 +23,10 @@ package object utils {
 
   implicit class SetOps[A](u: Set[A]) {
     def mapPair: Set[(A, A)] = u.map(x => (x, x))
+  }
+
+  implicit class SetOps2[E, A](u: Set[E \/ Set[A]]) {
+    def flattenE: E \/ Set[A] = EitherOps.sequence(u).map(_.flatten)
   }
 
   implicit class VectorOps[A](u: Vector[A]) {
