@@ -1,21 +1,22 @@
 package core.dsl
 
 import core.intermediate._
-import core.{RelationAttributes, Singleton}
-import schema.{Findable, SchemaObject, _}
+import core.relations
+import core.relations.{RelationAttributes, Singleton}
+import core.schema.{Findable, SchemaDescription, SchemaObject}
 
 
 /**
   * Created by Al on 02/10/2017.
   */
-abstract class UnaryQuery[A](implicit sa: SchemaObject[A]) extends RelationalQuery[Singleton, A]()(Singleton.SingletonSchema, sa) {
+abstract class UnaryQuery[A](implicit sa: SchemaObject[A]) extends RelationalQuery[relations.Singleton, A]()(Singleton.SingletonSchema, sa) {
 
 
   private[dsl] def unaryPlus[B](middle: Findable[A], right: RelationalQuery[A, B])(implicit sb: SchemaObject[B]) = {
     val left = this
     implicit val outerSa = sa
     new UnaryQuery[B] {
-      override def tree(implicit sd: SchemaDescription): FindPair[Singleton, B] =
+      override def tree(implicit sd: SchemaDescription): FindPair[relations.Singleton, B] =
         Chain(Narrow(left.tree, middle), right.tree)(Singleton.SingletonSchema, outerSa, sb, sd)
     }
   }

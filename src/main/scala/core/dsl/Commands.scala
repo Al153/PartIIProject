@@ -1,11 +1,11 @@
 package core.dsl
 
-import core.CompletedRelation
 import core.containers.{Operation, Path}
 import core.error.E
 import core.intermediate.{FindPair, FindSingle}
-import db.interfaces.{DBInstance, Extractor}
-import schema.{SchemaDescription, SchemaObject}
+import core.relations.CompletedRelation
+import core.backend.interfaces.{DBInstance, Extractor}
+import core.schema.{SchemaDescription, SchemaObject}
 
 import scala.concurrent.ExecutionContext
 
@@ -50,7 +50,7 @@ object Commands {
   def allShortestPaths[A](start: A, relationalQuery: RelationalQuery[A, A])(implicit d: DBInstance, e: ExecutionContext, sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Set[Path[A]]] = d.executor.allShortestPaths(start, relationalQuery)
 
   /*
-   * add a collection of relations to the database, creating a new view
+   * add a collection of relations to the database, creating a new core.view
    */
 
   def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit d: DBInstance, e: ExecutionContext, sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] = d.executor.insert(t) // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie

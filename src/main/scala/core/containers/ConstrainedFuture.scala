@@ -1,7 +1,7 @@
 package core.containers
 
 import core.error._
-import view.View
+import core.view.View
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scalaz._

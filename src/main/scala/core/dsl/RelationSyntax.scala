@@ -1,6 +1,6 @@
 package core.dsl
 
-import schema.{??, Findable, SchemaObject}
+import core.schema.{??, Findable, SchemaObject}
 
 /**
   * Created by Al on 11/10/2017.

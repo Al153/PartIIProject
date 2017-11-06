@@ -2,7 +2,7 @@ package core.containers
 
 import core.error.E
 import core.intermediate.unsafe.ErasedPath
-import schema.SchemaObject
+import core.schema.SchemaObject
 import scalaz._, Scalaz._
 import scalaz.\/
 

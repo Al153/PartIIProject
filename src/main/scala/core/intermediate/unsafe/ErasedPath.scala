@@ -1,6 +1,6 @@
 package core.intermediate.unsafe
 
-import db.common.DBObject
+import core.backend.common.DBObject
 
 /**
   * Created by Al on 27/10/2017.

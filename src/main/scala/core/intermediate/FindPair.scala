@@ -1,11 +1,12 @@
 package core.intermediate
 
-import core.RelationAttributes
 import core.error.E
 import core.intermediate.unsafe._
-import schema.{Findable, SchemaDescription, SchemaObject}
+import core.relations.RelationAttributes
+import core.schema.{Findable, SchemaDescription, SchemaObject}
 
-import scalaz._, Scalaz._
+import scalaz._
+import Scalaz._
 
 /**
   * Created by Al on 23/10/2017.

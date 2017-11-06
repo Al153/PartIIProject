@@ -1,6 +1,6 @@
 package core.containers
 
-import view.View
+import core.view.View
 
 import scala.concurrent.ExecutionContext
 

@@ -1,6 +1,6 @@
 package unit.suites
 
-import db.interfaces.DBBackend
+import core.backend.interfaces.DBBackend
 
 import scala.concurrent.ExecutionContext
 

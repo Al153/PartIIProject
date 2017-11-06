@@ -1,10 +1,10 @@
 package unit.suites
 
-import core.CompletedRelation
 import core.dsl.Commands._
 import core.dsl.RelationSyntax._
-import db.interfaces.Empty
-import db.using
+import core.relations.CompletedRelation
+import core.backend.interfaces.Empty
+import core.backend.using
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Owns, Person, assertEqOp, description}
@@ -90,7 +90,7 @@ trait Transitive { self: HasBackend =>
 
   @Test
   def RestrictedTransitive(): Unit = {
-    val expectedOwnsPairs = Vector(Bob -> Alice, Alice -> Bob) // this is the ordering produced by memory backend - may need to make ordering independent
+    val expectedOwnsPairs = Vector(Bob -> Alice, Alice -> Bob) // this is the ordering produced by memory core.backend - may need to make ordering independent
     val expectedKnowsPairs = Vector(Alice -> Bob)
 
     val op = using(backend.open(Empty, description)) {

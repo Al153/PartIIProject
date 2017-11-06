@@ -1,7 +1,7 @@
 package unit
 
-import db.interfaces.DBBackend
-import db.memory.MemoryDB
+import core.backend.interfaces.DBBackend
+import impl.memory.MemoryDB
 import unit.suites._
 
 import scala.concurrent.ExecutionContext

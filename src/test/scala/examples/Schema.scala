@@ -1,7 +1,8 @@
 package examples
 
-import core.{RelationAttributes, Singleton}
-import schema._
+import core.relations.{RelationAttributes, Singleton}
+import core.schema._
+import core.schema.{DBTuple1, DBTuple2, DBTuple3}
 
 /**
   * Created by Al on 15/10/2017.
@@ -30,7 +31,7 @@ object Schema {
     override def toTuple(a: Actor): DBTuple1[Actor, String] = DBTuple1(tableName, a.name)
   }
 
-  implicit def movieSchema = new schema.SchemaObject2[Movie, String, String] {
+  implicit def movieSchema = new core.schema.SchemaObject2[Movie, String, String] {
     override def construct(a1: String, a2: String): Movie = Movie(a1, Genre(a2))
     override def tableName: TableName = TableName("Movies")
     override def toTuple(m: Movie): DBTuple2[Movie, String, String] = DBTuple2(tableName, m.name, m.g.g)

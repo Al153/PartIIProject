@@ -1,7 +1,7 @@
 package core.containers
 
 import core.error.UnknownError
-import view.View
+import core.view.View
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.language.reflectiveCalls

@@ -1,16 +1,14 @@
 package examples
 
+import core.backend._
+import core.backend.interfaces.DatabaseAddress._
 import core.dsl.Commands._
-import core.{CompletedRelation, RelationAttributes, Singleton}
-import db._
-import db.memory.MemoryDB
-import examples.Schema.{Borders, Country}
+import core.relations.{CompletedRelation, RelationAttributes, Singleton}
+import examples.Schema.{Borders, Country, _}
+import impl.memory.MemoryDB
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import db.interfaces.DatabaseAddress._
-
 import scalaz.\/-
-import Schema._
 
 
 /**
@@ -22,7 +20,7 @@ import Schema._
 class Actors {
 
   /*
-    * Define the schema we expect from the database
+    * Define the core.schema we expect from the database
     * This might be loaded from a file or a library
    */
 
@@ -31,10 +29,10 @@ class Actors {
 
      /*
       * This is the interesting bit
-      * a long, chained, expression that opens up a database instant, gets the default view, then finds all Actors with a chain of 4 unique coactor relationships to Tom Cruise
+      * a long, chained, expression that opens up a database instant, gets the default core.view, then finds all Actors with a chain of 4 unique coactor relationships to Tom Cruise
       * then filters the results for those whose names begin with "A" and then adds those passing the filter to the set
       * LinkedToTomCruise.
-      * finally, from the same view, we collect all of the actors in the set LinkedToTomCruise using a predefined query, and print their names
+      * finally, from the same core.view, we collect all of the actors in the set LinkedToTomCruise using a predefined query, and print their names
       */
 
 

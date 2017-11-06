@@ -4,13 +4,13 @@
 - The premise is to provide the following:
     - An algebraic DSL in scala to allow construction of complex queries
     - A conversion from algebraic DSL to an core.intermediate tree of actions to be executed against the database
-    - A Monadic results container type (to contain the result of a given expression), which represents the asynchronicity and ability to return a collection of results, along with the `view` that the reslts were generated against
-        - This would likely be a monad transformer stack of the core.monads: Future (asynchronicity), State (to hold the view the query was executed with), Either (Typesafe and elegant core.error case handling), and List (a query may return a colleciton of results from the same view, eg "find all people who are related to John Smith")
-    - A system of logical "`view`s" of the underlying database
-        - A `view` is an immutable object representing the database at a logical point in time
-            - For example, if we start with view `v` and execute an `insert (a -[r1]-> b)` and `insert (c -[r2]-> d)` against it, then we should end up with 3 total views, `v`, `v + (a -[r1]-> b)`, and `v + (c -[r2]-> d)`
-            - Hence, `view`s essentially act like commits in git
-        - we need to do garbage collection. when an in-memory `view` runs out of objects holding it, it should garbage collect itself from the SQL implementation - could be very tricky over a distributed system.
+    - A Monadic results container type (to contain the result of a given expression), which represents the asynchronicity and ability to return a collection of results, along with the `core.view` that the reslts were generated against
+        - This would likely be a monad transformer stack of the core.monads: Future (asynchronicity), State (to hold the core.view the query was executed with), Either (Typesafe and elegant core.error case handling), and List (a query may return a colleciton of results from the same core.view, eg "find all people who are related to John Smith")
+    - A system of logical "`core.view`s" of the underlying database
+        - A `core.view` is an immutable object representing the database at a logical point in time
+            - For example, if we start with core.view `v` and execute an `insert (a -[r1]-> b)` and `insert (c -[r2]-> d)` against it, then we should end up with 3 total views, `v`, `v + (a -[r1]-> b)`, and `v + (c -[r2]-> d)`
+            - Hence, `core.view`s essentially act like commits in git
+        - we need to do garbage collection. when an in-memory `core.view` runs out of objects holding it, it should garbage collect itself from the SQL implementation - could be very tricky over a distributed system.
             - so distributed semantics are probably a major extension/out of current scope
     - An execution engine to compile the core.intermediate language to an SQL query that executes the graph level query represented against the internal database 
         - This should start out relatively trivial and if I have time left over, I might look at doing some simple optimisations, since we have some nice functional features to exploit
@@ -21,7 +21,7 @@
   def main(): Unit = {
 
     /*
-     * Define the schema we expect from the database
+     * Define the core.schema we expect from the database
      * This might be loaded from a file or a library
      */
 
@@ -61,10 +61,10 @@
     
     /*
      * This is the interesting bit
-     * a long, chained, expression that opens up a database instant, gets the default view, then finds all Actors with a chain of 4 unique coactor relationships to Tom Cruise
+     * a long, chained, expression that opens up a database instant, gets the default core.view, then finds all Actors with a chain of 4 unique coactor relationships to Tom Cruise
      * then filters the results for those whose names begin with "A" and then adds those passing the filter to the set
      * LinkedToTomCruise.
-     * finally, from the same view, we collect all of the actors in the set LinkedToTomCruise usinga predefined query, and print their names
+     * finally, from the same core.view, we collect all of the actors in the set LinkedToTomCruise usinga predefined query, and print their names
      */
 
     DBOpen("/path/to/sql/database", Schema)
@@ -104,7 +104,7 @@
 - Build a simple  reference counting garbage collector under the assumption of a single client (this is easy enough because due to immutability, the relation between views is a directed acyclic graph)
 - Construct an appropriate monadic results container
 - Construct an underlying core.intermediate representation as a step between the DSL and SQL
-- Execution of core.intermediate representation of a query against a view to produce a result monad
+- Execution of core.intermediate representation of a query against a core.view to produce a result monad
 - Construct an algebraic extensible DSL and translation to core.intermediate upon execution
 
 ## Extensions

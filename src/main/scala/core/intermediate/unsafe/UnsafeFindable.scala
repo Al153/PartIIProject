@@ -1,8 +1,8 @@
 package core.intermediate.unsafe
 
-import db.common.{DBCell, DBObject}
-import schema.TableName
-import utils._
+import core.backend.common.{DBCell, DBObject}
+import core.schema.TableName
+import core.utils._
 
 import scalaz.Scalaz._
 import scalaz._

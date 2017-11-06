@@ -1,8 +1,8 @@
-import core.Singleton
 import core.dsl.RelationSyntax._
 import core.dsl.UnaryQuery
+import core.relations.Singleton
 import examples.Schema.{Actor, ActsIn, Genre, LinkedToTomCruise, _}
-import schema._
+import core.schema._
 
 import scalaz.Scalaz._
 /**

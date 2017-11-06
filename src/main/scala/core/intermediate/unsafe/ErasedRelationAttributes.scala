@@ -1,7 +1,7 @@
 package core.intermediate.unsafe
 
-import core.RelationAttributes
-import schema.{RelationName, TableName}
+import core.relations.RelationAttributes
+import core.schema.{RelationName, TableName}
 
 /**
   * Created by Al on 25/10/2017.

@@ -1,13 +1,13 @@
 package examples
 
+import core.backend._
+import core.backend.interfaces.DatabaseAddress._
 import core.dsl.Commands.find
-import db._
-import db.memory.MemoryDB
 import examples.Schema._
+import impl.memory.MemoryDB
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scalaz.\/- // global execution context
-import db.interfaces.DatabaseAddress._
+import scalaz.\/-
 
 
 /**

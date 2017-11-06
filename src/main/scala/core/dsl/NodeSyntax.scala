@@ -1,7 +1,7 @@
 package core.dsl
 
 import core.intermediate.From
-import schema.{SchemaDescription, SchemaObject}
+import core.schema.{SchemaDescription, SchemaObject}
 
 
 object NodeSyntax {

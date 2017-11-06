@@ -1,14 +1,14 @@
 package unit.suites
 
-import core.CompletedRelation
 import core.dsl.Commands.{find, findPairs, insert}
 import core.dsl.NodeSyntax._
-import db.interfaces.Empty
-import db.using
+import core.relations.CompletedRelation
+import core.backend.interfaces.Empty
+import core.backend.using
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
-import utils._
+import core.utils._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

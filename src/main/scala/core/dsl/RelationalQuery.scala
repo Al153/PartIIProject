@@ -4,7 +4,7 @@ package core.dsl
 import core.intermediate._
 import RelationSyntax._
 import core.intermediate
-import schema.{Findable, SchemaDescription, SchemaObject}
+import core.schema.{Findable, SchemaDescription, SchemaObject}
 
 import scalaz._
 import Scalaz._

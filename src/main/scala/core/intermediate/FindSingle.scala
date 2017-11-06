@@ -2,7 +2,7 @@ package core.intermediate
 
 import core.error.E
 import core.intermediate.unsafe._
-import schema.{Findable, SchemaDescription, SchemaObject}
+import core.schema.{Findable, SchemaDescription, SchemaObject}
 
 import scalaz._, Scalaz._
 

@@ -1,14 +1,14 @@
 package unit.suites
 
-import core.CompletedRelation
 import core.containers.Operation
 import core.dsl.Commands._
 import core.dsl.NodeSyntax._
 import core.error.E
-import db.interfaces.{DBInstance, Empty}
-import db.using
+import core.relations.CompletedRelation
+import core.backend.interfaces.{DBInstance, Empty}
+import core.backend.using
 import org.junit.Test
-import schema.SchemaObject
+import core.schema.SchemaObject
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
 

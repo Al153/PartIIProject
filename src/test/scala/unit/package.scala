@@ -1,13 +1,13 @@
-import core.RelationAttributes
 import core.containers.{ConstrainedFuture, Operation, ReadOperation}
 import core.error.E
+import core.relations.RelationAttributes
 import org.junit.Assert
-import schema._
+import core.schema._
 
 import scala.concurrent.ExecutionContext
 
 /**
-  * Some simple test schema for unit tests
+  * Some simple test core.schema for unit tests
   */
 
 package object unit {

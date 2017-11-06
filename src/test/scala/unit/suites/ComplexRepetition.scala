@@ -1,20 +1,20 @@
 package unit.suites
 
-import core.CompletedRelation
 import core.containers.Operation
 import core.dsl.Commands.{find, findDistinct, findPairs, findPairsDistinct, _}
 import core.dsl.RelationalQuery._
 import core.dsl.NodeSyntax._
 import core.error.E
-import db.interfaces.{DBInstance, Empty}
-import db.using
+import core.backend.interfaces.{DBInstance, Empty}
+import core.backend.using
 import org.junit.Test
-import schema.SchemaObject
+import core.schema.SchemaObject
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description, _}
 import unit._
-
 import core.dsl.Commands._
+import core.relations.CompletedRelation
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scalaz.{-\/, \/-}

@@ -1,6 +1,6 @@
 package core.intermediate.unsafe
 
-import db.common.DBCell
+import core.backend.common.DBCell
 
 /**
   * Created by Al on 25/10/2017.
