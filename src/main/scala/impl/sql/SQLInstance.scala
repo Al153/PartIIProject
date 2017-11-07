@@ -2,10 +2,12 @@ package impl.sql
 
 import core.backend.interfaces.{DBExecutor, DBInstance}
 import core.error.E
+import core.schema.TableName
 import core.view.View
+import impl.sql.tables.ObjectTable
+import impl.sql.view.ViewsTable
 
 import scalaz.\/
-
 import scalikejdbc._
 
 /**
@@ -25,4 +27,10 @@ class SQLInstance extends DBInstance {
   override def getViews: Set[View] = DB readOnly {
     implicit session => sql"select view_id from VIEWS".map(rs => rs.long("view_id")).collection.apply()
   }
+
+
+
+  private val viewsTable: ViewsTable = ???
+  private val tables: Map[TableName, ObjectTable] = ???
+
 }
