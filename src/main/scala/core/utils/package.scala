@@ -34,18 +34,20 @@ package object utils {
     def mapPair: Vector[(A, A)] = u.map(x => (x, x))
   }
 
-  implicit class EitherOps[E, A](u: E \/ A) {
+  implicit class VectorOps2[E, A](u: Vector[E \/ TraversableOnce[A]]) {
+    def flattenE: E \/ Vector[A] = EitherOps.sequence(u).map(_.flatten)
   }
 
   object EitherOps {
-    def sequence[E, A, M[X] <: TraversableOnce[X]](in: M[E \/ A])(implicit cbf: CanBuildFrom[M[E \/ A], A, M[A]]): E \/ M[A] = {
+    def sequence[E, A, M[X] <: TraversableOnce[X]]
+    (in: M[E \/ A])
+    (implicit cbf: CanBuildFrom[M[E \/ A], A, M[A]]): E \/ M[A] =
       in.foldLeft(cbf(in).right[E]) { // ignore the red, this actually compiles
         (er, ea) => for {
           r <- er
           a <- ea
         } yield r += a
       }.map(_.result())
-    }
   }
 
   implicit class StringifyOps(u: Any) {
@@ -58,5 +60,9 @@ package object utils {
 
   implicit class MaplikePrefixOps[A](a: A) {
     def in[B](m: MapLike[A, B, _]): Boolean = m.contains(a)
+  }
+
+  implicit class StringOps(s: String) {
+    def strip: String = s.replaceAll("[\\W]|_", "")
   }
 }

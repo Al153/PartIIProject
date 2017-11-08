@@ -1,8 +1,5 @@
 package impl.sql.tables
 
-import core.backend.common.DBObject
-import core.containers.Operation
-import core.error.E
 import core.intermediate.unsafe.UnsafeFindable
 import core.view.View
 
