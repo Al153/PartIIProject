@@ -81,7 +81,7 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
         rres.filter{case (a, b) => a != b}
       }
 
-      case USId => left.map(x => (x, x)).right
+      case USId(_) => left.map(x => (x, x)).right
 
       case USNarrow(l, p) => for {
         broad <- recurse(l, left)

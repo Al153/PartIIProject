@@ -34,7 +34,7 @@ create table members (
 
   // insert initial data
   Seq("Alice", "Bob", "Chris") foreach { name =>
-    sql"insert into members (name, created_at) values (${name}, current_timestamp)".update.apply()
+    sql"insert into members (name, created_at) values ($name, current_timestamp)".update.apply()
   }
 
   // for now, retrieves all data as Map value
@@ -73,7 +73,8 @@ create table members (
 
   // read from the views table
   override def getViews: Set[View] = DB readOnly {
-    implicit session => sql"select view_id from VIEWS".map(rs => rs.long("view_id")).collection.apply()
+    // implicit session => sql"select view_id from VIEWS".map(rs => rs.long("view_id")).collection.apply()
+    ???
   }
 
 

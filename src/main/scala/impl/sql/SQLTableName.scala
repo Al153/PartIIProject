@@ -8,7 +8,7 @@ import core.utils._
   * A tablename type that is used to make sure that tablenames don't clash with the views table
 
   */
-case class SQLTableName private (s: String)
+class SQLTableName private (val s: String) extends AnyVal
 
 object SQLTableName {
   def apply(tn: TableName): SQLTableName = new SQLTableName("USERSPACE_" + tn.value.strip)

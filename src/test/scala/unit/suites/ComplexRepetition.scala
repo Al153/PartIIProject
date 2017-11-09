@@ -1,19 +1,18 @@
 package unit.suites
 
-import core.containers.Operation
-import core.dsl.Commands.{find, findDistinct, findPairs, findPairsDistinct, _}
-import core.dsl.RelationalQuery._
-import core.dsl.NodeSyntax._
-import core.error.E
 import core.backend.interfaces.{DBInstance, Empty}
 import core.backend.using
-import org.junit.Test
+import core.containers.Operation
+import core.dsl.Commands.{find, findDistinct, findPairs, findPairsDistinct, _}
+import core.dsl.NodeSyntax._
+import core.dsl.RelationalQuery._
+import core.dsl.Repetition._
+import core.error.E
+import core.relations.CompletedRelation
 import core.schema.SchemaObject
+import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description, _}
-import unit._
-import core.dsl.Commands._
-import core.relations.CompletedRelation
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
@@ -62,8 +61,8 @@ trait ComplexRepetition { self: HasBackend =>
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- findPairs(Knows *+ 3)
-          res2 <- findPairsDistinct(Knows *+ 3)
+          res1 <- findPairs(Knows * (3 ++) )
+          res2 <- findPairsDistinct(Knows * (3 ++))
           _ <- assertEqOp(expectedPairs, res1.toSet, "Exactly (all pairs)")
           _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
         } yield ()
@@ -140,8 +139,8 @@ trait ComplexRepetition { self: HasBackend =>
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- find(Alice >> Knows * (1 -> 3))
-          res2 <- findDistinct(Alice >> Knows * (1 -> 3))
+          res1 <- find(Alice >> Knows * (1 --> 3))
+          res2 <- findDistinct(Alice >> Knows * (1 --> 3))
           _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
           _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
         } yield ()

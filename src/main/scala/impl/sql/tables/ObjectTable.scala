@@ -9,5 +9,6 @@ import core.view.View
   * Idea: Construct SQL queries by table. Each query should expose an id column to join on
   */
 trait ObjectTable {
-  def find(unsafeFindable: UnsafeFindable, view: View)
+  def getRightObject = ??? // apply to a query to get the rightmost object in a query
+  def getLeftObject = ??? // apply to a query to get the leftmost object in a query
 }

@@ -20,10 +20,10 @@ trait ViewsTable {
     implicit session =>
 
       val v = ViewRow.syntax("v")
+      ???
+   //   select(???).from(ViewRow as v).map(ViewRow(v)).list.apply
 
-      select(???).from(ViewRow as v).map(ViewRow(v)).list.apply
-
-      sql"select distinct $viewID from $tableName".map(rs => rs.long("view_id")).collection.apply()
+  //    sql"select distinct $viewID from $tableName".map(rs => rs.long("view_id")).collection.apply()
   }
 
 

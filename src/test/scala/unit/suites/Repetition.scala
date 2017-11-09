@@ -4,6 +4,7 @@ package unit.suites
 import core.containers.Operation
 import core.dsl.Commands._
 import core.dsl.NodeSyntax.NodeSyntax1
+import core.dsl.Repetition._
 import core.dsl.RelationalQuery._
 import core.error.E
 import core.relations.CompletedRelation
@@ -78,8 +79,8 @@ trait Repetition { self: HasBackend =>
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- findPairs(Knows *+ 3)
-          res2 <- findPairsDistinct(Knows *+ 3)
+          res1 <- findPairs(Knows * (3 ++))
+          res2 <- findPairsDistinct(Knows * (3 ++ ))
           _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
           _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
         } yield ()
@@ -162,8 +163,8 @@ trait Repetition { self: HasBackend =>
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- find(Alice >> Knows * (0 -> 3))
-          res2 <- findDistinct(Alice >> Knows * (0 -> 3))
+          res1 <- find(Alice >> Knows * (0 --> 3))
+          res2 <- findDistinct(Alice >> Knows * (0 --> 3))
           _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
           _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
         } yield ()
@@ -203,5 +204,4 @@ trait Repetition { self: HasBackend =>
       }
     }
   }
-
 }

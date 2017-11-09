@@ -74,7 +74,7 @@ case class Narrow[A, B](rel: FindPair[A, B], pattern: Findable[B])(implicit sa: 
 // return a set of repeated pairs of the type
 case class Id[A]()(implicit sa: SchemaObject[A], sd: SchemaDescription) extends FindPair[A, A] {
   override def reverse: FindPair[A, A] = this
-  override def getUnsafe: E \/ UnsafeFindPair = USId.right[E]
+  override def getUnsafe: E \/ UnsafeFindPair = USId(sa.tableName).right[E]
 }
 
 // filter the result of the sub expression for those pairs which do not equal each other

@@ -73,15 +73,23 @@ object RelationalQuery {
       override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Exactly(n, u.tree)(u.sa, sd)
     }
 
-    def * (p: (Int, Int)) = new RelationalQuery[A, A]()(u.sa, u.sa) {
-      override def tree(implicit sd: SchemaDescription): FindPair[A, A] = {
-        val (from, to) = p
-        Between(from, to, u.tree)(u.sa, sd)
+    def * (r: Repetition): RelationalQuery[A, A] = r match {
+      case BetweenRange(lo, hi) => new RelationalQuery[A, A]()(u.sa, u.sa) {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, A] = {
+          Between(lo, hi, u.tree)(u.sa, sd)
+        }
       }
-    }
 
-    def *+ (n: Int) = new RelationalQuery[A, A]()(u.sa, u.sa) { // todo: better syntax
-      override def tree(implicit sd: SchemaDescription): FindPair[A, A] = Atleast(n, u.tree)(u.sa, sd)
+      case UptoRange(n) => new RelationalQuery[A, A]()(u.sa, u.sa) {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, A] = {
+          Upto(n, u.tree)(u.sa, sd)
+        }
+      }
+      case AtleastRange(n) => new RelationalQuery[A, A]()(u.sa, u.sa) {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, A] = {
+          Atleast(n, u.tree)(u.sa, sd)
+        }
+      }
     }
 
     def ** : RelationalQuery[A, A] = new RelationalQuery[A, A]()(u.sa, u.sa) {

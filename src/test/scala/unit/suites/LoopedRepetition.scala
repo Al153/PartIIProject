@@ -10,6 +10,7 @@ import core.backend.using
 import org.junit.Test
 import core.schema.SchemaObject
 import unit.Objects._
+import core.dsl.Repetition._
 import unit.{Knows, Person, assertEqOp, description}
 
 import scala.concurrent.duration._
@@ -57,8 +58,8 @@ trait LoopedRepetition { self: HasBackend =>
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- findPairs(Knows *+ 3)
-          res2 <- findPairsDistinct(Knows *+ 3)
+          res1 <- findPairs(Knows * (3 ++))
+          res2 <- findPairsDistinct(Knows * (3 ++))
           _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
           _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
         } yield ()
@@ -140,8 +141,8 @@ trait LoopedRepetition { self: HasBackend =>
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- find(Alice >> Knows * (2 -> 3))
-          res2 <- findDistinct(Alice >> Knows * (2 -> 3))
+          res1 <- find(Alice >> Knows * (2 --> 3))
+          res2 <- findDistinct(Alice >> Knows * (2 --> 3))
           _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
           _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
         } yield ()

@@ -1,6 +1,6 @@
 package impl.sql
 
-case class SQLColumnName private (s: String) extends AnyVal {
+class SQLColumnName private (val s: String) extends AnyVal {
   override def toString: String = s
 }
 

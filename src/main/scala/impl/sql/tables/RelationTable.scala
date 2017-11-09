@@ -8,6 +8,6 @@ import core.view.View
 
 trait RelationTable {
 
-  def getJoin(view: View, previousQuery: QueryString)
+  def getJoin(view: View)
 
 }

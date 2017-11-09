@@ -1,5 +1,7 @@
 package core.intermediate.unsafe
 
+import core.schema.TableName
+
 /**
   * Created by Al on 24/10/2017.
   *
@@ -14,7 +16,7 @@ case class USBetween(low: Int, high: Int, rel: UnsafeFindPair) extends UnsafeFin
 case class USChain(l: UnsafeFindPair, r: UnsafeFindPair) extends UnsafeFindPair
 case class USDistinct(r: UnsafeFindPair) extends UnsafeFindPair
 case class USExactly(n: Int, rel: UnsafeFindPair) extends UnsafeFindPair
-case object USId extends UnsafeFindPair
+case class USId(tableName: TableName) extends UnsafeFindPair
 case class USNarrow(left: UnsafeFindPair, f: UnsafeFindable) extends UnsafeFindPair
 case class USOr(left: UnsafeFindPair, right: UnsafeFindPair) extends UnsafeFindPair
 case class USRel(r: ErasedRelationAttributes) extends UnsafeFindPair
