@@ -14,6 +14,10 @@ case class PairDefinition(name: VarName, body: SQLPair) extends SQLDefinition {
   override def nameString: String = name.s
 }
 
+case class RecursiveDefinition(name: VarName, body: SQLPair) extends SQLDefinition {
+  
+}
+
 case class SingleDefinition(name: VarName, body: SQLSingle) extends SQLDefinition {
   override def bodyQuery: String = SQLSingle.getQueryString(body)
 

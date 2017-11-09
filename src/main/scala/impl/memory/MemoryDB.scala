@@ -9,6 +9,8 @@ import scala.concurrent.ExecutionContext
 
 /**
   * Created by Al on 22/10/2017.
+  *
+  *  A simple in memory implementation of a backend
   */
 object MemoryDB extends DBBackend {
   override def open(
