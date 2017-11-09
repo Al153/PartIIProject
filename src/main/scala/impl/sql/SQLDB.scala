@@ -51,40 +51,47 @@ object SQLDB extends DBBackend {
     *   todo: select the right fields of left
     *
     *  Rel =>
-    *      select (Left, right_id as id) from LEFT join
-    *       $rel_x on LEFT.id = left_id
+    *      select (left_id as left_id, right_id as right_id) from $rel_x
     *
     *
     *  RevRel =>
-    *      select (Left, left_id as id) from LEFT join
-    *       $rel_x on LEFT.id = right_id
+    *      select (left_id as right_id, right_id as left_id) from $rel_x
     *
     *  Id =>
+    *     select (id as left_id, id as right_id) from $table
     *
     *  Or(a, b) =>
-    *     with LEFT as ($left)
+    *    with
     *       with A as ($recurse(a)),
     *       with B as ($recurse(b))
     *       (A union B)
     *
     * And(a, b) =>
-    *     with LEFT as ($left)
-    *       with A as ($recurse(a))
-    *       with B as ($recurse(b))
-    *       A intersect B
+    *     with A as ($recurse(a)),
+    *          B as ($recurse(b))
+    *       (A intersect B)
     *
     * Chain(a, b)
-    *     with LEFT as ($a)
-    *       $recurse(b)
+    *     with A as ($recurse(a)),
+    *          B as ($recurse(b))
+    *     Select(A.left_id as left_id, B.right_id as right_id) from (A join B on A.right_id = B.left_id)
     *
     *
     * AndSingle(rel, b) =>
+    *     with A as ($recurse(a)),
+    *          B as ($recurse(b))
+    *       select(A.left_id as left_id, A.right_id as right_id) from (A join B on A.right_id = B.left_id)
     *
     *
-    * Narrow(rel, b) =>
+    * Narrow(rel, pattern) =>
     *
+    *       with A as ($recurse(rel)),
+    *            B as ($find(pattern))
+    *          select(A.left_id as left_id, A.right_id as right_id) from (A join B on A.right_id = B.left_id)
     *
     * Distinct(a) =>
+    *     with A as ($recurse(a))
+    *     select (left_id, right_id) from A where (left_id != right_id)
     *
     * // These are a little harder to optimise
     *
