@@ -98,10 +98,25 @@ object SQLDB extends DBBackend {
     * Upto(n, rel) =>
     *
     * Exactly(n, rel) =>
+    *     with R as ($recurse(rel)
+    *
     *
     * Between(low, high, rel) =>
+    *    with A as $recurse(Exactly(n, rel)
+    *    with B as ...
+    *
+    *    select (A.left_id, B.right_id) from A join B on (A.right_id = B.left_id)
     *
     * Atleast(n, rel) =>
+    *    with A as $recurse(Exactly(n, rel)
+    *    with B as ($recurse(rel))
+    *    with recursive $name as
+    *     (
+    *       select left_id, right_id, 0 as limit from B
+    *       union all
+    *       select $name.left_id, $B.right_id from $name join B on $name.right_id = B.left_id
+    *     )
+    *     select (A.left_id, B.right_id) from A join $name on (A.right_id = B.left_id)
     */
 
 }
