@@ -96,14 +96,24 @@ object SQLDB extends DBBackend {
     * // These are a little harder to optimise
     *
     * Upto(n, rel) =>
+    *   create view REL as
+    *     $recurse (REL)
+    *
+    *       with recursive REC as // todo: check from 0 ???
+    *         Select (left_id, right_id, 1 as level) from REL
+    *
+    *         union alll
+    *           select  REC.left_id as left, REL.right_id as right_id, level + 1 from REC where level < n
+    *
+    *   drop view REL
     *
     * Exactly(n, rel) =>
     *     with R as ($recurse(rel)
     *
     *
     * Between(low, high, rel) =>
-    *    with A as $recurse(Exactly(n, rel)
-    *    with B as ...
+    *    with A as $recurse(Exactly(low, rel)
+    *    with B as $recurse(Upto(high - low, rel))
     *
     *    select (A.left_id, B.right_id) from A join B on (A.right_id = B.left_id)
     *
@@ -112,7 +122,7 @@ object SQLDB extends DBBackend {
     *    with B as ($recurse(rel))
     *    with recursive $name as
     *     (
-    *       select left_id, right_id, 0 as limit from B
+    *       select left_id, right_id from B
     *       union all
     *       select $name.left_id, $B.right_id from $name join B on $name.right_id = B.left_id
     *     )
