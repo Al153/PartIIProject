@@ -46,16 +46,27 @@ case class CompletedPairQuery(q: Query, leftTable: SQLTableName, rightTable: SQL
   def render: String = ??? // render query to string
 }
 
-case class CompilationContext(varCount: Int, relations: Map[ErasedRelationAttributes, VarName]) {
-  def newVarName: (CompilationContext, VarName) = (CompilationContext(varCount + 1, relations), VarName("Var" + varCount))
+case class CompilationContext(
+                               varCount: Int,
+                               relations: Map[ErasedRelationAttributes, VarName],
+                               requiredTables: Map[TableName, VarName] // tables needed for query.
+                             ) {
+
+  def newVarName: (CompilationContext, VarName) = (CompilationContext(varCount + 1, relations, requiredTables), VarName("Var" + varCount))
+
   def getRelationName(r: ErasedRelationAttributes): (CompilationContext, VarName)  =
     if (r in relations) (this, relations(r))
     else {
       val newName = VarName("Relation"  + varCount )
-      (CompilationContext(varCount + 1, relations + (r -> newName)), newName)
+      (CompilationContext(varCount + 1, relations + (r -> newName), requiredTables), newName)
     }
 
-  def getTableName(name: TableName): (CompilationContext, VarName)
+  def getTableName(name: TableName): (CompilationContext, VarName) =
+    if (name in requiredTables) (this, requiredTables(name))
+    else {
+      val newName = VarName("Relation"  + varCount )
+      (CompilationContext(varCount + 1, relations, requiredTables + (name -> newName)), newName)
+    }
 
   def getRelationDefs = ??? // idea: get definitions of relations
   def getTableDefs = ??? // ditto but for object tables // not needed I thinkhgc
