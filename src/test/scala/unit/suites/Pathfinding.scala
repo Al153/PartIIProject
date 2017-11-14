@@ -19,7 +19,7 @@ trait Pathfinding { self: HasBackend =>
 
 
   /*
-    * A number of tests of the core.backend's pathfinding algorithms
+    * A number of tests of the pathfinding algorithms
     *
     * A -> B -> E -> F -> G
     *      |    ^    ^

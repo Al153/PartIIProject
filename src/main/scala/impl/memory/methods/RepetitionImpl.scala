@@ -27,9 +27,9 @@ trait RepetitionImpl { self: ExecutorMethods with Joins =>
         if (fringe.isEmpty) acc.right
         else for {
           found <- searchStep(fringe)
-          (memoized, memoizedValues) = {println("found = " + found) ; fromMemo(found)}
-          newFringe = {println("Acc = " + acc + "Memoized = " + memoized); found.diff(acc).diff(memoized)}
-          newAcc = { println("New fringe = " + newFringe) ;acc.union(newFringe).union(memoizedValues)}
+          (memoized, memoizedValues) = fromMemo(found)
+          newFringe = found.diff(acc).diff(memoized)
+          newAcc = acc.union(newFringe).union(memoizedValues)
           res <- aux(newFringe, newAcc)
         } yield res
       }

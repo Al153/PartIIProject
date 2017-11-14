@@ -5,6 +5,8 @@ import core.schema.TableName
 import impl.sql.CompilationContext.Compilation
 import impl.sql.compile.VarName
 import core.utils._
+import SQLDB._
+import core.backend.common.DBCell
 
 import scalaz.State
 
@@ -12,38 +14,85 @@ import scalaz.State
   * A query should expose a left_id and right_id to allow composability
   */
 sealed trait Query
-case class With(defs: Seq[(VarName, Query)], in: Query) extends Query
+case class With(defn:(VarName, Query), in: Query) extends Query
 case class WithView(name: VarName, body: Query, in: Query) extends Query // needs to drop view
 case class WithRec(name: VarName, body: Query, in: Query) extends Query
 case class Var(v: VarName) extends Query
 case class SelectWhere(mappings: SelectMapping, where: Where, from: Query) extends Query
-case class selectTable(mappings: SelectMapping, from: SQLTableName) extends Query
+case class SelectTable(tableName: VarName, where: WhereTable)
 case class IntersectAll(left: Query, right: Query) extends Query
 case class UnionAll(left: Query, right: Query) extends Query
-case class IntersectRight(left: Query, right: Query) extends Query // pick entries in result of left which match
-case class Join(a: Query, right: Query, on: JoinMapping) extends Query
+case class JoinRename(leftMapping: (VarName, Query), rightMapping: (VarName, Query), on: JoinMapping) extends Query // ($left as $asLeft) join ($right as $asRight) on $on
+case class JoinSimple(left: VarName, right: VarName, on: JoinMapping) extends Query // $left join $right on Mapping
 
 
+sealed trait WhereTable
 sealed trait Where
-case class Pattern(p: UnsafeFindable) extends Where
+case class Pattern(p: UnsafeFindable) extends WhereTable
 case object Distinct extends Where
-case object NoConstraint extends Where
+case object NoConstraint extends Where with WhereTable
 
 sealed trait SelectMapping
 case object All extends SelectMapping // Select * from ...
 case object Simple extends SelectMapping // Select left_id, right_id from ...
-case object Duplicated extends SelectMapping // Select (id as left_id, id as right_id) from ...
+case object FromObject extends SelectMapping // Select (id as left_id, id as right_id) from ...
 case class Joined(a: VarName, b: VarName) extends SelectMapping // select a.left_id as left_id, b.right_id as right_id
 case class SameSide(a: VarName) extends SelectMapping // select a.left_id as left_id,  a.right_id as right_id
-case class Reversed(a: VarName, b: VarName) extends SelectMapping // select b.left_id as left_id, a.right_id as right_id
+case class ReversedRelation(r: VarName) extends SelectMapping // select r.right_id as left_id, r.left_id as right_id
 
+
+// can infer variable names from context
 sealed trait JoinMapping
-case class Chained(a: VarName, b: VarName) extends JoinMapping // Join ... on a.right_id = b.left_id
-// todo: needed?
-case class ReverseChained(a: VarName, B: VarName) extends JoinMapping // join ... on a.left_id = b.right_id
+case object Chained extends JoinMapping // Join ... on a.right_id = b.left_id
+case object OnRight extends JoinMapping // join ... on a.right_id = b.right_id
 
 case class CompletedPairQuery(q: Query, leftTable: SQLTableName, rightTable: SQLTableName) {
-  def render: String = ??? // render query to string
+  private def renderQuery(q: Query): String = q match {
+    case With((name, body), in) => s"WITH $name AS (${renderQuery(body)}) (${renderQuery(in)})"
+    case WithView(name, body, in) => s"CREATE VIEW $name AS (${renderQuery(body)}); ${renderQuery(q)}; DROP VIEW $name"
+    case WithRec(name, body, in) => s"WITH RECURSIVE $name AS (${renderQuery(body)}) (${renderQuery(in)})"
+    case Var(v) => v.s
+    case SelectTable(name, where) => s"SELECT ${renderSelectMapping(FromObject)} FROM $name ${renderWhereTable(where)}"
+    case SelectWhere(mappings, where, from) => s"SELECT (${renderSelectMapping(mappings)}) FROM (${renderQuery(from)}) ${renderWhere(where)}"
+    case IntersectAll(left, right) => s"(${renderQuery(left)}) INTERSECT (${renderQuery(right)})"
+    case UnionAll(left, right) => s"(${renderQuery(left)}) UNION ALL (${renderQuery(right)})"
+    case JoinRename((asLeft, left), (asRight, right), on) => s"((${renderQuery(left)}) as $asLeft) INNER JOIN ((${renderQuery(left)}) as $asRight) ON (${renderJoinMapping(on, asLeft, asRight)})"
+    case JoinSimple(l, r, on) => s"$l INNER JOIN $r ON (${renderJoinMapping(on, l, r)})"
+  }
+
+  private def renderJoinMapping(joinMapping: JoinMapping, a: VarName, b: VarName): String = joinMapping match {
+    case Chained => s"$a.$rightId = $b.$leftId"
+    case OnRight =>s"$a.$rightId = $b.$rightId"
+  }
+  private def renderSelectMapping(s: SelectMapping): String = s match {
+    case All => "*"
+    case Simple => s"$leftId, $rightId"
+    case FromObject => s"$objId as $leftId, $objId as $rightId"
+    case Joined(a, b) => s"$a.$leftId as $leftId, $b.$rightId as $rightId"
+    case SameSide(a) => s"$a.$leftId as $leftId, $a.$rightId as $rightId"
+    case ReversedRelation(a) => s"$a.$rightId as $leftId, $a.$leftId as $rightId"
+  }
+
+  private def renderWhere(w: Where): String = w match {
+    case NoConstraint => ""
+    case Distinct => s"WHERE $leftId != $rightId"
+  }
+
+  private def renderWhereTable(w: WhereTable): String = w match {
+    case Pattern(p) => "WHERE " + p.pattern.zipWithIndex.collect {
+      case (Some(v), i) => s"${column(i)} == ${dbCellTovalue(v)}"
+    }.mkString(" AND ")
+
+    case NoConstraint => ""
+  }
+
+  def dbCellTovalue(d: DBCell): String = ???
+
+  def render: String = {
+    // render query to string
+    val baseQuery = renderQuery(q)
+    ???
+  }
 }
 
 case class CompilationContext(
@@ -69,7 +118,7 @@ case class CompilationContext(
     }
 
   def getRelationDefs = ??? // idea: get definitions of relations
-  def getTableDefs = ??? // ditto but for object tables // not needed I thinkhgc
+  def getTableDefs = ??? // ditto but for object tables
 }
 
 object CompilationContext {
@@ -89,28 +138,28 @@ object CompilationContext {
     initial: CompilationContext =>
       initial.getTableName(name)
   }
+
+  def point[A](a: => A): Compilation[A] = State(s => (s, a))
 }
 
 object Query {
-  def emptyContext: CompilationContext = ???
+  def emptyContext: CompilationContext = new CompilationContext(0, Map(), Map())
 
   def fromADT(q: UnsafeFindPair, leftTable: SQLTableName, rightTable: SQLTableName): Compilation[CompletedPairQuery] =
     for {query <- convert(q)} yield CompletedPairQuery(query, leftTable, rightTable)
 
   def convert(q: UnsafeFindPair): Compilation[Query] = q match  {
     case USAnd(left, right) => for {
-      l <- convert(left)
-      r <- convert(right)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
-    } yield With(List(a -> l, b -> r), IntersectAll(Var(a), Var(b)))
+    } yield IntersectAll(Var(a), Var(b))
 
     case USAndSingle(left, right) => for {
       l <- convert(left)
       r <- convertSingle(right)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
-    } yield With(List(a -> l, b -> r), IntersectRight(Var(a), Var(b)))
+    } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l, b -> r, OnRight))
 
     case USAtleast(n , rel) => for {
       precomputed <- convert(rel) // precompute a view
@@ -120,14 +169,14 @@ object Query {
       preTraversalName <- CompilationContext.newVarName // give it a name
     } yield WithView(
       temporaryView, precomputed, // precompute the repeated relation and put into a view
-      With(List(preTraversalName -> preTraversal), // compute the pretraversal and give it a name
+      With(preTraversalName -> preTraversal, // compute the pretraversal and give it a name
         WithRec(rec, // create a recursive query
           UnionAll(
             SelectWhere(Simple, NoConstraint, Var(preTraversalName)), // basis case: pretraversal
             SelectWhere( // add values to it
               Joined(rec, temporaryView),
               NoConstraint,
-              Join(Var(rec), Var(temporaryView), Chained(rec, temporaryView)))
+              JoinSimple(rec, temporaryView, Chained))
           ),
           SelectWhere(Simple, NoConstraint, Var(rec))
         )
@@ -142,18 +191,16 @@ object Query {
       postTraversal <- getUpto(viewName, high-low)
       postTraversalName <- CompilationContext.newVarName
     } yield WithView(viewName, view,
-      With(
-        List(preTraversalName -> preTraversal, postTraversalName -> postTraversal),
         SelectWhere(
           Joined(preTraversalName, postTraversalName),
           NoConstraint,
-          Join(
-            Var(preTraversalName),
-            Var(postTraversalName),
-            Chained(preTraversalName, postTraversalName)
+          JoinRename(
+            preTraversalName -> preTraversal,
+            postTraversalName -> postTraversal,
+            Chained
           )
         )
-      )
+
     )
 
     case USChain(left, right) => for {
@@ -161,12 +208,11 @@ object Query {
       r <- convert(right)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
-    } yield With(List(a -> l, b -> r), SelectWhere(Joined(a, b), NoConstraint, Join(Var(a), Var(b), Chained(a, b))))
+    } yield SelectWhere(Joined(a, b), NoConstraint, JoinRename(a -> l, b -> r, Chained))
 
     case USDistinct(rel) =>  for {
       r <- convert(rel)
-      a <- CompilationContext.newVarName
-    } yield With(List(a -> r), SelectWhere(Simple, Distinct, r))
+    } yield SelectWhere(Simple, Distinct, r)
 
     case USExactly(n, rel) => for {
       view <- convert(rel)
@@ -183,22 +229,20 @@ object Query {
       r <- doFind(findable)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
-    } yield With(List(a -> l, b -> r), IntersectRight(Var(a), Var(b)))
+    } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l, b -> r, OnRight))
 
     case USOr(left, right) =>  for {
       l <- convert(left)
       r <- convert(right)
-      a <- CompilationContext.newVarName
-      b <- CompilationContext.newVarName
-    } yield With(List(a -> l, b -> r), UnionAll(Var(a), Var(b)))
-      
+    } yield UnionAll(l, r)
+
     case USRel(rel) => for {
       r <- CompilationContext.getRelationName(rel)
     } yield SelectWhere(All, NoConstraint, Var(r))
 
     case USRevRel(rel) => for {
       r <- CompilationContext.getRelationName(rel)
-    } yield SelectWhere(Reversed(r, r), NoConstraint, Var(r))
+    } yield SelectWhere(ReversedRelation(r), NoConstraint, Var(r))
 
     case USUpto(n, rel) => for {
       view <- convert(rel)
@@ -215,7 +259,7 @@ object Query {
       b <- CompilationContext.newVarName
       start <- convertSingle(start)
       rel <- convert(rel)
-    } yield With(List(a -> start, b -> rel), SelectWhere(Joined(a, b), NoConstraint, Join(Var(a), Var(b), Chained(a, b))))
+    } yield SelectWhere(Joined(a, b), NoConstraint, JoinRename(a -> start, b -> rel, Chained))
 
 
     case USNarrowS(start, findable) => for {
@@ -223,15 +267,64 @@ object Query {
       b <- CompilationContext.newVarName
       start <- convertSingle(start)
       filter <- doFind(findable)
-    } yield With(List(a -> start, b -> filter), IntersectRight(Var(a), Var(b)))
+    } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> start, b -> filter, OnRight))
 
   }
 
   def getExactly(precomputed: VarName, n: Int): Compilation[Query] = {
     ??? // does an exactly with  precomputed table
+
+    // idea use binary multiplication
+
+    def joinBySquares(n: Int, x: Query): Compilation[Query] =
+      if (n <= 0) ???
+      else if (n <= 1) CompilationContext.point(x)
+      else if (n % 2 == 0)
+        for {
+          a <- CompilationContext.newVarName
+          b <- CompilationContext.newVarName
+          doubled <- joinBySquares(
+            n/2,
+
+              SelectWhere(
+                Joined(a, b),
+                NoConstraint,
+                JoinRename(
+                  a -> x,
+                  b -> x,
+                  Chained
+                )
+              )
+          )
+        } yield doubled
+      else
+        for {
+          a <- CompilationContext.newVarName
+          b <- CompilationContext.newVarName
+          doubled <- joinBySquares(
+            (n-1)/2,
+
+
+              SelectWhere(
+                Joined(a, b),
+                NoConstraint,
+                JoinRename(
+                  a -> x,
+                  b -> x,
+                  Chained
+                )
+              )
+          )
+          l <- CompilationContext.newVarName
+          r <- CompilationContext.newVarName
+        } yield SelectWhere(Joined(l, r), NoConstraint, JoinRename(l -> x, r -> doubled, Chained))
+
   }
 
-  def getUpto(precomputed: VarName, n: Int): Compilation[Query] = ??? // do an upto with a precomputed view
+  def getUpto(precomputed: VarName, n: Int): Compilation[Query] = {
+    // do an upto with a precomputed view
+    ???
+  }
 
   def doFind(findable: UnsafeFindable): Compilation[Query] = ??? // returns SQL code to do a find of a findable
 }

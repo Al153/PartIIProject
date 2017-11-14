@@ -34,6 +34,10 @@ object SQLDB extends DBBackend {
   // Returns an error if the tables are invalid
   def validateTables(session: Session): ConstrainedFuture[E, Unit] = ???
 
+  val objId = "obj_id"
+  val leftId = "left_id"
+  val rightId = "right_id"
+  def column(i: Int) = "col_" + i
   /**
     * Idea for composition of queries
     *
@@ -102,7 +106,7 @@ object SQLDB extends DBBackend {
     *       with recursive REC as // todo: check from 0 ???
     *         Select (left_id, right_id, 1 as level) from REL
     *
-    *         union alll
+    *         union all
     *           select  REC.left_id as left, REL.right_id as right_id, level + 1 from REC where level < n
     *
     *   drop view REL

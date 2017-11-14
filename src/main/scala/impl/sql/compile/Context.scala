@@ -8,7 +8,8 @@ import core.utils._
   * Compilation context
   */
 
-case class VarName(s: String) extends AnyVal
+case class VarName(s: String) extends AnyVal {
+  override def toString: String = s }
 case class RelName(s: String) extends AnyVal
 case class ContextState(
                          nameCount: Int,
