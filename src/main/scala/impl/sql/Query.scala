@@ -31,6 +31,7 @@ sealed trait Where
 case class Pattern(p: UnsafeFindable) extends WhereTable
 case object Distinct extends Where
 case object NoConstraint extends Where with WhereTable
+case class Limit(limit: VarName, n: Int) extends Where
 
 sealed trait SelectMapping
 case object All extends SelectMapping // Select * from ...
@@ -39,6 +40,8 @@ case object FromObject extends SelectMapping // Select (id as left_id, id as rig
 case class Joined(a: VarName, b: VarName) extends SelectMapping // select a.left_id as left_id, b.right_id as right_id
 case class SameSide(a: VarName) extends SelectMapping // select a.left_id as left_id,  a.right_id as right_id
 case class ReversedRelation(r: VarName) extends SelectMapping // select r.right_id as left_id, r.left_id as right_id
+case class WithLimit(limit: VarName, rest: SelectMapping) extends SelectMapping // select ..... $limit + 1 as $limit
+case class StartLimit(limit: VarName, rest: SelectMapping) extends  SelectMapping // select ..... 0 as $limit
 
 
 // can infer variable names from context
@@ -71,11 +74,14 @@ case class CompletedPairQuery(q: Query, leftTable: SQLTableName, rightTable: SQL
     case Joined(a, b) => s"$a.$leftId as $leftId, $b.$rightId as $rightId"
     case SameSide(a) => s"$a.$leftId as $leftId, $a.$rightId as $rightId"
     case ReversedRelation(a) => s"$a.$rightId as $leftId, $a.$leftId as $rightId"
+    case WithLimit(lim, rest) => s"${renderSelectMapping(rest)}, $lim + 1 as $lim"
+    case StartLimit(lim, rest) => s"${renderSelectMapping(rest)}, 0 as $lim"
   }
 
   private def renderWhere(w: Where): String = w match {
     case NoConstraint => ""
     case Distinct => s"WHERE $leftId != $rightId"
+    case Limit(lim, n) => s"WHERE $lim < $n"
   }
 
   private def renderWhereTable(w: WhereTable): String = w match {
@@ -150,9 +156,9 @@ object Query {
 
   def convert(q: UnsafeFindPair): Compilation[Query] = q match  {
     case USAnd(left, right) => for {
-      a <- CompilationContext.newVarName
-      b <- CompilationContext.newVarName
-    } yield IntersectAll(Var(a), Var(b))
+      l <- convert(left)
+      r <- convert(right)
+    } yield IntersectAll(l, r)
 
     case USAndSingle(left, right) => for {
       l <- convert(left)
@@ -271,13 +277,13 @@ object Query {
 
   }
 
-  def getExactly(precomputed: VarName, n: Int): Compilation[Query] = {
+  def getExactly(precomputed: VarName, n: Int, emptyTableName: TableName): Compilation[Query] = {
     ??? // does an exactly with  precomputed table
 
     // idea use binary multiplication
 
-    def joinBySquares(n: Int, x: Query): Compilation[Query] =
-      if (n <= 0) ???
+    def joinBySquares(n: Int, x: Query, emptyQuery: Query): Compilation[Query] =
+      if (n <= 0) CompilationContext.point(emptyQuery)
       else if (n <= 1) CompilationContext.point(x)
       else if (n % 2 == 0)
         for {
@@ -294,7 +300,7 @@ object Query {
                   b -> x,
                   Chained
                 )
-              )
+              ), emptyQuery
           )
         } yield doubled
       else
@@ -313,18 +319,41 @@ object Query {
                   b -> x,
                   Chained
                 )
-              )
+              ), emptyQuery
           )
           l <- CompilationContext.newVarName
           r <- CompilationContext.newVarName
         } yield SelectWhere(Joined(l, r), NoConstraint, JoinRename(l -> x, r -> doubled, Chained))
 
+    for {
+      e <- allFrom(emptyTableName)
+      res <- joinBySquares(n, Var(precomputed), e)
+    } yield res
+
   }
 
-  def getUpto(precomputed: VarName, n: Int): Compilation[Query] = {
+  def getUpto(precomputed: VarName, n: Int, emptyRelationTable: TableName): Compilation[Query] = {
     // do an upto with a precomputed view
-    ???
+    for {
+      recName <- CompilationContext.newVarName
+      lim <- CompilationContext.newVarName
+      empty <- allFrom(emptyRelationTable)
+    } yield WithRec(recName, // create a recursive query
+          UnionAll(
+            SelectWhere(StartLimit(lim, All), NoConstraint, empty), // basis case: pretraversal
+            SelectWhere( // add values to it
+              Joined(recName, precomputed),
+              Limit(lim, n),
+              JoinSimple(recName, precomputed, Chained))
+          ),
+          SelectWhere(Simple, NoConstraint, Var(recName))
+        )
+
   }
+
+  def allFrom(tableName: TableName): Compilation[Query] = for {
+    tVar <- CompilationContext.getTableName(tableName)
+  } yield SelectWhere(FromObject, NoConstraint, Var(tVar))
 
   def doFind(findable: UnsafeFindable): Compilation[Query] = ??? // returns SQL code to do a find of a findable
 }
