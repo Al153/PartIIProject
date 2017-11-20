@@ -2,7 +2,7 @@ package core
 
 import core.error.E
 
-import scala.collection.MapLike
+import scala.collection.{MapLike, TraversableLike}
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 import scalaz.Scalaz._
@@ -48,6 +48,11 @@ package object utils {
           a <- ea
         } yield r += a
       }.map(_.result())
+  }
+
+  implicit class EitherOps1[E, A](u: E \/ A) {
+    def withSnd[B](b: B): E \/ (A, B) = u.map((_, b))
+    def withFst[B](b: B): E \/ (B, A) = u.map((b, _))
   }
 
   implicit class StringifyOps(u: Any) {

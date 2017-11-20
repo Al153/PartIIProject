@@ -3,7 +3,7 @@ package impl.sql.view
 import core.containers.{ConstrainedFuture, Operation}
 import core.error.E
 import core.view.View
-import impl.sql.{SQLColumnName, SQLTableName}
+import impl.sql.{SQLColumnName, SQLTableName, ViewsTableName}
 import scalikejdbc._
 
 import scalaz.\/
@@ -30,7 +30,7 @@ trait ViewsTable {
 }
 
 object ViewsTable {
-  val tableName: SQLTableName = SQLTableName.viewsTable
+  val tableName: SQLTableName = ViewsTableName
   val viewID = SQLColumnName("view_ID")
   val commitID = SQLColumnName("commit_ID")
 }
@@ -40,7 +40,7 @@ case class ViewRow(view: View, commit: Commit) {
 }
 
 object ViewRow extends SQLSyntaxSupport[ViewRow] {
-  override val tableName: String = ViewsTable.tableName.s
+  override val tableName: String = ViewsTable.tableName.name
 
 }
 
