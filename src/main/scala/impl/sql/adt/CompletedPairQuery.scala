@@ -2,16 +2,18 @@ package impl.sql.adt
 
 import core.backend.common.DBCell
 import core.error.E
-import core.intermediate.unsafe.{ErasedRelationAttributes, UnsafeFindPair, UnsafeFindable}
+import core.intermediate.unsafe.{UnsafeFindPair, UnsafeFindable}
+import core.schema.SchemaDescription
 import core.utils._
 import core.view.View
-import impl.sql.SQLDB.{column, leftId, objId, rightId}
-import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
+import impl.sql.SQLColumnName.{column, leftId, objId, rightId}
 import impl.sql._
+import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
+import impl.sql.view.ViewsTable
 
 import scalaz.\/
 
-case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightTable: SQLTableName)(implicit instance: SQLInstance) {
+case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightTable: SQLTableName, sd: SchemaDescription)(implicit instance: SQLInstance) {
   private def renderQuery(q: Query): String = q match {
     case With((name, body), in) => s"WITH $name AS (${renderQuery(body)}) (${renderQuery(in)})"
     case WithView(name, body, in) => s"CREATE VIEW $name AS (${renderQuery(body)}); ${renderQuery(q)}; DROP VIEW $name"
@@ -57,6 +59,8 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
 
   def dbCellTovalue(d: DBCell): String = d.toString
 
+
+
   def render(v: View): E \/ String = {
     // render query to string
 
@@ -75,10 +79,14 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
 
 
       baseQuery = renderQuery(q)
+
+      leftPrototype <- sd.lookupTable(p.leftMostTable)
+      rightPrototype <- sd.lookupTable(p.rightMostTable)
     } yield
       s"""
+         |CREATE OR REPLACE VIEW ${SQLDB.temporaryView} AS ${getViewIntermediate(v)}
          |WITH ${getDefinitions(relationDefs, tableDefs, baseQuery, v)}
-         | ${extractMainQuery(???, ???, leftTable, rightTable)}
+         | ${extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)}
        """.stripMargin
     }
 
@@ -93,7 +101,8 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
                         leftTableName: SQLTableName,
                         rightTableName: SQLTableName
                       ): String = {
-    s"SELECT ${getColumns(leftProto, rightProto)} FROM ${getRightJoin(rightTableName, getLeftJoin(leftTableName))}"
+    s"SELECT ${getColumns(leftProto, rightProto)} " +
+      s"FROM ${getRightJoin(rightTableName, getLeftJoin(leftTableName))}"
   }
 
   def getDefinitions(
@@ -103,11 +112,11 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
                       v: View
                     ): String = {
     val relations = relationDefs map {
-      case (rtName, varName) => varName.toString + " as (" + getRelationWithView(v, rtName) + ")"
+      case (rtName, varName) => varName.toString + " as (" + getRelationWithView(rtName) + ")"
     }
 
     val tables = tableDefs map {
-      case (otName, varName) => varName.toString + " as (" + getTableWithView(v, otName) + ")"
+      case (otName, varName) => varName.toString + " as (" + getTableWithView(otName) + ")"
     }
 
     val mainQueryPair = SQLDB.mainQuery + " as (" + mainQuery + ")"
@@ -117,11 +126,12 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
   // we need the findable/width of the query
   // todo:Typesafety
   private def getLeftJoin(tableName: SQLTableName): String =
-  s"${getLeftTable(tableName)} JOIN ${SQLDB.mainQuery} " +
-    s"ON ${SQLDB.leftmostTable}.${SQLDB.objId} = ${SQLDB.mainQuery}.${SQLDB.leftId}"
+    s"${getLeftTable(tableName)} JOIN ${SQLDB.mainQuery} " +
+      s"ON ${SQLDB.leftmostTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.leftId}"
 
   private def getRightJoin(tableName: SQLTableName, leftAndMainQuery: String): String =
-    s"($leftAndMainQuery) JOIN ${getRightTable(tableName)} ON ${SQLDB.rightId} = ${SQLDB.rightmostTable}.${SQLDB.objId}"
+    s"($leftAndMainQuery) JOIN ${getRightTable(tableName)}" +
+      s"ON ${SQLColumnName.rightId} = ${SQLDB.rightmostTable}.${SQLColumnName.objId}"
 
   private def getLeftTable(tableName: SQLTableName): String = s"$tableName as ${SQLDB.leftmostTable}"
   private def getRightTable(tableName: SQLTableName): String = s"$tableName as ${SQLDB.rightmostTable}"
@@ -132,19 +142,25 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
                          rightDescription: UnsafeFindable
                        ): String = {
     val leftPairs =
-      (1 until leftDescription.pattern.length).map(i => s"${SQLDB.leftmostTable}.${SQLDB.column(i)} as ${SQLDB.leftColumn(i)}")
+      (1 until leftDescription.pattern.length).map(i => s"${SQLDB.leftmostTable}.${SQLColumnName.column(i)} as ${SQLColumnName.leftColumn(i)}")
     val rightPairs =
-      (1 until rightDescription.pattern.length).map(i => s"${SQLDB.rightmostTable}.${SQLDB.column(i)} as ${SQLDB.rightColumn(i)}")
+      (1 until rightDescription.pattern.length).map(i => s"${SQLDB.rightmostTable}.${SQLColumnName.column(i)} as ${SQLColumnName.rightColumn(i)}")
 
     (leftPairs ++ rightPairs).mkString(", ")
   }
 
-  private def bindMainQuery(query: String): String = s"WITH ${SQLDB.mainQuery} as ($query)"
-
   // selects with matching view values
-  private def getRelationWithView(view: View, r: RelationTableName):String =
-    s"SELECT ${SQLDB.leftId}, ${SQLDB.rightId} FROM ${r.name} WHERE ${SQLDB.viewId} = ${view.id}"
+  private def getRelationWithView(r: RelationTableName):String =
+    s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${r.name} " +
+      s"JOIN ${SQLDB.temporaryView}" +
+      s"ON ${r.name}.${SQLColumnName.commitId} = ${SQLDB.temporaryView}.${SQLColumnName.commitId}"
 
-  private def getTableWithView(view: View, r: ObjectTableName): String =
-    s"SELECT ${SQLDB.objId} FROM ${r.name} WHERE ${SQLDB.viewId} = ${view.id}"
+  private def getTableWithView(r: ObjectTableName): String =
+    s"SELECT ${SQLColumnName.objId} FROM ${r.name} " +
+      s"JOIN ${SQLDB.temporaryView} " +
+      s"ON ${r.name}.${SQLColumnName.commitId} = ${SQLDB.temporaryView}.${SQLColumnName.commitId}"
+
+  private def getViewIntermediate(v: View) =
+    s"SELECT ${SQLColumnName.commitId} FROM ${ViewsTable.tableName} " +
+      s"WHERE ${SQLColumnName.viewId} = ${v.id}"
 }

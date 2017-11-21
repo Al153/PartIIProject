@@ -5,7 +5,6 @@ import core.error.E
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.TableName
 import core.view.View
-import impl.sql.tables.ObjectTable
 import impl.sql.view.ViewsTable
 
 import scalaz.\/

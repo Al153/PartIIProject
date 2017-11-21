@@ -10,6 +10,8 @@ import core.utils._
   */
 sealed trait SQLTableName {
   def name: String
+
+  override def toString: String = name
 }
 
 class ObjectTableName(in: TableName) extends SQLTableName {

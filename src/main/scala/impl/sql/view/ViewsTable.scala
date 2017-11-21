@@ -3,7 +3,7 @@ package impl.sql.view
 import core.containers.{ConstrainedFuture, Operation}
 import core.error.E
 import core.view.View
-import impl.sql.{SQLColumnName, SQLTableName, ViewsTableName}
+import impl.sql.{SQLColumnName, SQLDB, SQLTableName, ViewsTableName}
 import scalikejdbc._
 
 import scalaz.\/
@@ -16,23 +16,22 @@ trait ViewsTable {
   def getDefaultView: Operation[E, Unit] = ???
 
   // read from the views table
-  def getViews: Set[View] = DB readOnly {
-    implicit session =>
-
-      val v = ViewRow.syntax("v")
-      ???
-   //   select(???).from(ViewRow as v).map(ViewRow(v)).list.apply
-
-  //    sql"select distinct $viewID from $tableName".map(rs => rs.long("view_id")).collection.apply()
+  def getViews: Set[View] = {
+    val query =
+      s"""
+         |SELECT ${ViewsTable.viewID} FROM ${ViewsTable.tableName}
+       """.stripMargin
+    ???
   }
 
 
 }
 
 object ViewsTable {
+  // Views table is a relation of ViewId -> commitID
   val tableName: SQLTableName = ViewsTableName
-  val viewID = SQLColumnName("view_ID")
-  val commitID = SQLColumnName("commit_ID")
+  val viewID: SQLColumnName = SQLColumnName.viewId
+  val commitID: SQLColumnName = SQLColumnName.commitId
 }
 
 case class ViewRow(view: View, commit: Commit) {

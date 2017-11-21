@@ -34,17 +34,12 @@ object SQLDB extends DBBackend {
   // Returns an error if the tables are invalid
   def validateTables(session: Session): ConstrainedFuture[E, Unit] = ???
 
-  val objId = "obj_id"
-  val leftId = "left_id"
-  val rightId = "right_id"
+
   val leftmostTable = "left_table"
   val rightmostTable = "right_table"
   val mainQuery = "main_query"
-  val viewId = "view_id"
-  def column(i: Int): String = "col_" + i
-  def leftColumn(i: Int): String = "left_col_" + i
-  def rightColumn(i: Int): String = "right_col_" + i
 
+  val temporaryView = "temporary_views_table"
 
 
 }

@@ -2,7 +2,7 @@ package core
 
 import core.error.E
 
-import scala.collection.{MapLike, TraversableLike}
+import scala.collection.{MapLike, SetLike, TraversableLike}
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 import scalaz.Scalaz._
@@ -65,7 +65,11 @@ package object utils {
 
   implicit class MaplikePrefixOps[A](a: A) {
     def in[B](m: MapLike[A, B, _]): Boolean = m.contains(a)
+    def notIn[B](m: MapLike[A, B, _]): Boolean = !m.contains(a)
+    def in[B](s: SetLike[A, _]): Boolean = s.contains(a)
+    def notIn[B](s: SetLike[A, _]): Boolean = !s.contains(a)
   }
+
 
   implicit class StringOps(s: String) {
     def strip: String = s.replaceAll("[\\W]|_", "")
