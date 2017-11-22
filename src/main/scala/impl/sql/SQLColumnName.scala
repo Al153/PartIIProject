@@ -5,7 +5,6 @@ class SQLColumnName private (val s: String) extends AnyVal {
 }
 
 object SQLColumnName {
-  def apply(s: String): SQLColumnName = new SQLColumnName("USER_" + s)
   val objId = new SQLColumnName("obj_id")
   val leftId = new SQLColumnName("left_id")
   val rightId = new SQLColumnName("right_id")

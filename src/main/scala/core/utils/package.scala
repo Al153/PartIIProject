@@ -2,7 +2,7 @@ package core
 
 import core.error.E
 
-import scala.collection.{MapLike, SetLike, TraversableLike}
+import scala.collection.{MapLike, SetLike, TraversableLike, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 import scalaz.Scalaz._
@@ -12,30 +12,65 @@ import scalaz.\/
   * Created by Al on 24/10/2017.
   */
 package object utils {
-  implicit class PairVectorOps[A, B](u: Vector[(A, B)]) {
-    def mapProj1: Vector[A] = u.map(_._1)
-    def mapProj2: Vector[B] = u.map(_._2)
-  }
-
-  implicit class PairSetOps[A, B](u: Set[(A, B)]) {
-    def mapProj1: Set[A] = u.map(_._1)
-    def mapProj2: Set[B] = u.map(_._2)
-  }
-
   implicit class SetOps[A](u: Set[A]) {
-    def mapPair: Set[(A, A)] = u.map(x => (x, x))
+     def mapPair: Set[(A, A)] = u.map(x => (x, x))
   }
 
   implicit class SetOps2[E, A](u: Set[E \/ Set[A]]) {
     def flattenE: E \/ Set[A] = EitherOps.sequence(u).map(_.flatten)
   }
 
-  implicit class VectorOps[A](u: Vector[A]) {
-    def mapPair: Vector[(A, A)] = u.map(x => (x, x))
-  }
-
   implicit class VectorOps2[E, A](u: Vector[E \/ TraversableOnce[A]]) {
     def flattenE: E \/ Vector[A] = EitherOps.sequence(u).map(_.flatten)
+  }
+
+
+  implicit class TraversibleOps[M[X] <: TraversableOnce[X], A](u: M[A]) {
+    private def pair(a: A): (A, A) = (a, a)
+
+    def mapPair(implicit cbf: CanBuildFrom[M[A], (A, A), M[(A, A)]]): M[(A, A)] =
+      u.foldLeft(cbf(u)){
+        case (builder, a) => builder += pair(a)
+      }.result()
+  }
+
+  implicit class TraversibleOps2[M[X] <: TraversableOnce[X], Y, Z](m: M[(Y, Z)]) {
+    def mapProj1(implicit cbf: CanBuildFrom[M[(Y, Z)], Y, M[Y]]): M[Y] = {
+      m.foldLeft(cbf(m)) {
+        case (builder, (y, _)) =>
+          builder += y
+      }.result()
+    }
+
+    def mapProj2(implicit cbf: CanBuildFrom[M[(Y, Z)], Z, M[Z]]): M[Z] = {
+      m.foldLeft(cbf(m)) {
+        case (builder: mutable.Builder[Z, M[Z]], (_, z)) =>
+          builder += z
+      }.result()
+    }
+  }
+
+  implicit class TraversibleOps3[M[X] <: TraversableOnce[X], A, B, C](m: M[(A, B, C)]) {
+    def mapProj1(implicit cbf: CanBuildFrom[M[(A, B, C)], A, M[A]]): M[A] = {
+      m.foldLeft(cbf(m)) {
+       case (builder, (a, _, _)) =>
+          builder += a
+      }.result()
+    }
+
+    def mapProj2(implicit cbf: CanBuildFrom[M[(A, B, C)], B, M[B]]): M[B] = {
+      m.foldLeft(cbf(m)) {
+        case (builder, (_, b, _)) =>
+          builder += b
+      }.result()
+    }
+
+    def mapProj3(implicit cbf: CanBuildFrom[M[(A, B, C)], C, M[C]]): M[C] = {
+      m.foldLeft(cbf(m)) {
+        case (builder, (_, _, c)) =>
+          builder += c
+      }.result()
+    }
   }
 
   object EitherOps {

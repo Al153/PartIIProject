@@ -9,7 +9,7 @@ import core.view.View
 import impl.sql.SQLColumnName.{column, leftId, objId, rightId}
 import impl.sql._
 import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
-import impl.sql.view.ViewsTable
+import impl.sql.tables.ViewsTable
 
 import scalaz.\/
 
@@ -82,12 +82,12 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
 
       leftPrototype <- sd.lookupTable(p.leftMostTable)
       rightPrototype <- sd.lookupTable(p.rightMostTable)
-    } yield
-      s"""
-         |CREATE OR REPLACE VIEW ${SQLDB.temporaryView} AS ${getViewIntermediate(v)}
+    } yield ViewsTable.usingView(v) {
+        s"""
          |WITH ${getDefinitions(relationDefs, tableDefs, baseQuery, v)}
          | ${extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)}
-       """.stripMargin
+        """.stripMargin
+      }
     }
 
 
@@ -160,7 +160,5 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
       s"JOIN ${SQLDB.temporaryView} " +
       s"ON ${r.name}.${SQLColumnName.commitId} = ${SQLDB.temporaryView}.${SQLColumnName.commitId}"
 
-  private def getViewIntermediate(v: View) =
-    s"SELECT ${SQLColumnName.commitId} FROM ${ViewsTable.tableName} " +
-      s"WHERE ${SQLColumnName.viewId} = ${v.id}"
+
 }

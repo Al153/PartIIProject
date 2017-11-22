@@ -3,12 +3,12 @@ package impl.sql.writes
 import core.backend.common.DBObject
 import core.containers.ConstrainedFuture
 import core.error.E
-import core.relations.CompletedRelation
-import impl.sql.{ObjectTableName, RelationTableName, SQLTableName}
-import impl.sql.view.Commit
 import core.utils._
+import core.view.View
+import impl.sql.tables.ViewsTable
+import impl.sql.types.{Commit, ObjId}
+import impl.sql.{ObjectTableName, RelationTableName}
 
-import scala.reflect.internal.util.Statistics.View
 
 /**
   * Created by Al on 21/11/2017.
@@ -33,28 +33,48 @@ object WriteToSQL {
 
   def insertObjects(view: View, commit: Commit, t: TraversableOnce[(DBObject, ObjectTableName, RelationTableName, DBObject, ObjectTableName)]): ConstrainedFuture[E, Unit] = {
     // insert a bunch of objects
-    val withLeftIds: ConstrainedFuture[E, TraversableOnce[(ObjId, RelationTableName, DBObject, ObjectTableName)]] = ???
-    val withRightIds: ConstrainedFuture[E, TraversableOnce[(ObjId, RelationTableName, ObjId)]] = ???
-    // find a set of the relevant relations that already exist
-    val existingRelations: ConstrainedFuture[E, Set[(ObjId, ObjId)]] = ???
-
-    val toAdd = for {
-      all <- withRightIds
-      existing <- existingRelations
-
-    } yield all.filter {case (l, rel, r) => (l, r) notIn existing}
-
-    toAdd.flatMap(ta => insertRelations(ta, commit))
+    for {
+      _ <- presetup(view)
+      withLeftIds <- getLeftIds(view, commit, t)
+      withRightIds <- getRightIds(view, commit, withLeftIds)
+      preExisting <- getExistingRelations(view, withRightIds.mapProj2.toSet)
+      toAdd = withRightIds.filter {_ notIn preExisting}
+      res <- insertRelations(toAdd, commit)
+    } yield res
   }
 
-  def insertRelations(rels: TraversableOnce[(ObjId, RelationTableName, ObjId)], commit: Commit): ConstrainedFuture[E, Unit] = {
+  def insertRelations(
+                       rels: List[(ObjId, RelationTableName, ObjId)],
+                       commit: Commit
+                     ): ConstrainedFuture[E, Unit] = {
     val fullQuery = rels map {case (left, rel, right) => createInsertRelation(left, rel, right, commit)} mkString "\n"
     ??? // todo: Execute
   }
 
+  // pre-emptively create a view to be used to do the writing
+  private def presetup(v: View): ConstrainedFuture[E, Unit] = {
+    val query = ViewsTable.usingView(v)("")
+    ???
+  }
+
   def createInsertRelation(leftId: ObjId, table: RelationTableName, rightId: ObjId, commit: Commit): String =
-    s"INSERT INTO $table (???) VALUES ('${leftId.id}', '${commit.id}', ${rightId.id});"
+    s"INSERT INTO $table ($???) VALUES ('${leftId.id}', '${commit.id}', ${rightId.id});"
+
+  def getLeftIds(
+                  view: View,
+                  commit: Commit,
+                  t: TraversableOnce[(DBObject, ObjectTableName, RelationTableName, DBObject, ObjectTableName)]
+                ): ConstrainedFuture[E, List[(ObjId, RelationTableName, DBObject, ObjectTableName)]] = ???
+
+  def getRightIds(
+                  view: View,
+                  commit: Commit,
+                  t: List[(ObjId, RelationTableName, DBObject, ObjectTableName)]
+                 ): ConstrainedFuture[E, List[(ObjId, RelationTableName, ObjId)]] = ???
+
+  def getExistingRelations(view: View, t: Set[RelationTableName]): ConstrainedFuture[E, Set[(ObjId, RelationTableName, ObjId)]] = ???
+
+
 }
 
 
-case class ObjId(id: Long) extends AnyVal

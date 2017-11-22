@@ -1,14 +1,14 @@
 package impl.sql.schema
 
 import core.schema._
-import impl.sql.SQLColumnName
+import impl.sql.{SQLColumnName, SQLTableName}
 
 sealed trait SQLType
 case object SQLString extends SQLType
 case object SQLInt extends SQLType
 case object SQLBool extends SQLType
 case object SQLDouble extends SQLType
-case object SQLForeignRef extends SQLType // a reference in another table
+case class SQLForeignRef(table: SQLTableName) extends SQLType // a reference in another table
 case object SQLPrimaryRef extends SQLType // unique reference
 case object SQLRef extends SQLType // generic reference
 
@@ -32,9 +32,9 @@ object SQLType {
     case SQLInt => "int NOT NULL"
     case SQLBool => "boolean NOT NULL"
     case SQLDouble => "double NOT NULL"
-    case SQLString => "varchar(max)"
+    case SQLString => "TEXT"
     case SQLRef => "bigint"
     case SQLPrimaryRef => "bigint NOT NULL PRIMARY"
-    case SQLForeignRef => "bigint"
+    case SQLForeignRef(table) => "bigint"
   }
 }

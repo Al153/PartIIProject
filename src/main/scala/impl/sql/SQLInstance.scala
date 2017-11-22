@@ -5,6 +5,7 @@ import core.error.E
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.TableName
 import core.view.View
+import impl.sql.tables.ViewsTable
 import impl.sql.view.ViewsTable
 
 import scalaz.\/
@@ -31,7 +32,7 @@ class SQLInstance(connectionPool: ConnectionPool) extends DBInstance {
 
 
 
-  private val viewsTable: ViewsTable = ???
+  val viewsTable: ViewsTable = ???
 
   // sanitised tableNames
   val tableLookup: Map[TableName, ObjectTableName] = ???

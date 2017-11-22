@@ -20,7 +20,14 @@ class ObjectTableName(in: TableName) extends SQLTableName {
 class RelationTableName(r: RelationName) extends SQLTableName {
   override val name: String = "REL_" + r.id.strip
 }
-object ViewsTableName extends SQLTableName {
+case object ViewsTableName extends SQLTableName {
   override def name: String = "VIEWS_ID"
 }
 
+case object ViewsRegistryName extends SQLTableName {
+  override def name: String = "VIEWS_REGISTRY"
+}
+
+case object CommitRegistryName extends SQLTableName {
+  override def name: String = "COMMITS_REGISTRY"
+}

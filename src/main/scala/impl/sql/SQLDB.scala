@@ -8,6 +8,10 @@ import org.h2.engine.Session
 
 import scala.concurrent.ExecutionContext
 
+/**
+  * To use postgreSQL
+  */
+
 object SQLDB extends DBBackend {
   override def open(
                      address: DatabaseAddress,
@@ -40,6 +44,48 @@ object SQLDB extends DBBackend {
   val mainQuery = "main_query"
 
   val temporaryView = "temporary_views_table"
+
+  /**
+    * SQL Tables that should exist:
+    *
+    * ViewRegistry
+    *
+    *   ViewId: SQLPRimaryRef
+    *
+    * CommitRegistry
+    *
+    *   CommitId: SQLPrimaryRef
+    *
+    * ViewsTable
+    *
+    *   ViewId: SQLForeignRef(ViewRegistry),
+    *   CommitId: SQLForeignRef(CommitRegistry)
+    *
+    *
+    * For each object class:
+    *
+    * Object table
+    *   CommitId: SQLForeignRef(CommitRegistry)
+    *   ObjectId: SQLPrimaryRef
+    *   col_1: Translate(type1)
+    *   col_2: Translate(type2)
+    *   .
+    *   .
+    *   .
+    *   col_n: Translate(typen)
+    *
+    *
+    *
+    *
+    * For each relation:
+    *
+    * RelationTable
+    *   LeftId: SQLForeignRef(ObjectTableName)
+    *   CommitId: SQLForeignRef(ObjectTableName)
+    *   RightId: SQLForeignRef(ObjectTableName)
+    *
+    *
+    */
 
 
 }
