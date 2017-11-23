@@ -112,8 +112,6 @@ class Writer(instance: SQLInstance)(implicit ec: ExecutionContext) {
       val sets = for {
         rel <- t
       } yield rel.getExistingRelations(view).map(_.map{case(l, r) => (l, rel, r)})
-
-
       ConstrainedFuture.sequence(sets).map(_.flatten)
     }
 

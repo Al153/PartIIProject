@@ -24,7 +24,7 @@ object SQLDB extends DBBackend {
     for {
       _ <- validateTables(connection)
 
-    } yield new SQLInstance(???, ???)
+    } yield new SQLInstance(???, ???, ???)
   }
 
   // Opens a database connection somehow

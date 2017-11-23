@@ -15,6 +15,12 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"  %  "logback-classic"   % "1.2.3"
 )
 
+// Doobie db
+libraryDependencies ++= Seq(
+  "org.tpolecat" %% "doobie-core"      % "0.4.4", // scalaz + scalaz-stream
+  "org.tpolecat" %% "doobie-postgres"      % "0.4.4"
+)
+
 // Scala test
 libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % "3.0.1",
@@ -27,3 +33,4 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.11" % Test
     exclude("junit", "junit-dep")
 )
+
