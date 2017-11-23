@@ -1,22 +1,22 @@
 package impl.sql
 
 import core.backend.interfaces.{DBExecutor, DBInstance}
+import core.containers.ConstrainedFuture
 import core.error.E
 import core.intermediate.unsafe.ErasedRelationAttributes
-import core.schema.TableName
+import core.schema.{SchemaDescription, TableName}
 import core.view.View
-import impl.sql.tables.ViewsTable
-import impl.sql.view.ViewsTable
+import impl.sql.tables._
+import scalikejdbc._
 
 import scalaz.\/
-import scalikejdbc._
 
 /**
   * An instance should hold connection pool settings
   * Represents a connection to a database
   */
 
-class SQLInstance(connectionPool: ConnectionPool) extends DBInstance {
+class SQLInstance(connectionPool: ConnectionPool, schema: SchemaDescription) extends DBInstance {
 
   override val executor: DBExecutor = new SQLExecutor(this)
 
@@ -24,15 +24,15 @@ class SQLInstance(connectionPool: ConnectionPool) extends DBInstance {
 
   override def getDefaultView: \/[E, View] = ???
 
-  // read from the views table
-  override def getViews: Set[View] = DB readOnly {
-    // implicit session => sql"select view_id from VIEWS".map(rs => rs.long("view_id")).collection.apply()
-    ???
-  }
 
 
 
   val viewsTable: ViewsTable = ???
+  val viewsRegistry: ViewsRegistry = ???
+  val commitRegistry: CommitsRegistry = ???
+
+  val relationTables: Map[RelationTableName, RelationTable] = ???
+  val objectTables: Map[ObjectTableName, ObjectTable] = ???
 
   // sanitised tableNames
   val tableLookup: Map[TableName, ObjectTableName] = ???
@@ -40,4 +40,7 @@ class SQLInstance(connectionPool: ConnectionPool) extends DBInstance {
   // sanitised relationNames
   val relationLookup: Map[ErasedRelationAttributes, RelationTableName] = ???
 
+
+  // read from the views table
+  override def getViews: ConstrainedFuture[E, Set[View]] = viewsRegistry.getViews
 }

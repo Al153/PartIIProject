@@ -5,15 +5,16 @@ import core.containers.ConstrainedFuture
 import core.error.E
 import core.utils._
 import core.view.View
-import impl.sql.tables.ViewsTable
+import impl.sql.errors.MissingSQLRelation
+import impl.sql.tables.{RelationTable, ViewsTable}
 import impl.sql.types.{Commit, ObjId}
-import impl.sql.{ObjectTableName, RelationTableName}
+import impl.sql.{ObjectTableName, RelationTableName, SQLInstance}
 
 
 /**
   * Created by Al on 21/11/2017.
   */
-object WriteToSQL {
+class WriteToSQL(instance: SQLInstance) {
   // todo:
 
   /**
@@ -47,7 +48,13 @@ object WriteToSQL {
                        rels: List[(ObjId, RelationTableName, ObjId)],
                        commit: Commit
                      ): ConstrainedFuture[E, Unit] = {
-    val fullQuery = rels map {case (left, rel, right) => createInsertRelation(left, rel, right, commit)} mkString "\n"
+    val relations = rels.collectLists{case (l, rel, r) => rel -> (l, r)}
+    val queries = for {
+      groupedRelations <- EitherOps.sequence(relations.map {
+        case (rel, list) => instance.relationTables.getOrError(rel, MissingSQLRelation(rel)).withSnd(list)
+      })
+    } yield groupedRelations.flatMap { case (rel, pair) => pair.map { case (l, r) => rel.insertRelation(l, r, commit) } }
+
     ??? // todo: Execute
   }
 
@@ -56,9 +63,6 @@ object WriteToSQL {
     val query = ViewsTable.usingView(v)("")
     ???
   }
-
-  def createInsertRelation(leftId: ObjId, table: RelationTableName, rightId: ObjId, commit: Commit): String =
-    s"INSERT INTO $table ($???) VALUES ('${leftId.id}', '${commit.id}', ${rightId.id});"
 
   def getLeftIds(
                   view: View,

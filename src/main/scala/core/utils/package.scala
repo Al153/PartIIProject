@@ -4,6 +4,7 @@ import core.error.E
 
 import scala.collection.{MapLike, SetLike, TraversableLike, mutable}
 import scala.collection.generic.CanBuildFrom
+import scala.collection.immutable
 import scala.language.higherKinds
 import scalaz.Scalaz._
 import scalaz.\/
@@ -24,6 +25,28 @@ package object utils {
     def flattenE: E \/ Vector[A] = EitherOps.sequence(u).map(_.flatten)
   }
 
+  implicit class IterableOps[A](u: Iterable[A]) {
+    def collectSets[K, B](f: A => (K, B)): immutable.Map[K, Set[B]] = {
+      val applied = u.map(f)
+      val m = mutable.Map[K, Set[B]]()
+      for {
+        (k, b) <- applied
+      } m += k -> (m.getOrElse(k, Set()) + b)
+
+      m.toMap
+    }
+
+    def collectLists[K, B](f: A => (K, B)): immutable.Map[K, List[B]] = {
+      val applied = u.map(f)
+      val m = mutable.Map[K, mutable.ListBuffer[B]]()
+      for {
+        (k, b) <- applied
+      } m += k -> (m.getOrElse(k, new mutable.ListBuffer[B]) :+ b)
+
+      m.toMap.mapValues(_.result())
+    }
+  }
+
 
   implicit class TraversibleOps[M[X] <: TraversableOnce[X], A](u: M[A]) {
     private def pair(a: A): (A, A) = (a, a)
@@ -32,6 +55,8 @@ package object utils {
       u.foldLeft(cbf(u)){
         case (builder, a) => builder += pair(a)
       }.result()
+
+
   }
 
   implicit class TraversibleOps2[M[X] <: TraversableOnce[X], Y, Z](m: M[(Y, Z)]) {

@@ -1,5 +1,6 @@
 package core.backend.interfaces
 
+import core.containers.ConstrainedFuture
 import core.error.E
 import core.view.View
 
@@ -13,6 +14,6 @@ trait DBInstance {
 
   def setDefaultView(view: View): E \/ Unit
   def getDefaultView: E \/ View
-  def getViews: Set[View]
+  def getViews: ConstrainedFuture[E, Set[View]]
 }
 
