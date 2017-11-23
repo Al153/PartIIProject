@@ -42,6 +42,7 @@ object SQLDB extends DBBackend {
   val leftmostTable = "left_table"
   val rightmostTable = "right_table"
   val mainQuery = "main_query"
+  val singleTable = "single_table"
 
   val temporaryView = "temporary_views_table"
 

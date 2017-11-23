@@ -22,21 +22,34 @@ case class JoinSimple private (left: VarName, right: VarName, on: JoinMapping) e
 object Query {
   def emptyContext: CompilationContext = new CompilationContext(0, Map(), Map())
 
-  def convert(q: UnsafeFindPair): Compilation[Query] = q match  {
+  def render(q: Query): String = q match {
+    case With((name, body), in) => s"WITH $name AS (${render(body)}) (${render(in)})"
+    case WithView(name, body, in) => s"CREATE VIEW $name AS (${render(body)}); ${render(q)}; DROP VIEW $name"
+    case WithRec(name, body, in) => s"WITH RECURSIVE $name AS (${render(body)}) (${render(in)})"
+    case Var(v) => v.s
+    case SelectTable(name, where) => s"SELECT ${SelectMapping.render(FromObject)} FROM $name ${WhereTable.render(where)}"
+    case SelectWhere(mappings, where, from) => s"SELECT (${SelectMapping.render(mappings)}) FROM (${render(from)}) ${Where.render(where)}"
+    case IntersectAll(left, right) => s"(${render(left)}) INTERSECT (${render(right)})"
+    case UnionAll(left, right) => s"(${render(left)}) UNION ALL (${render(right)})"
+    case JoinRename((asLeft, left), (asRight, right), on) => s"((${render(left)}) as $asLeft) INNER JOIN ((${render(left)}) as $asRight) ON (${JoinMapping.render(on, asLeft, asRight)})"
+    case JoinSimple(l, r, on) => s"$l INNER JOIN $r ON (${JoinMapping.render(on, l, r)})"
+  }
+
+  def convertPair(q: UnsafeFindPair): Compilation[Query] = q match  {
     case USAnd(left, right) => for {
-      l <- convert(left)
-      r <- convert(right)
+      l <- convertPair(left)
+      r <- convertPair(right)
     } yield IntersectAll(l, r)
 
     case USAndSingle(left, right) => for {
-      l <- convert(left)
+      l <- convertPair(left)
       r <- convertSingle(right)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
     } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l, b -> r, OnRight))
 
     case USAtleast(n , rel) => for {
-      precomputed <- convert(rel) // precompute a view
+      precomputed <- convertPair(rel) // precompute a view
       temporaryView <- CompilationContext.newVarName // get a name for it
       rec <- CompilationContext.newVarName // create a name to recurse on
       preTraversal <- getExactly(temporaryView, n, rel.leftMostTable) // computer the traversal up to the start of the upto
@@ -58,7 +71,7 @@ object Query {
     )
 
     case USBetween(low, high, rel) => for {
-      view <- convert(rel)
+      view <- convertPair(rel)
       viewName <- CompilationContext.newVarName
       preTraversal <- getExactly(viewName, low, rel.leftMostTable)
       preTraversalName <- CompilationContext.newVarName
@@ -74,22 +87,21 @@ object Query {
             Chained
           )
         )
-
     )
 
     case USChain(left, right) => for {
-      l <- convert(left)
-      r <- convert(right)
+      l <- convertPair(left)
+      r <- convertPair(right)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
     } yield SelectWhere(Joined(a, b), NoConstraint, JoinRename(a -> l, b -> r, Chained))
 
     case USDistinct(rel) =>  for {
-      r <- convert(rel)
+      r <- convertPair(rel)
     } yield SelectWhere(Simple, Distinct, r)
 
     case USExactly(n, rel) => for {
-      view <- convert(rel)
+      view <- convertPair(rel)
       viewName <- CompilationContext.newVarName
       body <- getExactly(viewName, n, rel.leftMostTable)
     } yield WithView(viewName, view, body)
@@ -99,15 +111,15 @@ object Query {
     } yield SelectWhere(Simple, NoConstraint, Var(n))
 
     case USNarrow(rel, findable) => for {
-      l <- convert(rel)
+      l <- convertPair(rel)
       r <- doFind(findable)
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
     } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l, b -> r, OnRight))
 
     case USOr(left, right) =>  for {
-      l <- convert(left)
-      r <- convert(right)
+      l <- convertPair(left)
+      r <- convertPair(right)
     } yield UnionAll(l, r)
 
     case USRel(rel) => for {
@@ -119,7 +131,7 @@ object Query {
     } yield SelectWhere(ReversedRelation(r), NoConstraint, Var(r))
 
     case USUpto(n, rel) => for {
-      view <- convert(rel)
+      view <- convertPair(rel)
       viewName <- CompilationContext.newVarName
       body <- getUpto(viewName, n, rel.leftMostTable)
     } yield WithView(viewName, view, body)
@@ -132,7 +144,7 @@ object Query {
       a <- CompilationContext.newVarName
       b <- CompilationContext.newVarName
       start <- convertSingle(start)
-      rel <- convert(rel)
+      rel <- convertPair(rel)
     } yield SelectWhere(Joined(a, b), NoConstraint, JoinRename(a -> start, b -> rel, Chained))
 
 
