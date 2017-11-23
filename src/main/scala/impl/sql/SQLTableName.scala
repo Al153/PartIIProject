@@ -1,7 +1,10 @@
 package impl.sql
 
+import java.util.UUID
+
 import core.schema.{RelationName, TableName}
 import core.utils._
+import core.view.View
 
 
 /**
@@ -30,4 +33,8 @@ case object ViewsRegistryName extends SQLTableName {
 
 case object CommitRegistryName extends SQLTableName {
   override def name: String = "COMMITS_REGISTRY"
+}
+
+case class PrecomputedView() extends SQLTableName {
+  override val name: String = s"VIEW_${UUID.randomUUID()}"
 }

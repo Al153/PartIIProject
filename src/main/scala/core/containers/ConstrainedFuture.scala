@@ -6,6 +6,9 @@ import core.view.View
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scalaz._
 import Scalaz._
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable
+import scala.language.higherKinds
 
 /**
   * Created by Al on 14/10/2017.
@@ -36,6 +39,21 @@ object ConstrainedFuture {
             case e: Throwable => recover(e).left
           }
         }
+      )
+    )
+
+  /**
+    * Put a precomputed value into a constrained future
+    * @param a
+    * @param ec
+    * @tparam E
+    * @tparam A
+    * @return
+    */
+  def immediatePoint[E, A](a: A)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] =
+    new ConstrainedFuture(
+      EitherT(
+        Promise.successful(a.right[E]).future
       )
     )
 
@@ -73,4 +91,14 @@ object ConstrainedFuture {
     def proj: ConstrainedFuture[E, A] = underlying.map(_._1)
     def projView: ConstrainedFuture[E, View] = underlying.map(_._2)
   }
+
+  def sequence[E, A, M[X] <: TraversableOnce[X]](in: M[E ConstrainedFuture A])
+      (implicit cbf: CanBuildFrom[M[E ConstrainedFuture A], A, M[A]], ec: ExecutionContext): E ConstrainedFuture M[A] =
+      in.foldLeft(immediatePoint[E, mutable.Builder[A, M[A]]](cbf(in))) { // ignore the red, this actually compiles
+        (er, ea) => for {
+          r <- er
+          a <- ea
+        } yield r += a
+      }.map(_.result())
 }
+

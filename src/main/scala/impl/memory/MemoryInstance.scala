@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import core.backend.common.MissingViewError
 import core.backend.interfaces.{DBExecutor, DBInstance}
-import core.containers.Operation
+import core.containers.{ConstrainedFuture, Operation}
 import core.error.E
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.SchemaDescription
@@ -23,7 +23,7 @@ import scalaz._
   *
   * Instance that hold a database instance
   */
-class MemoryInstance(schema: SchemaDescription) extends DBInstance {
+class MemoryInstance(schema: SchemaDescription)(implicit ec: ExecutionContext) extends DBInstance {
   override lazy val executor: DBExecutor = new InMemoryExecutor(this, schema)
 
   val relations: Set[ErasedRelationAttributes] = schema.relationMap.values.toSet
@@ -52,13 +52,13 @@ class MemoryInstance(schema: SchemaDescription) extends DBInstance {
   }
 
 
-  def readOp[A](f: MemoryTree => E \/ A)(implicit ec: ExecutionContext): Operation[E, A] =
+  def readOp[A](f: MemoryTree => E \/ A): Operation[E, A] =
     Operation.either(v => for {
       t <- Store.get(v)
       a <- f(t)
     } yield (a, v))(throwable => UnknownMemoryError(throwable))
 
-  def writeOp(f: MemoryTree => E \/ MemoryTree)(implicit ec: ExecutionContext): Operation[E, Unit]  =
+  def writeOp(f: MemoryTree => E \/ MemoryTree): Operation[E, Unit]  =
     Operation.either(u => for {
       t <- Store.get(u)
       newTree <- f(t)
@@ -69,5 +69,5 @@ class MemoryInstance(schema: SchemaDescription) extends DBInstance {
 
   override def getDefaultView: E \/ View = Store.getDefaultView.right
 
-  override def getViews: Set[View] = Store.getViews
+  override def getViews: ConstrainedFuture[E, Set[View]] = ConstrainedFuture.point[E, Set[View]](Store.getViews)(UnknownMemoryError(_))
 }

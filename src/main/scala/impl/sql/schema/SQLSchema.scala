@@ -3,7 +3,7 @@ package impl.sql.schema
 import core.intermediate.unsafe.{ErasedRelationAttributes, SchemaObjectErased}
 import core.schema._
 import impl.sql._
-import impl.sql.view.ViewsTable
+import impl.sql.tables.ViewsTable
 
 
 
@@ -24,13 +24,13 @@ object SQLSchema {
     SQLSchema(
       new RelationTableName(r.name),
       Map(
-        SQLColumnName.leftId -> SQLForeignRef,
-        SQLColumnName.commitId -> SQLForeignRef,
-        SQLColumnName.rightId -> SQLForeignRef
+        SQLColumnName.leftId -> SQLForeignRef(???),
+        SQLColumnName.commitId -> SQLForeignRef(???),
+        SQLColumnName.rightId -> SQLForeignRef(???)
       )
     )
 
-  val viewsSchema = SQLSchema(ViewsTableName, Map(ViewsTable.viewID -> SQLRef, ViewsTable.commitID -> SQLForeignRef))
+  val viewsSchema = SQLSchema(ViewsTableName, Map(ViewsTable.viewID -> SQLForeignRef(???), ViewsTable.commitID -> SQLForeignRef(???)))
 
   def createSQLTableEntry(sd: SchemaDescription): String = ???
 }

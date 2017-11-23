@@ -13,7 +13,44 @@ import impl.sql.tables.ViewsTable
 
 import scalaz.\/
 
-case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightTable: SQLTableName, sd: SchemaDescription)(implicit instance: SQLInstance) {
+case class CompletedPairQuery(
+                               p: UnsafeFindPair,
+                               leftTable: SQLTableName,
+                               rightTable: SQLTableName,
+                               sd: SchemaDescription
+                             )(implicit instance: SQLInstance) {
+  def render(v: View): E \/ String = {
+    // render query to string
+
+    val (context, q) = Query.convert(p).run(Query.emptyContext)
+    val precomputedView = PrecomputedView() // generate a view to get all the commit ids
+
+    for {
+      tableDefs <- EitherOps.sequence(
+        for {
+          (name, sqlName) <- context.getTableDefs
+        } yield instance.tableLookup.getOrError(name, SQLTableMissing(name)).withSnd(sqlName))
+
+
+      relationDefs <- EitherOps.sequence(for {
+        (rel, sqlName) <- context.getRelationDefs
+      } yield instance.relationLookup.getOrError(rel, SQLRelationMissing(rel)).withSnd(sqlName))
+
+
+      baseQuery = renderQuery(q)
+
+      leftPrototype <- sd.lookupTable(p.leftMostTable)
+      rightPrototype <- sd.lookupTable(p.rightMostTable)
+
+    } yield ViewsTable.wrapView(v, precomputedView) {
+      s"""
+         |WITH ${getDefinitions(relationDefs, tableDefs, baseQuery, v, precomputedView)}
+         | ${extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)}
+        """.stripMargin
+    }
+  }
+
+
   private def renderQuery(q: Query): String = q match {
     case With((name, body), in) => s"WITH $name AS (${renderQuery(body)}) (${renderQuery(in)})"
     case WithView(name, body, in) => s"CREATE VIEW $name AS (${renderQuery(body)}); ${renderQuery(q)}; DROP VIEW $name"
@@ -57,45 +94,12 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
     case NoConstraint => ""
   }
 
-  def dbCellTovalue(d: DBCell): String = d.toString
-
-
-
-  def render(v: View): E \/ String = {
-    // render query to string
-
-    val (context, q) = Query.convert(p).run(Query.emptyContext)
-
-    for {
-      tableDefs <- EitherOps.sequence(
-        for {
-          (name, sqlName) <- context.getTableDefs
-        } yield instance.tableLookup.getOrError(name, SQLTableMissing(name)).withSnd(sqlName))
-
-
-      relationDefs <- EitherOps.sequence(for {
-        (rel, sqlName) <- context.getRelationDefs
-      } yield instance.relationLookup.getOrError(rel, SQLRelationMissing(rel)).withSnd(sqlName))
-
-
-      baseQuery = renderQuery(q)
-
-      leftPrototype <- sd.lookupTable(p.leftMostTable)
-      rightPrototype <- sd.lookupTable(p.rightMostTable)
-    } yield ViewsTable.usingView(v) {
-        s"""
-         |WITH ${getDefinitions(relationDefs, tableDefs, baseQuery, v)}
-         | ${extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)}
-        """.stripMargin
-      }
-    }
-
-
+  private def dbCellTovalue(d: DBCell): String = d.toString
 
   // query terms appended to the left and right hand sides of the main query
   // actually pull out values
 
-  def extractMainQuery(
+  private def extractMainQuery(
                         leftProto: UnsafeFindable,
                         rightProto: UnsafeFindable,
                         leftTableName: SQLTableName,
@@ -105,18 +109,21 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
       s"FROM ${getRightJoin(rightTableName, getLeftJoin(leftTableName))}"
   }
 
-  def getDefinitions(
+  private def getDefinitions(
                       relationDefs: Iterable[(RelationTableName, VarName)],
                       tableDefs: Iterable[(ObjectTableName, VarName)],
                       mainQuery: String,
-                      v: View
+                      v: View,
+                      precomputedView: SQLTableName
                     ): String = {
     val relations = relationDefs map {
-      case (rtName, varName) => varName.toString + " as (" + getRelationWithView(rtName) + ")"
+      case (rtName, varName) => varName.toString + " AS " +
+        "(" + getRelationWithView(rtName, precomputedView) + ")"
     }
 
     val tables = tableDefs map {
-      case (otName, varName) => varName.toString + " as (" + getTableWithView(otName) + ")"
+      case (otName, varName) => varName.toString + " AS " +
+        "(" + getTableWithView(otName,precomputedView) + ")"
     }
 
     val mainQueryPair = SQLDB.mainQuery + " as (" + mainQuery + ")"
@@ -150,15 +157,15 @@ case class CompletedPairQuery(p: UnsafeFindPair, leftTable: SQLTableName, rightT
   }
 
   // selects with matching view values
-  private def getRelationWithView(r: RelationTableName):String =
+  private def getRelationWithView(r: RelationTableName, precomputedView: SQLTableName):String =
     s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${r.name} " +
-      s"JOIN ${SQLDB.temporaryView}" +
-      s"ON ${r.name}.${SQLColumnName.commitId} = ${SQLDB.temporaryView}.${SQLColumnName.commitId}"
+      s"JOIN $precomputedView" +
+      s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
 
-  private def getTableWithView(r: ObjectTableName): String =
+  private def getTableWithView(r: ObjectTableName, precomputedView: SQLTableName): String =
     s"SELECT ${SQLColumnName.objId} FROM ${r.name} " +
-      s"JOIN ${SQLDB.temporaryView} " +
-      s"ON ${r.name}.${SQLColumnName.commitId} = ${SQLDB.temporaryView}.${SQLColumnName.commitId}"
+      s"JOIN $precomputedView " +
+      s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
 
 
 }

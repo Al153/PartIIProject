@@ -17,7 +17,7 @@ object MemoryDB extends DBBackend {
                      address: DatabaseAddress,
                      schema: SchemaDescription
                    )(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] =
-    ConstrainedFuture.point[E, DBInstance] {
-    new MemoryInstance(schema) // for now just
-  }(e => core.error.UnknownError(e))
+    ConstrainedFuture.immediatePoint[E, DBInstance] {
+      new MemoryInstance(schema) // for now just
+    }
 }

@@ -16,7 +16,7 @@ import scalaz.\/
   * Represents a connection to a database
   */
 
-class SQLInstance(connectionPool: ConnectionPool, schema: SchemaDescription) extends DBInstance {
+class SQLInstance(connectionPool: ConnectionPool, schema: SchemaDescription, instanceID: Long) extends DBInstance {
 
   override val executor: DBExecutor = new SQLExecutor(this)
 
@@ -25,7 +25,7 @@ class SQLInstance(connectionPool: ConnectionPool, schema: SchemaDescription) ext
   override def getDefaultView: \/[E, View] = ???
 
 
-
+  val instanceId: Long = ???
 
   val viewsTable: ViewsTable = ???
   val viewsRegistry: ViewsRegistry = ???
@@ -39,7 +39,6 @@ class SQLInstance(connectionPool: ConnectionPool, schema: SchemaDescription) ext
 
   // sanitised relationNames
   val relationLookup: Map[ErasedRelationAttributes, RelationTableName] = ???
-
 
   // read from the views table
   override def getViews: ConstrainedFuture[E, Set[View]] = viewsRegistry.getViews
