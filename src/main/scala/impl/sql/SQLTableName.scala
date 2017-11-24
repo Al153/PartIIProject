@@ -31,7 +31,7 @@ case object ViewsRegistryName extends SQLTableName {
   override def name: String = "VIEWS_REGISTRY"
 }
 
-case object CommitRegistryName extends SQLTableName {
+case object CommitsRegistryName extends SQLTableName {
   override def name: String = "COMMITS_REGISTRY"
 }
 

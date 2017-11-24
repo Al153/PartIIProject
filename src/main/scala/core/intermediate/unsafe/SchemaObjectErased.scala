@@ -7,4 +7,5 @@ import core.schema.{SchemaComponent, TableName}
   */
 case class SchemaObjectErased(name: TableName, schemaComponents: Vector[SchemaComponent]) {
   def prototype: UnsafeFindable = UnsafeFindable(schemaComponents.map(_ => None), name)
+  val length: Int = schemaComponents.length
 }

@@ -1,4 +1,4 @@
-package impl.sql.writes
+package impl.sql.jdbc
 
 import core.backend.common.DBObject
 import core.containers.ConstrainedFuture
@@ -9,15 +9,12 @@ import impl.sql._
 import impl.sql.tables.{ObjectTable, RelationTable, ViewsTable}
 import impl.sql.types.{Commit, ObjId}
 
-import scala.concurrent.ExecutionContext
-
 
 /**
   * Created by Al on 21/11/2017.
   */
-class Writer(instance: SQLInstance)(implicit ec: ExecutionContext) {
-  // todo:
-
+class JDBCWriter(implicit instance: SQLInstance) {
+  import instance.executionContext
   /**
     * When writing to the SQL database:
     *   We need to
@@ -58,26 +55,24 @@ class Writer(instance: SQLInstance)(implicit ec: ExecutionContext) {
       groupedRelations <- relations
     } yield groupedRelations
 
-    queries.flatMap {
+    val queryStrings = queries.flatMap {
       case (rel, pair) =>
         pair.map {
           case (l, r) =>
             rel.insertRelation(l, r, commit)
         }
-      }
-
-    ??? // todo: Execute
+    }
+    instance.writeBatch(queryStrings)
   }
 
   // pre-emptively create a view to be used to do the writing
   private def presetup(v: View, precomputedViewName: PrecomputedView): ConstrainedFuture[E, Unit] = {
     val query = ViewsTable.usingView(v, precomputedViewName)
-    // todo: Execute
-    ???
+    instance.doWrite(query)
   }
 
-  private def cleanupViews(name: SQLTableName): ConstrainedFuture[E, Unit] =
-    ViewsTable.removeTempViewOp(name)
+  private def cleanupViews(name: PrecomputedView): ConstrainedFuture[E, Unit] =
+    instance.viewsTable.removeTempViewOp(name)
 
 
   private def getLeftIds(
@@ -114,6 +109,7 @@ class Writer(instance: SQLInstance)(implicit ec: ExecutionContext) {
       } yield rel.getExistingRelations(view).map(_.map{case(l, r) => (l, rel, r)})
       ConstrainedFuture.sequence(sets).map(_.flatten)
     }
+
 
 
 }

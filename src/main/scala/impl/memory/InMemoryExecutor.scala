@@ -1,15 +1,14 @@
 package impl.memory
 
-import core.backend.interfaces.{DBExecutor, Extractor}
+import core.backend.interfaces.DBExecutor
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
-import core.utils._
 import core.intermediate._
 import core.relations.CompletedRelation
 import core.schema.{SchemaDescription, SchemaObject}
+import core.utils._
 
-import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
 
 
@@ -17,17 +16,18 @@ import scalaz.Scalaz._
   * Created by Al on 22/10/2017.
   */
 class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescription) extends DBExecutor {
-  override def findAll[A](q: FindSingle[A])(implicit e: ExecutionContext, ea: Extractor[A], sd: SchemaDescription): Operation[E, Vector[A]] =
+
+  override def findAll[A](q: FindSingle[A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Vector[A]] =
     instance.readOp(
       t =>
         for {
           unsafeQuery <- q.getUnsafe
           v <- methods.findSingleImpl(unsafeQuery, t)
-          res <- EitherOps.sequence(v.map(o => ea.fromRow(o.value)))
+          res <- EitherOps.sequence(v.map(o => sa.fromRow(o.value)))
         } yield res
     )
 
-  override def findAllPairs[A, B](q: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B], sd: SchemaDescription): Operation[E, Vector[(A, B)]] =
+  override def findAllPairs[A, B](q: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Vector[(A, B)]] =
     instance.readOp {
       t =>
         for {
@@ -39,24 +39,24 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
             v.map {
               case (l, r) =>
                 for {
-                  a <- ea.fromRow(l.value)
-                  b <- eb.fromRow(r.value)
+                  a <- sa.fromRow(l.value)
+                  b <- sb.fromRow(r.value)
                 } yield (a, b)
             })
         } yield res
     }
 
-  override def findDistinct[A](q: FindSingle[A])(implicit e: ExecutionContext, ea: Extractor[A], sd: SchemaDescription): Operation[E, Set[A]] =
+  override def findDistinct[A](q: FindSingle[A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Set[A]] =
     instance.readOp(
       t =>
         for {
           unsafeQuery <- q.getUnsafe
           v <- methods.findSingleSetImpl(unsafeQuery, t)
-          res <- EitherOps.sequence(v.map(o => ea.fromRow(o.value)))
+          res <- EitherOps.sequence(v.map(o => sa.fromRow(o.value)))
         } yield res
     )
 
-  override def findDistinctPairs[A, B](q: FindPair[A, B])(implicit e: ExecutionContext, ea: Extractor[A], eb: Extractor[B], sd: SchemaDescription): Operation[E, Set[(A, B)]] =
+  override def findDistinctPairs[A, B](q: FindPair[A, B])(implicit  sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Set[(A, B)]] =
     instance.readOp {
       t =>
         for {
@@ -68,14 +68,14 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
             v.map {
               case (l, r) =>
                 for {
-                  a <- ea.fromRow(l.value)
-                  b <- eb.fromRow(r.value)
+                  a <- sa.fromRow(l.value)
+                  b <- sb.fromRow(r.value)
                 } yield (a, b)
             })
         } yield res
     }
 
-  override def shortestPath[A](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Option[Path[A]]] =
+  override def shortestPath[A](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Option[Path[A]]] =
     instance.readOp {
       tree =>
         for {
@@ -86,7 +86,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
         } yield res
     }
 
-  override def allShortestPaths[A](start: A, relationalQuery: RelationalQuery[A, A])(implicit e: ExecutionContext, sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Set[Path[A]]] =
+  override def allShortestPaths[A](start: A, relationalQuery: RelationalQuery[A, A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Set[Path[A]]] =
     instance.readOp {
       tree =>
         for {
@@ -98,7 +98,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
 
     }
 
-  override def insert[A, B](q: TraversableOnce[CompletedRelation[A, B]])(implicit e: ExecutionContext, sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] =
+  override def insert[A, B](q: TraversableOnce[CompletedRelation[A, B]])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] =
     instance.writeOp {
       t =>
         q.foldLeft(t.right[E]){

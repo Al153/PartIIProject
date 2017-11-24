@@ -1,25 +1,25 @@
 package core.schema
 
-import core.intermediate.unsafe.SchemaObjectErased
 import core.backend.common._
-import core.backend.interfaces.Extractor
+import core.intermediate.unsafe.SchemaObjectErased
 
-import scalaz.\/
-import scalaz._
-import Scalaz._
+import scalaz.Scalaz._
+import scalaz.{\/, _}
 
 /**
   * Created by Al on 17/10/2017.
   */
 
-sealed trait SchemaObject[A] extends Extractor[A] {
+sealed trait SchemaObject[A] {
   def getSchemaComponents: Vector[SchemaComponent]
   def generalPattern: Pattern[A]
   def findable(a: A): DBTuple[A]
   def tableName: TableName
+  def fromRow(row: DBObject): ExtractError \/ A
 
   final def erased: SchemaObjectErased = SchemaObjectErased(tableName, getSchemaComponents)
   final def getDBObject(a: A): DBObject = findable(a).toDBObject
+  final def length: Int = getSchemaComponents.length
 
 
 }

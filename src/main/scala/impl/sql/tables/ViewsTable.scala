@@ -5,12 +5,12 @@ import core.error.E
 import core.view.View
 import impl.sql._
 
-class ViewsTable(instance: SQLInstance) {
+class ViewsTable(implicit instance: SQLInstance) {
   import ViewsTable._
 
 
-
-
+  def removeTempViewOp(temporaryViewName: PrecomputedView): ConstrainedFuture[E, Unit] =
+    instance.doWrite(removeView(temporaryViewName))
 
 }
 
@@ -40,5 +40,5 @@ object ViewsTable {
     s"DROP VIEW $view"
   }
 
-  def removeTempViewOp(temporaryViewName: SQLTableName): ConstrainedFuture[E, Unit] = ???
+
 }
