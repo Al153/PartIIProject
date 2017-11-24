@@ -6,7 +6,7 @@ import core.view.View
 import impl.sql.types.{Commit, ObjId}
 import impl.sql.{RelationTableName, SQLColumnName, SQLInstance}
 
-class RelationTable(name: RelationTableName, instance: SQLInstance) {
+class RelationTable(val name: RelationTableName, instance: SQLInstance) {
   import RelationTable._
 
   def insertRelation(leftId: ObjId, rightId: ObjId, commit: Commit): String =

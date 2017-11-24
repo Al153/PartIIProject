@@ -6,7 +6,7 @@ import core.schema.SchemaDescription
 import core.utils.EitherOps
 import core.view.View
 import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
-import impl.sql.tables.ViewsTable
+import impl.sql.tables.{ObjectTable, ViewsTable}
 import impl.sql._
 import core.utils._
 
@@ -17,7 +17,7 @@ import scalaz.\/
   */
 case class CompletedSingleQuery(
                                  p: UnsafeFindSingle,
-                                 table: SQLTableName,
+                                 table: ObjectTable,
                                  sd: SchemaDescription
                                )(implicit instance: SQLInstance) {
   def render(v: View): E \/ String = {
@@ -50,17 +50,17 @@ case class CompletedSingleQuery(
 
   private def extractMainQuery(
                                 prototype: UnsafeFindable,
-                                table: SQLTableName
+                                table: ObjectTable
                               ): String = {
     s"SELECT ${getColumns(prototype)} " +
       s"FROM ${getJoin(table)}"
   }
 
-  private def getJoin(tableName: SQLTableName): String =
-    s"${getTable(tableName)} JOIN ${SQLDB.mainQuery} " +
+  private def getJoin(table: ObjectTable): String =
+    s"${getTable(table)} JOIN ${SQLDB.mainQuery} " +
       s"ON ${SQLDB.singleTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.rightId}"
 
-  private def getTable(tableName: SQLTableName): String = s"$tableName as ${SQLDB.singleTable}"
+  private def getTable(table: ObjectTable): String = s"${table.name} as ${SQLDB.singleTable}"
 
   // construct a query to rename columns
   private def getColumns(

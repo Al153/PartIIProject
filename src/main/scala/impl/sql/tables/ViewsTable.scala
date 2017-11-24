@@ -4,6 +4,8 @@ import core.containers.ConstrainedFuture
 import core.error.E
 import core.view.View
 import impl.sql._
+import impl.sql.types.Commit
+import impl.sql.ViewsTableName
 
 class ViewsTable(implicit instance: SQLInstance) {
   import ViewsTable._
@@ -12,10 +14,14 @@ class ViewsTable(implicit instance: SQLInstance) {
   def removeTempViewOp(temporaryViewName: PrecomputedView): ConstrainedFuture[E, Unit] =
     instance.doWrite(removeView(temporaryViewName))
 
+  def getCommits(view: View): ConstrainedFuture[E, Set[Commit]] = ???
+
+  def insertNewView(view: View, commits: Set[Commit]): ConstrainedFuture[E, Unit] = ???
+
 }
 
 object ViewsTable {
-  val tableName: SQLTableName = ViewsTableName
+  val tableName: ViewsTableName.type = ViewsTableName
   val viewID: SQLColumnName = SQLColumnName.viewId
   val commitID: SQLColumnName = SQLColumnName.commitId
 

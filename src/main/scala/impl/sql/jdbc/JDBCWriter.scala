@@ -28,17 +28,29 @@ class JDBCWriter(implicit instance: SQLInstance) {
     */
 
 
+  // this method needs to setup a new view
+  def setupAndGetNewView(v: View): ConstrainedFuture[E, (View, Commit)] =
+    for {
+      connectedCommits <- instance.viewsTable.getCommits(v)
+      newView <- instance.viewsRegistry.getNewViewId
+      newCommit <- instance.commitsRegistry.getNewcommitId
+      _ <- instance.viewsTable.insertNewView(newView, connectedCommits + newCommit)
+    } yield (newView, newCommit)
+
+
   def insertObjects(
                      view: View,
                      commit: Commit,
-                     t: TraversableOnce[(DBObject, ObjectTable, RelationTable, DBObject, ObjectTable)]
+                     leftTable: ObjectTable,
+                     rightTable: ObjectTable,
+                     t: TraversableOnce[(DBObject, RelationTable, DBObject)]
                    ): ConstrainedFuture[E, Unit] = {
     // insert a bunch of objects
     val precomputedViewName = PrecomputedView()
     for {
       _ <- presetup(view, precomputedViewName)
-      withLeftIds <- getLeftIds(view, commit, t)
-      withRightIds <- getRightIds(view, commit, withLeftIds)
+      withLeftIds <- getLeftIds(view, commit, leftTable, t)
+      withRightIds <- getRightIds(view, commit, rightTable, withLeftIds)
       preExisting <- getExistingRelations(view, withRightIds.mapProj2.toSet)
       toAdd = withRightIds.filter {_ notIn preExisting}
       res <- insertRelations(toAdd, commit)
@@ -78,25 +90,27 @@ class JDBCWriter(implicit instance: SQLInstance) {
   private def getLeftIds(
                   view: View,
                   commit: Commit,
-                  t: TraversableOnce[(DBObject, ObjectTable, RelationTable, DBObject, ObjectTable)]
-                ): ConstrainedFuture[E, List[(ObjId, RelationTable, DBObject, ObjectTable)]] =
-    t.foldRight(ConstrainedFuture.immediatePoint[E, List[(ObjId, RelationTable, DBObject, ObjectTable)]](List())) {
-      case ((lObject, lTable, relTable, rObject, rTable), cfList) =>
+                  leftTable: ObjectTable,
+                  t: TraversableOnce[(DBObject, RelationTable, DBObject)]
+                ): ConstrainedFuture[E, List[(ObjId, RelationTable, DBObject)]] =
+    t.foldRight(ConstrainedFuture.immediatePoint[E, List[(ObjId, RelationTable, DBObject)]](List())) {
+      case ((lObject, relTable, rObject), cfList) =>
         for {
-          lId <- lTable.insertOrGetObject(lObject, view, commit)
+          lId <- leftTable.insertOrGetObject(lObject, view, commit)
           list <-cfList
-        } yield (lId, relTable, rObject, rTable) :: list
+        } yield (lId, relTable, rObject) :: list
     }
 
   private def getRightIds(
                   view: View,
                   commit: Commit,
-                  t: List[(ObjId, RelationTable, DBObject, ObjectTable)]
+                  rightTable: ObjectTable,
+                  t: List[(ObjId, RelationTable, DBObject)]
                  ): ConstrainedFuture[E, List[(ObjId, RelationTable, ObjId)]] =
     t.foldRight(ConstrainedFuture.immediatePoint[E, List[(ObjId, RelationTable, ObjId)]](List())) {
-      case ((lId, relTable, rObject, rTable), cfList) =>
+      case ((lId, relTable, rObject), cfList) =>
         for {
-          rId <- rTable.insertOrGetObject(rObject, view, commit)
+          rId <- rightTable.insertOrGetObject(rObject, view, commit)
           list <-cfList
         } yield (lId, relTable, rId) :: list
     }

@@ -13,7 +13,7 @@ import scalaz.Scalaz._
 import scalaz._
 
 class ObjectTable(
-                   name: ObjectTableName,
+                   val name: ObjectTableName,
                    instance: SQLInstance,
                    tableSchema: SchemaObjectErased
                  ) {

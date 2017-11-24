@@ -7,14 +7,14 @@ import core.utils._
 import core.view.View
 import impl.sql._
 import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
-import impl.sql.tables.ViewsTable
+import impl.sql.tables.{ObjectTable, ViewsTable}
 
 import scalaz.\/
 
 case class CompletedPairQuery(
                                p: UnsafeFindPair,
-                               leftTable: SQLTableName,
-                               rightTable: SQLTableName,
+                               leftTable: ObjectTable,
+                               rightTable: ObjectTable,
                                sd: SchemaDescription
                              )(implicit instance: SQLInstance) {
   def render(v: View): E \/ String = {
@@ -54,25 +54,25 @@ case class CompletedPairQuery(
   private def extractMainQuery(
                         leftProto: UnsafeFindable,
                         rightProto: UnsafeFindable,
-                        leftTableName: SQLTableName,
-                        rightTableName: SQLTableName
+                        leftTable: ObjectTable,
+                        rightTable: ObjectTable
                       ): String = {
     s"SELECT ${getColumns(leftProto, rightProto)} " +
-      s"FROM ${getRightJoin(rightTableName, getLeftJoin(leftTableName))}"
+      s"FROM ${getRightJoin(rightTable, getLeftJoin(leftTable))}"
   }
 
 
   // the joins
-  private def getLeftJoin(tableName: SQLTableName): String =
-    s"${getLeftTable(tableName)} JOIN ${SQLDB.mainQuery} " +
+  private def getLeftJoin(leftTable: ObjectTable): String =
+    s"${getLeftTable(leftTable)} JOIN ${SQLDB.mainQuery} " +
       s"ON ${SQLDB.leftmostTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.leftId}"
 
-  private def getRightJoin(tableName: SQLTableName, leftAndMainQuery: String): String =
-    s"($leftAndMainQuery) JOIN ${getRightTable(tableName)}" +
+  private def getRightJoin(rightTable: ObjectTable, leftAndMainQuery: String): String =
+    s"($leftAndMainQuery) JOIN ${getRightTable(rightTable)}" +
       s"ON ${SQLColumnName.rightId} = ${SQLDB.rightmostTable}.${SQLColumnName.objId}"
 
-  private def getLeftTable(tableName: SQLTableName): String = s"$tableName as ${SQLDB.leftmostTable}"
-  private def getRightTable(tableName: SQLTableName): String = s"$tableName as ${SQLDB.rightmostTable}"
+  private def getLeftTable(table: ObjectTable): String = s"${table.name} as ${SQLDB.leftmostTable}"
+  private def getRightTable(table: ObjectTable): String = s"${table.name} as ${SQLDB.rightmostTable}"
 
   // construct a query to rename columns
   private def getColumns(

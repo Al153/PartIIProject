@@ -1,6 +1,7 @@
 package impl.sql.adt
 
 import impl.sql._
+import impl.sql.tables.{ObjectTable, RelationTable}
 
 /**
   * Created by Al on 23/11/2017.
@@ -9,19 +10,19 @@ import impl.sql._
   */
 object Definitions {
   def get(
-           relationDefs: Iterable[(RelationTableName, VarName)],
-           tableDefs: Iterable[(ObjectTableName, VarName)],
+           relationDefs: Iterable[(RelationTable, VarName)],
+           tableDefs: Iterable[(ObjectTable, VarName)],
            mainQuery: String,
-           precomputedView: SQLTableName
+           precomputedView: PrecomputedView
          ): String = {
     val relations = relationDefs map {
-      case (rtName, varName) => varName.toString + " AS " +
-        "(" + getRelationWithView(rtName, precomputedView) + ")"
+      case (rt, varName) => varName.toString + " AS " +
+        "(" + getRelationWithView(rt.name, precomputedView) + ")"
     }
 
     val tables = tableDefs map {
-      case (otName, varName) => varName.toString + " AS " +
-        "(" + getTableWithView(otName,precomputedView) + ")"
+      case (ot, varName) => varName.toString + " AS " +
+        "(" + getTableWithView(ot.name, precomputedView) + ")"
     }
 
     val mainQueryPair = SQLDB.mainQuery + " as (" + mainQuery + ")"
@@ -29,12 +30,12 @@ object Definitions {
   }
 
   // selects with matching view values
-  private def getRelationWithView(r: RelationTableName, precomputedView: SQLTableName):String =
+  private def getRelationWithView(r: RelationTableName, precomputedView: PrecomputedView):String =
     s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${r.name} " +
       s"JOIN $precomputedView" +
       s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
 
-  private def getTableWithView(r: ObjectTableName, precomputedView: SQLTableName): String =
+  private def getTableWithView(r: ObjectTableName, precomputedView: PrecomputedView): String =
     s"SELECT ${SQLColumnName.objId} FROM ${r.name} " +
       s"JOIN $precomputedView " +
       s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"

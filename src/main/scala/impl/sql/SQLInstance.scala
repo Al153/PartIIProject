@@ -9,7 +9,7 @@ import core.error.E
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.{SchemaDescription, TableName}
 import core.view.View
-import impl.sql.errors.{CaughtSQLException, UnknownSQLException}
+import impl.sql.errors.{CaughtSQLException, SQLRelationMissing, UnknownSQLException}
 import core.utils._
 import impl.sql.jdbc.{JDBCReader, JDBCWriter}
 import impl.sql.tables._
@@ -39,18 +39,21 @@ class SQLInstance(
 
   val viewsTable: ViewsTable = ???
   val viewsRegistry: ViewsRegistry = ???
-  val commitRegistry: CommitsRegistry = ???
+  val commitsRegistry: CommitsRegistry = ???
 
   val relationTables: Map[RelationTableName, RelationTable] = ???
   val objectTables: Map[ObjectTableName, ObjectTable] = ???
 
   // sanitised tableNames
-  val tableLookup: Map[TableName, ObjectTableName] = ???
+  val tableLookup: Map[TableName, ObjectTable] = ???
 
-  def lookupTable(t: TableName): E \/ ObjectTableName = tableLookup.getOrError(t, MissingTableName(t))
+  def lookupTable(t: TableName): E \/ ObjectTable = tableLookup.getOrError(t, MissingTableName(t))
 
   // sanitised relationNames
-  val relationLookup: Map[ErasedRelationAttributes, RelationTableName] = ???
+  val relationLookup: Map[ErasedRelationAttributes, RelationTable] = ???
+
+  def lookupRelation(er: ErasedRelationAttributes): E \/ RelationTable =
+    relationLookup.getOrError(er, SQLRelationMissing(er))
 
 
   // read from the views table
