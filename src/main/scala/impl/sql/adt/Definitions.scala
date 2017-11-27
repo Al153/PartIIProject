@@ -35,9 +35,11 @@ object Definitions {
       s"JOIN $precomputedView" +
       s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
 
-  private def getTableWithView(r: ObjectTableName, precomputedView: PrecomputedView): String =
+  def getTableWithView(r: ObjectTableName, precomputedView: PrecomputedView): String =
     s"SELECT ${SQLColumnName.objId} FROM ${r.name} " +
       s"JOIN $precomputedView " +
       s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
+
+
 
 }

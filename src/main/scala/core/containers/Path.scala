@@ -28,5 +28,9 @@ object Path {
         } yield v :+ (a1, a2)
     }.map(new PathImpl(_)(sa))
   }
+
+  def from[A](v: Vector[A])(implicit sa: SchemaObject[A]): Path[A] = new Path[A] {
+    override val getSteps: Vector[(A, A)] = v.dropRight(1).zip(v.drop(1))
+  }
 }
 

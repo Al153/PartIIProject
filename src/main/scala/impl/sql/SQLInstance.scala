@@ -23,7 +23,7 @@ import scalaz.\/
   */
 
 class SQLInstance(
-                   schema: SchemaDescription,
+                   val schema: SchemaDescription,
                    instanceID: Long
                  )(implicit val executionContext: ExecutionContext) extends DBInstance {
 

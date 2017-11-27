@@ -100,5 +100,9 @@ object ConstrainedFuture {
           a <- ea
         } yield r += a
       }.map(_.result())
+
+  // Switch a monad transformer
+  def switch[E, A](in: Option[E ConstrainedFuture A])(implicit ec: ExecutionContext): E ConstrainedFuture Option[A] =
+    in.fold(immediatePoint[E, Option[A]](Option.empty[A]))(ea => ea.map(_.some))
 }
 

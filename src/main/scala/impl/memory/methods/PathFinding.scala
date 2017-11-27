@@ -31,7 +31,7 @@ trait PathFinding { self: ExecutorMethods =>
       } yield res
     }
 
-    aux(toQueue(start.map(MemoryPath.apply)), Set(), Set())
+    aux(toQueue(start.map(MemoryPath.apply)), Set(), Set()).recover{ case EmptyFringeError => Set()}
   }
 
   // Step function, fringe => NewFringe, pickedPath, newlyFound
@@ -66,6 +66,6 @@ trait PathFinding { self: ExecutorMethods =>
       } yield res
     }
 
-    aux(toQueue(start.map(MemoryPath.apply)), Set(), Set())
+    aux(toQueue(start.map(MemoryPath.apply)), Set(), Set()).recover{ case EmptyFringeError => None}
   }
 }

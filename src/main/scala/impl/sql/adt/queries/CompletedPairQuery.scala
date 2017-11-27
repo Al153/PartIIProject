@@ -1,21 +1,29 @@
-package impl.sql.adt
+package impl.sql.adt.queries
 
 import core.error.E
 import core.intermediate.unsafe.{UnsafeFindPair, UnsafeFindable}
-import core.schema.SchemaDescription
 import core.utils._
 import core.view.View
 import impl.sql._
+import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
 import impl.sql.tables.{ObjectTable, ViewsTable}
 
 import scalaz.\/
 
+
+/**
+  * Query renders to find and extract full objects from the database
+  * @param p - compiled query
+  * @param leftTable - left table to extract from
+  * @param rightTable - right table to extract from
+  * @param instance - associated SQL instance
+  */
+
 case class CompletedPairQuery(
                                p: UnsafeFindPair,
                                leftTable: ObjectTable,
-                               rightTable: ObjectTable,
-                               sd: SchemaDescription
+                               rightTable: ObjectTable
                              )(implicit instance: SQLInstance) {
   def render(v: View): E \/ String = {
     // render query to string
@@ -37,8 +45,8 @@ case class CompletedPairQuery(
 
       baseQuery = Query.render(q)
 
-      leftPrototype <- sd.lookupTable(p.leftMostTable)
-      rightPrototype <- sd.lookupTable(p.rightMostTable)
+      leftPrototype <- instance.schema.lookupTable(p.leftMostTable)
+      rightPrototype <- instance.schema.lookupTable(p.rightMostTable)
 
     } yield ViewsTable.wrapView(v, precomputedView) {
       s"""

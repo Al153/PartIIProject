@@ -108,6 +108,11 @@ package object utils {
           a <- ea
         } yield r += a
       }.map(_.result())
+
+
+    // Switch a monad transformer
+    def switch[E, A](in: Option[E \/ A]): E \/ Option[A] =
+      in.fold(Option.empty[A].right[E])(ea => ea.map(_.some))
   }
 
   implicit class EitherOps1[E, A](u: E \/ A) {

@@ -1,14 +1,14 @@
-package impl.sql.adt
+package impl.sql.adt.queries
 
 import core.error.E
 import core.intermediate.unsafe.{UnsafeFindSingle, UnsafeFindable}
 import core.schema.SchemaDescription
-import core.utils.EitherOps
+import core.utils.{EitherOps, _}
 import core.view.View
+import impl.sql._
+import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
 import impl.sql.tables.{ObjectTable, ViewsTable}
-import impl.sql._
-import core.utils._
 
 import scalaz.\/
 
