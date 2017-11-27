@@ -3,9 +3,8 @@ package impl.sql.tables
 import core.containers.ConstrainedFuture
 import core.error.E
 import core.view.View
-import impl.sql._
+import impl.sql.{ViewsTableName, _}
 import impl.sql.types.Commit
-import impl.sql.ViewsTableName
 
 class ViewsTable(implicit instance: SQLInstance) {
   import ViewsTable._
@@ -14,9 +13,25 @@ class ViewsTable(implicit instance: SQLInstance) {
   def removeTempViewOp(temporaryViewName: PrecomputedView): ConstrainedFuture[E, Unit] =
     instance.doWrite(removeView(temporaryViewName))
 
-  def getCommits(view: View): ConstrainedFuture[E, Set[Commit]] = ???
+  def getCommits(view: View): ConstrainedFuture[E, Set[Commit]] = ConstrainedFuture.either {
+    val query =
+      s"""
+         |SELECT $viewID FROM $tableName WHERE $viewID = ${view.id}
+       """.stripMargin
 
-  def insertNewView(view: View, commits: Set[Commit]): ConstrainedFuture[E, Unit] = ???
+    instance.reader.getCommitId(query)
+  } (errors.recoverSQLException)
+
+  def insertNewView(view: View, commits: Set[Commit]): ConstrainedFuture[E, Unit] = {
+    instance.writeBatch(
+      commits.map(
+        commit =>
+          s"""
+             |INSERT INTO $tableName ($viewID, $commitID) VALUES (${view.id}, ${commit.id})
+          """.stripMargin
+      )
+    )
+  }
 
 }
 

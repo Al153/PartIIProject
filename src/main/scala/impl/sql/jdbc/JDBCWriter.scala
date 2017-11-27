@@ -9,6 +9,8 @@ import impl.sql._
 import impl.sql.tables.{ObjectTable, RelationTable, ViewsTable}
 import impl.sql.types.{Commit, ObjId}
 
+import scalaz.\/
+
 
 /**
   * Created by Al on 21/11/2017.
@@ -111,7 +113,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
       case ((lId, relTable, rObject), cfList) =>
         for {
           rId <- rightTable.insertOrGetObject(rObject, view, commit)
-          list <-cfList
+          list <- cfList
         } yield (lId, relTable, rId) :: list
     }
 

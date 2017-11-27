@@ -9,8 +9,8 @@ import core.schema._
 import core.view.View
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.tables.ObjectTable
-import impl.sql.types.ObjId
-import impl.sql.{SQLInstance, errors}
+import impl.sql.types.{Commit, ObjId}
+import impl.sql.{SQLColumnName, SQLInstance, errors}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -21,6 +21,26 @@ import scalaz._
   */
 
 class JDBCReader(implicit instance: SQLInstance) {
+
+  /**
+    * Get commitID from result of executing query
+    * @param query
+    * @return
+    */
+  def getCommitId(query: String): E \/  Set[Commit] = {
+    val stmt = instance.connection.createStatement()
+    val rs = stmt.executeQuery(query)
+    var result = Set.newBuilder[Commit].right[E]
+    while (result.isRight && rs.next()) {
+      result = for {
+        r <- getCommit(rs)
+        rs <- result
+      } yield rs += r
+    }
+
+    result.map(_.result())
+  }
+
   def getAllPairs[A, B](query: String)(
     implicit sa: SchemaObject[A], sb: SchemaObject[B]): E \/ Vector[(A, B)] = {
 
@@ -229,6 +249,10 @@ class JDBCReader(implicit instance: SQLInstance) {
       ObjId(rs.getLong(side.getId.s)).right
     } catch {case e: Throwable => errors.recoverSQLException(e).left}
 
+private def getCommit(rs: ResultSet): E \/ Commit =
+  try {
+    Commit(rs.getLong(SQLColumnName.commitId.s)).right
+  } catch {case e: Throwable => errors.recoverSQLException(e).left}
 
   private def pair[A, B](a: A, b: B): (A, B) = (a, b)
 
