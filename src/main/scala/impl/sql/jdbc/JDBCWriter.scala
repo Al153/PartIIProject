@@ -9,8 +9,6 @@ import impl.sql._
 import impl.sql.tables.{ObjectTable, RelationTable, ViewsTable}
 import impl.sql.types.{Commit, ObjId}
 
-import scalaz.\/
-
 
 /**
   * Created by Al on 21/11/2017.
@@ -53,7 +51,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
       _ <- presetup(view, precomputedViewName)
       withLeftIds <- getLeftIds(view, commit, leftTable, t)
       withRightIds <- getRightIds(view, commit, rightTable, withLeftIds)
-      preExisting <- getExistingRelations(view, withRightIds.mapProj2.toSet)
+      preExisting <- getExistingRelations(withRightIds.mapProj2.toSet, precomputedViewName)
       toAdd = withRightIds.filter {_ notIn preExisting}
       res <- insertRelations(toAdd, commit)
       _ <- cleanupViews(precomputedViewName)
@@ -118,11 +116,13 @@ class JDBCWriter(implicit instance: SQLInstance) {
     }
 
   private def getExistingRelations(
-                            view: View, t: Set[RelationTable]
+                                    t: Set[RelationTable],
+                                    precomputedView: PrecomputedView
                           ): ConstrainedFuture[E, Set[(ObjId, RelationTable, ObjId)]] = {
       val sets = for {
         rel <- t
-      } yield rel.getExistingRelations(view).map(_.map{case(l, r) => (l, rel, r)})
+      } yield rel.getExistingRelations(precomputedView).map(_.map{case(l, r) => (l, rel, r)})
+
       ConstrainedFuture.sequence(sets).map(_.flatten)
     }
 

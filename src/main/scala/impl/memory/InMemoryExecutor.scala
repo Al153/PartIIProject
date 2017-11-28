@@ -32,9 +32,9 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           unsafeSingle <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe
-          initial <- {println("Single = " + unsafeSingle); methods.findSingleImpl(unsafeSingle, t)}
-          unsafeQuery <- {println("initial = " + initial) ; q.getUnsafe}
-          v <- {println("query = " + unsafeQuery) ; methods.findPairsImpl(unsafeQuery, initial, t)}
+          initial <- methods.findSingleImpl(unsafeSingle, t)
+          unsafeQuery <-  q.getUnsafe
+          v <- methods.findPairsImpl(unsafeQuery, initial, t)
           res <- EitherOps.sequence(
             v.map {
               case (l, r) =>

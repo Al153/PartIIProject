@@ -103,6 +103,31 @@ trait Pathfinding { self: HasBackend =>
     }
   }
 
+  @Test
+  def noEnd(): Unit = {
+    val op = using(backend.open(Empty, description)) {
+      implicit instance =>
+        for {
+          _ <- setupPath
+          res1 <- shortestPath(Zoe, Alice, Knows)
+          res2 <- shortestPath(Alice, Zoe, Knows)
+          res3 <- allShortestPaths(Zoe, Knows)
+          _ <- assertEqOp(None, res1, "ShortestPath, No start")
+          _ <- assertEqOp(None, res2, "ShortestPath, No end")
+          _ <- assertEqOp(Set(), res3, "All Shortest paths, no start")
+        } yield res1
+    }
+
+    Await.result(
+      op.run , 2.seconds
+    ) match {
+      case \/-(_) => ()
+      case -\/(e) => throw new Throwable {
+        override def toString: String = e.toString
+      }
+    }
+  }
+
   implicit def vectorOrdering[A](implicit oa: Ordering[A]): Ordering[Vector[A]] = new Ordering[Vector[A]] {
     override def compare(x: Vector[A], y: Vector[A]): Int =
       if (x.length != y.length) x.length - y.length

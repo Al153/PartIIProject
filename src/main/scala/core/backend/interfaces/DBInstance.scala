@@ -12,8 +12,8 @@ import scalaz.\/
 trait DBInstance {
   def executor: DBExecutor
 
-  def setDefaultView(view: View): E \/ Unit
-  def getDefaultView: E \/ View
+  def setDefaultView(view: View): ConstrainedFuture[E, Unit]
+  def getDefaultView: ConstrainedFuture[E, View]
   def getViews: ConstrainedFuture[E, Set[View]]
 }
 

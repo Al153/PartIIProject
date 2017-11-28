@@ -7,7 +7,8 @@ import core.intermediate.unsafe.SchemaObjectErased
 import core.view.View
 import impl.sql.errors.ColumnMismatchException
 import impl.sql.types.{Commit, ObjId}
-import impl.sql.{ObjectTableName, SQLColumnName, SQLInstance}
+import impl.sql.{ObjectTableName, SQLColumnName, SQLInstance, errors}
+import impl.sql.jdbc.Conversions._
 
 import scalaz.Scalaz._
 import scalaz._
@@ -17,6 +18,8 @@ class ObjectTable(
                    instance: SQLInstance,
                    tableSchema: SchemaObjectErased
                  ) {
+
+  import instance.executionContext
 
   def getColumnName(i: Int): E \/ SQLColumnName =
     if (i > 0 &&  i < tableSchema.length)
@@ -28,7 +31,22 @@ class ObjectTable(
                          dBObject: DBObject,
                          view: View,
                          newCommit: Commit
-                       ): ConstrainedFuture[E, ObjId] = ???
+                       ): ConstrainedFuture[E, ObjId] = ConstrainedFuture.either {
+    val temp = "insertOrGetTemp"
+    val pairs = createComparisons(dBObject)
+    val columnNames = getColumnNames(dBObject).mkString(", ")
+    val values = getValues(dBObject).mkString(", ")
+
+    val query = s"""
+       |WITH $temp AS (
+       |  INSERT INTO $name ($columnNames)
+       |  SELECT $values WHERE NOT EXISTS (SELECT 0 FROM $name WHERE $pairs)
+       |  RETURNING $id
+       |) SELECT * FROM $temp UNION ALL (SELECT ${SQLColumnName.objId} FROM $name WHERE $pairs
+     """.stripMargin
+
+    instance.reader.getObj(query)
+  }(errors.recoverSQLException)
 
 }
 

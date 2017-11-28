@@ -2,19 +2,24 @@ package impl.sql.tables
 
 import core.containers.ConstrainedFuture
 import core.error.E
-import core.view.View
+import impl.sql._
 import impl.sql.types.{Commit, ObjId}
-import impl.sql.{RelationTableName, SQLColumnName, SQLInstance}
 
-class RelationTable(val name: RelationTableName, instance: SQLInstance) {
+class RelationTable(val name: RelationTableName)(implicit instance: SQLInstance) {
   import RelationTable._
+  import instance.executionContext
 
   def insertRelation(leftId: ObjId, rightId: ObjId, commit: Commit): String =
     s"INSERT INTO $name ($leftIdColumn, $commitId, $rightIdColumn) " +
       s"VALUES ('${leftId.id}', '${commit.id}', ${rightId.id});"
 
   // Todo: need to pass around view name in case of concurrent accesses
-  def getExistingRelations(view: View): ConstrainedFuture[E, Set[(ObjId, ObjId)]] = ???
+  def getExistingRelations(
+                            precomputedView: PrecomputedView
+                          ): ConstrainedFuture[E, Set[(ObjId, ObjId)]] = ConstrainedFuture.either {
+    val q = s"""SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM $precomputedView """
+    instance.reader.getRelationPairs(q)
+  } (errors.recoverSQLException)
 
 }
 

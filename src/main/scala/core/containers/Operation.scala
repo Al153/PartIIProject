@@ -11,7 +11,7 @@ import scalaz._
 /**
   * Created by Al on 14/10/2017.
   *
-  * An extract is a monad transformer stack representing a restricted future of a sequence of results of computations
+  * An Operation is a monad transformer stack representing a restricted future of a sequence of results of computations
   */
 
 case class Operation[E, A](runView: View => ConstrainedFuture[E, (A, View)])(implicit e: ExecutionContext) {

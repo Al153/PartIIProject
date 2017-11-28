@@ -12,6 +12,9 @@ object Objects {
   val Ian = Person("Ian")
   val Jane = Person("Jane")
 
+  // to be used to test failure cases
+  val Zoe = Person("Zoe")
+
   val Mercedes = Car("Mercedes")
   val Ford = Car("Ford")
   val Bentley = Car("Bentley")

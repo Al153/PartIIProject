@@ -28,12 +28,12 @@ case class CompletedSingleQuery(
       tableDefs <- EitherOps.sequence(
         for {
           (name, sqlName) <- context.getTableDefs
-        } yield instance.tableLookup.getOrError(name, SQLTableMissing(name)).withSnd(sqlName))
+        } yield instance.lookupTable(name).withSnd(sqlName))
 
 
       relationDefs <- EitherOps.sequence(for {
         (rel, sqlName) <- context.getRelationDefs
-      } yield instance.relationLookup.getOrError(rel, SQLRelationMissing(rel)).withSnd(sqlName))
+      } yield instance.lookupRelation(rel).withSnd(sqlName))
 
 
       baseQuery = Query.render(q)

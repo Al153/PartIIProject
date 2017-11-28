@@ -112,7 +112,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
         pairs <- ConstrainedFuture.either(
           instance
             .reader
-            .getPathfindingPairs(query))(errors.recoverSQLException)
+            .getRelationPairs(query))(errors.recoverSQLException)
 
 
         table <- cfTable
@@ -149,7 +149,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
         pairs <- ConstrainedFuture.either(
           instance
             .reader
-            .getPathfindingPairs(query))(errors.recoverSQLException)
+            .getRelationPairs(query))(errors.recoverSQLException)
 
         s <- cfStart
         table <- cfTable
@@ -230,16 +230,23 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       } yield stringQuery
     )
 
-  private def findPath(s: ObjId, e: ObjId, pairs: Set[(ObjId, ObjId)]): ConstrainedFuture[E, Option[List[ObjId]]] =
+  private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): ConstrainedFuture[E, Option[List[ObjId]]] =
     ConstrainedFuture.point[E, Option[List[ObjId]]] {
-      val index = pairs.collectSets(identity)
-      Algorithms.breadthFirstSearch[ObjId](s, k => index.getOrElse(k, Set()), e)
+      for {
+        s <- s
+        e <- e
+        index = pairs.collectSets(identity)
+        res <- Algorithms.breadthFirstSearch[ObjId](s, k => index.getOrElse(k, Set()), e)
+      } yield res
     }(errors.recoverSQLException)
 
-  private def allPaths(s: ObjId, pairs: Set[(ObjId, ObjId)]): ConstrainedFuture[E, Set[List[ObjId]]] =
+  private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): ConstrainedFuture[E, Set[List[ObjId]]] =
     ConstrainedFuture.point[E, Set[List[ObjId]]] {
       val index = pairs.collectSets(identity)
-      Algorithms.allPaths(s, k => index.getOrElse(k, Set()))
+      s match {
+        case None => Set()
+        case Some(start) => Algorithms.allPaths(start, k => index.getOrElse(k, Set()))
+      }
   }(errors.recoverSQLException)
 
 

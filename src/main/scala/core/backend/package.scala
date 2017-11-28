@@ -17,9 +17,9 @@ package object backend {
   : ConstrainedFuture[E, A] =
     for {
       instance <- edb
-      view <- ConstrainedFuture.eitherR(instance.getDefaultView)
+      view <- instance.getDefaultView
       pair <- action(instance).runView(view)
       (res, newView) = pair
-      _ <- ConstrainedFuture.eitherR(instance.setDefaultView(newView))
+      _ <- instance.setDefaultView(newView)
     } yield res
 }

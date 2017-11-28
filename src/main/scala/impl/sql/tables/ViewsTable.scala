@@ -7,6 +7,7 @@ import impl.sql.{ViewsTableName, _}
 import impl.sql.types.Commit
 
 class ViewsTable(implicit instance: SQLInstance) {
+  import instance.executionContext
   import ViewsTable._
 
 
@@ -19,7 +20,7 @@ class ViewsTable(implicit instance: SQLInstance) {
          |SELECT $viewID FROM $tableName WHERE $viewID = ${view.id}
        """.stripMargin
 
-    instance.reader.getCommitId(query)
+    instance.reader.getCommit(query)
   } (errors.recoverSQLException)
 
   def insertNewView(view: View, commits: Set[Commit]): ConstrainedFuture[E, Unit] = {

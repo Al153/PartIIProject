@@ -24,7 +24,7 @@ case class CompilationContext(
   def getTableName(name: TableName): (CompilationContext, VarName) =
     if (name in requiredTables) (this, requiredTables(name))
     else {
-      val newName = VarName("Relation"  + varCount )
+      val newName = VarName("Table"  + varCount )
       (CompilationContext(varCount + 1, relations, requiredTables + (name -> newName)), newName)
     }
 

@@ -8,6 +8,4 @@ package core.view
   * This should abstract away things like garbage collection in the database, and compile
   * queries to the underlying SQL
   */
-trait View {
-  def id: Long
-}
+case class View(id: Long) extends AnyVal

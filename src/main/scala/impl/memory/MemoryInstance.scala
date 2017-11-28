@@ -30,7 +30,7 @@ class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: E
   val defaultTree: MemoryTree = schema.erasedObjects.map(o => o.name -> MemoryTable(o)).toMap
 
   private object Store { // stores the mutable state
-    private var defaultView: View = new View{val id: Long = 0}
+    private var defaultView: View = View(0)
     private val memoryStore: concurrent.Map[View, MemoryTree] = new ConcurrentHashMap[View, MemoryTree]().asScala
     private val viewId: AtomicLong = new AtomicLong(1)
 
@@ -41,7 +41,7 @@ class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: E
     }
 
     def put(t: MemoryTree): E \/ View = this.synchronized {
-      val view = new View{val id: Long = viewId.incrementAndGet()}
+      val view = View(viewId.incrementAndGet())
       memoryStore(view) = t
       return view.right
     }
@@ -65,9 +65,9 @@ class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: E
       v <- Store.put(newTree)
     } yield ((), v))(throwable => UnknownMemoryError(throwable))
 
-  override def setDefaultView(view: View): E \/ Unit = Store.setDefaultView(view).right
+  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = ConstrainedFuture.immediatePoint(Store.setDefaultView(view))
 
-  override def getDefaultView: E \/ View = Store.getDefaultView.right
+  override def getDefaultView: ConstrainedFuture[E, View] = ConstrainedFuture.immediatePoint(Store.getDefaultView)
 
-  override def getViews: ConstrainedFuture[E, Set[View]] = ConstrainedFuture.point[E, Set[View]](Store.getViews)(UnknownMemoryError(_))
+  override def getViews: ConstrainedFuture[E, Set[View]] = ConstrainedFuture.point[E, Set[View]](Store.getViews)(UnknownMemoryError)
 }

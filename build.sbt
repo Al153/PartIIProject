@@ -8,6 +8,9 @@ scalaVersion := "2.12.1"
 // Scalaz
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.15"
 
+// Escape strings for SQL
+libraryDependencies += "commons-lang" % "commons-lang" % "2.5"
+
 
 // Scala test
 libraryDependencies ++= Seq(
