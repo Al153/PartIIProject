@@ -24,10 +24,7 @@ import scalaz.\/
   * Represents a connection to a database
   */
 
-class SQLInstance(
-                   val schema: SchemaDescription,
-                   val instanceId: Long
-                 )(implicit val executionContext: ExecutionContext) extends DBInstance {
+class SQLInstance(val connection: Connection, val schema: SchemaDescription, val instanceId: Long)(implicit val executionContext: ExecutionContext) extends DBInstance {
 
     override val executor: DBExecutor = new SQLExecutor(this)
     val connection: Connection = ???

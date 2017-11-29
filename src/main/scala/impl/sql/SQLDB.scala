@@ -1,10 +1,15 @@
 package impl.sql
 
+import java.sql.{Connection, DriverManager}
+import java.util.Properties
+
 import core.backend.interfaces._
 import core.containers.ConstrainedFuture
 import core.error.E
 import core.schema.SchemaDescription
 
+import scalaz._
+import Scalaz._
 import scala.concurrent.ExecutionContext
 
 /**
@@ -21,6 +26,7 @@ object SQLDB extends DBBackend {
 
     // step 2: Validate tables
     for {
+      conn <- openConnection(address, schema)
       _ <- validateTables(???)
 
     } yield new SQLInstance(???, ???)
@@ -28,22 +34,37 @@ object SQLDB extends DBBackend {
 
   // Opens a database connection somehow
 
-  def openConnection(address: DatabaseAddress, schema: SchemaDescription) = address match {
-    case DBUrl(url) => ???
-    case DBDir(path) => ???
-    case Empty => ???
-  }
+  private def openConnection(address: DatabaseAddress, schema: SchemaDescription): E \/ Connection = try {
+    address match {
+      case DBUrl(url, user, password) =>
+        val jdbcUrl = s"jdbc:postgresql://${url.toString}"
+        val props = new Properties()
+        props.setProperty("user", user)
+        props.setProperty("password", password)
+        props.setProperty("ssl", "true")
+        DriverManager.getConnection(jdbcUrl, props).right
+      case DBDir(path, user, password) =>
+        val port = ???
+        val jdbcUrl = s"jdbc:postgresql://localhost:$port/${path.toString}"
+        val props = new Properties()
+        props.setProperty("user", user)
+        props.setProperty("password", password)
+        props.setProperty("ssl", "true")
+        DriverManager.getConnection(jdbcUrl, props).right
+      case Empty => ???
+    }
+  } catch {case e: Throwable => errors.recoverSQLException(e).left}
 
-  // Returns an error if the tables are invalid
-  def validateTables(session: Any): ConstrainedFuture[E, Unit] = ???
+    // Returns an error if the tables are invalid
+    def validateTables(session: Any): ConstrainedFuture[E, Unit] = ???
 
 
-  val leftmostTable = "left_table"
-  val rightmostTable = "right_table"
-  val mainQuery = "main_query"
-  val singleTable = "single_table"
+    val leftmostTable = "left_table"
+    val rightmostTable = "right_table"
+    val mainQuery = "main_query"
+    val singleTable = "single_table"
 
-  val temporaryView = "temporary_views_table"
+    val temporaryView = "temporary_views_table"
 
   /**
     * SQL Tables that should exist:
