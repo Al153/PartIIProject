@@ -7,6 +7,7 @@ import core.backend.interfaces._
 import core.containers.ConstrainedFuture
 import core.error.E
 import core.schema.SchemaDescription
+import impl.sql.errors.SQLError
 
 import scalaz._
 import Scalaz._
@@ -23,18 +24,17 @@ object SQLDB extends DBBackend {
                    )(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] = {
     // Step 1: open connection
 
-
     // step 2: Validate tables
     for {
       conn <- openConnection(address, schema)
       _ <- validateTables(???)
 
-    } yield new SQLInstance(???, ???)
+    } yield new SQLInstance(conn, ???, ???)
   }
 
   // Opens a database connection somehow
 
-  private def openConnection(address: DatabaseAddress, schema: SchemaDescription): E \/ Connection = try {
+  private def openConnection(address: DatabaseAddress, schema: SchemaDescription)(implicit ec: ExecutionContext): E ConstrainedFuture Connection = ConstrainedFuture.point[E, Connection] {
     address match {
       case DBUrl(url, user, password) =>
         val jdbcUrl = s"jdbc:postgresql://${url.toString}"
@@ -42,18 +42,16 @@ object SQLDB extends DBBackend {
         props.setProperty("user", user)
         props.setProperty("password", password)
         props.setProperty("ssl", "true")
-        DriverManager.getConnection(jdbcUrl, props).right
+        DriverManager.getConnection(jdbcUrl, props)
       case DBDir(path, user, password) =>
-        val port = ???
-        val jdbcUrl = s"jdbc:postgresql://localhost:$port/${path.toString}"
+        val jdbcUrl = s"jdbc:postgresql://localhost/${path.toString}"
         val props = new Properties()
         props.setProperty("user", user)
         props.setProperty("password", password)
         props.setProperty("ssl", "true")
-        DriverManager.getConnection(jdbcUrl, props).right
+        DriverManager.getConnection(jdbcUrl, props)
       case Empty => ???
-    }
-  } catch {case e: Throwable => errors.recoverSQLException(e).left}
+    }} (errors.recoverSQLException)
 
     // Returns an error if the tables are invalid
     def validateTables(session: Any): ConstrainedFuture[E, Unit] = ???
