@@ -3,9 +3,10 @@ package impl.sql.tables
 import core.containers.ConstrainedFuture
 import core.error.E
 import impl.sql._
+import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.{Commit, ObjId}
 
-class RelationTable(val name: RelationTableName)(implicit instance: SQLInstance) {
+class RelationTable(val name: RelationTableName, fromTable: ObjectTable,  toTable: ObjectTable)(implicit instance: SQLInstance) extends SQLTable {
   import RelationTable._
   import instance.executionContext
 
@@ -21,6 +22,13 @@ class RelationTable(val name: RelationTableName)(implicit instance: SQLInstance)
     instance.reader.getRelationPairs(q)
   } (errors.recoverSQLException)
 
+  override def schema: SQLSchema = SQLSchema(
+    Map(
+      leftIdColumn -> SQLForeignRef(toTable),
+      rightIdColumn -> SQLForeignRef(fromTable),
+      commitId -> SQLForeignRef(instance.commitsRegistry)
+    )
+  )
 }
 
 object RelationTable {

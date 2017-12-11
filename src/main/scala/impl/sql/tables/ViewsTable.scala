@@ -3,10 +3,11 @@ package impl.sql.tables
 import core.containers.ConstrainedFuture
 import core.error.E
 import core.view.View
+import impl.sql.schema.{SQLForeignRef, SQLSchema, SQLType}
 import impl.sql.{ViewsTableName, _}
 import impl.sql.types.Commit
 
-class ViewsTable(implicit instance: SQLInstance) {
+class ViewsTable(implicit instance: SQLInstance) extends SQLTable {
   import instance.executionContext
   import ViewsTable._
 
@@ -34,6 +35,14 @@ class ViewsTable(implicit instance: SQLInstance) {
     )
   }
 
+  override def schema: SQLSchema = SQLSchema(
+    Map(
+      viewID -> SQLForeignRef(instance.viewsRegistry),
+      commitID -> SQLForeignRef(instance.commitsRegistry)
+    )
+  )
+
+  override def name: SQLTableName = tableName
 }
 
 object ViewsTable {
@@ -61,6 +70,5 @@ object ViewsTable {
   def removeView(view: PrecomputedView): String = {
     s"DROP VIEW $view"
   }
-
 
 }

@@ -27,9 +27,9 @@ object SQLDB extends DBBackend {
     // step 2: Validate tables
     for {
       conn <- openConnection(address, schema)
-      _ <- validateTables(???)
-
-    } yield new SQLInstance(conn, ???, ???)
+      instance = new SQLInstance(conn, schema)
+      _ <- instance.validateTables()
+    } yield instance: DBInstance
   }
 
   // Opens a database connection somehow
@@ -52,9 +52,6 @@ object SQLDB extends DBBackend {
         DriverManager.getConnection(jdbcUrl, props)
       case Empty => ???
     }} (errors.recoverSQLException)
-
-    // Returns an error if the tables are invalid
-    def validateTables(session: Any): ConstrainedFuture[E, Unit] = ???
 
 
     val leftmostTable = "left_table"

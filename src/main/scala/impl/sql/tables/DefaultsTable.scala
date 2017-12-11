@@ -4,23 +4,31 @@ import core.containers.ConstrainedFuture
 import core.error.E
 import core.view.View
 import impl.sql.errors.MissingDefaultViewError
-import impl.sql.{DefaultsTableName, SQLColumnName, SQLInstance, errors}
+import impl.sql._
+import impl.sql.schema.{SQLForeignRef, SQLSchema}
 
 import scalaz._
 import Scalaz._
 
-class DefaultsTable(implicit instance: SQLInstance) {
-  import DefaultsTable._
+class DefaultsTable(implicit instance: SQLInstance) extends SQLTable {
   import instance.executionContext
 
   def setDefaultView(v: View): ConstrainedFuture[E, Unit] =
-    instance.doWrite(s"UPDATE $name SET $viewId = ${v.id}")
+    instance.doWrite(s"UPDATE $name SET ${DefaultsTable.viewId} = ${v.id}")
 
   def getDefaultView: ConstrainedFuture[E, View] = ConstrainedFuture.either {
-    instance.reader.getView(s"SELECT $viewId FROM $name").map(_.find(_ => true)).flatMap {
+    instance.reader.getView(s"SELECT ${DefaultsTable.viewId} FROM $name").map(_.find(_ => true)).flatMap {
       ov => ov.fold(MissingDefaultViewError.left[View])(_.right)
     }
   } (errors.recoverSQLException)
+
+  override def schema: SQLSchema = SQLSchema(
+    Map(
+      DefaultsTable.viewId -> SQLForeignRef(instance.viewsRegistry)
+    )
+  )
+
+  override def name: SQLTableName = DefaultsTable.name
 }
 
 object DefaultsTable {

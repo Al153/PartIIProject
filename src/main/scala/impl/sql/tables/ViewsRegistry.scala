@@ -7,12 +7,13 @@ import core.error.E
 import core.view.View
 import impl.sql.errors.UnableToCreateView
 import impl.sql.tables.CommitsRegistry.name
-import impl.sql.{SQLColumnName, SQLInstance, ViewsRegistryName, errors}
+import impl.sql._
+import impl.sql.schema.{SQLPrimaryRef, SQLSchema}
 
 import scalaz.Scalaz._
 import scalaz._
 
-class ViewsRegistry(implicit instance: SQLInstance) {
+class ViewsRegistry(implicit instance: SQLInstance) extends SQLTable {
   import ViewsRegistry._
   import instance.executionContext
 
@@ -40,6 +41,10 @@ class ViewsRegistry(implicit instance: SQLInstance) {
        """.stripMargin
     )
   } (errors.recoverSQLException)
+
+  override def schema: SQLSchema = SQLSchema(Map(viewID -> SQLPrimaryRef))
+
+  override def name: SQLTableName = tableName
 }
 
 object ViewsRegistry {

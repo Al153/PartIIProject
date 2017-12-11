@@ -18,4 +18,6 @@ object SQLColumnName {
   def column(i: Int): SQLColumnName = new SQLColumnName("col_" + i)
   def leftColumn(i: Int): SQLColumnName = new SQLColumnName("left_col_" + i)
   def rightColumn(i: Int): SQLColumnName = new SQLColumnName("right_col_" + i)
+
+  def extractedSQLColumnName(n: String) = new SQLColumnName(n)
 }

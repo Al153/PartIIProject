@@ -24,7 +24,7 @@ import scalaz.\/
   * Represents a connection to a database
   */
 
-class SQLInstance(val connection: Connection, val schema: SchemaDescription, val instanceId: Long)(implicit val executionContext: ExecutionContext) extends DBInstance {
+class SQLInstance(val connection: Connection, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
 
     override val executor: DBExecutor = new SQLExecutor(this)
     val viewsTable: ViewsTable = new ViewsTable()(this)
@@ -50,15 +50,20 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription, val
 
 
   // sanitised relationNames
-  private val relationLookup: Map[ErasedRelationAttributes, RelationTable] =
-    SQLTableName.render(
+  private val relationLookup: E \/ Map[ErasedRelationAttributes, RelationTable] =
+    EitherOps.sequence(SQLTableName.render(
       MonadOps.sequence (
         schema.erasedRelations.map {
           er =>
-            SQLTableName.getName(er.name) >> (name => er -> new RelationTable(name)(this))
+            for {
+              name <- SQLTableName.getName(er.name)
+            } yield for {
+              fromTable <- lookupTable(er.from)
+              toTable <- lookupTable(er.to)
+            } yield (er -> new RelationTable(name, fromTable, toTable)(this))
         }
       )
-    ).toMap
+    )).map(_.toMap)
 
   override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = defaultsTable.setDefaultView(view)
 
@@ -79,7 +84,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription, val
 
 
   def lookupRelation(er: ErasedRelationAttributes): E \/ RelationTable =
-    relationLookup.getOrError(er, SQLRelationMissing(er))
+    relationLookup.flatMap(_.getOrError(er, SQLRelationMissing(er)))
 
 
   // read from the views table
@@ -90,16 +95,21 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription, val
     val stmt = connection.createStatement()
     ConstrainedFuture.point[E, Unit] {
       stmt.executeUpdate(query)
-      ()
     } (errors.recoverSQLException)
   }
+
+  // Returns an error if the tables are invalid
+  def validateTables(session: Any): ConstrainedFuture[E, Unit] = ConstrainedFuture.either(EitherOps.sequence(
+    for {
+      (name, table) <- tableLookup
+    } yield table.validateTable()) map (_ => ())
+  )(errors.recoverSQLException)
 
   def writeBatch(queries: TraversableOnce[String]): E ConstrainedFuture Unit = {
     val stmt = connection.createStatement()
     ConstrainedFuture.point[E, Unit] {
       for (query <- queries) stmt.addBatch(query)
       stmt.executeBatch()
-      ()
     } (errors.recoverSQLException)
   }
 }

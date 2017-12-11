@@ -1,14 +1,15 @@
 package impl.sql.schema
 
 import core.schema._
-import impl.sql.{SQLColumnName, SQLTableName}
+import impl.sql.SQLColumnName
+import impl.sql.tables.SQLTable
 
 sealed trait SQLType
 case object SQLString extends SQLType
 case object SQLInt extends SQLType
 case object SQLBool extends SQLType
 case object SQLDouble extends SQLType
-case class SQLForeignRef(table: SQLTableName) extends SQLType // a reference in another table
+case class SQLForeignRef(table: SQLTable) extends SQLType // a reference in another table
 case object SQLPrimaryRef extends SQLType // unique reference
 case object SQLRef extends SQLType // generic reference
 
@@ -29,12 +30,12 @@ object SQLType {
     })
 
   def toTypeString(t: SQLType): String = t match { // todo: are these correct?
-    case SQLInt => "int NOT NULL"
-    case SQLBool => "boolean NOT NULL"
-    case SQLDouble => "double NOT NULL"
+    case SQLInt => "INT NOT NULL"
+    case SQLBool => "BOOLEAN NOT NULL"
+    case SQLDouble => "DOUBLE NOT NULL"
     case SQLString => "TEXT"
-    case SQLRef => "bigint"
-    case SQLPrimaryRef => "bigint NOT NULL PRIMARY"
-    case SQLForeignRef(table) => "bigint"
+    case SQLRef => "BIGINT"
+    case SQLPrimaryRef => "BIGINT NOT NULL PRIMARY"
+    case SQLForeignRef(table) => "BIGINT"
   }
 }
