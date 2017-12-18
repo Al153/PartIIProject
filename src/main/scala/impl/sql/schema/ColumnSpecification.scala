@@ -9,8 +9,5 @@ import impl.sql.SQLColumnName
 
 
 
-sealed trait ColumnSpecification {
-  def getName: SQLColumnName
-  def getType: SQLType
-}
+case class ColumnSpecification(name: SQLColumnName, colType: String)
 

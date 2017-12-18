@@ -6,16 +6,16 @@ import core.containers.ConstrainedFuture
 import core.error.E
 import impl.sql._
 import impl.sql.errors.UnableToCreateCommit
-import impl.sql.schema.{SQLForeignRef, SQLPrimaryRef, SQLSchema}
-import impl.sql.tables.ViewsTable.{commitID, viewID}
+import impl.sql.schema.{SQLPrimaryRef, SQLSchema}
+import impl.sql.tables.ViewsTable.commitID
 import impl.sql.types.Commit
 
 import scalaz.Scalaz._
 
-class CommitsRegistry(implicit instance: SQLInstance) extends SQLTable {
+class CommitsRegistry(implicit val instance: SQLInstance) extends SQLTable {
   import instance.executionContext
 
-  def getNewcommitId: ConstrainedFuture[E, Commit] = ConstrainedFuture.either[E, Commit] {
+  def getNewcommitId: SQLFuture[Commit] = SQLFutureE {
     val stmt = instance.connection.prepareStatement(s"INSERT INTO $name () VALUES ()", Statement.RETURN_GENERATED_KEYS)
 
     val affectedRows = stmt.executeUpdate()
@@ -29,7 +29,7 @@ class CommitsRegistry(implicit instance: SQLInstance) extends SQLTable {
         UnableToCreateCommit("No ID obtained").left
       }
     }
-  }(errors.recoverSQLException)
+  }
 
   override def schema: SQLSchema = SQLSchema(
     Map(

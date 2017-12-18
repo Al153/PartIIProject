@@ -125,9 +125,6 @@ class JDBCWriter(implicit instance: SQLInstance) {
 
       ConstrainedFuture.sequence(sets).map(_.flatten)
     }
-
-
-
 }
 
 

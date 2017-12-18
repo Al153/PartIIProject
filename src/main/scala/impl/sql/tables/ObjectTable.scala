@@ -16,7 +16,7 @@ import scalaz._
 
 class ObjectTable(
                    override val name: ObjectTableName,
-                   instance: SQLInstance,
+                   override val instance: SQLInstance,
                    tableSchema: SchemaObjectErased
                  ) extends SQLTable {
 

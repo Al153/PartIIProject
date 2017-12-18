@@ -16,6 +16,7 @@ import unit.{Knows, Person, assertEqOp, description, _}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
+import scala.language.postfixOps
 import scalaz.{-\/, \/-}
 
 /**

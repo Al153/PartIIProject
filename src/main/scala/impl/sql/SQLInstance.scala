@@ -10,7 +10,7 @@ import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.{SchemaDescription, TableName}
 import core.utils._
 import core.view.View
-import impl.sql.errors.SQLRelationMissing
+import impl.sql.errors.{SQLError, SQLExtractError, SQLRelationMissing}
 import impl.sql.jdbc.{JDBCReader, JDBCWriter}
 import impl.sql.tables._
 import core.utils._
@@ -18,6 +18,7 @@ import SQLTableName._
 
 import scala.concurrent.ExecutionContext
 import scalaz.\/
+import scalaz.Scalaz.ToEitherOps
 
 /**
   * An instance should hold connection pool settings
@@ -26,14 +27,17 @@ import scalaz.\/
 
 class SQLInstance(val connection: Connection, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
 
-    override val executor: DBExecutor = new SQLExecutor(this)
-    val viewsTable: ViewsTable = new ViewsTable()(this)
-    val viewsRegistry: ViewsRegistry = new ViewsRegistry()(this)
-    val commitsRegistry: CommitsRegistry = new CommitsRegistry()(this)
-    val defaultsTable: DefaultsTable = new DefaultsTable()(this)
+  override val executor: DBExecutor = new SQLExecutor(this)
+  val viewsTable: ViewsTable = new ViewsTable()(this)
+  val viewsRegistry: ViewsRegistry = new ViewsRegistry()(this)
+  val commitsRegistry: CommitsRegistry = new CommitsRegistry()(this)
+  val defaultsTable: DefaultsTable = new DefaultsTable()(this)
 
-    val reader = new JDBCReader()(this)
-    val writer = new JDBCWriter()(this)
+  val reader = new JDBCReader()(this)
+  val writer = new JDBCWriter()(this)
+
+  private val constructionTables: Seq[(SQLTableName, SQLTable)] =
+    List(viewsTable, viewsRegistry, commitsRegistry, defaultsTable).map(t => t.name -> t)
 
 
 
@@ -60,14 +64,14 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
             } yield for {
               fromTable <- lookupTable(er.from)
               toTable <- lookupTable(er.to)
-            } yield (er -> new RelationTable(name, fromTable, toTable)(this))
+            } yield er -> new RelationTable(name, fromTable, toTable)(this)
         }
       )
     )).map(_.toMap)
 
-  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = defaultsTable.setDefaultView(view)
+  override def setDefaultView(view: View): SQLFuture[Unit] = SQLFutureE(defaultsTable.setDefaultView(view))
 
-  override def getDefaultView: ConstrainedFuture[E, View] = defaultsTable.getDefaultView
+  override def getDefaultView: SQLFuture[View] = defaultsTable.getDefaultView
 
 
 
@@ -79,8 +83,8 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
     * @param t - the tablename
     * @return
     */
-  def lookupTable(t: TableName): E \/ ObjectTable =
-    tableLookup.getOrError(t, MissingTableName(t))
+  def lookupTable(t: TableName): SQLEither[ObjectTable] =
+    tableLookup.getOrError(t, MissingTableName(t)).leftMap(SQLExtractError)
 
 
   def lookupRelation(er: ErasedRelationAttributes): E \/ RelationTable =
@@ -91,19 +95,42 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
   override def getViews: ConstrainedFuture[E, Set[View]] = viewsRegistry.getViews
 
 
-  def doWrite(query: String): E ConstrainedFuture Unit = {
+  def doWrite(query: String): SQLFuture[Unit] = SQLFutureE {doWriteEither(query)}
+
+
+  def doWriteEither(query: String): SQLEither[Unit] = try {
+    val fixedQuery = if (query.endsWith(";")) query else query + ";"
+    println(fixedQuery)
     val stmt = connection.createStatement()
-    ConstrainedFuture.point[E, Unit] {
-      stmt.executeUpdate(query)
-    } (errors.recoverSQLException)
-  }
+    stmt.executeUpdate(fixedQuery)
+    ().right
+  } catch {case e: Throwable => errors.recoverSQLException(e).left}
 
   // Returns an error if the tables are invalid
-  def validateTables(session: Any): ConstrainedFuture[E, Unit] = ConstrainedFuture.either(EitherOps.sequence(
+  def validateTables(): SQLFuture[Unit] =
+    SQLFutureE(
+      getDefinedTables().flatMap(
+        definedTables =>
+          EitherOps.sequence(
+            for {
+              (name, table) <- tableLookup ++ constructionTables
+            } yield table.validateOrCreate(definedTables)) map (_ => ())
+      )
+    )
+
+
+  private def getDefinedTables(): SQLEither[Set[SQLTableName]] = {
+    val q = s"SELECT table_name FROM information_schema.tables WHERE table_schema='public';"
+    reader.getTableNames(q)
+  }
+
+  // drop all existing user tables
+  def freshen(): SQLFuture[Unit] = SQLFutureE {
     for {
-      (name, table) <- tableLookup
-    } yield table.validateTable()) map (_ => ())
-  )(errors.recoverSQLException)
+      tables <- getDefinedTables()
+      _ <- if (tables.nonEmpty) doWriteEither(s"DROP TABLE ${tables.mkString(", ")};") else ().right
+    } yield  ()
+  }
 
   def writeBatch(queries: TraversableOnce[String]): E ConstrainedFuture Unit = {
     val stmt = connection.createStatement()

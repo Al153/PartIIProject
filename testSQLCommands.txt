@@ -1,0 +1,13 @@
+CREATE TABLE Test (
+	foo INT NOT NULL,
+	bar BOOLEAN NOT NULL,
+	d REAL NOT NULL,
+	t TEXT NOT NULL,
+	bi BIGINT NOT NULL,
+	p BIGSERIAL PRIMARY KEY,
+	f BIGINT NOT NULL);
+
+
+SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'test';
+
+SELECT table_name FROM information_schema.tables WHERE table_schema='public' 

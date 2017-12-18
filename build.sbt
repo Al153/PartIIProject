@@ -11,6 +11,8 @@ libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.15"
 // Escape strings for SQL
 libraryDependencies += "commons-lang" % "commons-lang" % "2.5"
 
+// postgresql driver
+libraryDependencies += "org.postgresql" % "postgresql" % "42.1.4"
 
 // Scala test
 libraryDependencies ++= Seq(
@@ -24,3 +26,10 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.11" % Test
     exclude("junit", "junit-dep")
 )
+
+// LMBD
+scalacOptions += "-feature"
+
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni" % "0.4.0"
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-osx64" % "0.4.0"
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-linux64" % "0.4.0"

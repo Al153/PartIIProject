@@ -13,7 +13,7 @@ import impl.sql.schema.{SQLPrimaryRef, SQLSchema}
 import scalaz.Scalaz._
 import scalaz._
 
-class ViewsRegistry(implicit instance: SQLInstance) extends SQLTable {
+class ViewsRegistry(implicit val instance: SQLInstance) extends SQLTable {
   import ViewsRegistry._
   import instance.executionContext
 

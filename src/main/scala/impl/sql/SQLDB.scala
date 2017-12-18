@@ -7,10 +7,7 @@ import core.backend.interfaces._
 import core.containers.ConstrainedFuture
 import core.error.E
 import core.schema.SchemaDescription
-import impl.sql.errors.SQLError
 
-import scalaz._
-import Scalaz._
 import scala.concurrent.ExecutionContext
 
 /**
@@ -28,6 +25,7 @@ object SQLDB extends DBBackend {
     for {
       conn <- openConnection(address, schema)
       instance = new SQLInstance(conn, schema)
+      _ <- if (address.isInstanceOf[Empty.type]) instance.freshen else ConstrainedFuture.immediatePoint[E, Unit](())
       _ <- instance.validateTables()
     } yield instance: DBInstance
   }
@@ -48,9 +46,15 @@ object SQLDB extends DBBackend {
         val props = new Properties()
         props.setProperty("user", user)
         props.setProperty("password", password)
-        props.setProperty("ssl", "true")
+        props.setProperty("ssl", "false")
         DriverManager.getConnection(jdbcUrl, props)
-      case Empty => ???
+      case Empty =>
+        val jdbcUrl = s"jdbc:postgresql://localhost/postgres"
+        val props = new Properties()
+        props.setProperty("user", "postgres")
+        props.setProperty("password", " ")
+        props.setProperty("ssl", "false")
+        DriverManager.getConnection(jdbcUrl, props)
     }} (errors.recoverSQLException)
 
 

@@ -8,23 +8,26 @@ import core.error.E
 import core.schema._
 import core.view.View
 import impl.sql.adt.queries.PathMemberQuery
-import impl.sql.errors.EmptyResultError
+import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
 import impl.sql.tables.ObjectTable
 import impl.sql.types.{Commit, ObjId}
-import impl.sql.{SQLColumnName, SQLInstance, errors}
+import impl.sql._
 import Conversions._
+import impl.sql.schema.{ColumnSpecification, SQLType}
 
 import scalaz.Scalaz._
 import scalaz._
 
 /**
   * Contains code to read various objects from the results of queries to the SQL db.
-  * @param instance
   */
 
 class JDBCReader(implicit instance: SQLInstance) {
 
-  // get a single ObjectId
+  /**
+    * get a single ObjectId
+    */
+
   def getObj(query: String): E \/ ObjId = {
     val rs = getResultSet(query)
     if (rs.next()) {
@@ -33,20 +36,51 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   /**
+    * Gets a set of SQLTableNames that are defined
+    */
+
+  def getTableNames(query: String): SQLEither[Set[SQLTableName]] = {
+    val rs = getResultSet(query)
+    var result = Set.newBuilder[SQLTableName].right[SQLError]
+    while (result.isRight && rs.next()) {
+      result = for {
+        r <- getTableName(rs)
+        rs <- result
+      } yield rs += r
+    }
+    result.map(_.result())
+  }
+
+  /**
+    * Get the column specifications for a table in the database
+    */
+
+  def getColumns(query: String): SQLEither[List[ColumnSpecification]] = {
+    val rs = getResultSet(query)
+    var result = List.newBuilder[ColumnSpecification].right[SQLError]
+    while (result.isRight && rs.next()) {
+      result = for {
+        r <- getSQLColumn(rs)
+        rs <- result
+      } yield rs += r
+    }
+    result.map(_.result())
+  }
+
+  /**
     * Get commitIDs from result of executing query
     * @param query - string of query to execute
     * @return
     */
-  def getCommit(query: String): E \/  Set[Commit] = {
+  def getCommit(query: String): SQLEither[Set[Commit]] = {
     val rs = getResultSet(query)
-    var result = Set.newBuilder[Commit].right[E]
+    var result = Set.newBuilder[Commit].right[SQLError]
     while (result.isRight && rs.next()) {
       result = for {
         r <- getCommitId(rs)
         rs <- result
       } yield rs += r
     }
-
     result.map(_.result())
   }
 
@@ -56,16 +90,15 @@ class JDBCReader(implicit instance: SQLInstance) {
     * @return - E \/ Set[View]
     */
 
-  def getView(query: String): E \/ Set[View] = {
+  def getView(query: String): SQLEither[Set[View]] = {
     val rs = getResultSet(query)
-    var result = Set.newBuilder[View].right[E]
+    var result = Set.newBuilder[View].right[SQLError]
     while (result.isRight && rs.next()) {
       result = for {
         r <- getViewId(rs)
         rs <- result
       } yield rs += r
     }
-
     result.map(_.result())
   }
 
@@ -74,16 +107,16 @@ class JDBCReader(implicit instance: SQLInstance) {
     */
 
   def getAllPairs[A, B](query: String)(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B]): E \/ Vector[(A, B)] = {
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLEither[Vector[(A, B)]] = {
 
     val rs = getResultSet(query)
     val aComponents = sa.getSchemaComponents
     val bComponents = sb.getSchemaComponents
 
-    var result = Vector.newBuilder[(A, B)].right[E]
+    var result = Vector.newBuilder[(A, B)].right[SQLError]
     while (result.isRight && rs.next()) {
-      var aRow = Vector.newBuilder[DBCell].right[E]
-      var bRow = Vector.newBuilder[DBCell].right[E]
+      var aRow = Vector.newBuilder[DBCell].right[SQLError]
+      var bRow = Vector.newBuilder[DBCell].right[SQLError]
 
       // Extract vectors from the rs
       for ((component, i) <- aComponents.zipWithIndex) {
@@ -103,8 +136,8 @@ class JDBCReader(implicit instance: SQLInstance) {
       result = for {
         aRes <- aRow
         bRes <- bRow
-        a <- sa.fromRow(DBObject(aRes.result()))
-        b <- sb.fromRow(DBObject(bRes.result()))
+        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
+        b <- sb.fromRow(DBObject(bRes.result())).leftMap(SQLExtractError)
         r <- result
       } yield r += pair(a, b)
 
@@ -118,16 +151,16 @@ class JDBCReader(implicit instance: SQLInstance) {
     */
 
   def getDistinctPairs[A, B](query: String)(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B]): E \/ Set[(A, B)] = {
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLEither[Set[(A, B)]] = {
 
     val rs = getResultSet(query)
     val aComponents = sa.getSchemaComponents
     val bComponents = sb.getSchemaComponents
 
-    var result = Set.newBuilder[(A, B)].right[E]
+    var result = Set.newBuilder[(A, B)].right[SQLError]
     while (result.isRight && rs.next()) {
-      var aRow = Vector.newBuilder[DBCell].right[E]
-      var bRow = Vector.newBuilder[DBCell].right[E]
+      var aRow = Vector.newBuilder[DBCell].right[SQLError]
+      var bRow = Vector.newBuilder[DBCell].right[SQLError]
 
       // Extract vectors from the rs
       for ((component, i) <- aComponents.zipWithIndex) {
@@ -147,8 +180,8 @@ class JDBCReader(implicit instance: SQLInstance) {
       result = for {
         aRes <- aRow
         bRes <- bRow
-        a <- sa.fromRow(DBObject(aRes.result()))
-        b <- sb.fromRow(DBObject(bRes.result()))
+        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
+        b <- sb.fromRow(DBObject(bRes.result())).leftMap(SQLExtractError)
         r <- result
       } yield r += pair(a, b)
 
@@ -162,13 +195,13 @@ class JDBCReader(implicit instance: SQLInstance) {
     */
 
   def getAllSingles[A](query: String)(
-    implicit sa: SchemaObject[A]): E \/ Vector[A] = {
+    implicit sa: SchemaObject[A]): SQLEither[Vector[A]] = {
     val rs = getResultSet(query)
     val aComponents = sa.getSchemaComponents
 
-    var result = Vector.newBuilder[A].right[E]
+    var result = Vector.newBuilder[A].right[SQLError]
     while (result.isRight && rs.next() ) {
-      var aRow = Vector.newBuilder[DBCell].right[E]
+      var aRow = Vector.newBuilder[DBCell].right[SQLError]
 
       // Extract vectors from the rs
       for ((component, i) <- aComponents.zipWithIndex) {
@@ -181,7 +214,7 @@ class JDBCReader(implicit instance: SQLInstance) {
 
       result = for {
         aRes <- aRow
-        a <- sa.fromRow(DBObject(aRes.result()))
+        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
         r <- result
       } yield r += a
     }
@@ -193,13 +226,13 @@ class JDBCReader(implicit instance: SQLInstance) {
     */
 
   def getSingleDistinct[A](query: String)(
-    implicit sa: SchemaObject[A]): E \/ Set[A] = {
+    implicit sa: SchemaObject[A]): SQLEither[Set[A]] = {
     val rs = getResultSet(query)
     val aComponents = sa.getSchemaComponents
 
-    var result = Set.newBuilder[A].right[E]
+    var result = Set.newBuilder[A].right[SQLError]
     while (result.isRight && rs.next() ) {
-      var aRow = Vector.newBuilder[DBCell].right[E]
+      var aRow = Vector.newBuilder[DBCell].right[SQLError]
 
       // Extract vectors from the rs
       for ((component, i) <- aComponents.zipWithIndex) {
@@ -212,7 +245,7 @@ class JDBCReader(implicit instance: SQLInstance) {
 
       result = for {
         aRes <- aRow
-        a <- sa.fromRow(DBObject(aRes.result()))
+        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
         r <- result
       } yield r += a
     }
@@ -224,18 +257,17 @@ class JDBCReader(implicit instance: SQLInstance) {
     * get a set of all pairs of ids that match a query
     */
 
-  def getRelationPairs(query: String): E \/ Set[(ObjId, ObjId)] = {
+  def getRelationPairs(query: String): SQLEither[Set[(ObjId, ObjId)]] = {
 
     val rs = getResultSet(query)
 
-    var result = Set.newBuilder[(ObjId, ObjId)].right[E]
+    var result = Set.newBuilder[(ObjId, ObjId)].right[SQLError]
     while (result.isRight && rs.next()) {
       result = for {
         a <- getObjId(rs, Left)
         b <- getObjId(rs, Right)
         r <- result
       } yield r += pair(a, b)
-
     }
 
     result.map(_.result())
@@ -245,7 +277,7 @@ class JDBCReader(implicit instance: SQLInstance) {
     * get the id for the end of a pathfinding query, according to a findable
     */
 
-  def getPathfindingEnd[A](a: A)(implicit sa: SchemaObject[A]): E \/ Option[ObjId] = {
+  def getPathfindingEnd[A](a: A)(implicit sa: SchemaObject[A]): SQLEither[Option[ObjId]] = {
     val db = sa.getDBObject(a)
 
     for {
@@ -289,40 +321,52 @@ class JDBCReader(implicit instance: SQLInstance) {
     result.map(_.result()).map(v => Path.from[A](v))
   }
 
-  private def getDBCell(rs: ResultSet, component: SchemaComponent, index: Int, side: Side): E \/ DBCell = {
-    try{
+  private def getDBCell(rs: ResultSet, component: SchemaComponent, index: Int, side: Side): SQLEither[DBCell] =
+    SQLEither {
       component match {
-        case IntCell => DBInt(rs.getInt(side.columnName(index).s)).right
-        case StringCell => DBString(rs.getString(side.columnName(index).s)).right
-        case BoolCell => DBBool(rs.getBoolean(side.columnName(index).s)).right
-        case DoubleCell => DBDouble(rs.getDouble(side.columnName(index).s)).right
+        case IntCell => DBInt(rs.getInt(side.columnName(index).s))
+        case StringCell => DBString(rs.getString(side.columnName(index).s))
+        case BoolCell => DBBool(rs.getBoolean(side.columnName(index).s))
+        case DoubleCell => DBDouble(rs.getDouble(side.columnName(index).s))
       }
-    } catch {case e: Throwable => errors.recoverSQLException(e).left}
-  }
+    }
+
+  private def getSQLColumn(rs: ResultSet): SQLEither[ColumnSpecification] =
+    SafeEither {
+      SQLType.fromString(rs.getString("DATA_TYPE"))
+        .map(t => ColumnSpecification(SQLColumnName.extractedSQLColumnName(rs.getString("COLUMN_NAME")), t))
+    }
+
+  private def getObjId(rs: ResultSet, side: Side): SQLEither[ObjId] =
+    SQLEither {
+      ObjId(rs.getLong(side.getId.s))
+    }
 
 
-
-  private def getObjId(rs: ResultSet, side: Side) : E \/ ObjId =
-    try {
-      ObjId(rs.getLong(side.getId.s)).right
-    } catch {case e: Throwable => errors.recoverSQLException(e).left}
-
-  private def getCommitId(rs: ResultSet): E \/ Commit =
-    try {
-      Commit(rs.getLong(SQLColumnName.commitId.s)).right
-    } catch {case e: Throwable => errors.recoverSQLException(e).left}
+  private def getCommitId(rs: ResultSet): SQLEither[Commit] =
+    SQLEither {
+      Commit(rs.getLong(SQLColumnName.commitId.s))
+    }
 
   private def pair[A, B](a: A, b: B): (A, B) = (a, b)
 
-  private def getViewId(rs: ResultSet): E \/ View = try {
-    View(rs.getLong(SQLColumnName.viewId.s)).right
-  } catch  {case e: Throwable => errors.recoverSQLException(e).left}
+  private def getViewId(rs: ResultSet): SQLEither[View] = SQLEither {
+    View(rs.getLong(SQLColumnName.viewId.s))
+  }
 
   private def getResultSet(q: String): ResultSet = {
     val stmt = instance.connection.createStatement()
     stmt.executeQuery(q)
   }
 
+  /**
+    * Extract a table name from the result set
+    */
+
+  private def getTableName(rs: ResultSet): SQLEither[SQLTableName] =
+    SQLEither {
+      TableNameFromDatabase(rs.getString("table_name"))
+    }
 
 }
 

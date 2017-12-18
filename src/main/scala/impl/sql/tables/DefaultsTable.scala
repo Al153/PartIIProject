@@ -10,17 +10,28 @@ import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import scalaz._
 import Scalaz._
 
-class DefaultsTable(implicit instance: SQLInstance) extends SQLTable {
+class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
   import instance.executionContext
 
-  def setDefaultView(v: View): ConstrainedFuture[E, Unit] =
-    instance.doWrite(s"UPDATE $name SET ${DefaultsTable.viewId} = ${v.id}")
+  def setDefaultView(v: View): SQLEither[Unit] = {
+    println(instance.reader.getView(s"SELECT ${DefaultsTable.viewId} FROM $name"))
+    instance.doWriteEither(s"UPDATE $name SET ${DefaultsTable.viewId} = ${v.id}")
+  }
 
-  def getDefaultView: ConstrainedFuture[E, View] = ConstrainedFuture.either {
+
+  def getDefaultView: SQLFuture[View] = SQLFutureE {
     instance.reader.getView(s"SELECT ${DefaultsTable.viewId} FROM $name").map(_.find(_ => true)).flatMap {
       ov => ov.fold(MissingDefaultViewError.left[View])(_.right)
     }
-  } (errors.recoverSQLException)
+  }
+
+  // Override create in order to set the default view
+  override protected def create: SQLEither[Unit] = {
+    for {
+      _ <- instance.doWriteEither(this.schema.create(name))
+      _ <- setDefaultView(View(0)) // default view = 0
+    } yield ()
+  }
 
   override def schema: SQLSchema = SQLSchema(
     Map(

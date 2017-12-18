@@ -16,6 +16,15 @@ sealed trait SQLTableName {
   def name: String
 
   override def toString: String = name
+
+  // Comparison is done by name only
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case s: SQLTableName => this.name == s.name
+    case _ => false
+  }
+
+  override def hashCode(): Int = name.hashCode
 }
 
 class ObjectTableName(in: TableName, index: Long) extends SQLTableName {
@@ -43,6 +52,8 @@ case class PrecomputedView() extends SQLTableName {
 case object DefaultsTableName extends SQLTableName {
   override def name: String = "DEFAULTS_TABLE"
 }
+
+case class TableNameFromDatabase(name: String) extends SQLTableName
 
 object SQLTableName {
   class Context private[SQLTableName] (relations: Long, objects: Long) {

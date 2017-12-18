@@ -7,7 +7,7 @@ import impl.sql.schema.{SQLForeignRef, SQLSchema, SQLType}
 import impl.sql.{ViewsTableName, _}
 import impl.sql.types.Commit
 
-class ViewsTable(implicit instance: SQLInstance) extends SQLTable {
+class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
   import instance.executionContext
   import ViewsTable._
 

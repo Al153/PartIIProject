@@ -1,8 +1,13 @@
 package impl.sql.schema
 
 import core.schema._
-import impl.sql.SQLColumnName
+import core.utils._
+import impl.sql.errors.{SQLSchemaTypeCheckError, SQLSchemaUnexpectedType}
 import impl.sql.tables.SQLTable
+import impl.sql.{SQLColumnName, SQLEither}
+
+import scalaz.Scalaz._
+import scalaz._
 
 sealed trait SQLType
 case object SQLString extends SQLType
@@ -29,13 +34,36 @@ object SQLType {
       case DoubleCell => SQLDouble
     })
 
+  // gets one of several strings
+  def fromString(s: String): SQLEither[String] = {
+    val possible = Set("int", "bool", "real", "text", "bigint")
+    if (s.toLowerCase in possible) s.right
+    else SQLSchemaUnexpectedType(s).left
+  }
+
   def toTypeString(t: SQLType): String = t match { // todo: are these correct?
     case SQLInt => "INT NOT NULL"
     case SQLBool => "BOOLEAN NOT NULL"
-    case SQLDouble => "DOUBLE NOT NULL"
-    case SQLString => "TEXT"
-    case SQLRef => "BIGINT"
-    case SQLPrimaryRef => "BIGINT NOT NULL PRIMARY"
+    case SQLDouble => "REAL NOT NULL"
+    case SQLString => "TEXT NOT NULL"
+    case SQLRef => "BIGINT TEXT NOT NULL"
+    case SQLPrimaryRef => "BIGSERIAL PRIMARY KEY"
     case SQLForeignRef(table) => "BIGINT"
   }
+
+  def validateType(t: SQLType, toTest: String): SQLEither[Unit] = {
+    val expected = t match {
+      case SQLInt => "int"
+      case SQLBool => "bool"
+      case SQLDouble => "real"
+      case SQLString => "text"
+      case SQLRef => "bigint"
+      case SQLPrimaryRef => "bigint"
+      case SQLForeignRef(_) => "bigint"
+    }
+
+    if (expected == toTest.toLowerCase) ().right
+    else SQLSchemaTypeCheckError(t, toTest).left
+  }
+
 }
