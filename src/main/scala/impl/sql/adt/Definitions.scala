@@ -12,7 +12,8 @@ object Definitions {
   def get(
            relationDefs: Iterable[(RelationTable, VarName)],
            tableDefs: Iterable[(ObjectTable, VarName)],
-           mainQuery: String,
+           commonSubExpressions: Iterable[(Query, VarName)],
+           mainQuery: Query,
            precomputedView: PrecomputedView
          ): String = {
     val relations = relationDefs map {
@@ -25,14 +26,20 @@ object Definitions {
         "(" + getTableWithView(ot.name, precomputedView) + ")"
     }
 
-    val mainQueryPair = SQLDB.mainQuery + " as (" + mainQuery + ")"
-    (relations ++ tables ++ List(mainQueryPair)).mkString(", ")
+    val subexpressions = commonSubExpressions map {
+      case (q, varName) =>
+        varName.toString + " AS " +
+          "(" + Query.render(q) + ")"
+    }
+
+    val mainQueryPair = SQLDB.mainQuery + " AS (" + Query.render(mainQuery) + ")"
+    (relations ++ tables ++ subexpressions ++ List(mainQueryPair)).mkString(", ")
   }
 
   // selects with matching view values
   private def getRelationWithView(r: RelationTableName, precomputedView: PrecomputedView):String =
     s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${r.name} " +
-      s"JOIN $precomputedView" +
+      s"JOIN $precomputedView " +
       s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
 
   def getTableWithView(r: ObjectTableName, precomputedView: PrecomputedView): String =

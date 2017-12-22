@@ -7,6 +7,7 @@ import core.backend.interfaces._
 import core.containers.ConstrainedFuture
 import core.error.E
 import core.schema.SchemaDescription
+import impl.sql.errors.SQLError
 
 import scala.concurrent.ExecutionContext
 
@@ -19,43 +20,45 @@ object SQLDB extends DBBackend {
                      address: DatabaseAddress,
                      schema: SchemaDescription
                    )(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] = {
-    // Step 1: open connection
-
-    // step 2: Validate tables
-    for {
+    val r = for {
       conn <- openConnection(address, schema)
       instance = new SQLInstance(conn, schema)
-      _ <- if (address.isInstanceOf[Empty.type]) instance.freshen else ConstrainedFuture.immediatePoint[E, Unit](())
+      _ <- if (address.isInstanceOf[Empty.type]) instance.freshen() else SQLFuture(())
       _ <- instance.validateTables()
     } yield instance: DBInstance
+    r.asCFuture
   }
 
   // Opens a database connection somehow
 
-  private def openConnection(address: DatabaseAddress, schema: SchemaDescription)(implicit ec: ExecutionContext): E ConstrainedFuture Connection = ConstrainedFuture.point[E, Connection] {
-    address match {
-      case DBUrl(url, user, password) =>
-        val jdbcUrl = s"jdbc:postgresql://${url.toString}"
-        val props = new Properties()
-        props.setProperty("user", user)
-        props.setProperty("password", password)
-        props.setProperty("ssl", "true")
-        DriverManager.getConnection(jdbcUrl, props)
-      case DBDir(path, user, password) =>
-        val jdbcUrl = s"jdbc:postgresql://localhost/${path.toString}"
-        val props = new Properties()
-        props.setProperty("user", user)
-        props.setProperty("password", password)
-        props.setProperty("ssl", "false")
-        DriverManager.getConnection(jdbcUrl, props)
-      case Empty =>
-        val jdbcUrl = s"jdbc:postgresql://localhost/postgres"
-        val props = new Properties()
-        props.setProperty("user", "postgres")
-        props.setProperty("password", " ")
-        props.setProperty("ssl", "false")
-        DriverManager.getConnection(jdbcUrl, props)
-    }} (errors.recoverSQLException)
+  private def openConnection(
+                              address: DatabaseAddress,
+                              schema: SchemaDescription
+                            )(implicit ec: ExecutionContext): SQLFuture[Connection] =
+    SQLFuture {
+      address match {
+        case DBUrl(url, user, password) =>
+          val jdbcUrl = s"jdbc:postgresql://${url.toString}"
+          val props = new Properties()
+          props.setProperty("user", user)
+          props.setProperty("password", password)
+          props.setProperty("ssl", "true")
+          DriverManager.getConnection(jdbcUrl, props)
+        case DBDir(path, user, password) =>
+          val jdbcUrl = s"jdbc:postgresql://localhost/${path.toString}"
+          val props = new Properties()
+          props.setProperty("user", user)
+          props.setProperty("password", password)
+          props.setProperty("ssl", "false")
+          DriverManager.getConnection(jdbcUrl, props)
+        case Empty =>
+          val jdbcUrl = s"jdbc:postgresql://localhost/postgres"
+          val props = new Properties()
+          props.setProperty("user", "postgres")
+          props.setProperty("password", " ")
+          props.setProperty("ssl", "false")
+          DriverManager.getConnection(jdbcUrl, props)
+    }}
 
 
     val leftmostTable = "left_table"

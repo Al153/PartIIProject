@@ -15,6 +15,8 @@ import scalaz._
   */
 trait SQLTable {
 
+  override def toString: String = name.toString
+
   // Check table exists, and create if it doesn't exist
   def validateOrCreate(foundTables: Set[SQLTableName]): SQLEither[Unit] =
     if (name in foundTables) validateTable()

@@ -22,7 +22,7 @@ object Conversions {
     case DBDouble(d) => d.toString
     case DBBool(b) => b.toString
     case DBInt(i) => i.toString
-    case DBString(s) => safeRender(s)
+    case DBString(s) => "'" + safeRender(s) + "'"
   }
 
   def getValues(dBObject: DBObject): Vector[String] = dBObject.fields.map(dbCellToSQLValue)

@@ -29,7 +29,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
 
 
   // this method needs to setup a new view
-  def setupAndGetNewView(v: View): ConstrainedFuture[E, (View, Commit)] =
+  def setupAndGetNewView(v: View): SQLFuture[(View, Commit)] =
     for {
       connectedCommits <- instance.viewsTable.getCommits(v)
       newView <- instance.viewsRegistry.getNewViewId
@@ -44,14 +44,14 @@ class JDBCWriter(implicit instance: SQLInstance) {
                      leftTable: ObjectTable,
                      rightTable: ObjectTable,
                      t: TraversableOnce[(DBObject, RelationTable, DBObject)]
-                   ): ConstrainedFuture[E, Unit] = {
+                   ): SQLFuture[Unit] = {
     // insert a bunch of objects
-    val precomputedViewName = PrecomputedView()
+    val precomputedViewName = PrecomputedView() // Schema = (CommitId)
     for {
       _ <- presetup(view, precomputedViewName)
       withLeftIds <- getLeftIds(view, commit, leftTable, t)
       withRightIds <- getRightIds(view, commit, rightTable, withLeftIds)
-      preExisting <- getExistingRelations(withRightIds.mapProj2.toSet, precomputedViewName)
+      preExisting <- getExistingRelations(withRightIds.mapProj2.toSet, precomputedViewName) // todo: we need to join each table with this
       toAdd = withRightIds.filter {_ notIn preExisting}
       res <- insertRelations(toAdd, commit)
       _ <- cleanupViews(precomputedViewName)
@@ -61,7 +61,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
   private def insertRelations(
                        rels: List[(ObjId, RelationTable, ObjId)],
                        commit: Commit
-                     ): ConstrainedFuture[E, Unit] = {
+                     ): SQLFuture[Unit] = {
     val relations = rels.collectLists{case (l, rel, r) => rel -> (l, r)}
     val queries = for {
       groupedRelations <- relations
@@ -78,12 +78,12 @@ class JDBCWriter(implicit instance: SQLInstance) {
   }
 
   // pre-emptively create a view to be used to do the writing
-  private def presetup(v: View, precomputedViewName: PrecomputedView): ConstrainedFuture[E, Unit] = {
+  private def presetup(v: View, precomputedViewName: PrecomputedView): SQLFuture[Unit] = {
     val query = ViewsTable.usingView(v, precomputedViewName)
     instance.doWrite(query)
   }
 
-  private def cleanupViews(name: PrecomputedView): ConstrainedFuture[E, Unit] =
+  private def cleanupViews(name: PrecomputedView): SQLFuture[Unit] =
     instance.viewsTable.removeTempViewOp(name)
 
 
@@ -92,8 +92,8 @@ class JDBCWriter(implicit instance: SQLInstance) {
                   commit: Commit,
                   leftTable: ObjectTable,
                   t: TraversableOnce[(DBObject, RelationTable, DBObject)]
-                ): ConstrainedFuture[E, List[(ObjId, RelationTable, DBObject)]] =
-    t.foldRight(ConstrainedFuture.immediatePoint[E, List[(ObjId, RelationTable, DBObject)]](List())) {
+                ): SQLFuture[List[(ObjId, RelationTable, DBObject)]] =
+    t.foldRight(SQLFutureI[List[(ObjId, RelationTable, DBObject)]](List())) {
       case ((lObject, relTable, rObject), cfList) =>
         for {
           lId <- leftTable.insertOrGetObject(lObject, view, commit)
@@ -106,8 +106,8 @@ class JDBCWriter(implicit instance: SQLInstance) {
                   commit: Commit,
                   rightTable: ObjectTable,
                   t: List[(ObjId, RelationTable, DBObject)]
-                 ): ConstrainedFuture[E, List[(ObjId, RelationTable, ObjId)]] =
-    t.foldRight(ConstrainedFuture.immediatePoint[E, List[(ObjId, RelationTable, ObjId)]](List())) {
+                 ): SQLFuture[List[(ObjId, RelationTable, ObjId)]] =
+    t.foldRight(SQLFutureI[List[(ObjId, RelationTable, ObjId)]](List())) {
       case ((lId, relTable, rObject), cfList) =>
         for {
           rId <- rightTable.insertOrGetObject(rObject, view, commit)
@@ -118,7 +118,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
   private def getExistingRelations(
                                     t: Set[RelationTable],
                                     precomputedView: PrecomputedView
-                          ): ConstrainedFuture[E, Set[(ObjId, RelationTable, ObjId)]] = {
+                          ): SQLFuture[Set[(ObjId, RelationTable, ObjId)]] = {
       val sets = for {
         rel <- t
       } yield rel.getExistingRelations(precomputedView).map(_.map{case(l, r) => (l, rel, r)})

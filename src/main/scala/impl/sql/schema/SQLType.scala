@@ -48,7 +48,7 @@ object SQLType {
     case SQLString => "TEXT NOT NULL"
     case SQLRef => "BIGINT TEXT NOT NULL"
     case SQLPrimaryRef => "BIGSERIAL PRIMARY KEY"
-    case SQLForeignRef(table) => "BIGINT"
+    case SQLForeignRef(table) => s"BIGINT REFERENCES ${table.name}"
   }
 
   def validateType(t: SQLType, toTest: String): SQLEither[Unit] = {

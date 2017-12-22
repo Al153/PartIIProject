@@ -10,6 +10,7 @@ object SQLColumnName {
   val rightId = new SQLColumnName("right_id")
   val commitId = new SQLColumnName("CommitId")
   val viewId = new SQLColumnName("ViewId")
+  val dummyColumn = new SQLColumnName("DUMMY")
 
 
 

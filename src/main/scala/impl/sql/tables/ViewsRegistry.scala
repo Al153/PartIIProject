@@ -2,52 +2,64 @@ package impl.sql.tables
 
 import java.sql.Statement
 
-import core.containers.ConstrainedFuture
-import core.error.E
 import core.view.View
-import impl.sql.errors.UnableToCreateView
-import impl.sql.tables.CommitsRegistry.name
 import impl.sql._
-import impl.sql.schema.{SQLPrimaryRef, SQLSchema}
+import impl.sql.errors.{SQLError, UnableToCreateView}
+import impl.sql.schema.{SQLInt, SQLPrimaryRef, SQLSchema}
 
 import scalaz.Scalaz._
-import scalaz._
 
 class ViewsRegistry(implicit val instance: SQLInstance) extends SQLTable {
   import ViewsRegistry._
   import instance.executionContext
 
-  def getNewViewId: ConstrainedFuture[E, View] = ConstrainedFuture.either[E, View] {
-    val stmt = instance.connection.prepareStatement(s"INSERT INTO $name () VALUES ()", Statement.RETURN_GENERATED_KEYS)
+  def getNewViewId: SQLFuture[View] = SQLFutureE {
+    val stmt = instance.connection.prepareStatement(s"INSERT INTO $name($dummyCol) VALUES(0)", Statement.RETURN_GENERATED_KEYS)
     val affectedRows = stmt.executeUpdate()
     if (affectedRows == 0) {
       UnableToCreateView("No rows updated").left
     } else {
       val generatedKeys = stmt.getGeneratedKeys
       if (generatedKeys.next()){
-        View(generatedKeys.getLong(viewID.toString)).right[E]
+        View(generatedKeys.getLong(viewID.toString)).right[SQLError]
       } else {
         UnableToCreateView("No ID obtained").left
       }
     }
-  }(errors.recoverSQLException)
+  }
 
 
   // read from the views table
-  def getViews: ConstrainedFuture[E, Set[View]] = ConstrainedFuture.either {
+  def getViews: SQLFuture[Set[View]] = SQLFutureE {
     instance.reader.getView(
       s"""
-         |SELECT $viewID FROM $tableName
-       """.stripMargin
+         |SELECT $viewID FROM $tableName""".stripMargin
     )
-  } (errors.recoverSQLException)
+  }
 
-  override def schema: SQLSchema = SQLSchema(Map(viewID -> SQLPrimaryRef))
+  override def schema: SQLSchema = SQLSchema(Map(viewID -> SQLPrimaryRef, dummyCol -> SQLInt))
 
   override def name: SQLTableName = tableName
+
+  /**
+    * Need to insert the default view at setup
+    * @return
+    */
+
+  override protected def create: SQLEither[Unit] = {
+    for {
+      _ <- instance.doWriteEither(this.schema.create(name))
+      _ <- initialiseDefaultView // default view = 0
+    } yield ()
+  }
+
+  private def initialiseDefaultView: SQLEither[Unit] = {
+    instance.doWriteEither(s"INSERT INTO $name ($viewID, $dummyCol) VALUES(0, 0);")
+  }
 }
 
 object ViewsRegistry {
   val tableName = ViewsRegistryName
   val viewID: SQLColumnName = SQLColumnName.viewId
+  val dummyCol: SQLColumnName = SQLColumnName.dummyColumn
 }

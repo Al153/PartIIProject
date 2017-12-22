@@ -1,39 +1,34 @@
 package impl.sql.tables
 
-import core.containers.ConstrainedFuture
-import core.error.E
 import core.view.View
-import impl.sql.schema.{SQLForeignRef, SQLSchema, SQLType}
-import impl.sql.{ViewsTableName, _}
+import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.Commit
+import impl.sql.{ViewsTableName, _}
 
 class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
-  import instance.executionContext
   import ViewsTable._
+  import instance.executionContext
 
 
-  def removeTempViewOp(temporaryViewName: PrecomputedView): ConstrainedFuture[E, Unit] =
+  def removeTempViewOp(temporaryViewName: PrecomputedView): SQLFuture[Unit] =
     instance.doWrite(removeView(temporaryViewName))
 
-  def getCommits(view: View): ConstrainedFuture[E, Set[Commit]] = ConstrainedFuture.either {
+  def getCommits(view: View): SQLFuture[Set[Commit]] = SQLFutureE {
     val query =
       s"""
-         |SELECT $viewID FROM $tableName WHERE $viewID = ${view.id}
-       """.stripMargin
+         |SELECT $commitID FROM $tableName WHERE $viewID = ${view.id}""".stripMargin
 
     instance.reader.getCommit(query)
-  } (errors.recoverSQLException)
+  }
 
-  def insertNewView(view: View, commits: Set[Commit]): ConstrainedFuture[E, Unit] = {
+  def insertNewView(view: View, commits: Set[Commit]):SQLFuture[Unit] =
     instance.writeBatch(
       commits.map(
         commit =>
           s"""
-             |INSERT INTO $tableName ($viewID, $commitID) VALUES (${view.id}, ${commit.id})
-          """.stripMargin
+             |INSERT INTO $tableName ($viewID, $commitID) VALUES (${view.id}, ${commit.id})""".stripMargin
       )
     )
-  }
 
   override def schema: SQLSchema = SQLSchema(
     Map(
@@ -53,15 +48,13 @@ object ViewsTable {
   def usingView(v: View, precomputedViewName: PrecomputedView): String =
     s"""
        |CREATE OR REPLACE VIEW $precomputedViewName
-       |AS (${getViewIntermediate(v)})
-     """.stripMargin
+       |AS (${getViewIntermediate(v)})""".stripMargin
 
   def wrapView(v: View, precomputedViewName: PrecomputedView)(query: String): String =
     s"""
        |${usingView(v, precomputedViewName)};
-       |$query
-       |${removeView(precomputedViewName)}
-     """.stripMargin
+       |$query;
+       |${removeView(precomputedViewName)}""".stripMargin
 
   private def getViewIntermediate(v: View) =
     s"SELECT ${SQLColumnName.commitId} FROM $tableName " +
@@ -70,5 +63,4 @@ object ViewsTable {
   def removeView(view: PrecomputedView): String = {
     s"DROP VIEW $view"
   }
-
 }

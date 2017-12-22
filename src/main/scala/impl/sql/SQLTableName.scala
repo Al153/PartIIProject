@@ -46,7 +46,7 @@ case object CommitsRegistryName extends SQLTableName {
 }
 
 case class PrecomputedView() extends SQLTableName {
-  override val name: String = s"VIEW_${UUID.randomUUID()}"
+  override val name: String = s"VIEW_${UUID.randomUUID().toString.replace("-", "_")}"
 }
 
 case object DefaultsTableName extends SQLTableName {

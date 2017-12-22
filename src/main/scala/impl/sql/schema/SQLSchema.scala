@@ -17,9 +17,7 @@ case class SQLSchema(components: Map[SQLColumnName, SQLType]) {
           s"${name.s} ${SQLType.toTypeString(sqlType)}"
      }.mkString(",\n")
 
-    s"""
-       | CREATE TABLE $tableName ($columns);
-     """.stripMargin
+    s"CREATE TABLE $tableName ($columns);"
 
   }
 }

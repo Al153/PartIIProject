@@ -9,7 +9,6 @@ import impl.sql.adt.CompilationContext.Compilation
   */
 sealed trait Query
 case class With private (defn:(VarName, Query), in: Query) extends Query
-case class WithView private (name: VarName, body: Query, in: Query) extends Query // needs to drop view
 case class WithRec private (name: VarName, body: Query, in: Query) extends Query
 case class Var private (v: VarName) extends Query
 case class SelectWhere private (mappings: SelectMapping, where: Where, from: Query) extends Query
@@ -20,18 +19,17 @@ case class JoinRename private (leftMapping: (VarName, Query), rightMapping: (Var
 case class JoinSimple private (left: VarName, right: VarName, on: JoinMapping) extends Query // $left join $right on Mapping
 
 object Query {
-  def emptyContext: CompilationContext = new CompilationContext(0, Map(), Map())
+  def emptyContext: CompilationContext = new CompilationContext(0, Map(), Map(), Map())
 
   def render(q: Query): String = q match {
     case With((name, body), in) => s"WITH $name AS (${render(body)}) (${render(in)})"
-    case WithView(name, body, in) => s"CREATE VIEW $name AS (${render(body)}); ${render(q)}; DROP VIEW $name"
     case WithRec(name, body, in) => s"WITH RECURSIVE $name AS (${render(body)}) (${render(in)})"
     case Var(v) => v.s
     case SelectTable(name, where) => s"SELECT ${SelectMapping.render(FromObject)} FROM $name ${WhereTable.render(where)}"
-    case SelectWhere(mappings, where, from) => s"SELECT (${SelectMapping.render(mappings)}) FROM (${render(from)}) ${Where.render(where)}"
+    case SelectWhere(mappings, where, from) => s"SELECT ${SelectMapping.render(mappings)} FROM (${render(from)}) ${Where.render(where)}"
     case IntersectAll(left, right) => s"(${render(left)}) INTERSECT (${render(right)})"
     case UnionAll(left, right) => s"(${render(left)}) UNION ALL (${render(right)})"
-    case JoinRename((asLeft, left), (asRight, right), on) => s"((${render(left)}) as $asLeft) INNER JOIN ((${render(left)}) as $asRight) ON (${JoinMapping.render(on, asLeft, asRight)})"
+    case JoinRename((asLeft, left), (asRight, right), on) => s"((${render(left)}) AS $asLeft) INNER JOIN ((${render(right)}) AS $asRight) ON ${JoinMapping.render(on, asLeft, asRight)}"
     case JoinSimple(l, r, on) => s"$l INNER JOIN $r ON (${JoinMapping.render(on, l, r)})"
   }
 
@@ -50,43 +48,38 @@ object Query {
 
     case USAtleast(n , rel) => for {
       precomputed <- convertPair(rel) // precompute a view
-      temporaryView <- CompilationContext.newVarName // get a name for it
+      temporaryView <- CompilationContext.newView(precomputed) // get a name for it
       rec <- CompilationContext.newVarName // create a name to recurse on
       preTraversal <- getExactly(temporaryView, n, rel.leftMostTable) // computer the traversal up to the start of the upto
       preTraversalName <- CompilationContext.newVarName // give it a name
-    } yield WithView(
-      temporaryView, precomputed, // precompute the repeated relation and put into a view
-      With(preTraversalName -> preTraversal, // compute the pretraversal and give it a name
-        WithRec(rec, // create a recursive query
-          UnionAll(
-            SelectWhere(Simple, NoConstraint, Var(preTraversalName)), // basis case: pretraversal
-            SelectWhere( // add values to it
-              Joined(rec, temporaryView),
-              NoConstraint,
-              JoinSimple(rec, temporaryView, Chained))
-          ),
-          SelectWhere(Simple, NoConstraint, Var(rec))
-        )
+    } yield With(preTraversalName -> preTraversal, // compute the pretraversal and give it a name
+      WithRec(rec, // create a recursive query
+        UnionAll(
+          SelectWhere(Simple, NoConstraint, Var(preTraversalName)), // basis case: pretraversal
+          SelectWhere( // add values to it
+            Joined(rec, temporaryView),
+            NoConstraint,
+            JoinSimple(rec, temporaryView, Chained))
+        ),
+        SelectWhere(Simple, NoConstraint, Var(rec))
       )
     )
 
     case USBetween(low, high, rel) => for {
       view <- convertPair(rel)
-      viewName <- CompilationContext.newVarName
+      viewName <- CompilationContext.newView(view)
       preTraversal <- getExactly(viewName, low, rel.leftMostTable)
       preTraversalName <- CompilationContext.newVarName
       postTraversal <- getUpto(viewName, high-low, rel.leftMostTable)
       postTraversalName <- CompilationContext.newVarName
-    } yield WithView(viewName, view,
-        SelectWhere(
-          Joined(preTraversalName, postTraversalName),
-          NoConstraint,
-          JoinRename(
-            preTraversalName -> preTraversal,
-            postTraversalName -> postTraversal,
-            Chained
-          )
-        )
+    } yield SelectWhere(
+      Joined(preTraversalName, postTraversalName),
+      NoConstraint,
+      JoinRename(
+        preTraversalName -> preTraversal,
+        postTraversalName -> postTraversal,
+        Chained
+      )
     )
 
     case USChain(left, right) => for {
@@ -102,9 +95,9 @@ object Query {
 
     case USExactly(n, rel) => for {
       view <- convertPair(rel)
-      viewName <- CompilationContext.newVarName
+      viewName <- CompilationContext.newView(view)
       body <- getExactly(viewName, n, rel.leftMostTable)
-    } yield WithView(viewName, view, body)
+    } yield body
 
     case USId(tableName) => for {
       n <- CompilationContext.getTableName(tableName)
@@ -132,9 +125,9 @@ object Query {
 
     case USUpto(n, rel) => for {
       view <- convertPair(rel)
-      viewName <- CompilationContext.newVarName
+      viewName <- CompilationContext.newView(view)
       body <- getUpto(viewName, n, rel.leftMostTable)
-    } yield WithView(viewName, view, body)
+    } yield body
   }
 
   def convertSingle(q: UnsafeFindSingle): Compilation[Query] = q match {

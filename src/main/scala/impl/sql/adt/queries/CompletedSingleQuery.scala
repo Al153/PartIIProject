@@ -1,16 +1,13 @@
 package impl.sql.adt.queries
 
-import core.error.E
 import core.intermediate.unsafe.{UnsafeFindSingle, UnsafeFindable}
 import core.schema.SchemaDescription
 import core.utils.{EitherOps, _}
 import core.view.View
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
-import impl.sql.errors.{SQLRelationMissing, SQLTableMissing}
+import impl.sql.errors.SQLExtractError
 import impl.sql.tables.{ObjectTable, ViewsTable}
-
-import scalaz.\/
 
 /**
   * Created by Al on 23/11/2017.
@@ -20,7 +17,7 @@ case class CompletedSingleQuery(
                                  table: ObjectTable,
                                  sd: SchemaDescription
                                )(implicit instance: SQLInstance) {
-  def render(v: View): E \/ String = {
+  def render(v: View): SQLEither[String] = {
     val (context, q) = Query.convertSingle(p).run(Query.emptyContext)
     val precomputedView = PrecomputedView() // generate a view to get all the commit ids
 
@@ -35,16 +32,12 @@ case class CompletedSingleQuery(
         (rel, sqlName) <- context.getRelationDefs
       } yield instance.lookupRelation(rel).withSnd(sqlName))
 
-
-      baseQuery = Query.render(q)
-
-      tablePrototype <- sd.lookupTable(p.table)
+      tablePrototype <- sd.lookupTable(p.table).leftMap(SQLExtractError)
 
     } yield ViewsTable.wrapView(v, precomputedView) {
       s"""
-         |WITH ${Definitions.get(relationDefs, tableDefs, baseQuery, precomputedView)}
-         | ${extractMainQuery(tablePrototype.prototype, table)}
-        """.stripMargin
+         |WITH ${Definitions.get(relationDefs, tableDefs, context.commonSubExpressions, q, precomputedView)}
+         | ${extractMainQuery(tablePrototype.prototype, table)}F""".stripMargin
     }
   }
 
@@ -60,14 +53,14 @@ case class CompletedSingleQuery(
     s"${getTable(table)} JOIN ${SQLDB.mainQuery} " +
       s"ON ${SQLDB.singleTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.rightId}"
 
-  private def getTable(table: ObjectTable): String = s"${table.name} as ${SQLDB.singleTable}"
+  private def getTable(table: ObjectTable): String = s"${table.name} AS ${SQLDB.singleTable}"
 
   // construct a query to rename columns
   private def getColumns(
                           desc: UnsafeFindable
                         ): String =
       (1 until desc.pattern.length)
-        .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} as ${SQLColumnName.leftColumn(i)}")
+        .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.leftColumn(i)}")
         .mkString(", ")
 
 }

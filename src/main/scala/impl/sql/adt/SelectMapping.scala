@@ -16,11 +16,11 @@ object SelectMapping {
   def render(s: SelectMapping): String = s match {
     case All => "*"
     case Simple => s"$leftId, $rightId"
-    case FromObject => s"$objId as $leftId, $objId as $rightId"
-    case Joined(a, b) => s"$a.$leftId as $leftId, $b.$rightId as $rightId"
-    case SameSide(a) => s"$a.$leftId as $leftId, $a.$rightId as $rightId"
-    case ReversedRelation(a) => s"$a.$rightId as $leftId, $a.$leftId as $rightId"
-    case WithLimit(lim, rest) => s"${render(rest)}, $lim + 1 as $lim"
-    case StartLimit(lim, rest) => s"${render(rest)}, 0 as $lim"
+    case FromObject => s"$objId AS $leftId, $objId AS $rightId"
+    case Joined(a, b) => s"$a.$leftId AS $leftId, $b.$rightId AS $rightId"
+    case SameSide(a) => s"$a.$leftId AS $leftId, $a.$rightId AS $rightId"
+    case ReversedRelation(a) => s"$a.$rightId AS $leftId, $a.$leftId AS $rightId"
+    case WithLimit(lim, rest) => s"${render(rest)}, $lim + 1 AS $lim"
+    case StartLimit(lim, rest) => s"${render(rest)}, 0 AS $lim"
   }
 }

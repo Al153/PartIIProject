@@ -3,7 +3,7 @@ package core.schema
 import core.error.E
 import core.intermediate.unsafe.{ErasedRelationAttributes, SchemaObjectErased}
 import core.relations.RelationAttributes
-import core.backend.common.{MissingRelation, MissingTableName}
+import core.backend.common.{ExtractError, MissingRelation, MissingTableName}
 import core.utils._
 
 import scalaz._
@@ -29,11 +29,11 @@ final class SchemaDescription(
 
   private val objectLookup: Map[TableName, SchemaObjectErased]  = erasedObjects.map(o => o.name -> o).toMap
 
-  def lookupTable(t: TableName): E \/ SchemaObjectErased = objectLookup.getOrError(t, MissingTableName(t))
+  def lookupTable(t: TableName): ExtractError \/ SchemaObjectErased = objectLookup.getOrError(t, MissingTableName(t))
 
   def erasedRelations: Set[ErasedRelationAttributes] = relationMap.values.toSet
 
-  def getRelation[A, B](r: RelationAttributes[A, B]): E \/ ErasedRelationAttributes =
+  def getRelation[A, B](r: RelationAttributes[A, B]): MissingRelation \/ ErasedRelationAttributes =
     relationMap.getOrError(r, MissingRelation(r))
   def getRelationName[A, B](r: RelationAttributes[A, B]): E \/ RelationName = getRelation(r).map(_.name)
   def tableNames: Set[TableName] = objects.map(_.tableName)

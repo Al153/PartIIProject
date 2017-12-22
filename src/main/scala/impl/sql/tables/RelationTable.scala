@@ -12,15 +12,18 @@ class RelationTable(val name: RelationTableName, fromTable: ObjectTable,  toTabl
 
   def insertRelation(leftId: ObjId, rightId: ObjId, commit: Commit): String =
     s"INSERT INTO $name ($leftIdColumn, $commitId, $rightIdColumn) " +
-      s"VALUES ('${leftId.id}', '${commit.id}', ${rightId.id});"
+      s"VALUES (${leftId.id}, ${commit.id}, ${rightId.id});"
 
   // Todo: need to pass around view name in case of concurrent accesses
   def getExistingRelations(
                             precomputedView: PrecomputedView
-                          ): ConstrainedFuture[E, Set[(ObjId, ObjId)]] = ConstrainedFuture.either {
-    val q = s"""SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM $precomputedView """
+                          ): SQLFuture[Set[(ObjId, ObjId)]] = SQLFutureE {
+    val q =
+      s"""SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM
+         | $name JOIN $precomputedView
+         | ON $name.$commitId = $precomputedView.$commitId;""".stripMargin
     instance.reader.getRelationPairs(q)
-  } (errors.recoverSQLException)
+  }
 
   override def schema: SQLSchema = SQLSchema(
     Map(

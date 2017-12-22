@@ -1,14 +1,11 @@
 package impl.sql.tables
 
-import core.containers.ConstrainedFuture
-import core.error.E
 import core.view.View
-import impl.sql.errors.MissingDefaultViewError
 import impl.sql._
+import impl.sql.errors.MissingDefaultViewError
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 
-import scalaz._
-import Scalaz._
+import scalaz.Scalaz._
 
 class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
   import instance.executionContext
@@ -25,12 +22,19 @@ class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
     }
   }
 
-  // Override create in order to set the default view
+  /**
+    *   Override create in order to set the default view
+    */
+
   override protected def create: SQLEither[Unit] = {
     for {
       _ <- instance.doWriteEither(this.schema.create(name))
-      _ <- setDefaultView(View(0)) // default view = 0
+      _ <- initialiseDefaultView // default view = 0
     } yield ()
+  }
+
+  private def initialiseDefaultView: SQLEither[Unit] = {
+    instance.doWriteEither(s"INSERT INTO $name (${DefaultsTable.viewId}) VALUES(0);")
   }
 
   override def schema: SQLSchema = SQLSchema(

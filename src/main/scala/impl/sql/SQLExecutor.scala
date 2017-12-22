@@ -2,7 +2,7 @@ package impl.sql
 
 import core.backend.common.Algorithms
 import core.backend.interfaces.DBExecutor
-import core.containers.{ConstrainedFuture, Operation, Path}
+import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
 import core.error.E
 import core.intermediate.{FindPair, FindSingle}
@@ -11,7 +11,9 @@ import core.schema.{SchemaDescription, SchemaObject}
 import core.utils.{EitherOps, _}
 import core.view.View
 import impl.sql.adt.queries.{CompletedPairQuery, CompletedSingleQuery, PathFindingQuery}
+import impl.sql.errors.SQLMissingRelation
 import impl.sql.types.ObjId
+
 
 class SQLExecutor(instance: SQLInstance) extends DBExecutor {
 
@@ -24,14 +26,14 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                          ): Operation[E, Vector[A]] =
     Operation.readOp {
       v: View =>
-        for {
+        (for {
           query <- compileSingleQuery(t, sd, v)
-          res <- ConstrainedFuture.either(
+          res <- SQLFutureE(
             instance
               .reader
               .getAllSingles[A](query)
-          )(errors.recoverSQLException)
-        } yield res
+          )
+        } yield res).asCFuture
     }
 
   override def findAllPairs[A, B](t: FindPair[A, B])
@@ -42,14 +44,14 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                                  ): Operation[E, Vector[(A, B)]] =
     Operation.readOp {
       v: View =>
-        for {
+        (for {
           query <- compilePairQuery(t, sd, v)
-            res <- ConstrainedFuture.either(
+            res <- SQLFutureE(
               instance
                 .reader
                 .getAllPairs[A, B](query)
-            )(errors.recoverSQLException)
-        } yield res
+            )
+        } yield res).asCFuture
       }
 
 
@@ -57,32 +59,33 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                               (
                                 implicit extractor: SchemaObject[A],
                                 sd: SchemaDescription
-                              ): Operation[E, Set[A]] =     Operation.readOp {
-    v: View =>
-      for {
-        query <- compileSingleQuery(t, sd, v)
-        res <- ConstrainedFuture.either(
-          instance
-            .reader
-            .getSingleDistinct[A](query)
-        )(errors.recoverSQLException)
-      } yield res
+                              ): Operation[E, Set[A]] =
+    Operation.readOp {
+      v: View => {
+        for {
+          query <- compileSingleQuery(t, sd, v)
+          res <- SQLFutureE(
+            instance
+              .reader
+              .getSingleDistinct[A](query)
+          )
+        } yield res
+      }.asCFuture
   }
 
   override def findDistinctPairs[A, B](t: FindPair[A, B])
-                                      (implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Set[(A, B)]] =     Operation.readOp {
-    v: View =>
-      for {
-        query <- compilePairQuery(t, sd, v)
-        res <- ConstrainedFuture.either(
-          instance
-            .reader
-            .getDistinctPairs[A, B](query)
-        )(errors.recoverSQLException)
-      } yield res
+                                      (implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Set[(A, B)]] =
+    Operation.readOp {
+      v: View =>
+        (for {
+          query <- compilePairQuery(t, sd, v)
+          res <- SQLFutureE(
+            instance
+              .reader
+              .getDistinctPairs[A, B](query)
+          )
+        } yield res).asCFuture
   }
-
-  // Todo: this needs a separate stack of code for getting objects WITH ID so we can retroactively find objects in the set
 
   override def shortestPath[A](start: A, end: A, t: RelationalQuery[A, A])
                               (
@@ -90,39 +93,39 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                                 sd: SchemaDescription
                               ): Operation[E, Option[Path[A]]] = Operation.readOp {
     v: View => {
-      val cfTable = ConstrainedFuture.either(
+      val cfTable = SQLFutureE(
         instance.lookupTable(sa.tableName)
-      )(errors.recoverSQLException)
+      )
 
-      val cfStart = ConstrainedFuture.either(
+      val cfStart = SQLFutureE(
         instance
           .reader
-          .getPathfindingEnd(start))(errors.recoverSQLException)
+          .getPathfindingEnd(start))
 
-      val cfEnd = ConstrainedFuture.either(
+      val cfEnd = SQLFutureE(
         instance
           .reader
-          .getPathfindingEnd(end))(errors.recoverSQLException)
+          .getPathfindingEnd(end))
 
       for {
         s <- cfStart
         e <- cfEnd
 
         query <- compilePathQuery(t.tree(sd), sd, v)
-        pairs <- ConstrainedFuture.either(
+        pairs <- SQLFutureE(
           instance
             .reader
-            .getRelationPairs(query))(errors.recoverSQLException)
+            .getRelationPairs(query))
 
 
         table <- cfTable
 
         path <- findPath(s, e, pairs)
-        populatedPath <- ConstrainedFuture.either(EitherOps.switch(
+        populatedPath <- SQLFutureE(EitherOps.switch(
           path.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
-        )(errors.recoverSQLException)
+        )
       } yield populatedPath
-    }
+    }.asCFuture
   }
 
 
@@ -135,31 +138,31 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                                     sd: SchemaDescription
                                   ): Operation[E, Set[Path[A]]] = Operation.readOp {
     v: View => {
-      val cfTable = ConstrainedFuture.either(
+      val cfTable = SQLFutureE(
         instance.lookupTable(sa.tableName)
-      )(errors.recoverSQLException)
+      )
 
-      val cfStart =  ConstrainedFuture.either(
+      val cfStart =  SQLFutureE(
         instance
           .reader
-          .getPathfindingEnd(start))(errors.recoverSQLException)
+          .getPathfindingEnd(start))
 
       for {
         query <- compilePathQuery(t.tree(sd), sd, v)
-        pairs <- ConstrainedFuture.either(
+        pairs <- SQLFutureE(
           instance
             .reader
-            .getRelationPairs(query))(errors.recoverSQLException)
+            .getRelationPairs(query))
 
         s <- cfStart
         table <- cfTable
 
         paths <- allPaths(s, pairs)
-        populatedPaths <- ConstrainedFuture.either(EitherOps.sequence(
+        populatedPaths <- SQLFutureE(EitherOps.sequence(
             paths.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
-        )(errors.recoverSQLException)
+        )
       } yield populatedPaths
-    }
+    }.asCFuture
   }
 
   override def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(
@@ -167,20 +170,22 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       Operation.writeOp(
         view => {
           // set off non-dependent operations asynchronously
-          val cfLeftTable = ConstrainedFuture.eitherR(instance.lookupTable(sa.tableName))
-          val cfRightTable = ConstrainedFuture.eitherR(instance.lookupTable(sb.tableName))
+          val cfLeftTable = SQLFutureE(instance.lookupTable(sa.tableName))
+          val cfRightTable = SQLFutureE(instance.lookupTable(sb.tableName))
           val cfSeq =
-            ConstrainedFuture.eitherR(
+            SQLFutureE(
               EitherOps.sequence(
                 t.map {
                   case CompletedRelation(a, r, b) =>
-                    sd.getRelation(r).flatMap(
-                      r =>
-                        instance
-                          .lookupRelation(r)
-                          .map(
-                            r => (sa.getDBObject(a), r, sb.getDBObject(b))
-                          )
+                    sd.getRelation(r)
+                      .leftMap(SQLMissingRelation)
+                      .flatMap(
+                        r =>
+                          instance
+                            .lookupRelation(r)
+                            .map(
+                              r => (sa.getDBObject(a), r, sb.getDBObject(b))
+                            )
                     )
 
                 }
@@ -195,24 +200,23 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
             processedSeq <- cfSeq
             _ <- instance.writer.insertObjects(newView, newCommit, leftTable, rightTable, processedSeq)
           } yield newView
-        }
-
+        }.asCFuture
       )
   }
 
-  private def compilePathQuery[A](query: FindPair[A, A], schemaDescription: SchemaDescription, v: View): ConstrainedFuture[E, String] =
-    ConstrainedFuture.eitherR(
+  private def compilePathQuery[A](query: FindPair[A, A], schemaDescription: SchemaDescription, v: View): SQLFuture[String] =
+    SQLFutureE (
       for {
-        unsafe <- query.getUnsafe
+        unsafe <- query.getUnsafe.leftMap(SQLMissingRelation)
         pathQuery = PathFindingQuery(unsafe)(instance)
         stringQuery <- pathQuery.render(v)
       } yield stringQuery
     )
 
-  private def compilePairQuery[A, B](query: FindPair[A, B], sd: SchemaDescription, v: View): ConstrainedFuture[E, String] =
-    ConstrainedFuture.eitherR(
+  private def compilePairQuery[A, B](query: FindPair[A, B], sd: SchemaDescription, v: View): SQLFuture[String] =
+    SQLFutureE(
       for {
-        unsafe <- query.getUnsafe
+        unsafe <- query.getUnsafe.leftMap(SQLMissingRelation)
         left <- instance.lookupTable (unsafe.leftMostTable)
         right <- instance.lookupTable (unsafe.rightMostTable)
         pairQuery = CompletedPairQuery (unsafe, left, right) (instance)
@@ -220,34 +224,32 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       } yield stringQuery
     )
 
-  private def compileSingleQuery[A](query: FindSingle[A], sd: SchemaDescription, v: View): ConstrainedFuture[E, String] =
-    ConstrainedFuture.eitherR(
+  private def compileSingleQuery[A](query: FindSingle[A], sd: SchemaDescription, v: View): SQLFuture[String] =
+    SQLFutureER(
       for {
-        unsafe <- query.getUnsafe
-        table <- instance.lookupTable (unsafe.table)
+        unsafe <- query.getUnsafe.leftMap(SQLMissingRelation)
+        table <- instance.lookupTable(unsafe.table)
         pairQuery = CompletedSingleQuery(unsafe, table, sd) (instance)
-        stringQuery <- pairQuery.render (v)
+        stringQuery <- pairQuery.render(v)
       } yield stringQuery
     )
 
-  private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): ConstrainedFuture[E, Option[List[ObjId]]] =
-    ConstrainedFuture.point[E, Option[List[ObjId]]] {
+  private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Option[List[ObjId]]] =
+    SQLFuture {
       for {
         s <- s
         e <- e
         index = pairs.collectSets(identity)
         res <- Algorithms.breadthFirstSearch[ObjId](s, k => index.getOrElse(k, Set()), e)
       } yield res
-    }(errors.recoverSQLException)
+    }
 
-  private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): ConstrainedFuture[E, Set[List[ObjId]]] =
-    ConstrainedFuture.point[E, Set[List[ObjId]]] {
+  private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Set[List[ObjId]]] =
+    SQLFuture {
       val index = pairs.collectSets(identity)
       s match {
         case None => Set()
         case Some(start) => Algorithms.allPaths(start, k => index.getOrElse(k, Set()))
       }
-  }(errors.recoverSQLException)
-
-
+  }
 }

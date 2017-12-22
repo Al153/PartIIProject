@@ -20,8 +20,7 @@ case class PathMemberQuery(
     ViewsTable.wrapView(v, precomputedView) {
       s"""
          |WITH ${SQLDB.singleTable} AS ${Definitions.getTableWithView(table.name, precomputedView)}
-         | ${extractMainQuery(sa.prototype, table)}
-        """.stripMargin
+         | ${extractMainQuery(sa.prototype, table)}""".stripMargin
     }
   }
 
@@ -39,7 +38,7 @@ case class PathMemberQuery(
                           desc: UnsafeFindable
                         ): String =
     (1 until desc.pattern.length)
-      .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} as ${SQLColumnName.leftColumn(i)}")
+      .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.leftColumn(i)}")
       .mkString(", ")
 
   private def conditions: String = ids.map(id => s"(${SQLDB.singleTable}.${SQLColumnName.objId} = $id)").mkString(" OR ")

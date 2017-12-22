@@ -28,7 +28,7 @@ class JDBCReader(implicit instance: SQLInstance) {
     * get a single ObjectId
     */
 
-  def getObj(query: String): E \/ ObjId = {
+  def getObj(query: String): SQLEither[ObjId] = {
     val rs = getResultSet(query)
     if (rs.next()) {
       getObjId(rs, Single)
@@ -295,14 +295,18 @@ class JDBCReader(implicit instance: SQLInstance) {
     */
 
 
-  def getPathfindingFound[A](ids: TraversableOnce[ObjId], table: ObjectTable, v: View)(implicit sa: SchemaObject[A]): E \/ Path[A] = {
+  def getPathfindingFound[A](
+                              ids: TraversableOnce[ObjId],
+                              table: ObjectTable,
+                              v: View
+                            )(implicit sa: SchemaObject[A]): SQLEither[Path[A]] = {
     val query = PathMemberQuery(ids, sa.erased, table)
     val rs = getResultSet(query.render(v))
     val aComponents = sa.getSchemaComponents
 
-    var result = Vector.newBuilder[A].right[E]
+    var result = Vector.newBuilder[A].right[SQLError]
     while (result.isRight && rs.next()) {
-      var aRow = Vector.newBuilder[DBCell].right[E]
+      var aRow = Vector.newBuilder[DBCell].right[SQLError]
 
       // Extract vectors from the rs
       for ((component, i) <- aComponents.zipWithIndex) {
@@ -314,7 +318,7 @@ class JDBCReader(implicit instance: SQLInstance) {
 
       result = for {
         aRes <- aRow
-        a <- sa.fromRow(DBObject(aRes.result()))
+        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
         r <- result
       } yield r += a
     }
@@ -355,6 +359,7 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   private def getResultSet(q: String): ResultSet = {
+    println("Read query = " + q)
     val stmt = instance.connection.createStatement()
     stmt.executeQuery(q)
   }
