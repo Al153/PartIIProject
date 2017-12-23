@@ -42,7 +42,7 @@ object Query {
     case JoinRename((asLeft, left), (asRight, right), on) =>
       val newLeft = removeAliases(left)
       val newRight = removeAliases(right)
-      s"(${render(newLeft)}) AS $asLeft INNER JOIN (${render(newRight)}) AS $asRight ON ${JoinMapping.render(on, asLeft, asRight)}"
+      s"${optionalBrackets(render(newLeft))} AS $asLeft INNER JOIN ${optionalBrackets(render(newRight))} AS $asRight ON ${JoinMapping.render(on, asLeft, asRight)}"
     case JoinSimple(l, r, on) => s"$l INNER JOIN $r ON ${JoinMapping.render(on, l, r)}"
   }
 

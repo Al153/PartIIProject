@@ -70,7 +70,6 @@ trait Pathfinding { self: HasBackend =>
 
   @Test
   def AllShortestPaths(): Unit = {
-    // A -> B -> E -> F -> G
     val expectedPaths = Set(
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred, Fred -> Georgie)),
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred)),

@@ -46,14 +46,10 @@ object ViewsTable {
   val commitID: SQLColumnName = SQLColumnName.commitId
 
   private[ViewsTable] def definition(v: View): String =
-    s"""
-       |WITH RECURSIVE ${v.name}
-       |AS (${getViewIntermediate(v)})""".stripMargin
+    s"WITH RECURSIVE ${v.name} AS (${getViewIntermediate(v)})"
 
   def withView(v: View)(query: String): String =
-    s"""
-       |${definition(v)}
-       |($query)""".stripMargin
+    s"${definition(v)} ($query)"
   
   private def getViewIntermediate(v: View) =
     s"SELECT ${SQLColumnName.commitId} FROM $tableName " +

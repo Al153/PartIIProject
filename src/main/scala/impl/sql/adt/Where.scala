@@ -22,9 +22,11 @@ object Where {
 
 object WhereTable {
   def render(w: WhereTable): String = w match {
-    case Pattern(f) => "WHERE " + f.pattern.zipWithIndex.collect {
-      case (Some(v), i) => s"${column(i)} = ${Conversions.dbCellToSQLValue(v)}"
-    }.mkString(" AND ")
+    case Pattern(f) =>
+      val conditions = f.pattern.zipWithIndex.collect {
+        case (Some(v), i) => s"${column(i)} = ${Conversions.dbCellToSQLValue(v)}"
+      }
+      if (conditions.nonEmpty) "WHERE " + conditions.mkString(" AND ") else ""
 
     case NoConstraint => ""
   }
