@@ -68,7 +68,7 @@ object Query {
       preTraversal <- getExactly(temporaryView, n, rel.leftMostTable) // computer the traversal up to the start of the upto
       preTraversalName <- CompilationContext.newSubexpression(preTraversal) // give it a name
 
-      rec <- CompilationContext.newRecursive {
+      rec <- CompilationContext.fixedPoint {
         recursiveCall =>
           Union(
             SelectWhere(Simple, NoConstraint, Var(preTraversalName)), // basis case: pretraversal
@@ -222,21 +222,26 @@ object Query {
 
   }
 
+  /**
+    * Finds pairs linked by upto n traversals of the precomputed table
+    * @param precomputed
+    * @param n
+    * @param emptyRelationTable
+    * @return
+    */
   private def getUpto(precomputed: VarName, n: Int, emptyRelationTable: TableName): Compilation[Query] = {
-    // do an upto with a precomputed view
     for {
-      lim <- CompilationContext.newSymbol
-      alias <- CompilationContext.newSymbol
+      limit <- CompilationContext.newSymbol
       baseCase <- allFrom(emptyRelationTable)
       baseCase1 <- optionalAlias(baseCase)
 
-      recName <- CompilationContext.newRecursive{
+      recName <- CompilationContext.fixedPoint {
         recursiveCall =>
           Union(
-            SelectWhere(StartLimit(lim, All), NoConstraint, baseCase1), // basis case: pretraversal
+            SelectWhere(StartLimit(limit, All), NoConstraint, baseCase1), // basis case: pretraversal
             SelectWhere( // add values to it
-              WithLimit(lim, Joined(recursiveCall, precomputed)),
-              Limit(lim, n),
+              WithLimit(limit, Joined(recursiveCall, precomputed)),
+              Limit(limit, n),
               JoinSimple(recursiveCall, precomputed, Chained))
           )
       }

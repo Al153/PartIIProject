@@ -48,7 +48,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
     for {
       withLeftIds <- getLeftIds(leftTable, t)
       withRightIds <- getRightIds(rightTable, withLeftIds)
-      preExisting <- getExistingRelations(withRightIds.mapProj2.toSet, view) // todo: we need to join each table with this
+      preExisting <- getExistingRelations(withRightIds.mapProj2.toSet, view)
       toAdd = withRightIds.filter {_ notIn preExisting}
       res <- insertRelations(toAdd, commit)
     } yield res
@@ -77,26 +77,33 @@ class JDBCWriter(implicit instance: SQLInstance) {
   private def getLeftIds(
                   leftTable: ObjectTable,
                   t: TraversableOnce[(DBObject, RelationTable, DBObject)]
-                ): SQLFuture[List[(ObjId, RelationTable, DBObject)]] =
+                ): SQLFuture[List[(ObjId, RelationTable, DBObject)]] = {
+
+    val getObj = new Memo(leftTable.insertOrGetObject)
     t.foldRight(SQLFutureI[List[(ObjId, RelationTable, DBObject)]](List())) {
       case ((lObject, relTable, rObject), cfList) =>
         for {
-          lId <- leftTable.insertOrGetObject(lObject)
+          lId <- getObj(lObject)
           list <-cfList
         } yield (lId, relTable, rObject) :: list
     }
+  }
+
 
   private def getRightIds(
                   rightTable: ObjectTable,
                   t: List[(ObjId, RelationTable, DBObject)]
-                 ): SQLFuture[List[(ObjId, RelationTable, ObjId)]] =
+                 ): SQLFuture[List[(ObjId, RelationTable, ObjId)]] = {
+    val getObject = new Memo(rightTable.insertOrGetObject)
     t.foldRight(SQLFutureI[List[(ObjId, RelationTable, ObjId)]](List())) {
       case ((lId, relTable, rObject), cfList) =>
         for {
-          rId <- rightTable.insertOrGetObject(rObject)
+          rId <- getObject(rObject)
           list <- cfList
         } yield (lId, relTable, rId) :: list
     }
+  }
+
 
   private def getExistingRelations(
                                     t: Set[RelationTable],

@@ -6,7 +6,7 @@ import impl.sql._
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.{Commit, ObjId}
 
-class RelationTable(val name: RelationTableName, fromTable: ObjectTable,  toTable: ObjectTable)(implicit val instance: SQLInstance) extends SQLTable {
+class RelationTable(val name: RelationTableName, leftTable: ObjectTable, rightTable: ObjectTable)(implicit val instance: SQLInstance) extends SQLTable {
   import RelationTable._
   import instance.executionContext
 
@@ -30,8 +30,8 @@ class RelationTable(val name: RelationTableName, fromTable: ObjectTable,  toTabl
 
   override def schema: SQLSchema = SQLSchema(
     Map(
-      leftIdColumn -> SQLForeignRef(toTable),
-      rightIdColumn -> SQLForeignRef(fromTable),
+      leftIdColumn -> SQLForeignRef(leftTable),
+      rightIdColumn -> SQLForeignRef(rightTable),
       commitId -> SQLForeignRef(instance.commitsRegistry)
     )
   )

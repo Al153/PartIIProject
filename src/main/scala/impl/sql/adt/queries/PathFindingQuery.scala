@@ -15,15 +15,9 @@ case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
 
     val (context, q) = Query.convertPair(p).run(Query.emptyContext)
     for {
-      tableDefs <- EitherOps.sequence(
-        for {
-          (name, sqlName) <- context.getTableDefs
-        } yield instance.lookupTable(name).withSnd(sqlName))
+      defs <- context.getDefs(instance)
+      (tableDefs, relationDefs) = defs
 
-
-      relationDefs <- EitherOps.sequence(for {
-        (rel, sqlName) <- context.getRelationDefs
-      } yield instance.lookupRelation(rel).withSnd(sqlName))
     } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
       s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${optionalBrackets(SQLDB.mainQuery)}"
     }

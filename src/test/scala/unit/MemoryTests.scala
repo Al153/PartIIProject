@@ -15,6 +15,7 @@ class MemoryTests extends HasBackend
   with Repetition
   with LoopedRepetition
   with ComplexRepetition
+  with SimplePathFinding
   with Pathfinding {
   override val backend: DBBackend = MemoryDB
   implicit override val ec: ExecutionContext = Implicits.global

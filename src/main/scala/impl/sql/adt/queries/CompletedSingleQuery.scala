@@ -20,15 +20,8 @@ case class CompletedSingleQuery(
   def render(v: View): SQLEither[String] = {
     val (context, q) = Query.convertSingle(p).run(Query.emptyContext)
     for {
-      tableDefs <- EitherOps.sequence(
-        for {
-          (name, sqlName) <- context.getTableDefs
-        } yield instance.lookupTable(name).withSnd(sqlName))
-
-
-      relationDefs <- EitherOps.sequence(for {
-        (rel, sqlName) <- context.getRelationDefs
-      } yield instance.lookupRelation(rel).withSnd(sqlName))
+      defs <- context.getDefs(instance)
+      (tableDefs, relationDefs) = defs
 
       tablePrototype <- sd.lookupTable(p.table).leftMap(SQLExtractError)
 

@@ -1,53 +1,39 @@
 package unit.suites
 
-import core.containers.{Operation, PathImpl}
-import core.dsl.Commands._
-import core.error.E
-import core.relations.CompletedRelation
 import core.backend.interfaces.{DBInstance, Empty}
 import core.backend.using
-import org.junit.Test
+import core.containers.{Operation, PathImpl}
+import core.dsl.Commands.{allShortestPaths, insert, shortestPath}
+import core.error.E
+import core.relations.CompletedRelation
 import core.schema.SchemaObject
+import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
+import concurrent.duration._
 import scalaz.{-\/, \/-}
 
-trait Pathfinding {
-  self: HasBackend =>
-
-
+/**
+  * Created by Al on 23/12/2017.
+  */
+trait SimplePathFinding {self: HasBackend =>
   /*
-    * A number of tests of the pathfinding algorithms
-    *
-    * A -> B -> E -> F -> G
-    *      |    ^    ^
-    *     \/    |    |
-    *      C -> D -> H
-    *      ^    |
-    *      |   \/
-    *      J <- I
-    */
+      * A number of tests of the pathfinding algorithms
+      *
+      * A -> B -> E -> F -> G
+      */
 
   private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(Set(
     CompletedRelation(Alice, Knows, Bob),
     CompletedRelation(Bob, Knows, Eve),
-    CompletedRelation(Bob, Knows, Charlie),
-    CompletedRelation(Charlie, Knows, David),
-    CompletedRelation(David, Knows, Eve),
     CompletedRelation(Eve, Knows, Fred),
-    CompletedRelation(Fred, Knows, Georgie),
-    CompletedRelation(David, Knows, Hannah),
-    CompletedRelation(Hannah, Knows, Fred),
-    CompletedRelation(David, Knows, Ian),
-    CompletedRelation(Ian, Knows, Jane),
-    CompletedRelation(Jane, Knows, Charlie)
+    CompletedRelation(Fred, Knows, Georgie)
   ))
 
   @Test
-  def ShortestPath(): Unit = {
+  def SimpleShortestPath(): Unit = {
     // A -> B -> E -> F -> G
     val expectedPath = new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred, Fred -> Georgie))
     val op = using(backend.open(Empty, description)) {
@@ -60,7 +46,7 @@ trait Pathfinding {
     }
 
     Await.result(
-      op.run, 2.seconds
+      op.run , 2.seconds
     ) match {
       case \/-(_) => ()
       case -\/(e) => throw new Throwable {
@@ -70,19 +56,12 @@ trait Pathfinding {
   }
 
   @Test
-  def AllShortestPaths(): Unit = {
+  def SimpleAllShortestPaths(): Unit = {
     val expectedPaths = Set(
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred, Fred -> Georgie)),
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred)),
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve)),
-      new PathImpl(Vector(Alice -> Bob)),
-      new PathImpl(Vector(Alice -> Bob, Bob -> Charlie)),
-      new PathImpl(Vector(Alice -> Bob, Bob -> Charlie, Charlie -> David)),
-      new PathImpl(Vector(Alice -> Bob, Bob -> Charlie, Charlie -> David, David -> Hannah)),
-      new PathImpl(Vector(Alice -> Bob, Bob -> Charlie, Charlie -> David, David -> Ian)),
-      new PathImpl(Vector(Alice -> Bob, Bob -> Charlie, Charlie -> David, David -> Hannah)),
-      new PathImpl(Vector(Alice -> Bob, Bob -> Charlie, Charlie -> David, David -> Ian, Ian -> Jane))
-
+      new PathImpl(Vector(Alice -> Bob))
     )
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
@@ -94,7 +73,7 @@ trait Pathfinding {
     }
 
     Await.result(
-      op.run, 2.seconds
+      op.run , 2.seconds
     ) match {
       case \/-(_) => ()
       case -\/(e) => throw new Throwable {
@@ -104,7 +83,7 @@ trait Pathfinding {
   }
 
   @Test
-  def noEnd(): Unit = {
+  def SimpleNoEnd(): Unit = {
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
@@ -119,7 +98,7 @@ trait Pathfinding {
     }
 
     Await.result(
-      op.run, 2.seconds
+      op.run , 2.seconds
     ) match {
       case \/-(_) => ()
       case -\/(e) => throw new Throwable {
@@ -127,4 +106,6 @@ trait Pathfinding {
       }
     }
   }
+
+
 }

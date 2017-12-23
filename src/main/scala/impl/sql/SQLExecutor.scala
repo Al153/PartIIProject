@@ -111,16 +111,24 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
         s <- cfStart
         e <- cfEnd
 
+        _ = println("Start = " + s)
+        _ = println("end = " + s)
+
         query <- compilePathQuery(t.tree(sd), sd, v)
+
+      _ = println("path query = (" +  query + ")")
+
         pairs <- SQLFutureE(
           instance
             .reader
             .getRelationPairs(query))
 
+        _ = println(pairs)
 
         table <- cfTable
 
         path <- findPath(s, e, pairs)
+        _ = println(path)
         populatedPath <- SQLFutureE(EitherOps.switch(
           path.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
         )

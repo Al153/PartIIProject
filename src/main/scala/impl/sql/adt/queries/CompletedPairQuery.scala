@@ -30,17 +30,8 @@ case class CompletedPairQuery(
     val (context, q) = Query.convertPair(p).run(Query.emptyContext)
 
     for {
-      tableDefs <- EitherOps.sequence(
-        for {
-          (name, sqlName) <- context.getTableDefs
-        } yield instance.lookupTable(name).withSnd(sqlName))
-
-
-      relationDefs <- EitherOps.sequence(for {
-        (rel, sqlName) <- context.getRelationDefs
-      } yield instance.lookupRelation(rel).withSnd(sqlName))
-
-
+      defs <- context.getDefs(instance)
+      (tableDefs, relationDefs) = defs
       leftPrototype <- instance.schema.lookupTable(p.leftMostTable).leftMap(SQLExtractError)
       rightPrototype <- instance.schema.lookupTable(p.rightMostTable).leftMap(SQLExtractError)
 

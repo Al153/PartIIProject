@@ -25,6 +25,8 @@ import scalaz._
   * Relation Table: (Commit_id, left_id, right_id)
   * Object Tables: (obj_id, arbitrary columns)
   */
+
+// Todo: need to keep track of which views an object is visible from
 trait SQLTable {
 
   override def toString: String = name.toString

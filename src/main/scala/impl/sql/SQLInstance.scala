@@ -143,6 +143,8 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
   def writeBatch(queries: TraversableOnce[String]): SQLFuture[Unit] = SQLFutureE {writeBatchEither(queries)}
 
   def writeBatchEither(queries: TraversableOnce[String]): SQLEither[Unit] = SQLEither {
+
+    println("Batch write = " + queries.mkString("\n\t\t"))
     val stmt = connection.createStatement()
     for (query <- queries) stmt.addBatch(query)
     stmt.executeBatch()

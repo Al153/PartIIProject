@@ -3,6 +3,8 @@ package impl.sql.adt
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.TableName
 import core.utils._
+import impl.sql.tables.{ObjectTable, RelationTable}
+import impl.sql.{SQLEither, SQLInstance, SQLTableName}
 
 import scalaz.State
 
@@ -45,6 +47,20 @@ case class CompilationContext(
 
   def getRelationDefs: Map[ErasedRelationAttributes, VarName] = relations // idea: get definitions of relations
   def getTableDefs: Map[TableName, VarName] = requiredTables // ditto but for object tables
+
+  def getDefs(
+               instance: SQLInstance
+             ): SQLEither[(Iterable[(ObjectTable, VarName)], Iterable[(RelationTable, VarName)])] =  for {
+    tableDefs <- EitherOps.sequence(
+      for {
+        (name, sqlName) <- getTableDefs
+      } yield instance.lookupTable(name).withSnd(sqlName))
+
+
+    relationDefs <- EitherOps.sequence(for {
+      (rel, sqlName) <- getRelationDefs
+    } yield instance.lookupRelation(rel).withSnd(sqlName))
+  } yield (tableDefs, relationDefs)
 }
 
 object CompilationContext {
@@ -70,7 +86,13 @@ object CompilationContext {
       initial.newCommonSubExpression(q)
   }
 
-  def newRecursive(f: VarName => Query): Compilation[VarName] = State {
+  /**
+    * Fixed point function to create a recursive query
+     * @param f
+    * @return
+    */
+
+  def fixedPoint(f: VarName => Query): Compilation[VarName] = State {
     initial: CompilationContext =>
       initial.newRecursive(f)
   }
