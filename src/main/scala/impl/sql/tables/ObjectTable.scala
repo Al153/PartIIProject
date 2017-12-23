@@ -9,7 +9,7 @@ import impl.sql.errors.ColumnMismatchException
 import impl.sql.types.{Commit, ObjId}
 import impl.sql.{ObjectTableName, SQLColumnName, SQLFuture, SQLInstance, errors}
 import impl.sql.jdbc.Conversions._
-import impl.sql.schema.{SQLPrimaryRef, SQLSchema, SQLType}
+import impl.sql.schema.{SQLForeignRef, SQLPrimaryRef, SQLSchema, SQLType}
 import impl.sql._
 
 import scalaz.Scalaz._
@@ -31,9 +31,7 @@ class ObjectTable(
   
   // search for an appropriate object in the view, if there isn't, insert one to the new commit. return the ObjId
   def insertOrGetObject(
-                         dBObject: DBObject,
-                         view: View,
-                         newCommit: Commit
+                         dBObject: DBObject
                        ): SQLFuture[ObjId] = SQLFutureE {
     val temp = "insertOrGetTemp"
     val pairs = createComparisons(dBObject)
@@ -45,7 +43,7 @@ class ObjectTable(
        |  INSERT INTO $name ($columnNames)
        |  SELECT $values WHERE NOT EXISTS (SELECT 0 FROM $name WHERE $pairs)
        |  RETURNING $objId
-       |) SELECT * FROM $temp UNION ALL (SELECT $objId FROM $name WHERE $pairs);""".stripMargin
+       |) SELECT * FROM $temp UNION ALL (SELECT $objId FROM $name WHERE $pairs)""".stripMargin
 
     instance.reader.getObj(query)
   }

@@ -63,7 +63,7 @@ trait ReadWrite { self: HasBackend =>
             CompletedRelation(Alice, Knows, Charlie)
           ))
           res1 <- findPairs(Knows)
-          r <- assertEqOp(expectedPairs, res1, "Write duplicates failure")
+          r <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write duplicates failure")
         } yield r
     }
 

@@ -1,7 +1,7 @@
 package impl.sql.tables
 
-import core.containers.ConstrainedFuture
-import core.error.E
+import ViewsTable._
+import core.view.View
 import impl.sql._
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.{Commit, ObjId}
@@ -12,16 +12,19 @@ class RelationTable(val name: RelationTableName, fromTable: ObjectTable,  toTabl
 
   def insertRelation(leftId: ObjId, rightId: ObjId, commit: Commit): String =
     s"INSERT INTO $name ($leftIdColumn, $commitId, $rightIdColumn) " +
-      s"VALUES (${leftId.id}, ${commit.id}, ${rightId.id});"
+      s"VALUES (${leftId.id}, ${commit.id}, ${rightId.id})"
 
   // Todo: need to pass around view name in case of concurrent accesses
   def getExistingRelations(
-                            precomputedView: PrecomputedView
+                            view: View
                           ): SQLFuture[Set[(ObjId, ObjId)]] = SQLFutureE {
-    val q =
-      s"""SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM
-         | $name JOIN $precomputedView
-         | ON $name.$commitId = $precomputedView.$commitId;""".stripMargin
+    val q = withView(view){
+      s"""
+         |SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM
+         | $name JOIN ${view.name}
+         | ON $name.$commitId = ${view.name}.$commitId""".stripMargin
+
+    }
     instance.reader.getRelationPairs(q)
   }
 

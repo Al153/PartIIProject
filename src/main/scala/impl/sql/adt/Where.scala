@@ -3,6 +3,7 @@ package impl.sql.adt
 import core.backend.common.DBCell
 import core.intermediate.unsafe.UnsafeFindable
 import impl.sql.SQLColumnName.{column, leftId, rightId}
+import impl.sql.jdbc.Conversions
 
 sealed trait WhereTable
 sealed trait Where
@@ -22,11 +23,9 @@ object Where {
 object WhereTable {
   def render(w: WhereTable): String = w match {
     case Pattern(f) => "WHERE " + f.pattern.zipWithIndex.collect {
-      case (Some(v), i) => s"${column(i)} == ${dbCellTovalue(v)}"
+      case (Some(v), i) => s"${column(i)} = ${Conversions.dbCellToSQLValue(v)}"
     }.mkString(" AND ")
 
     case NoConstraint => ""
   }
-
-  private def dbCellTovalue(d: DBCell): String = d.toString
 }

@@ -12,6 +12,18 @@ import scalaz._
 
 /**
   * Created by Al on 10/12/2017.
+  *
+  *
+  * Model:
+  *
+  * Defaults table holds a single entry: default view
+  *
+  * Views registry: one column: all valid views
+  * Commits registry: One column: all valid commits
+  * Views Table: Maps Views -> commits
+  *
+  * Relation Table: (Commit_id, left_id, right_id)
+  * Object Tables: (obj_id, arbitrary columns)
   */
 trait SQLTable {
 

@@ -34,7 +34,7 @@ class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
   }
 
   private def initialiseDefaultView: SQLEither[Unit] = {
-    instance.doWriteEither(s"INSERT INTO $name (${DefaultsTable.viewId}) VALUES(0);")
+    instance.doWriteEither(s"INSERT INTO $name (${DefaultsTable.viewId}) VALUES(0)")
   }
 
   override def schema: SQLSchema = SQLSchema(

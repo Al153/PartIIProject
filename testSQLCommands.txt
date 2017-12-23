@@ -17,9 +17,17 @@ SELECT table_name FROM information_schema.tables
 
 
 
-CREATE OR REPLACE VIEW VIEW_d49fbbe9_2232_465f_95e2_86c94d78cf11
-AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1);
+WITH VIEW_1
+AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1)
 
-WITH Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_d49fbbe9_2232_465f_95e2_86c94d78cf11 ON REL_0_0.CommitId = VIEW_d49fbbe9_2232_465f_95e2_86c94d78cf11.CommitId), Table2 AS (SELECT obj_id FROM USERSPACE_People_0 JOIN VIEW_d49fbbe9_2232_465f_95e2_86c94d78cf11 ON USERSPACE_People_0.CommitId = VIEW_d49fbbe9_2232_465f_95e2_86c94d78cf11.CommitId), main_query AS (WITH Var1 AS (SELECT * FROM (Relation0) ); SELECT Var5.left_id AS left_id, Var6.right_id AS right_id FROM (((SELECT Var3.left_id AS left_id, Var4.right_id AS right_id FROM (((Var1) AS Var3) INNER JOIN ((Var1) AS Var4) ON Var3.right_id = Var4.left_id) ) AS Var5) INNER JOIN ((SELECT Var3.left_id AS left_id, Var4.right_id AS right_id FROM (((Var1) AS Var3) INNER JOIN ((Var1) AS Var4) ON Var3.right_id = Var4.left_id) ) AS Var6) ON Var5.right_id = Var6.left_id) ; DROP VIEW Var1)
- SELECT left_table.col_1 AS left_col_1, right_table.col_1 AS right_col_1 FROM (((USERSPACE_People_0 AS left_table) JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN (USERSPACE_People_0 AS right_table) ON right_id = right_table.obj_id);
-DROP VIEW VIEW_d49fbbe9_2232_465f_95e2_86c94d78cf11
+WITH Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), Table1 AS (SELECT obj_id FROM USERSPACE_People_0 JOIN VIEW_1 ON USERSPACE_People_0.CommitId = VIEW_1.CommitId), main_query AS (SELECT Var4.left_id AS left_id, Var5.right_id AS right_id FROM (((SELECT Var2.left_id AS left_id, Var2.right_id AS right_id FROM (((SELECT * FROM (Relation0) ) AS Var2) INNER JOIN ((SELECT obj_id AS left_id, obj_id AS right_id FROM Table1 WHERE ) AS Var3) ON Var2.right_id = Var3.right_id) ) AS Var4) INNER JOIN ((SELECT * FROM (Relation0) ) AS Var5) ON Var4.right_id = Var5.left_id) )
+ SELECT left_table.col_1 AS left_col_1, right_table.col_1 AS right_col_1 FROM (((USERSPACE_People_0 AS left_table) JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN (USERSPACE_People_0 AS right_table) ON right_id = right_table.obj_id);;
+
+
+WITH VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1)(WITH Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), main_query AS (SELECT * FROM (Relation0)) SELECT left_table.col_1 AS left_col_1, right_table.col_1 AS right_col_1 FROM (((USERSPACE_People_0 AS left_table) JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN (USERSPACE_People_0 AS right_table) ON right_id = right_table.obj_id))
+
+WITH VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1) (WITH Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), main_query AS (SELECT * FROM (Relation0))(SELECT left_id, right_id FROM main_query))
+
+
+
+WITH VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1), Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), main_query AS (SELECT * FROM Relation0)

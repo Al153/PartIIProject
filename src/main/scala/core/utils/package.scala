@@ -129,9 +129,9 @@ package object utils {
   }
 
   implicit class MaplikePrefixOps[A](a: A) {
-    def in[B](m: MapLike[A, B, _]): Boolean = m.contains(a)
+    def in[A1 >: A, B](m: MapLike[A1, B, _]): Boolean = m.contains(a)
     def notIn[B](m: MapLike[A, B, _]): Boolean = !m.contains(a)
-    def in[B](s: SetLike[A, _]): Boolean = s.contains(a)
+    def in[A1 >: A, B](s: SetLike[A1, _]): Boolean = s.contains(a)
     def notIn[B](s: SetLike[A, _]): Boolean = !s.contains(a)
   }
 

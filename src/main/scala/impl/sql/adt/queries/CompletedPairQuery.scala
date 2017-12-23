@@ -4,12 +4,13 @@ import core.intermediate.unsafe.{UnsafeFindPair, UnsafeFindable}
 import core.utils._
 import core.view.View
 import impl.sql._
-import impl.sql.adt.{Definitions, Query, VarName}
+import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.SQLExtractError
-import impl.sql.tables.{ObjectTable, ViewsTable}
-import scalaz._, Scalaz._
+import impl.sql.tables.ObjectTable
 
-// todo: need to process views
+import scalaz._
+
+
 /**
   * Query renders to find and extract full objects from the database
   * @param p - compiled query
@@ -27,7 +28,6 @@ case class CompletedPairQuery(
     // render query to string
 
     val (context, q) = Query.convertPair(p).run(Query.emptyContext)
-    val precomputedView = PrecomputedView() // generate a view to get all the commit ids
 
     for {
       tableDefs <- EitherOps.sequence(
@@ -44,11 +44,8 @@ case class CompletedPairQuery(
       leftPrototype <- instance.schema.lookupTable(p.leftMostTable).leftMap(SQLExtractError)
       rightPrototype <- instance.schema.lookupTable(p.rightMostTable).leftMap(SQLExtractError)
 
-    } yield ViewsTable.wrapView(v, precomputedView) {
-      s"""
-         |WITH ${Definitions.get(relationDefs, tableDefs, context.commonSubExpressions , q, precomputedView)}
-         | ${extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)};
-         |""".stripMargin
+    } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
+      extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)
     }
   }
 
@@ -62,17 +59,17 @@ case class CompletedPairQuery(
                         rightTable: ObjectTable
                       ): String = {
     s"SELECT ${getColumns(leftProto, rightProto)} " +
-      s"FROM (${getRightJoin(rightTable, getLeftJoin(leftTable))});"
+      s"FROM ${optionalBrackets(getRightJoin(rightTable, getLeftJoin(leftTable)))}"
   }
 
 
   // the joins
   private def getLeftJoin(leftTable: ObjectTable): String =
-    s"(${getLeftTable(leftTable)}) JOIN ${SQLDB.mainQuery} " +
+    s"${getLeftTable(leftTable)} JOIN ${SQLDB.mainQuery} " +
       s"ON ${SQLDB.leftmostTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.leftId}"
 
   private def getRightJoin(rightTable: ObjectTable, leftAndMainQuery: String): String =
-    s"($leftAndMainQuery) JOIN (${getRightTable(rightTable)}) " +
+    s"($leftAndMainQuery) JOIN ${getRightTable(rightTable)} " +
       s"ON ${SQLColumnName.rightId} = ${SQLDB.rightmostTable}.${SQLColumnName.objId}"
 
   private def getLeftTable(table: ObjectTable): String = s"${table.name} AS ${SQLDB.leftmostTable}"
@@ -84,10 +81,10 @@ case class CompletedPairQuery(
                          rightDescription: UnsafeFindable
                        ): String = {
     val leftPairs =
-      (1 to leftDescription.pattern.length)
+      leftDescription.pattern.indices
         .map(i => s"${SQLDB.leftmostTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.leftColumn(i)}")
     val rightPairs =
-      (1 to rightDescription.pattern.length)
+      rightDescription.pattern.indices
         .map(i => s"${SQLDB.rightmostTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.rightColumn(i)}")
 
     val res = (leftPairs ++ rightPairs).mkString(", ")

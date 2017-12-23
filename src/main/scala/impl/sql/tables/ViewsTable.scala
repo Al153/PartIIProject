@@ -45,22 +45,26 @@ object ViewsTable {
   val viewID: SQLColumnName = SQLColumnName.viewId
   val commitID: SQLColumnName = SQLColumnName.commitId
 
-  def usingView(v: View, precomputedViewName: PrecomputedView): String =
+  private[ViewsTable] def definition(v: View): String =
     s"""
-       |CREATE OR REPLACE VIEW $precomputedViewName
+       |WITH RECURSIVE ${v.name}
        |AS (${getViewIntermediate(v)})""".stripMargin
 
-  def wrapView(v: View, precomputedViewName: PrecomputedView)(query: String): String =
+  def withView(v: View)(query: String): String =
     s"""
-       |${usingView(v, precomputedViewName)};
-       |$query;
-       |${removeView(precomputedViewName)}""".stripMargin
-
+       |${definition(v)}
+       |($query)""".stripMargin
+  
   private def getViewIntermediate(v: View) =
     s"SELECT ${SQLColumnName.commitId} FROM $tableName " +
       s"WHERE ${SQLColumnName.viewId} = ${v.id}"
 
   def removeView(view: PrecomputedView): String = {
     s"DROP VIEW $view"
+  }
+
+  implicit class ViewSyntax(v: View) {
+    def name: String = "VIEW_" + v.id
+    def definition: String = ViewsTable.definition(v)
   }
 }

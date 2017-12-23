@@ -14,8 +14,6 @@ case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
     // render query to string
 
     val (context, q) = Query.convertPair(p).run(Query.emptyContext)
-    val precomputedView = PrecomputedView() // generate a view to get all the commit ids
-
     for {
       tableDefs <- EitherOps.sequence(
         for {
@@ -26,10 +24,8 @@ case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
       relationDefs <- EitherOps.sequence(for {
         (rel, sqlName) <- context.getRelationDefs
       } yield instance.lookupRelation(rel).withSnd(sqlName))
-    } yield ViewsTable.wrapView(v, precomputedView) {
-      s"""
-         |WITH ${Definitions.get(relationDefs, tableDefs, context.commonSubExpressions, q, precomputedView)}
-         |SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${SQLDB.mainQuery}""".stripMargin
+    } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
+      s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${optionalBrackets(SQLDB.mainQuery)}"
     }
   }
 }

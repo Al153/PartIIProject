@@ -16,11 +16,9 @@ case class CompletedSingleQuery(
                                  p: UnsafeFindSingle,
                                  table: ObjectTable,
                                  sd: SchemaDescription
-                               )(implicit instance: SQLInstance) {
+                               )(implicit instance: SQLInstance) extends SingleQuery {
   def render(v: View): SQLEither[String] = {
     val (context, q) = Query.convertSingle(p).run(Query.emptyContext)
-    val precomputedView = PrecomputedView() // generate a view to get all the commit ids
-
     for {
       tableDefs <- EitherOps.sequence(
         for {
@@ -34,10 +32,8 @@ case class CompletedSingleQuery(
 
       tablePrototype <- sd.lookupTable(p.table).leftMap(SQLExtractError)
 
-    } yield ViewsTable.wrapView(v, precomputedView) {
-      s"""
-         |WITH ${Definitions.get(relationDefs, tableDefs, context.commonSubExpressions, q, precomputedView)}
-         | ${extractMainQuery(tablePrototype.prototype, table)}F""".stripMargin
+    } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
+      extractMainQuery(tablePrototype.prototype, table)
     }
   }
 
@@ -46,7 +42,7 @@ case class CompletedSingleQuery(
                                 table: ObjectTable
                               ): String = {
     s"SELECT ${getColumns(prototype)} " +
-      s"FROM ${getJoin(table)}"
+      s"FROM ${optionalBrackets(getJoin(table))}"
   }
 
   private def getJoin(table: ObjectTable): String =
@@ -54,13 +50,4 @@ case class CompletedSingleQuery(
       s"ON ${SQLDB.singleTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.rightId}"
 
   private def getTable(table: ObjectTable): String = s"${table.name} AS ${SQLDB.singleTable}"
-
-  // construct a query to rename columns
-  private def getColumns(
-                          desc: UnsafeFindable
-                        ): String =
-      (1 until desc.pattern.length)
-        .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.leftColumn(i)}")
-        .mkString(", ")
-
 }

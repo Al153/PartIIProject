@@ -1,6 +1,8 @@
 package impl.sql.adt
 
+import core.view.View
 import impl.sql._
+import impl.sql.tables.ViewsTable._
 import impl.sql.tables.{ObjectTable, RelationTable}
 
 /**
@@ -9,44 +11,47 @@ import impl.sql.tables.{ObjectTable, RelationTable}
   * Methods for getting information about definitions in the SQL tree
   */
 object Definitions {
-  def get(
+  def withs(
            relationDefs: Iterable[(RelationTable, VarName)],
            tableDefs: Iterable[(ObjectTable, VarName)],
-           commonSubExpressions: Iterable[(Query, VarName)],
-           mainQuery: Query,
-           precomputedView: PrecomputedView
-         ): String = {
+           commonSubExpressions: Iterable[(SubExpression, VarName)],
+           view: View,
+           mainQuery: Query
+         )(outer: String): String = {
     val relations = relationDefs map {
       case (rt, varName) => varName.toString + " AS " +
-        "(" + getRelationWithView(rt.name, precomputedView) + ")"
+        "(" + getRelationWithView(rt.name, view) + ")"
     }
 
     val tables = tableDefs map {
-      case (ot, varName) => varName.toString + " AS " +
-        "(" + getTableWithView(ot.name, precomputedView) + ")"
+      case (ot, varName) => s"$varName AS (SELECT * FROM $ot)"
     }
 
+
     val subexpressions = commonSubExpressions map {
-      case (q, varName) =>
-        varName.toString + " AS " +
-          "(" + Query.render(q) + ")"
+      case (q, varName) => q match {
+        case SimpleSubExpr(q1) =>
+          varName.toString + " AS " +
+          "(" + Query.render(q1) + ")"
+        case Recursive(q1) =>
+          /* "RECRUSIVE " + */ varName.toString + " AS " +
+            "(" + Query.render(q1) + ")"
+      }
+
     }
 
     val mainQueryPair = SQLDB.mainQuery + " AS (" + Query.render(mainQuery) + ")"
-    (relations ++ tables ++ subexpressions ++ List(mainQueryPair)).mkString(", ")
+    (List(view.definition) ++ relations ++ tables ++ subexpressions ++ List(mainQueryPair)).mkString(", ") + "(" + outer + ")"
   }
 
   // selects with matching view values
-  private def getRelationWithView(r: RelationTableName, precomputedView: PrecomputedView):String =
+  private def getRelationWithView(r: RelationTableName, view: View):String =
     s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${r.name} " +
-      s"JOIN $precomputedView " +
-      s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
+      s"JOIN ${view.name} " +
+      s"ON ${r.name}.${SQLColumnName.commitId} = ${view.name}.${SQLColumnName.commitId}"
 
-  def getTableWithView(r: ObjectTableName, precomputedView: PrecomputedView): String =
+  def getTableWithView(r: ObjectTableName, view: View): String =
     s"SELECT ${SQLColumnName.objId} FROM ${r.name} " +
-      s"JOIN $precomputedView " +
-      s"ON ${r.name}.${SQLColumnName.commitId} = $precomputedView.${SQLColumnName.commitId}"
-
-
-
+      s"JOIN ${view.name} " +
+      s"ON ${r.name}.${SQLColumnName.commitId} = ${view.name}.${SQLColumnName.commitId}"
 }

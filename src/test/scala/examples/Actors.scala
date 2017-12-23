@@ -13,9 +13,6 @@ import scalaz.\/-
 
 /**
   * Created by Al on 15/10/2017.
-  *
-  * Issues/todo:
-  * we want to add filters on the inside of nodes
   */
 class Actors {
 
