@@ -1,11 +1,9 @@
 package impl.sql.adt.queries
 
 import core.intermediate.unsafe.UnsafeFindPair
-import core.utils._
 import core.view.View
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
-import impl.sql.tables.ViewsTable
 
 case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
 

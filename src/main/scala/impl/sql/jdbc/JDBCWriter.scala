@@ -51,6 +51,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
       preExisting <- getExistingRelations(withRightIds.mapProj2.toSet, view)
       toAdd = withRightIds.filter {_ notIn preExisting}
       res <- insertRelations(toAdd, commit)
+      _ <- consolidateAuxiliaryTables(leftTable, rightTable, toAdd, commit)
     } yield res
 
 
@@ -115,6 +116,40 @@ class JDBCWriter(implicit instance: SQLInstance) {
 
       ConstrainedFuture.sequence(sets).map(_.flatten)
     }
+
+  private def consolidateAuxiliaryTables(
+                                          leftTable: ObjectTable,
+                                          rightTable: ObjectTable,
+                                          tuples: List[(ObjId, RelationTable, ObjId)],
+                                          commit: Commit
+                                        ): SQLFuture[Unit] = SQLFutureE {
+    if (leftTable == rightTable) {
+      val toConsolidate = tuples.foldRight(Set[ObjId]()) {
+        case ((left, _, right), s) => (s + left) + right
+      }
+
+      leftTable.auxTable.insertObjects(toConsolidate, commit)
+    } else {
+      val toConsolidateLeft = tuples.foldRight(Set[ObjId]()) {
+        case ((left, _, _), s) => s + left
+      }
+
+
+
+      val toConsolidateRight = tuples.foldRight(Set[ObjId]())
+      {
+        case ((_, _, right), s) => s + right
+      }
+      leftTable
+        .auxTable
+        .insertObjects(toConsolidateLeft, commit)
+        .andThen(
+          rightTable
+            .auxTable
+            .insertObjects(toConsolidateRight, commit)
+        )
+    }
+  }
 }
 
 

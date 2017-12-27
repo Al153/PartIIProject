@@ -104,9 +104,11 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
       for {
         definedTables <- definedTables
         relations <- relationLookup
+        auxiliaryTables = tableLookup.map{case (_, ot) => ot.auxTable.name -> ot.auxTable}
         validated <- EitherOps.sequence(
             for {
-              (name, table) <- constructionTables ++ tableLookup ++ relations // create base tables, then construction tables then relations
+              (name, table) <-
+                constructionTables ++ tableLookup ++ auxiliaryTables ++ relations // Order is important
             } yield table.validateOrCreate(definedTables)
           )
       } yield ()

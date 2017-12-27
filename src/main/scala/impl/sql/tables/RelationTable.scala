@@ -21,8 +21,8 @@ class RelationTable(val name: RelationTableName, leftTable: ObjectTable, rightTa
     val q = withView(view){
       s"""
          |SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM
-         | $name JOIN ${view.name}
-         | ON $name.$commitId = ${view.name}.$commitId""".stripMargin
+         | $name JOIN $viewVar
+         | ON $name.$commitId = $viewVar.$commitId""".stripMargin
 
     }
     instance.reader.getRelationPairs(q)

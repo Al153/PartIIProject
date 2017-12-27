@@ -12,6 +12,8 @@ package object queries {
     */
   def optionalBrackets(s: String): String = if (s.contains(" ")) s"($s)" else s
 
+  def optionalSelect(s: String): String = if (s.contains(" ")) s"($s)" else s"(SELECT * FROM $s)"
+
   /**
     * Adds an alias to a subquery if needed
 

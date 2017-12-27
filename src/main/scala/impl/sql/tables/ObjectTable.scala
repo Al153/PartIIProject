@@ -21,6 +21,8 @@ class ObjectTable(
   import ObjectTable._
   import instance.executionContext
 
+  val auxTable: AuxObjectTable = new AuxObjectTable(this)
+
   def getColumnName(i: Int): E \/ SQLColumnName =
     if (i >= 0 &&  i < tableSchema.length)
       SQLColumnName.column(i).right

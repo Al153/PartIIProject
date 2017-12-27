@@ -49,6 +49,10 @@ case class PrecomputedView() extends SQLTableName {
   override val name: String = s"VIEW_${UUID.randomUUID().toString.replace("-", "_")}"
 }
 
+case class AuxialliaryName(objectTable: SQLTableName) extends SQLTableName {
+  override def name: String = "AUX" + objectTable.name
+}
+
 case object DefaultsTableName extends SQLTableName {
   override def name: String = "DEFAULTS_TABLE"
 }

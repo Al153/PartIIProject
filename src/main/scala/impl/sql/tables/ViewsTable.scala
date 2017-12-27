@@ -46,7 +46,7 @@ object ViewsTable {
   val commitID: SQLColumnName = SQLColumnName.commitId
 
   private[ViewsTable] def definition(v: View): String =
-    s"WITH RECURSIVE ${v.name} AS (${getViewIntermediate(v)})"
+    s"WITH RECURSIVE $viewVar AS (${getViewIntermediate(v)})"
 
   def withView(v: View)(query: String): String =
     s"${definition(v)} ($query)"
@@ -60,7 +60,9 @@ object ViewsTable {
   }
 
   implicit class ViewSyntax(v: View) {
-    def name: String = "VIEW_" + v.id
+    def name: String = viewVar
     def definition: String = ViewsTable.definition(v)
   }
+
+  val viewVar: String = "VIEW_CTE"
 }

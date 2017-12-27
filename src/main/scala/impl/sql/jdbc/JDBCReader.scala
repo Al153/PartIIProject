@@ -34,6 +34,24 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   /**
+    * Get object ids from a table
+    * @param query
+    * @return
+    */
+
+  def getObjIds(query: String): SQLEither[Set[ObjId]] = {
+    val rs = getResultSet(query)
+    var result = Set.newBuilder[ObjId].right[SQLError]
+    while (result.isRight && rs.next()) {
+      result = for {
+        r <- getObjId(rs, Single)
+        rs <- result
+      } yield rs += r
+    }
+    result.map(_.result())
+  }
+
+  /**
     * Gets a set of SQLTableNames that are defined
     */
 

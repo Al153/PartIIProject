@@ -4,6 +4,7 @@ import core.view.View
 import impl.sql._
 import impl.sql.adt.CompilationContext.Compilation
 import impl.sql.tables.ViewsTable._
+import queries._
 
 /**
   * Created by Al on 23/11/2017.
@@ -18,41 +19,40 @@ object Definitions {
       val (context, mainQuery) = compilation.run(Query.emptyContext)
       for {
         defs <- context.getDefs(instance)
-        (tableDefs, relationDefs) = defs
+        (tableDefs, auxDefs, relationDefs) = defs
         commonSubExpressions = context.commonSubExpressions
 
         relations = relationDefs map {
-          case (rt, varName) => varName.toString + " AS " +
-            "(" + getRelationWithView(rt.name, view) + ")"
+          case (rt, varName) => varName.toString + " AS " + optionalSelect(getRelationWithView(rt.name))
         }
 
         tables = tableDefs map {
-          case (ot, varName) => s"$varName AS (SELECT * FROM $ot)"
+          case (ot, varName) => s"$varName AS " + optionalSelect(ot.name.toString)
+        }
+
+        auxTables = auxDefs map {
+          case (at, varName) => s"$varName AS (${at.query})"
         }
 
         subexpressions = commonSubExpressions map {
           case (q, varName) => q match {
             case SimpleSubExpr(q1) =>
-              s"${varName.toString} AS (${Query.render(q1)})"
+              s"${varName.toString} AS " + optionalSelect(Query.render(q1))
             case Recursive(q1) =>
-              s"${varName.toString} AS (${Query.render(q1)})"
+              s"${varName.toString} AS " + optionalSelect(Query.render(q1))
           }
         }
 
-        mainQueryPair = SQLDB.mainQuery + " AS (" + Query.render(mainQuery) + ")"
-      } yield    (List(view.definition) ++ relations ++ tables ++ subexpressions ++ List(mainQueryPair)).mkString(", ") + "(" + outer + ")"
+        mainQueryPair = SQLDB.mainQuery + " AS " + optionalSelect(Query.render(mainQuery))
+      } yield    (List(view.definition) ++ relations ++ tables ++ auxTables ++ subexpressions ++ List(mainQueryPair)).mkString(", ") + " (" + outer + ")"
     }
 
 
 
   // selects with matching view values
-  private def getRelationWithView(r: RelationTableName, view: View):String =
+  private def getRelationWithView(r: RelationTableName): String =
     s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${r.name} " +
-      s"JOIN ${view.name} " +
-      s"ON ${r.name}.${SQLColumnName.commitId} = ${view.name}.${SQLColumnName.commitId}"
+      s"JOIN $viewVar " +
+      s"ON ${r.name}.${SQLColumnName.commitId} = $viewVar.${SQLColumnName.commitId}"
 
-  def getTableWithView(r: ObjectTableName, view: View): String =
-    s"SELECT ${SQLColumnName.objId} FROM ${r.name} " +
-      s"JOIN ${view.name} " +
-      s"ON ${r.name}.${SQLColumnName.commitId} = ${view.name}.${SQLColumnName.commitId}"
 }

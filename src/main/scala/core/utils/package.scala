@@ -125,6 +125,7 @@ package object utils {
   implicit class EitherOps1[E, A](u: E \/ A) {
     def withSnd[B](b: B): E \/ (A, B) = u.map((_, b))
     def withFst[B](b: B): E \/ (B, A) = u.map((b, _))
+    def andThen[B](that: => E \/ B): E \/ B = u.flatMap(_ => that)
   }
 
   implicit class StringifyOps(u: Any) {

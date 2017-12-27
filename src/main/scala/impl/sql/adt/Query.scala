@@ -2,7 +2,9 @@ package impl.sql.adt
 
 import core.intermediate.unsafe._
 import core.schema.TableName
+import core.view.View
 import impl.sql.adt.CompilationContext.Compilation
+import impl.sql.tables.ObjectTable
 import queries._
 
 /**
@@ -20,7 +22,7 @@ case class JoinRename private (leftMapping: (VarName, Query), rightMapping: (Var
 case class JoinSimple private (left: VarName, right: VarName, on: JoinMapping) extends Query // $left join $right on Mapping
 
 object Query {
-  def emptyContext: CompilationContext = new CompilationContext(0, Map(), Map(), Map())
+  def emptyContext: CompilationContext = new CompilationContext(0, Map(), Map(), Map(), Map())
 
   private def removeAliases(q: Query): Query =
     q match {
@@ -34,6 +36,7 @@ object Query {
       case Alias(_, _) => render(sub)
       case _ => s"(${render(sub)}) AS ${v.s}"
     }
+
     case SelectTable(name, where) => s"SELECT ${SelectMapping.render(FromObject)} FROM $name ${WhereTable.render(where)}"
     case SelectWhere(mappings, where, from) => s"SELECT ${SelectMapping.render(mappings)} FROM ${render(from)} ${Where.render(where)}"
     case IntersectAll(left, right) => s"(${render(left)}) INTERSECT (${render(right)})"
@@ -173,7 +176,7 @@ object Query {
 
   }
 
-  private def getExactly(precomputed: VarName, n: Int, emptyTableName: TableName): Compilation[Query] = {
+  private def getExactly(precomputed: VarName, n: Int, emptyTable: TableName): Compilation[Query] = {
     // idea: inspired by binary multiplication
     def joinBySquares(n: Int, x: Query, emptyQuery: Query): Compilation[Query] =
       if (n <= 0) CompilationContext.point(emptyQuery)
@@ -216,7 +219,7 @@ object Query {
         } yield SelectWhere(Joined(l, r), NoConstraint, JoinRename(l -> x, r -> doubled, Chained))
 
     for {
-      e <- allFrom(emptyTableName)
+      e <- allFrom(emptyTable)
       res <- joinBySquares(n, Var(precomputed), e)
     } yield res
 
@@ -248,9 +251,10 @@ object Query {
     } yield SelectWhere(Simple, NoConstraint, Var(recName))
   }
 
-  private def allFrom(tableName: TableName): Compilation[Query] = for {
-    tVar <- CompilationContext.getTableName(tableName)
-  } yield SelectWhere(FromObject, NoConstraint, Var(tVar))
+  private def allFrom(table: TableName): Compilation[Query] = for {
+    auxTable <- CompilationContext.getAuxTableName(table)
+  } yield Var(auxTable)
+
 
   private def doFind(findable: UnsafeFindable): Compilation[Query] = for {
     name <- CompilationContext.getTableName(findable.tableName)
