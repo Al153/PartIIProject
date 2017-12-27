@@ -54,4 +54,5 @@ object Commands {
    */
 
   def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit d: DBInstance, e: ExecutionContext, sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] = d.executor.insert(t) // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
+  def insert[A, B](xs: CompletedRelation[A, B]*)(implicit d: DBInstance, e: ExecutionContext, sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] = insert(xs.toList)
 }

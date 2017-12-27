@@ -1,7 +1,5 @@
 package impl.sql.errors
 
-import core.error.E
-
 case class UnknownSQLException(e: Throwable) extends SQLError {
-  override def toString: String = "CAUGHT SQL EXCEPTION: " + e.getStackTrace.mkString("\n")
+  override def toString: String = "CAUGHT UNKNOWN SQL EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n")
 }

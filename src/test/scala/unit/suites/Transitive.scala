@@ -24,11 +24,11 @@ trait Transitive { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Knows, Bob),
             CompletedRelation(Bob, Knows, Charlie),
             CompletedRelation(Alice, Knows, David)
-          ))
+          )
           res1 <- findPairs(Knows -->--> Knows)
           res2 <- findPairsDistinct(Knows -->--> Knows)
           _ <- assertEqOp(expectedPairs, res1, "Simple transitive failure (all)")
@@ -57,14 +57,14 @@ trait Transitive { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Owns, Bentley),
             CompletedRelation(Alice, Owns, Ford),
             CompletedRelation(Alice, Owns, VW),
             CompletedRelation(Charlie, Owns, Ford),
             CompletedRelation(Bob, Owns, VW),
             CompletedRelation(Fred, Owns, Mercedes)
-          ))
+          )
 
           res1 <- findPairs(Owns --><-- Owns)
           res2 <- findPairsDistinct(Owns --><-- Owns)
@@ -96,21 +96,21 @@ trait Transitive { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Owns, Bentley),
             CompletedRelation(Alice, Owns, Ford),
             CompletedRelation(Alice, Owns, VW),
             CompletedRelation(Charlie, Owns, Ford),
             CompletedRelation(Bob, Owns, VW),
             CompletedRelation(Fred, Owns, Mercedes)
-          ))
+          )
 
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Knows, Charlie),
             CompletedRelation(Charlie, Knows, Bob),
             CompletedRelation(Alice, Knows, David),
             CompletedRelation(David, Knows, Fred)
-          ))
+          )
 
           res1 <- findPairs(Owns --> VW <-- Owns)
           res2 <- findPairs(Knows --> Charlie --> Knows)

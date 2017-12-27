@@ -15,18 +15,21 @@ case class PathMemberQuery(
                             sa: SchemaObjectErased,
                             table: ObjectTable
                           )(implicit instance: SQLInstance) extends SingleQuery {
-  def render(v: View): String =
-    s"""
-       | ${v.definition}
-       | ${extractMainQuery(sa.prototype, table)}""".stripMargin
+  /**
+    * Render a query which picks objects
+    *
+    * @param v
+    * @return
+    */
+  def render(v: View): String = extractMainQuery(sa.prototype, table)
 
 
   private def extractMainQuery(
                                 prototype: UnsafeFindable,
                                 table: ObjectTable
                               ): String = {
-    s"SELECT ${getColumns(prototype)} " +
-      s"FROM $table as ${SQLDB.singleTable} " +
+    s"SELECT ${getColumnsAndObjId(prototype)} " +
+      s"FROM $table AS ${SQLDB.singleTable} " +
       s"WHERE $conditions"
   }
 

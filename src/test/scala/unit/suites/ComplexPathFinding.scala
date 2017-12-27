@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scalaz.{-\/, \/-}
 
-trait Pathfinding {
+trait ComplexPathFinding {
   self: HasBackend =>
 
 
@@ -31,7 +31,7 @@ trait Pathfinding {
     *      J <- I
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(Set(
+  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob),
     CompletedRelation(Bob, Knows, Eve),
     CompletedRelation(Bob, Knows, Charlie),
@@ -44,7 +44,7 @@ trait Pathfinding {
     CompletedRelation(David, Knows, Ian),
     CompletedRelation(Ian, Knows, Jane),
     CompletedRelation(Jane, Knows, Charlie)
-  ))
+  )
 
   @Test
   def ShortestPath(): Unit = {

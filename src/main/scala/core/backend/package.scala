@@ -3,6 +3,7 @@ package core
 import core.containers.{ConstrainedFuture, Operation}
 import core.error.E
 import core.backend.interfaces.DBInstance
+import core.view.View
 
 import scala.concurrent.ExecutionContext
 
@@ -22,4 +23,20 @@ package object backend {
       (res, newView) = pair
       _ <- instance.setDefaultView(newView)
     } yield res
+
+  def usingView[A](instance: DBInstance, v: View)
+                  (action: DBInstance => Operation[E, A])
+                  (implicit e: ExecutionContext): ConstrainedFuture[E, A] =
+    for {
+      pair <- action(instance).runView(v)
+      (res, _) = pair
+    } yield res
+
+  def writeToView(instance: DBInstance, v: View)
+                 (action: DBInstance => Operation[E, Unit])
+                 (implicit e: ExecutionContext): ConstrainedFuture[E, View] =
+    for {
+      pair <- action(instance).runView(v)
+      (_, newView) = pair
+    } yield newView
 }

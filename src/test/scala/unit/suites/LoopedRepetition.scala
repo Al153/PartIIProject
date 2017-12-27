@@ -26,10 +26,10 @@ trait LoopedRepetition { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(Set(
+  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
     CompletedRelation(Charlie, Knows, David), CompletedRelation(David, Knows, Alice)
-  ))
+  )
 
   @Test
   def loopedAtLeast(): Unit = {

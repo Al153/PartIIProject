@@ -4,19 +4,17 @@ import java.sql.ResultSet
 
 import core.backend.common._
 import core.containers.Path
-import core.error.E
 import core.schema._
 import core.view.View
+import impl.sql._
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
+import impl.sql.jdbc.Conversions._
+import impl.sql.schema.{ColumnSpecification, SQLType}
 import impl.sql.tables.ObjectTable
 import impl.sql.types.{Commit, ObjId}
-import impl.sql._
-import Conversions._
-import impl.sql.schema.{ColumnSpecification, SQLType}
 
 import scalaz.Scalaz._
-import scalaz._
 
 /**
   * Contains code to read various objects from the results of queries to the SQL db.
@@ -296,15 +294,15 @@ class JDBCReader(implicit instance: SQLInstance) {
 
 
   def getPathfindingFound[A](
-                              ids: TraversableOnce[ObjId],
+                              ids: Vector[ObjId],
                               table: ObjectTable,
                               v: View
                             )(implicit sa: SchemaObject[A]): SQLEither[Path[A]] = {
-    val query = PathMemberQuery(ids, sa.erased, table)
+    val query = PathMemberQuery(ids.toSet, sa.erased, table)
     val rs = getResultSet(query.render(v))
     val aComponents = sa.getSchemaComponents
 
-    var result = Vector.newBuilder[A].right[SQLError]
+    var result = Map.newBuilder[ObjId, A].right[SQLError]
     while (result.isRight && rs.next()) {
       var aRow = Vector.newBuilder[DBCell].right[SQLError]
 
@@ -319,10 +317,11 @@ class JDBCReader(implicit instance: SQLInstance) {
       result = for {
         aRes <- aRow
         a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
+        id <- getObjId(rs, Single)
         r <- result
-      } yield r += a
+      } yield r += (id -> a)
     }
-    result.map(_.result()).map(v => Path.from[A](v))
+      result.map(_.result()).map(lookup => Path.from(ids.map(lookup.apply)))
   }
 
   private def getDBCell(rs: ResultSet, component: SchemaComponent, index: Int, side: Side): SQLEither[DBCell] =

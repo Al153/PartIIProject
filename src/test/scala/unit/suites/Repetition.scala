@@ -37,12 +37,12 @@ trait Repetition { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(Set(
+  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
     CompletedRelation(Charlie, Knows, David), CompletedRelation(David, Knows, Eve),
     CompletedRelation(Eve, Knows, Fred), CompletedRelation(Fred, Knows, Georgie),
     CompletedRelation(Georgie, Knows, Hannah), CompletedRelation(Hannah, Knows, Ian)
-  ))
+  )
 
   @Test
   def simpleAtLeast(): Unit = {

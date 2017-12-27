@@ -40,14 +40,14 @@ trait ComplexRepetition { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(Set(
+  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
     CompletedRelation(Alice, Knows, David), CompletedRelation(David, Knows, Eve),
     CompletedRelation(Bob, Knows, Eve), CompletedRelation(Eve, Knows, Fred),
     CompletedRelation(Charlie, Knows, Fred), CompletedRelation(David, Knows, Georgie),
     CompletedRelation(Georgie, Knows, Hannah), CompletedRelation(Eve, Knows, Hannah),
     CompletedRelation(Hannah, Knows, Ian), CompletedRelation(Fred, Knows, Ian)
-  ))
+  )
 
   @Test
   def atLeast(): Unit = {

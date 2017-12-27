@@ -25,12 +25,12 @@ trait SimplePathFinding {self: HasBackend =>
       * A -> B -> E -> F -> G
       */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(Set(
+  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob),
     CompletedRelation(Bob, Knows, Eve),
     CompletedRelation(Eve, Knows, Fred),
     CompletedRelation(Fred, Knows, Georgie)
-  ))
+  )
 
   @Test
   def SimpleShortestPath(): Unit = {

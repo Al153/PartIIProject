@@ -27,8 +27,8 @@ trait ReadWrite { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(CompletedRelation(Alice, Knows, Bob)))
-          _ <- insert(Set(CompletedRelation(Alice, Knows, Charlie)))
+          _ <- insert(CompletedRelation(Alice, Knows, Bob))
+          _ <- insert(CompletedRelation(Alice, Knows, Charlie))
 
           res1 <- findPairs(Knows)
           _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write and read pairs failure")
@@ -57,11 +57,11 @@ trait ReadWrite { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Knows, Bob),
             CompletedRelation(Alice, Knows, Bob),
             CompletedRelation(Alice, Knows, Charlie)
-          ))
+          )
           res1 <- findPairs(Knows)
           r <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write duplicates failure")
         } yield r

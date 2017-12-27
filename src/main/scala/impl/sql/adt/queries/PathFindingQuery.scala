@@ -12,13 +12,7 @@ case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
   // should be a query that finds all pairs
   def render(v: View): SQLEither[String] = {
     // render query to string
-
-    val (context, q) = Query.convertPair(p).run(Query.emptyContext)
-    for {
-      defs <- context.getDefs(instance)
-      (tableDefs, relationDefs) = defs
-
-    } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
+    Definitions.compute(Query.convertPair(p), v) {
       s"SELECT ${SQLColumnName.leftId}, ${SQLColumnName.rightId} FROM ${optionalBrackets(SQLDB.mainQuery)}"
     }
   }

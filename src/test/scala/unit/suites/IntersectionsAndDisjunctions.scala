@@ -41,20 +41,20 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Knows, Bob),
             CompletedRelation(Alice, Knows, Charlie),
             CompletedRelation(Alice, Knows, Fred),
             CompletedRelation(Bob, Knows, Eve)
-          ))
+          )
 
-          _ <- insert(Set (
+          _ <- insert(
             CompletedRelation(Alice, Owns, Ford),
             CompletedRelation(Charlie, Owns, Ford),
             CompletedRelation(Eve, Owns, Ford),
             CompletedRelation(Fred, Owns, Mercedes),
             CompletedRelation(Bob, Owns, Mercedes)
-          ))
+          )
 
           res4 <- findPairs(Knows | (Owns --><-- Owns))
           res3 <- findPairs(Knows & (Owns --><-- Owns))

@@ -1,7 +1,6 @@
 package impl.sql.adt.queries
 
 import core.intermediate.unsafe.{UnsafeFindPair, UnsafeFindable}
-import core.utils._
 import core.view.View
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
@@ -24,21 +23,16 @@ case class CompletedPairQuery(
                                leftTable: ObjectTable,
                                rightTable: ObjectTable
                              )(implicit instance: SQLInstance) {
-    def render(v: View): SQLEither[String] = {
+    def render(v: View): SQLEither[String] =
     // render query to string
+      for {
+        leftPrototype <- instance.schema.lookupTable(p.leftMostTable).leftMap(SQLExtractError)
+        rightPrototype <- instance.schema.lookupTable(p.rightMostTable).leftMap(SQLExtractError)
+        res <- Definitions.compute(Query.convertPair(p), v) {
+          extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)
+        }
+      } yield res
 
-    val (context, q) = Query.convertPair(p).run(Query.emptyContext)
-
-    for {
-      defs <- context.getDefs(instance)
-      (tableDefs, relationDefs) = defs
-      leftPrototype <- instance.schema.lookupTable(p.leftMostTable).leftMap(SQLExtractError)
-      rightPrototype <- instance.schema.lookupTable(p.rightMostTable).leftMap(SQLExtractError)
-
-    } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
-      extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)
-    }
-  }
 
   // query terms appended to the left and right hand sides of the main query
   // actually pull out values

@@ -128,7 +128,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
         table <- cfTable
 
         path <- findPath(s, e, pairs)
-        _ = println(path)
+        _ = println("Path Ids = " + path)
         populatedPath <- SQLFutureE(EitherOps.switch(
           path.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
         )
@@ -242,7 +242,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       } yield stringQuery
     )
 
-  private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Option[List[ObjId]]] =
+  private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Option[Vector[ObjId]]] =
     SQLFuture {
       for {
         s <- s
@@ -252,7 +252,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       } yield res
     }
 
-  private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Set[List[ObjId]]] =
+  private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Set[Vector[ObjId]]] =
     SQLFuture {
       val index = pairs.collectSets(identity)
       s match {

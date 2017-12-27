@@ -2,12 +2,11 @@ package impl.sql.adt.queries
 
 import core.intermediate.unsafe.{UnsafeFindSingle, UnsafeFindable}
 import core.schema.SchemaDescription
-import core.utils.{EitherOps, _}
 import core.view.View
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.SQLExtractError
-import impl.sql.tables.{ObjectTable, ViewsTable}
+import impl.sql.tables.ObjectTable
 
 /**
   * Created by Al on 23/11/2017.
@@ -18,16 +17,12 @@ case class CompletedSingleQuery(
                                  sd: SchemaDescription
                                )(implicit instance: SQLInstance) extends SingleQuery {
   def render(v: View): SQLEither[String] = {
-    val (context, q) = Query.convertSingle(p).run(Query.emptyContext)
     for {
-      defs <- context.getDefs(instance)
-      (tableDefs, relationDefs) = defs
-
       tablePrototype <- sd.lookupTable(p.table).leftMap(SQLExtractError)
-
-    } yield Definitions.withs(relationDefs, tableDefs, context.commonSubExpressions , v, q) {
-      extractMainQuery(tablePrototype.prototype, table)
-    }
+      res <- Definitions.compute(Query.convertSingle(p), v) {
+        extractMainQuery(tablePrototype.prototype, table)
+      }
+    } yield res
   }
 
   private def extractMainQuery(

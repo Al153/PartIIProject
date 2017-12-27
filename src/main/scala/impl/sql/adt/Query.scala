@@ -224,9 +224,9 @@ object Query {
 
   /**
     * Finds pairs linked by upto n traversals of the precomputed table
-    * @param precomputed
-    * @param n
-    * @param emptyRelationTable
+    * @param precomputed - a variable representing the precomputed table
+    * @param n - max number of repetitions
+    * @param emptyRelationTable - tale to use for the empty relations
     * @return
     */
   private def getUpto(precomputed: VarName, n: Int, emptyRelationTable: TableName): Compilation[Query] = {

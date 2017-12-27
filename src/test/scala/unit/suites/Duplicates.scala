@@ -30,12 +30,12 @@ trait Duplicates { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(Set(
+          _ <- insert(
             CompletedRelation(Alice, Knows, Bob), // there are two routes from Alice to Charlie
             CompletedRelation(Bob, Knows, Charlie),
             CompletedRelation(Alice, Knows, David),
             CompletedRelation(David, Knows, Charlie)
-          ))
+          )
 
           res1 <- findPairs(Knows -->--> Knows)
           res2 <- findPairsDistinct(Knows -->--> Knows)
