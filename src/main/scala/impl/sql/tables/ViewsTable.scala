@@ -34,7 +34,7 @@ class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
     Map(
       viewID -> SQLForeignRef(instance.viewsRegistry),
       commitID -> SQLForeignRef(instance.commitsRegistry)
-    )
+    ), uniqueRelation = false
   )
 
   override def name: SQLTableName = tableName

@@ -43,6 +43,12 @@ package object unit {
     }
   )
 
+  def assertEq[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+    ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
+      case e: AssertionError => AssertionFailure(e, msg)
+      case e => core.error.UnknownError(e)
+    }
+
   case class AssertionFailure(e: Throwable, msg: String) extends E {
     override def toString: String = s"AssertionFailure:\n$msg\n${e.getMessage}"
   }

@@ -1,4 +1,4 @@
-package unit.suites
+package unit.suites.individual
 
 import core.backend.interfaces.{DBInstance, Empty}
 import core.backend.using
@@ -11,8 +11,8 @@ import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
 
+import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
-import concurrent.duration._
 import scalaz.{-\/, \/-}
 
 /**

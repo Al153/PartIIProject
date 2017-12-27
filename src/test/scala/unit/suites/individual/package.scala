@@ -1,9 +1,9 @@
-package unit
+package unit.suites
 
 /**
   * Created by Al on 23/12/2017.
   */
-package object suites {
+package object individual {
   implicit def vectorOrdering[A](implicit oa: Ordering[A]): Ordering[Vector[A]] = new Ordering[Vector[A]] {
     override def compare(x: Vector[A], y: Vector[A]): Int =
       if (x.length != y.length) x.length - y.length

@@ -1,71 +1,68 @@
-package unit.suites
+package unit.suites.individual
 
 import core.backend.interfaces.{DBInstance, Empty}
 import core.backend.using
 import core.containers.Operation
-import core.dsl.Commands.{find, findDistinct, findPairs, findPairsDistinct, _}
+import core.dsl.Commands._
 import core.dsl.NodeSyntax._
-import core.dsl.RelationalQuery._
 import core.dsl.Repetition._
 import core.error.E
 import core.relations.CompletedRelation
 import core.schema.SchemaObject
 import org.junit.Test
 import unit.Objects._
-import unit.{Knows, Person, assertEqOp, description, _}
+import unit.{Knows, Person, assertEqOp, description}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.language.postfixOps
 import scalaz.{-\/, \/-}
 
-/**
-  * Created by Al on 04/11/2017.
-  */
-trait ComplexRepetition { self: HasBackend =>
-
+trait LoopedRepetition { self: HasBackend =>
   /**
-    * Check that paths work
+    * Check that paths work, on a cyclic graph
     *
-    * Set up a grid:
-    *
-    *  A -> B -> C
-    *  |    |    |
-    * \/   \/   \/
-    *  D -> E -> F
-    *  |    |    |
-    * \/   \/   \/
-    *  G -> H -> I
-    *
+    * A -> B -> C -> D -> A
     *
     */
 
   private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
-    CompletedRelation(Alice, Knows, David), CompletedRelation(David, Knows, Eve),
-    CompletedRelation(Bob, Knows, Eve), CompletedRelation(Eve, Knows, Fred),
-    CompletedRelation(Charlie, Knows, Fred), CompletedRelation(David, Knows, Georgie),
-    CompletedRelation(Georgie, Knows, Hannah), CompletedRelation(Eve, Knows, Hannah),
-    CompletedRelation(Hannah, Knows, Ian), CompletedRelation(Fred, Knows, Ian)
+    CompletedRelation(Charlie, Knows, David), CompletedRelation(David, Knows, Alice)
   )
 
   @Test
-  def atLeast(): Unit = {
-    val expectedPairs = Set[(Person, Person)](
-      Alice -> Hannah,
-      Alice -> Fred,
-      Bob -> Ian,
-      David -> Ian,
-      Alice -> Ian
+  def loopedAtLeast(): Unit = {
+    val expectedPairs = Vector[(Person, Person)](
+      Alice -> Alice,
+      Alice -> Bob,
+      Alice -> Charlie,
+      Alice -> David,
+
+      Bob -> Alice,
+      Bob -> Bob,
+      Bob -> Charlie,
+      Bob -> David,
+
+      Charlie -> Alice,
+      Charlie -> Bob,
+      Charlie -> Charlie,
+      Charlie -> David,
+
+      David -> Alice,
+      David -> Bob,
+      David -> Charlie,
+      David -> David
+
     )
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- findPairs(Knows * (3 ++) )
+          res1 <- findPairs(Knows * (3 ++))
           res2 <- findPairsDistinct(Knows * (3 ++))
-          _ <- assertEqOp(expectedPairs, res1.toSet, "Exactly (all pairs)")
-          _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
+          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
+          _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
         } yield ()
     }
 
@@ -80,15 +77,20 @@ trait ComplexRepetition { self: HasBackend =>
   }
 
   @Test
-  def exactly(): Unit = {
-    val expectedPairs = Vector[(Person, Person)](Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian)
+  def loopedExactly(): Unit = {
+    val expectedPairs = Vector[(Person, Person)](
+      Alice -> Alice,
+      Bob -> Bob,
+      Charlie -> Charlie,
+      David -> David
+    )
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
           _ <- setupPath
           res1 <- findPairs(Knows * 4)
           res2 <- findPairsDistinct(Knows * 4)
-          _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
+          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Exactly (all pairs)")
           _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
         } yield ()
     }
@@ -109,8 +111,8 @@ trait ComplexRepetition { self: HasBackend =>
     */
 
   @Test
-  def fullTransitiveClosure(): Unit = {
-    val expected = Vector[Person](Alice, Bob, Charlie, David, Eve, Fred, Georgie, Hannah, Ian)
+  def loopedFullTransitiveClosure(): Unit = {
+    val expected = Vector[Person](Alice, Bob, Charlie, David)
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
@@ -133,15 +135,15 @@ trait ComplexRepetition { self: HasBackend =>
   }
 
   @Test
-  def between(): Unit = {
-    val expected = Vector[Person](Bob, Charlie, David, Eve, Fred, Georgie, Hannah)
+  def loopedBetween(): Unit = {
+    val expected = Vector[Person](Charlie, David)
 
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- find(Alice >> Knows * (1 --> 3))
-          res2 <- findDistinct(Alice >> Knows * (1 --> 3))
+          res1 <- find(Alice >> Knows * (2 --> 3))
+          res2 <- findDistinct(Alice >> Knows * (2 --> 3))
           _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
           _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
         } yield ()
@@ -157,5 +159,28 @@ trait ComplexRepetition { self: HasBackend =>
     }
   }
 
+  @Test
+  def loopedUpto(): Unit = {
+    val expected = Vector[Person](Alice, Bob)
 
+    val op = using(backend.open(Empty, description)) {
+      implicit instance =>
+        for {
+          _ <- setupPath
+          res1 <- find(Alice >> Knows.?)
+          res2 <- findDistinct(Alice >> Knows.?)
+          _ <- assertEqOp(expected.toSet, res1.toSet, "Up to (all pairs)")
+          _ <- assertEqOp(expected.toSet, res2, "Up to (distinct)")
+        } yield ()
+    }
+
+    Await.result(
+      op.run , 2.seconds
+    ) match {
+      case \/-(_) => ()
+      case -\/(e) => throw new Throwable {
+        override def toString: String = e.toString
+      }
+    }
+  }
 }

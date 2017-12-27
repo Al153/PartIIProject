@@ -195,7 +195,6 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                               r => (sa.getDBObject(a), r, sb.getDBObject(b))
                             )
                     )
-
                 }
               )
             )

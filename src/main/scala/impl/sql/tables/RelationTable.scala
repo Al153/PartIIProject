@@ -33,7 +33,7 @@ class RelationTable(val name: RelationTableName, leftTable: ObjectTable, rightTa
       leftIdColumn -> SQLForeignRef(leftTable),
       rightIdColumn -> SQLForeignRef(rightTable),
       commitId -> SQLForeignRef(instance.commitsRegistry)
-    )
+    ), uniqueRelation = true
   )
 }
 

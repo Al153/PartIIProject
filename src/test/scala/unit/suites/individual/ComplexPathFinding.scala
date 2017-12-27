@@ -1,13 +1,13 @@
-package unit.suites
+package unit.suites.individual
 
+import core.backend.interfaces.{DBInstance, Empty}
+import core.backend.using
 import core.containers.{Operation, PathImpl}
 import core.dsl.Commands._
 import core.error.E
 import core.relations.CompletedRelation
-import core.backend.interfaces.{DBInstance, Empty}
-import core.backend.using
-import org.junit.Test
 import core.schema.SchemaObject
+import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
 

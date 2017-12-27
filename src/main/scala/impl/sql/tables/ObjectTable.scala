@@ -1,16 +1,13 @@
 package impl.sql.tables
 
 import core.backend.common.DBObject
-import core.containers.ConstrainedFuture
 import core.error.E
 import core.intermediate.unsafe.SchemaObjectErased
-import core.view.View
 import impl.sql.errors.ColumnMismatchException
-import impl.sql.types.{Commit, ObjId}
-import impl.sql.{ObjectTableName, SQLColumnName, SQLFuture, SQLInstance, errors}
 import impl.sql.jdbc.Conversions._
-import impl.sql.schema.{SQLForeignRef, SQLPrimaryRef, SQLSchema, SQLType}
-import impl.sql._
+import impl.sql.schema.{SQLPrimaryRef, SQLSchema, SQLType}
+import impl.sql.types.ObjId
+import impl.sql.{ObjectTableName, SQLColumnName, SQLFuture, SQLInstance, _}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -21,8 +18,8 @@ class ObjectTable(
                    tableSchema: SchemaObjectErased
                  ) extends SQLTable {
 
-  import instance.executionContext
   import ObjectTable._
+  import instance.executionContext
 
   def getColumnName(i: Int): E \/ SQLColumnName =
     if (i >= 0 &&  i < tableSchema.length)
@@ -51,8 +48,8 @@ class ObjectTable(
   override def schema: SQLSchema = SQLSchema(
     Map(
       ObjectTable.objId -> SQLPrimaryRef
-    ) ++ SQLType.getRegularSchema(tableSchema.schemaComponents)
-  )
+    ) ++ SQLType.getRegularSchema(tableSchema.schemaComponents),
+    uniqueRelation = true)
 }
 
 object ObjectTable {

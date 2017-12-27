@@ -1,17 +1,16 @@
-package unit.suites
+package unit.suites.individual
 
-
-import core.containers.Operation
-import core.dsl.Commands._
-import core.dsl.NodeSyntax.NodeSyntax1
-import core.dsl.Repetition._
-import core.dsl.RelationalQuery._
-import core.error.E
-import core.relations.CompletedRelation
 import core.backend.interfaces.{DBInstance, Empty}
 import core.backend.using
-import org.junit.Test
+import core.containers.Operation
+import core.dsl.Commands.{find, findDistinct, findPairs, findPairsDistinct, _}
+import core.dsl.NodeSyntax._
+import core.dsl.RelationalQuery._
+import core.dsl.Repetition._
+import core.error.E
+import core.relations.CompletedRelation
 import core.schema.SchemaObject
+import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description, _}
 
@@ -23,15 +22,19 @@ import scalaz.{-\/, \/-}
 /**
   * Created by Al on 04/11/2017.
   */
-trait Repetition { self: HasBackend =>
+trait ComplexRepetition { self: HasBackend =>
 
   /**
-    * Check that paths work, simple example
+    * Check that paths work
     *
     * Set up a grid:
     *
-    *  A -> B -> C ->
-    *  D -> E -> F ->
+    *  A -> B -> C
+    *  |    |    |
+    * \/   \/   \/
+    *  D -> E -> F
+    *  |    |    |
+    * \/   \/   \/
     *  G -> H -> I
     *
     *
@@ -39,51 +42,30 @@ trait Repetition { self: HasBackend =>
 
   private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
-    CompletedRelation(Charlie, Knows, David), CompletedRelation(David, Knows, Eve),
-    CompletedRelation(Eve, Knows, Fred), CompletedRelation(Fred, Knows, Georgie),
-    CompletedRelation(Georgie, Knows, Hannah), CompletedRelation(Hannah, Knows, Ian)
+    CompletedRelation(Alice, Knows, David), CompletedRelation(David, Knows, Eve),
+    CompletedRelation(Bob, Knows, Eve), CompletedRelation(Eve, Knows, Fred),
+    CompletedRelation(Charlie, Knows, Fred), CompletedRelation(David, Knows, Georgie),
+    CompletedRelation(Georgie, Knows, Hannah), CompletedRelation(Eve, Knows, Hannah),
+    CompletedRelation(Hannah, Knows, Ian), CompletedRelation(Fred, Knows, Ian)
   )
 
   @Test
-  def simpleAtLeast(): Unit = {
-    val expectedPairs = Vector[(Person, Person)](
-      Alice -> David,
-      Alice -> Eve,
-      Alice -> Fred,
-      Alice -> Georgie,
+  def atLeast(): Unit = {
+    val expectedPairs = Set[(Person, Person)](
       Alice -> Hannah,
-      Alice -> Ian,
-
-      Bob -> Eve,
-      Bob -> Fred,
-      Bob -> Georgie,
-      Bob -> Hannah,
+      Alice -> Fred,
       Bob -> Ian,
-
-
-      Charlie -> Fred,
-      Charlie -> Georgie,
-      Charlie -> Hannah,
-      Charlie -> Ian,
-
-      David -> Georgie,
-      David -> Hannah,
       David -> Ian,
-
-
-      Eve -> Hannah,
-      Eve -> Ian,
-
-      Fred -> Ian
+      Alice -> Ian
     )
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- findPairs(Knows * (3 ++))
-          res2 <- findPairsDistinct(Knows * (3 ++ ))
-          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
-          _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
+          res1 <- findPairs(Knows * (3 ++) )
+          res2 <- findPairsDistinct(Knows * (3 ++))
+          _ <- assertEqOp(expectedPairs, res1.toSet, "Exactly (all pairs)")
+          _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
         } yield ()
     }
 
@@ -98,21 +80,15 @@ trait Repetition { self: HasBackend =>
   }
 
   @Test
-  def simpleExactly(): Unit = {
-    val expectedPairs = Vector[(Person, Person)](
-      Alice -> Eve,
-      Bob -> Fred,
-      Charlie -> Georgie,
-      David -> Hannah,
-      Eve -> Ian
-    )
+  def exactly(): Unit = {
+    val expectedPairs = Vector[(Person, Person)](Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian)
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
           _ <- setupPath
           res1 <- findPairs(Knows * 4)
           res2 <- findPairsDistinct(Knows * 4)
-          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Exactly (all pairs)")
+          _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
           _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
         } yield ()
     }
@@ -133,7 +109,7 @@ trait Repetition { self: HasBackend =>
     */
 
   @Test
-  def simpleFullTransitiveClosure(): Unit = {
+  def fullTransitiveClosure(): Unit = {
     val expected = Vector[Person](Alice, Bob, Charlie, David, Eve, Fred, Georgie, Hannah, Ian)
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
@@ -157,15 +133,15 @@ trait Repetition { self: HasBackend =>
   }
 
   @Test
-  def simpleBetween(): Unit = {
-    val expected = Vector[Person](Alice, Bob, Charlie, David)
+  def between(): Unit = {
+    val expected = Vector[Person](Bob, Charlie, David, Eve, Fred, Georgie, Hannah)
 
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
           _ <- setupPath
-          res1 <- find(Alice >> Knows * (0 --> 3))
-          res2 <- findDistinct(Alice >> Knows * (0 --> 3))
+          res1 <- find(Alice >> Knows * (1 --> 3))
+          res2 <- findDistinct(Alice >> Knows * (1 --> 3))
           _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
           _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
         } yield ()
@@ -181,28 +157,5 @@ trait Repetition { self: HasBackend =>
     }
   }
 
-  @Test
-  def simpleUpto(): Unit = {
-    val expected = Vector[Person](Alice, Bob)
 
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- find(Alice >> Knows.?)
-          res2 <- findDistinct(Alice >> Knows.?)
-          _ <- assertEqOp(expected.toSet, res1.toSet, "Up to (all pairs)")
-          _ <- assertEqOp(expected.toSet, res2, "Up to (distinct)")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
-    }
-  }
 }

@@ -1,10 +1,10 @@
-package unit.suites
+package unit.suites.individual
 
+import core.backend.interfaces.Empty
+import core.backend.using
 import core.dsl.Commands._
 import core.dsl.RelationSyntax._
 import core.relations.CompletedRelation
-import core.backend.interfaces.Empty
-import core.backend.using
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Owns, Person, assertEqOp, description}

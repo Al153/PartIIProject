@@ -34,7 +34,7 @@ class CommitsRegistry(implicit val instance: SQLInstance) extends SQLTable {
     Map(
       commitID -> SQLPrimaryRef,
       dummyCol -> SQLInt
-    )
+    ), uniqueRelation = false
   )
   override def name: SQLTableName = CommitsRegistry.name
 }

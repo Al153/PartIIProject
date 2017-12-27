@@ -36,6 +36,13 @@ package object utils {
       m.toMap
     }
 
+    /**
+      * Collect a collection into a map of Keys to lists of results of a function
+       * @param f - Sorting function
+      * @tparam K - Type of keys
+      * @tparam B - Type in lists
+      * @return
+      */
     def collectLists[K, B](f: A => (K, B)): immutable.Map[K, List[B]] = {
       val applied = u.map(f)
       val m = mutable.Map[K, mutable.ListBuffer[B]]()

@@ -121,14 +121,28 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
     reader.getTableNames(q)
   }
 
+ private def definedConstraints: SQLEither[Set[(SQLTableName, String)]] = {
+    val q = "SELECT table_name, constraint_name  FROM information_schema.constraint_table_usage  WHERE table_schema = 'public';"
+    reader.getConstraint(q).map {
+      _.collect {
+        case (name, constraint) if !(constraint.endsWith("pkey") || constraint.endsWith("fkey")) => (name, constraint)
+      }
+    }
+ }
+
   // drop all existing user tables
   def freshen(): SQLFuture[Unit] = SQLFutureE {
     for {
-      tablesAndViews <- definedTables
-      (views, tables) = tablesAndViews.partition(x => x.name.startsWith("view_"))
-      _ <- if (views.nonEmpty) doWriteEither(s"DROP VIEW ${views.mkString(", ")};") else ().right
-      _ <- if (tables.nonEmpty) doWriteEither(s"DROP TABLE ${tables.mkString(", ")};") else ().right
-    } yield  ()
+      constraints <- definedConstraints
+      tables <- definedTables
+      _ = println(tables)
+      _ <- if (constraints.nonEmpty) writeBatchEither (
+        constraints.map {
+          case (constraintTable, constraintName) => s"ALTER TABLE $constraintTable DROP CONSTRAINT IF EXISTS $constraintName;"
+        }
+      ) else ().right
+      _ <- if (tables.nonEmpty) doWriteEither(s"DROP TABLE ${tables.mkString(", ")} CASCADE;") else ().right
+    } yield ()
   }
 
 

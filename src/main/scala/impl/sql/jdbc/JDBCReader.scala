@@ -50,6 +50,22 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   /**
+    * Gets a set of constraint names from the database
+    */
+
+  def getConstraint(query: String): SQLEither[Set[(SQLTableName, String)]] = {
+    val rs = getResultSet(query)
+    var result = Set.newBuilder[(SQLTableName, String)].right[SQLError]
+    while (result.isRight && rs.next()) {
+      result = for {
+        r <- getConstraint(rs, "constraint_name")
+        rs <- result
+      } yield rs += r
+    }
+    result.map(_.result())
+  }
+
+  /**
     * Get the column specifications for a table in the database
     */
 
@@ -370,6 +386,15 @@ class JDBCReader(implicit instance: SQLInstance) {
   private def getTableName(rs: ResultSet): SQLEither[SQLTableName] =
     SQLEither {
       TableNameFromDatabase(rs.getString("table_name"))
+    }
+
+  /**
+    * Extract a string from the set
+    */
+
+  private def getConstraint(rs: ResultSet, columnName: String): SQLEither[(SQLTableName, String)] =
+    SQLEither {
+      (TableNameFromDatabase(rs.getString("table_name")), rs.getString(columnName))
     }
 
 }

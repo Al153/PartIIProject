@@ -5,7 +5,7 @@ import impl.sql.{SQLColumnName, SQLTableName}
 /**
   * Created by Al on 11/12/2017.
   */
-case class SQLSchema(components: Map[SQLColumnName, SQLType]) {
+case class SQLSchema(components: Map[SQLColumnName, SQLType], uniqueRelation: Boolean) {
   /**
     * returns a query string that creates the table
     * @return
@@ -17,7 +17,14 @@ case class SQLSchema(components: Map[SQLColumnName, SQLType]) {
           s"${name.s} ${SQLType.toTypeString(sqlType)}"
      }.mkString(",\n")
 
-    s"CREATE TABLE $tableName ($columns)"
+    if (uniqueRelation) {
+      val uniques = components map {case (name, _) => name} mkString ", "
+      s"CREATE TABLE $tableName ($columns, UNIQUE ($uniques))"
+    } else {
+      s"CREATE TABLE $tableName ($columns)"
+    }
+
+
 
   }
 }

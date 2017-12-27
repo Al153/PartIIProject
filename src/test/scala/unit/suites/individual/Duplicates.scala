@@ -1,11 +1,11 @@
-package unit.suites
+package unit.suites.individual
 
+import core.backend.interfaces.Empty
+import core.backend.using
 import core.dsl.Commands._
 import core.dsl.NodeSyntax._
 import core.dsl.RelationSyntax._
 import core.relations.CompletedRelation
-import core.backend.interfaces.Empty
-import core.backend.using
 import org.junit.Test
 import unit.Objects.{Alice, Bob, Charlie, David}
 import unit.{Knows, assertEqOp, description}

@@ -1,14 +1,14 @@
-package unit.suites
+package unit.suites.individual
 
+import core.backend.interfaces.Empty
+import core.backend.using
 import core.dsl.Commands.{find, findPairs, insert}
 import core.dsl.NodeSyntax._
 import core.relations.CompletedRelation
-import core.backend.interfaces.Empty
-import core.backend.using
+import core.utils._
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
-import core.utils._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -27,8 +27,7 @@ trait ReadWrite { self: HasBackend =>
     val op = using(backend.open(Empty, description)) {
       implicit instance =>
         for {
-          _ <- insert(CompletedRelation(Alice, Knows, Bob))
-          _ <- insert(CompletedRelation(Alice, Knows, Charlie))
+          _ <- insert(CompletedRelation(Alice, Knows, Bob), CompletedRelation(Alice, Knows, Charlie))
 
           res1 <- findPairs(Knows)
           _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write and read pairs failure")

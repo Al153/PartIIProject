@@ -58,7 +58,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
                        rels: List[(ObjId, RelationTable, ObjId)],
                        commit: Commit
                      ): SQLFuture[Unit] = {
-    val relations = rels.collectLists{case (l, rel, r) => rel -> (l, r)}
+    val relations = rels.collectSets {case (l, rel, r) => rel -> (l, r)}
     val queries = for {
       groupedRelations <- relations
     } yield groupedRelations

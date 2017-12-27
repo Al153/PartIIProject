@@ -1,4 +1,4 @@
-package unit.suites
+package unit.suites.individual
 
 import core.backend.interfaces.DBBackend
 

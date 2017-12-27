@@ -40,7 +40,7 @@ class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
   override def schema: SQLSchema = SQLSchema(
     Map(
       DefaultsTable.viewId -> SQLForeignRef(instance.viewsRegistry)
-    )
+    ), uniqueRelation = false
   )
 
   override def name: SQLTableName = DefaultsTable.name

@@ -37,7 +37,7 @@ class ViewsRegistry(implicit val instance: SQLInstance) extends SQLTable {
     )
   }
 
-  override def schema: SQLSchema = SQLSchema(Map(viewID -> SQLPrimaryRef, dummyCol -> SQLInt))
+  override def schema: SQLSchema = SQLSchema(Map(viewID -> SQLPrimaryRef, dummyCol -> SQLInt), uniqueRelation = false)
 
   override def name: SQLTableName = tableName
 

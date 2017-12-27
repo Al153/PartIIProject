@@ -34,7 +34,7 @@ class RelationTableName(r: RelationName, index: Long) extends SQLTableName {
   override val name: String = "REL_" + r.id.strip + "_" + index
 }
 case object ViewsTableName extends SQLTableName {
-  override def name: String = "VIEWS_ID"
+  override def name: String = "VIEWS_TABLE"
 }
 
 case object ViewsRegistryName extends SQLTableName {
