@@ -1,0 +1,52 @@
+Ideas for the LMDB implementation
+
+
+Addressing Objects:
+Key path.
+
+Need to store in database:
+
+
+Index tables: One per column per Object type:
+    looked up with:
+        db:index:objectType:Column:commit:[Value]  -> LazySet(objectId)
+
+    emptyIndex:
+        db:index:objectType:commit -> LazySet(objectId)
+
+
+    objectsAndRelations:
+        db:outgoingRelations:objectType:id -> LazySet(commit, relationId, objectType:id)
+        // reverse relation lookup
+        db:incomingRelations:objectType:id -> LazySet(commit, relationId, objectType:id)
+
+    relationSchema:
+        // todo: is this needed? 
+        Contains relation information
+        
+        db:relations:id -> (leftTableId, rightTableId)
+
+    objectRetrieval:
+        For picking objects out of the database
+        db:objects:id -> DBObject
+
+
+ControlTables:
+    CommitsCounter
+        db:nextCommit -> commit //  mutable
+    
+    ViewsCounter
+        db:nextView -> view // mutable
+    
+    AvailableViews
+        db:views -> LazySet(view) // mutable
+    
+    DefaultView
+        db:default -> view // mutable
+    
+    ViewsTable
+        db:ViewLookup:ViewId -> LazySet(commit)
+
+
+
+
