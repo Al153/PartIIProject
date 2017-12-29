@@ -22,8 +22,8 @@ object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] =
     ConstrainedFuture.point[E, DBInstance] {
       val env: Env = ???
-      new LMDBInstance(env)
-    }(???)
+      new LMDBInstance(env, schema)
+    }(errors.recoverLMDBException)
 
   def initEnvironment(): Env = {
     // val config = context.system.settings.config.getConfig("lmdb-journal")

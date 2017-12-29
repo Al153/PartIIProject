@@ -1,8 +1,7 @@
 package core
 
-import core.intermediate.unsafe.UnsafeFindable
 import core.backend.common.{DBCell, DBObject}
-import core.schema.TableName
+import core.intermediate.unsafe.UnsafeFindable
 
 import scalaz.Scalaz._
 

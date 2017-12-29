@@ -1,6 +1,5 @@
 package impl.sql.errors
 
-import core.error.E
 import impl.sql.RelationTableName
 
 /**

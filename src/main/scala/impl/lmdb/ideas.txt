@@ -7,28 +7,22 @@ Key path.
 Need to store in database:
 
 
-Index tables: One per column per Object type:
-    looked up with:
-        db:index:objectType:Column:commit:[Value]  -> LazySet(objectId)
+    Index tables: One per column per Object type:
+        looked up with:
+            db:index:$objectType:$Column:$commit:$value  -> LazySet(objectId)
 
     emptyIndex:
-        db:index:objectType:commit -> LazySet(objectId)
+        db:emptyIndex:$objectType:$commit -> LazySet(objectId)
 
 
     objectsAndRelations:
-        db:outgoingRelations:objectType:id -> LazySet(commit, relationId, objectType:id)
+        db:outgoingRelations:$objectType:$id:$commit -> LazySet(relationId, objectType, objid)
         // reverse relation lookup
-        db:incomingRelations:objectType:id -> LazySet(commit, relationId, objectType:id)
-
-    relationSchema:
-        // todo: is this needed? 
-        Contains relation information
-        
-        db:relations:id -> (leftTableId, rightTableId)
+        db:incomingRelations:$objectType:$id:$commit -> LazySet(relationId, objectType, objid)
 
     objectRetrieval:
-        For picking objects out of the database
-        db:objects:id -> DBObject
+        For picking objects out of the database, one per object
+        db:objects:$objectType:$id -> DBObject
 
 
 ControlTables:
@@ -37,6 +31,9 @@ ControlTables:
     
     ViewsCounter
         db:nextView -> view // mutable
+
+    ObjectsCounter
+        db:nextObject -> View // mutable
     
     AvailableViews
         db:views -> LazySet(view) // mutable
@@ -45,7 +42,7 @@ ControlTables:
         db:default -> view // mutable
     
     ViewsTable
-        db:ViewLookup:ViewId -> LazySet(commit)
+        db:ViewLookup:$ViewId -> LazySet(commit)
 
 
 

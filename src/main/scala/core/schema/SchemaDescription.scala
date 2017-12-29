@@ -27,9 +27,9 @@ final class SchemaDescription(
     r -> ErasedRelationAttributes(RelationName(index.toString), from, to)
   }.toMap
 
-  private val objectLookup: Map[TableName, SchemaObjectErased]  = erasedObjects.map(o => o.name -> o).toMap
+  val objectMap: Map[TableName, SchemaObjectErased]  = erasedObjects.map(o => o.name -> o).toMap
 
-  def lookupTable(t: TableName): ExtractError \/ SchemaObjectErased = objectLookup.getOrError(t, MissingTableName(t))
+  def lookupTable(t: TableName): ExtractError \/ SchemaObjectErased = objectMap.getOrError(t, MissingTableName(t))
 
   def erasedRelations: Set[ErasedRelationAttributes] = relationMap.values.toSet
 
