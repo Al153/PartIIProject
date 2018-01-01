@@ -1,6 +1,6 @@
 package impl.sql
 
-import core.backend.common.Algorithms
+import core.backend.common.algorithms.Algorithms
 import core.backend.interfaces.DBExecutor
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery

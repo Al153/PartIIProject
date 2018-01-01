@@ -120,6 +120,9 @@ package object utils {
     // Switch a monad transformer
     def switch[E, A](in: Option[E \/ A]): E \/ Option[A] =
       in.fold(Option.empty[A].right[E])(ea => ea.map(_.some))
+
+    def switchBack[E, A](in: E \/ Option[A]): Option[E \/ A] =
+      in.fold(_.left.some, _.map(_.right))
   }
 
   implicit class EitherOps1[E, A](u: E \/ A) {

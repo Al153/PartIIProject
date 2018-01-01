@@ -43,11 +43,7 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
       case USAnd(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
-      } yield {
-        println("left = " + leftRes)
-        println("right = " + rightRes)
-        leftRes.intersect(rightRes)
-      }
+      } yield leftRes.intersect(rightRes)
 
       case USAndSingle(l, r) => for {
         leftRes <- recurse(l, left)
@@ -62,35 +58,19 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
       case USChain(l, r) => for {
         lres <- recurse(l, left)
         rres <- recurse(r, lres.mapProj2.distinct) // reduce double joining
-      } yield {
-        println("(All) Chain right expr = " + r)
-        println("(All) Chain Left result = " + lres)
-        println("(All) Chain right Result = " + rres)
-        val res = join(lres, rres)
-        println("Chain res = " + res)
-        res
-      }
+      } yield join(lres, rres)
 
 
       case USDistinct(r) => for {
         rres <- recurse(r, left)
-      } yield {
-        println("Distinct Subexpr = " + r)
-        println("Distinct Before distinction = " + rres)
-        println("Distinct After distinction = " +  rres.filter{case (a, b) => a != b})
-        rres.filter{case (a, b) => a != b}
-      }
+      } yield rres.filter{case (a, b) => a != b}
+
 
       case USId(_) => left.map(x => (x, x)).right
 
       case USNarrow(l, p) => for {
         broad <- recurse(l, left)
-      } yield {
-        println("(All) Broad = " + broad)
-        val res = broad.filter(pair => matches(pair._2, p))
-        println("(All) Narrowed = " + res)
-        res
-      }
+      } yield broad.filter(pair => matches(pair._2, p))
 
       case USRel(rel) =>
         EitherOps.sequence(left.map {

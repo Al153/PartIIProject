@@ -1,5 +1,6 @@
 package impl.memory
 
+import core.backend.common.EmptyFringeError
 import core.backend.interfaces.DBExecutor
 import core.containers.{Operation, Path}
 import core.dsl.RelationalQuery
@@ -81,7 +82,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
         for {
           initial <- methods.find(start, tree)
           unsafeQuery <- relationalQuery.tree.getUnsafe
-          erasedRes <- methods.singleShortestsPathImpl(initial, sa.findable(end).getUnsafe, o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree))
+          erasedRes <- methods.singleShortestsPathImpl(initial, sa.findable(end).getUnsafe, o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree), tree)
           res <-  erasedRes.map(r => Path.from(r.toErasedPath, sa)).fold(Option.empty[Path[A]].right[E])(_.map(_.some))
         } yield res
     }

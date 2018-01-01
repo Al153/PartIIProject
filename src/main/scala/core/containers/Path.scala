@@ -9,11 +9,11 @@ import scalaz.\/
 /**
   * Created by Al on 09/10/2017.
   */
-abstract class Path[A](implicit sa: SchemaObject[A]) {
+abstract class Path[A] {
   def getSteps: Vector[(A, A)] // get all steps in the path. Todo: can we get more information out here
 }
 
-final class PathImpl[A](steps: Vector[(A, A)])(implicit sa: SchemaObject[A]) extends Path[A]()(sa) {
+final class PathImpl[A](steps: Vector[(A, A)])extends Path[A]() {
   override def getSteps: Vector[(A, A)] = steps
 }
 
@@ -26,10 +26,10 @@ object Path {
           a2 <- sa.fromRow(d2)
           v <- ev
         } yield v :+ (a1, a2)
-    }.map(new PathImpl(_)(sa))
+    }.map(new PathImpl(_))
   }
 
-  def from[A](v: Vector[A])(implicit sa: SchemaObject[A]): Path[A] = new Path[A] {
+  def fromVector[A](v: Vector[A]): Path[A] = new Path[A] {
     override val getSteps: Vector[(A, A)] = v.dropRight(1).zip(v.drop(1))
   }
 }

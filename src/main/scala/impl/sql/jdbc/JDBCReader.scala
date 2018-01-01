@@ -355,7 +355,7 @@ class JDBCReader(implicit instance: SQLInstance) {
         r <- result
       } yield r += (id -> a)
     }
-      result.map(_.result()).map(lookup => Path.from(ids.map(lookup.apply)))
+      result.map(_.result()).map(lookup => Path.fromVector(ids.map(lookup.apply)))
   }
 
   private def getDBCell(rs: ResultSet, component: SchemaComponent, index: Int, side: Side): SQLEither[DBCell] =

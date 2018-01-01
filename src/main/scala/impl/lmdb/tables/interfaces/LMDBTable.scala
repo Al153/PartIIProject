@@ -1,7 +1,7 @@
 package impl.lmdb.tables.interfaces
 
+import impl.lmdb.LMDBInstance
 import impl.lmdb.access.Key
-import impl.sql.SQLInstance
 
 /**
   * Created by Al on 28/12/2017.
@@ -10,5 +10,5 @@ import impl.sql.SQLInstance
   */
 trait LMDBTable {
   def path: Key
-  implicit val instance: SQLInstance
+  implicit val instance: LMDBInstance
 }

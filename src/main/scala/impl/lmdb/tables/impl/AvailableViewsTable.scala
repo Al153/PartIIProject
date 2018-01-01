@@ -1,11 +1,10 @@
 package impl.lmdb.tables.impl
 
 import core.view.View
-import impl.lmdb.LMDBInstance
 import impl.lmdb.access.Key._
 import impl.lmdb.access._
-import impl.lmdb.containers.Extractor
 import impl.lmdb.tables.interfaces.LMDBTable
+import impl.lmdb.{LMDBEither, LMDBInstance}
 
 
 /**
@@ -14,5 +13,7 @@ import impl.lmdb.tables.interfaces.LMDBTable
 class AvailableViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
   override def path: Key = "db".key :: "views".key
 
-  def getAvailableViews(): Extractor[View] = ???
+  def getAvailableViews(): LMDBEither[Set[View]] = ???
+  def validateView(v: View): LMDBEither[Unit] = ???
+  def insertNewView(v: View): LMDBEither[Unit] = ???
 }

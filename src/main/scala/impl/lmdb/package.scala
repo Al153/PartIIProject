@@ -2,12 +2,11 @@ package impl
 
 import core.containers.ConstrainedFuture
 import core.error.E
-import impl.lmdb.errors.LMDBError
+import impl.lmdb.errors.{LMDBError, _}
+
 import scala.concurrent.{ExecutionContext, Promise}
 import scalaz.Scalaz._
 import scalaz._
-
-import impl.lmdb.errors._
 
 /**
   * Created by Al on 28/12/2017.
@@ -24,6 +23,7 @@ package object lmdb {
   def LMDBFailure[A](e: => LMDBError)(implicit ec: ExecutionContext): LMDBFuture[A] = ConstrainedFuture.future(Promise.successful(e.left).future)(recoverLMDBException)
   def LMDBEither[A](a: => A): LMDBEither[A] = try { a.right} catch {case e: Throwable => recoverLMDBException(e).left}
   def safeEither[A](ea: => LMDBEither[A]): LMDBEither[A] = try {ea} catch {case e: Throwable => recoverLMDBException(e).left}
+  def LMDBLeft[A](e: => LMDBError): LMDBEither[A] = try {e.left} catch {case e: Throwable => recoverLMDBException(e).left}
 
   def asE(s: LMDBError): E = s
   def asEither[A](sQLEither: LMDBEither[A]): E \/ A = sQLEither.leftMap(asE)
@@ -36,5 +36,4 @@ package object lmdb {
   implicit class LMDBEitherOps[A](u: LMDBEither[A]) {
     def asEither: E \/ A = lmdb.asEither(u)
   }
-
 }
