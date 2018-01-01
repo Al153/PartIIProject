@@ -12,4 +12,7 @@ abstract class MutableCounter[A](implicit store: Storeable[A]) extends LMDBTable
     * @return
     */
   def getAndUpdate(): LMDBEither[A] = ???
+  protected def initialVales: A
+
+  private def initialise(): Unit = ???
 }

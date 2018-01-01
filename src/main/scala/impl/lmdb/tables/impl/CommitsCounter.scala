@@ -10,5 +10,5 @@ import impl.lmdb.tables.interfaces.MutableCounter
 class CommitsCounter(implicit val instance: LMDBInstance) extends MutableCounter[Commit] {
   override def path: Key = "db".key :: "nextCommit".key
 
-
+  override protected def initialVales: Commit = Commit(0)
 }

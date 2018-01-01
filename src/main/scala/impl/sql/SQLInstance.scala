@@ -67,7 +67,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
             } yield er -> new RelationTable(name, fromTable, toTable)(this)
         }
       )
-    )).map(_.toMap)
+    )).toMapE
 
   override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = SQLFutureE(defaultsTable.setDefaultView(view)).asCFuture
 

@@ -10,4 +10,6 @@ import impl.lmdb.tables.interfaces.MutableCounter
   */
 class ObjectsCounter(implicit val instance: LMDBInstance) extends MutableCounter[ObjId] {
   override def path: Key = "db".key :: "nextCommit".key
+
+  override val initialVales = ObjId(0)
 }

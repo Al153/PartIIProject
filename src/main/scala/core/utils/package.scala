@@ -52,6 +52,8 @@ package object utils {
 
       m.toMap.mapValues(_.result())
     }
+
+
   }
 
 
@@ -62,7 +64,6 @@ package object utils {
       u.foldLeft(cbf(u)){
         case (builder, a) => builder += pair(a)
       }.result()
-
 
   }
 
@@ -129,6 +130,10 @@ package object utils {
     def withSnd[B](b: B): E \/ (A, B) = u.map((_, b))
     def withFst[B](b: B): E \/ (B, A) = u.map((b, _))
     def andThen[B](that: => E \/ B): E \/ B = u.flatMap(_ => that)
+  }
+
+  implicit class EitherOps2[E, A, B](u:  E \/ TraversableOnce[(A, B)]) {
+    def toMapE: E \/ Map[A, B] = u.map(_.toMap)
   }
 
   implicit class StringifyOps(u: Any) {

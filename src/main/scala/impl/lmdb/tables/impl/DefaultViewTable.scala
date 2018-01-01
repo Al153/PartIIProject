@@ -16,4 +16,6 @@ class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
 
   def getDefault(): LMDBFuture[View] = ???
   def setDefault(v: View): LMDBFuture[Unit] = ???
+
+  private def initialise(): Unit = ???
 }

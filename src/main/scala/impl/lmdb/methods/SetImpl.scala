@@ -6,9 +6,12 @@ import core.schema.{SchemaDescription, SchemaObject}
 import core.utils.EitherOps
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, ObjId}
-import impl.lmdb.errors.LMDBError
+import impl.lmdb.errors.{LMDBError, LMDBMissingExtract, LMDBMissingTable}
 import impl.lmdb.tables.impl.ObjectRetrievalTable
-import core.utils._, scalaz._, Scalaz._
+import core.utils._
+
+import scalaz._
+import Scalaz._
 
 /**
   * Created by Al on 30/12/2017.
@@ -43,7 +46,31 @@ trait SetImpl { self: Methods =>
   def extractPairSet[A, B](in: Set[(ObjId, ObjId)])(
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
-  ): LMDBEither[Set[(A, B)]] = ???
+  ): LMDBEither[Set[(A, B)]] = for {
+    aTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
+    bTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+
+    leftIds = in.mapProj1.toSet
+    rightIds = in.mapProj2.toSet
+
+    leftIndex <- EitherOps.sequence(leftIds.map {
+      id => aTable.retrieve[A](id).map(id -> _)
+    }).toMapE
+
+    rightIndex <- EitherOps.sequence(rightIds.map {
+      id => bTable.retrieve[B](id).map(id -> _)
+    }).toMapE
+
+    res <- EitherOps.sequence(
+      in.map {
+        case (leftId, rightId) =>
+          for {
+            a <- leftIndex.getOrError(leftId, LMDBMissingExtract(leftId, leftIndex))
+            b <- rightIndex.getOrError(rightId, LMDBMissingExtract(rightId, rightIndex))
+          } yield (a, b)
+      }
+    )
+  } yield res
 
   def findPairSingle(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
     def recurse(t: UnsafeFindSingle) = findPairSingle(t, commits)

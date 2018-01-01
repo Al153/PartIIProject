@@ -8,6 +8,11 @@ import core.utils.EitherOps
 import core.view.View
 import impl.lmdb._
 import impl.lmdb.access.{Commit, ObjId}
+import core.utils._
+import impl.lmdb.errors.{LMDBError, LMDBMissingInsert, LMDBMissingRelation, LMDBMissingTable}
+
+import scalaz._
+import Scalaz._
 
 /**
   * Created by Al on 29/12/2017.
@@ -91,7 +96,58 @@ trait Write { self: Methods =>
                        newCommit: Commit
                      )(
     implicit sa: SchemaObject[A],
-    sb: SchemaObject[B]
-  ): LMDBEither[(Map[ObjId, Map[RelationName, Set[ObjId]]], Map[ObjId, Map[RelationName, Set[ObjId]]])] = ???
+    sb: SchemaObject[B],
+    sd: SchemaDescription
+  ): LMDBEither[(Map[ObjId, Map[RelationName, Set[ObjId]]], Map[ObjId, Map[RelationName, Set[ObjId]]])] =
+    for {
+      aLookupTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
+      bLookupTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+
+      aMap <- t.toSeq.foldLeft(LMDBEither(Map[A, Map[RelationName, Set[B]]]())) {
+        case (em, CompletedRelation(a, r, b)) =>
+          for {
+            m <- em
+            er <- sd.getRelation(r).leftMap(LMDBMissingRelation)
+            rname = er.name
+            ma: Map[RelationName, Set[B]] = m.getOrElse(a, Map[RelationName, Set[B]]())
+            mset = ma + (rname -> (ma.getOrElse(rname, Set[B]()) + b))
+          } yield m + (a -> mset)
+      }
+
+      bMap <- t.toSeq.foldLeft(LMDBEither(Map[B, Map[RelationName, Set[A]]]())) {
+        case (em, CompletedRelation(a, r, b)) =>
+          for {
+            m <- em
+            er <- sd.getRelation(r).leftMap(LMDBMissingRelation)
+            rname = er.name
+            mb: Map[RelationName, Set[A]] = m.getOrElse(b, Map[RelationName, Set[A]]())
+            mset = mb + (rname -> (mb.getOrElse(rname, Set[A]()) + a))
+          } yield m + (b -> mset)
+      }
+
+      aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
+      bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
+
+      aRes <- convertMap[A, B](aMap, aLookup, bLookup)
+
+      bRes <- convertMap[B, A](bMap, bLookup, aLookup)
+    } yield aRes -> bRes
+
+  private def convertMap[A, B](
+                                aMap: Map[A, Map[RelationName, Set[B]]],
+                                aLookup: Map[A, ObjId],
+                                bLookup: Map[B, ObjId]
+  ): LMDBEither[Map[ObjId, Map[RelationName, Set[ObjId]]]] =
+    EitherOps.sequence(aMap.map {
+      case (a, m) =>
+        for {
+          aId <- aLookup.getOrError(a, LMDBMissingInsert(a, aLookup): LMDBError)
+          map <- EitherOps.sequence(m.map {
+            case (r, bs) => EitherOps.sequence(bs.map {
+              b => bLookup.getOrError(b, LMDBMissingInsert(b, bLookup): LMDBError)
+            }).map(r -> _)
+          }).toMapE
+        } yield aId -> map}).toMapE
+
 }
 

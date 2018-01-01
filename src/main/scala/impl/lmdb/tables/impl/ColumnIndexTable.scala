@@ -17,6 +17,8 @@ class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: Sch
   override def path: Key = tableName.key :: columnIndex.key
   def lookup(value: DBCell, commit: Commit): LMDBEither[Set[ObjId]] = ???
   def lookup(value: DBCell, commits: Set[Commit]): LMDBEither[Set[ObjId]] = ???
+
+  def insert(value: DBCell, commit: Commit, o: ObjId): LMDBEither[Unit] = ???
 }
 
 object ColumnIndexTable {

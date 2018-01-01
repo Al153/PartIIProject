@@ -20,18 +20,18 @@ import scala.concurrent.ExecutionContext
 /**
   * Created by Al on 12/12/2017.
   */
-class LMDBInstance(val env: Env, schema: SchemaDescription)(implicit executionContext: ExecutionContext) extends DBInstance {
-  implicit val ec = executionContext
+class LMDBInstance(val env: Env, schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
+  implicit val instance: LMDBInstance = this
 
-  override def executor: DBExecutor = ???
+  override def executor: DBExecutor = new LMDBExecutor()
 
-  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = ???
+  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = controlTables.defaultView.setDefault(view).asCFuture
 
-  override def getDefaultView: ConstrainedFuture[E, View] = ???
+  override def getDefaultView: ConstrainedFuture[E, View] = controlTables.defaultView.getDefault().asCFuture
 
-  override def getViews: ConstrainedFuture[E, Set[View]] = ???
+  override def getViews: ConstrainedFuture[E, Set[View]] = LMDBFutureE(controlTables.availableViews.getAvailableViews()).asCFuture
 
-  implicit val instance = this
+
 
   private[lmdb] def validateView(v: View): LMDBEither[Unit] = controlTables.availableViews.validateView(v)
 
