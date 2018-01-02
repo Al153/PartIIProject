@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext
 object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] =
     ConstrainedFuture.point[E, DBInstance] {
-      val env: Env = ???
+      val env: Env = new Env("/tmp/mydb")
       new LMDBInstance(env, schema)
     }(errors.recoverLMDBException)
 

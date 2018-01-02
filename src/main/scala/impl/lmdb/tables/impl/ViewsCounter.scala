@@ -13,5 +13,7 @@ import impl.lmdb.tables.interfaces.MutableCounter
 class ViewsCounter(implicit val instance: LMDBInstance) extends MutableCounter[View] {
   override val path: Key = "db".key :: "nextView".key
 
-  override protected def initialVales: View = View(0)
+  override protected def initialValue: View = View(1)
+
+  override protected def next(a: View): View = View(a.id + 1)
 }

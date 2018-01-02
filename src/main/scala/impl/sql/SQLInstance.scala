@@ -26,8 +26,9 @@ import scalaz.Scalaz.ToEitherOps
   */
 
 class SQLInstance(val connection: Connection, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
-
   override val executor: DBExecutor = new SQLExecutor(this)
+
+  override def close(): Unit = connection.close()
   val viewsTable: ViewsTable = new ViewsTable()(this)
   val viewsRegistry: ViewsRegistry = new ViewsRegistry()(this)
   val commitsRegistry: CommitsRegistry = new CommitsRegistry()(this)

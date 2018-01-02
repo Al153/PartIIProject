@@ -11,7 +11,7 @@ import impl.lmdb.access.{Commit, ObjId}
 import scalaz._
 import Scalaz._
 import impl.lmdb.tables.impl._
-import org.fusesource.lmdbjni.Env
+import org.fusesource.lmdbjni.{Database, Env}
 import core.utils._
 import impl.lmdb.errors.LMDBMissingTable
 
@@ -23,14 +23,21 @@ import scala.concurrent.ExecutionContext
 class LMDBInstance(val env: Env, schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
   implicit val instance: LMDBInstance = this
 
+  val db: Database = env.openDatabase()
+
   override def executor: DBExecutor = new LMDBExecutor()
 
   override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = controlTables.defaultView.setDefault(view).asCFuture
 
   override def getDefaultView: ConstrainedFuture[E, View] = controlTables.defaultView.getDefault().asCFuture
 
-  override def getViews: ConstrainedFuture[E, Set[View]] = LMDBFutureE(controlTables.availableViews.getAvailableViews()).asCFuture
+  override def getViews: ConstrainedFuture[E, Set[View]] = LMDBFutureE(controlTables.availableViews.availableViews()).asCFuture
 
+  override def close(): Unit = {
+    db.close()
+    env.close()
+
+  }
 
 
   private[lmdb] def validateView(v: View): LMDBEither[Unit] = controlTables.availableViews.validateView(v)

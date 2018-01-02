@@ -4,11 +4,13 @@ import core.backend.common.DBObject
 import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
 import core.schema.SchemaObject
 import core.utils._
+import impl.lmdb
 import impl.lmdb.access.Key._
 import impl.lmdb.access.{Commit, Key, ObjId}
-import impl.lmdb.errors.LMDBMissingTable
+import impl.lmdb.errors.{LMDBMissingTable, UnmarshallingError}
 import impl.lmdb.tables.interfaces.LMDBTable
 import impl.lmdb.{BigSetOps, LMDBEither, LMDBInstance}
+import impl.lmdb._
 
 import scalaz.Scalaz._
 import scalaz._
@@ -35,9 +37,17 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
   def lookup(commits: Set[Commit]): LMDBEither[Set[ObjId]] = emptyIndex.lookupSet(commits)
   def lookupVector(commits: Set[Commit]): LMDBEither[Vector[ObjId]] = emptyIndex.lookupVector(commits)
 
-  def retrieve[A](a: ObjId)(implicit sa: SchemaObject[A]): LMDBEither[A] = ???
-  def retrieve[A](as: Set[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Set[A]] = ???
-  def retrieve[A](as: Vector[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Vector[A]] = ???
+  def retrieve[A](a: ObjId)(implicit sa: SchemaObject[A]): LMDBEither[A] =
+    for {
+      dbObject <- lmdb.get[DBObject](getKey(a))
+      a <- sa.fromRow(dbObject).leftMap(UnmarshallingError)
+    } yield a
+
+  def retrieve[A](as: Set[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Set[A]] =
+    EitherOps.sequence(as.map(a => retrieve(a)(sa)))
+
+  def retrieve[A](as: Vector[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Vector[A]] =
+    EitherOps.sequence(as.map(retrieve[A]))
 
   def lookupPattern(p: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
     if (p.tableName in instance.objects) instance.objects(p.tableName).lookup(p, commits)
@@ -70,12 +80,16 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
         }
       )
 
-      _ <- this.insertFields(insertable, commit, objId)
+      _ <- this.insertFields(insertable, objId)
 
 
     // insert to each index table
     } yield objId
   }
 
-  private def insertFields(fields: DBObject, commit: Commit, objId: ObjId): LMDBEither[Unit] = ???
+  private def getKey(objId: ObjId): Key = path >> objId
+
+  private def insertFields(fields: DBObject, objId: ObjId): LMDBEither[Unit] =
+    lmdb.put(getKey(objId), fields).map(_ => ())
+
 }

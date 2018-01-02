@@ -15,5 +15,7 @@ trait DBInstance {
   def setDefaultView(view: View): ConstrainedFuture[E, Unit]
   def getDefaultView: ConstrainedFuture[E, View]
   def getViews: ConstrainedFuture[E, Set[View]]
+
+  def close(): Unit
 }
 

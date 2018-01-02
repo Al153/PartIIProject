@@ -70,4 +70,6 @@ class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: E
   override def getDefaultView: ConstrainedFuture[E, View] = ConstrainedFuture.immediatePoint(Store.getDefaultView)
 
   override def getViews: ConstrainedFuture[E, Set[View]] = ConstrainedFuture.point[E, Set[View]](Store.getViews)(UnknownMemoryError)
+
+  override def close(): Unit = ()
 }

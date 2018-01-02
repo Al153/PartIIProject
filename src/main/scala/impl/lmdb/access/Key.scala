@@ -2,7 +2,10 @@ package impl.lmdb.access
 
 import java.util.Base64
 
-import core.schema.TableName
+import core.schema.{RelationName, TableName}
+import org.fusesource.lmdbjni._
+import org.fusesource.lmdbjni.Constants._
+
 
 /**
   * Created by Al on 13/12/2017.
@@ -17,7 +20,7 @@ case class Key private (components: Vector[KeyComponent]) {
   def ++(that: Key) = Key(this.components ++ that.components)
   def +(that: KeyComponent) = Key(this.components :+ that)
 
-  def render: String = components.map(_.toBase64).mkString(":")
+  def render: Array[Byte] = bytes(components.map(_.toBase64).mkString(":"))
 }
 
 sealed trait KeyComponent {
@@ -47,6 +50,7 @@ object Key {
     }
 
     def key = new Key(Vector(component))
+    def >>[A](that: A)(implicit k: Keyable[A]): Key = key :: that.key
   }
 
   implicit class KeyComponentOps(u: KeyComponent) {
@@ -56,5 +60,14 @@ object Key {
   implicit class KeyOps(u: Key) {
     def ::(that: KeyComponent): Key = new Key(that +: u.components)
     def ::(that: Key): Key = that ++ u
+    def >>[A](that: A)(implicit k: Keyable[A]): Key = u ++ that.key
+  }
+
+  implicit object KeyableRelationName extends Keyable[RelationName] {
+    override def bytes(k: RelationName): Array[Byte] = KeyableString.bytes(k.id)
+  }
+
+  implicit def KeyableFromStoreable[A](implicit sa: Storeable[A]) = new Keyable[A] {
+    override def bytes(k: A): Array[Byte] = sa.toBytes(k).toArray
   }
 }
