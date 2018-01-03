@@ -32,7 +32,7 @@ trait PathFinding { self: Methods =>
         commits <- instance.controlTables.viewsTable.lookupCommits(view)
         initialSet <- instance.lookupPattern(sa.findable(start).getUnsafe, commits)
         targetSet <- instance.lookupPattern(sa.findable(end).getUnsafe, commits)
-        target = targetSet.find(_ => true)
+        target = targetSet.headOption
 
         extractor <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
 

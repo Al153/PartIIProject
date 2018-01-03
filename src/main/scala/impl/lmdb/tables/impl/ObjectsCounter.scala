@@ -15,5 +15,5 @@ class ObjectsCounter(implicit val instance: LMDBInstance) extends MutableCounter
 
   override val initialValue = ObjId(0)
 
-  override def next(a: ObjId): ObjId = a++
+  override def next(a: ObjId): ObjId = a.increment
 }

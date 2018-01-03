@@ -7,7 +7,7 @@ import impl.lmdb.access.Storeable.StoreableLong
   * Created by Al on 28/12/2017.
   */
 case class ObjId(id: Long) extends AnyVal {
-  def ++ : ObjId = ObjId(id + 1)
+  def increment: ObjId = ObjId(id + 1)
 }
 
 object ObjId {

@@ -28,9 +28,13 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
   val emptyIndex = new EmptyIndexTable(sa.name)
 
   def lookup(f: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
+    println(s"looking up: $f")
+
     for {
       ifEmpty <- emptyIndex.lookupSet(commits)
+      _ = println(s"Starting lookup")
       indexResults <- EitherOps.sequence(f.pattern.zipWithIndex.collect {case (Some(v), i) => indices(i).lookup(v, commits)})
+      _ = println(s"Result of lookup = $indexResults")
     } yield BigSetOps.bigIntersection(ifEmpty, indexResults)
   }
 
@@ -61,9 +65,10 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
   private def getOrCreate[A](a: A, commits: Set[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[ObjId] =
     for {
       lookupResult <- lookup(sa.findable(a).getUnsafe, commits + newCommit)
-      res <- lookupResult.find(_ => true).fold(insert(a, newCommit)){
+      res <- lookupResult.headOption.fold(insert(a, newCommit)){
         _.right
       }
+      _ = println(s"Inserting object $a -> $res")
     } yield res
 
 
@@ -72,6 +77,8 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
     for {
     // Insert to retrieval table
       objId <- instance.controlTables.objectCounter.getAndUpdate()
+
+      _ = println("\tAssigned objId = " + objId)
       _ <- emptyIndex.insert(commit, objId)
 
       _ <- EitherOps.sequence(

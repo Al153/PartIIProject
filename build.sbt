@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
 // LMBD
 scalacOptions += "-feature"
 
-libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni" % "0.4.0"
-libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-osx64" % "0.4.0"
-libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-linux64" % "0.4.0"
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni" % "0.4.6"
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-win64" % "0.4.6"
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-osx64" % "0.4.6"
+libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-linux64" % "0.4.6"

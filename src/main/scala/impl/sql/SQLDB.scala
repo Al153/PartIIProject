@@ -37,13 +37,6 @@ object SQLDB extends DBBackend {
                             )(implicit ec: ExecutionContext): SQLFuture[Connection] =
     SQLFuture {
       address match {
-        case DBUrl(url, user, password) =>
-          val jdbcUrl = s"jdbc:postgresql://${url.toString}"
-          val props = new Properties()
-          props.setProperty("user", user)
-          props.setProperty("password", password)
-          props.setProperty("ssl", "true")
-          DriverManager.getConnection(jdbcUrl, props)
         case DBDir(path, user, password) =>
           val jdbcUrl = s"jdbc:postgresql://localhost/${path.toString}"
           val props = new Properties()

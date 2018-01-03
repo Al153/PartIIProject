@@ -67,14 +67,6 @@ trait Write { self: Methods =>
 
     _ <- instance.controlTables.availableViews.insertNewView(newView)
 
-    /*
-      * Ideas
-      *
-      *   -
-      *   - run an insert or get on all the objects in the relation
-      *   - insert all of the relations
-      *   - Add to available views
-     */
   } yield newView
 
 
@@ -114,6 +106,8 @@ trait Write { self: Methods =>
           } yield m + (a -> mset)
       }
 
+      _ = println("\tDone first indexing")
+
       bMap <- t.toSeq.foldLeft(LMDBEither(Map[B, Map[RelationName, Set[A]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
           for {
@@ -125,8 +119,15 @@ trait Write { self: Methods =>
           } yield m + (b -> mset)
       }
 
+      _ = println("\tDone second index")
+
       aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
+
+      _ = println("\t\tDone first lookup")
+
       bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
+
+      _ = println("\t\tDone second lookup")
 
       aRes <- convertMap[A, B](aMap, aLookup, bLookup)
 

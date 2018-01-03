@@ -18,7 +18,7 @@ trait PathFinding { self: ExecutorMethods =>
   def singleShortestsPathImpl(start: Set[MemoryObject], end: UnsafeFindable, searchStep: MemoryObject => E \/ Set[RelatedPair], tree: MemoryTree): E \/ Option[MemoryPath] =
     for {
       possibleEnds <- tree.getOrError(end.tableName, MissingTableName(end.tableName)).flatMap(_.find(end).map(_.toSet))
-      e = possibleEnds.find(_ => true) // see if there is an available end
+      e = possibleEnds.headOption // see if there is an available end
       res <- e.fold((None:  Option[MemoryPath]).right[E]){
         e => algorithms.PathFinding.singleShortestsPathImpl[E, MemoryObject](start, e, searchStep, EmptyFringeError).map(_.map(MemoryPath.apply))
       }

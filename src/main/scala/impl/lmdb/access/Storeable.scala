@@ -5,11 +5,10 @@ import java.nio.ByteBuffer
 import core.backend.common._
 import core.view.View
 import impl.lmdb.LMDBEither
-import impl.lmdb.access.Storeable.StoreableInt
 import impl.lmdb.errors.{BooleanExtractError, UnexpectedStreamLength, UnrecognisedDBHeader}
 
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 /**
   * Created by Al on 29/12/2017.
@@ -26,11 +25,12 @@ object Storeable {
     var res: LMDBEither[Set[A]] = Set[A]().right
     var arr = in
     while (arr.nonEmpty && res.isRight) {
+      println("\t\t\tarray = " + arr)
       res = for {
-        aAndRest <- iterated(in)
+        aAndRest <- iterated(arr)
         (a, rest) = aAndRest
         as <- res
-      } yield {arr = rest; as + a}
+      } yield {arr = rest; println("\t\t\t\tarray = " + arr) ; as + a}
     }
     res
   }
@@ -41,7 +41,7 @@ object Storeable {
     var arr = in
     while (arr.nonEmpty && res.isRight) {
       res = for {
-        aAndRest <- iterated(in)
+        aAndRest <- iterated(arr)
         (a, rest) = aAndRest
         as <- res
       } yield {arr = rest; as :+ a}
@@ -51,8 +51,8 @@ object Storeable {
 
 
   implicit object StoreableView extends Storeable[View] {
-    override def toBytes(v: View): Vector[Byte] = BigInt(v.id).toByteArray.toVector
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[View] = View(BigInt(bytes.toArray).toLong).right
+    override def toBytes(v: View): Vector[Byte] = StoreableLong.toBytes(v.id)
+    override def fromBytes(bytes: Vector[Byte]): LMDBEither[View] = StoreableLong.fromBytes(bytes).map(View.apply)
   }
 
   implicit object StoreableString extends Storeable[String] {
@@ -119,6 +119,7 @@ object Storeable {
     }
 
     override def fromBytes(bytes: Vector[Byte]): LMDBEither[Set[A]] = {
+      println("Extracting set " + bytes)
       def iterator(in: Vector[Byte]): LMDBEither[(A, Vector[Byte])] = for {
           count <- StoreableInt.fromBytes(in.take(4))
           tail = in.drop(4)
@@ -130,7 +131,9 @@ object Storeable {
           a <- sa.fromBytes(top)
         } yield (a, tail)
 
-      extractWhileSet(iterator)(bytes)
+      val res = extractWhileSet(iterator)(bytes)
+      println("\t\tgot: " + res)
+      res
     }
   }
 
