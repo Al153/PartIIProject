@@ -8,19 +8,17 @@ import impl.lmdb._
   * Created by Al on 29/12/2017.
   */
 abstract class MutableCounter[A](implicit store: Storeable[A]) extends LMDBTable {
-  initialise()
+
   /**
     * Transactional
     * @return
     */
   def getAndUpdate(): LMDBEither[A] = transactionalGetAndSet(path){
-    a => {
-      println("New Id = " + a)
-      LMDBEither(next(a))
-    }
+    a => LMDBEither(next(a))
   }
   protected def initialValue: A
   protected def next(a: A): A
 
-  private def initialise(): Unit = put(path, initialValue)
+  protected def initialise(): Unit = put(path, initialValue)
+
 }

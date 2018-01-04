@@ -138,7 +138,6 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
     for {
       constraints <- definedConstraints
       tables <- definedTables
-      _ = println(tables)
       _ <- if (constraints.nonEmpty) writeBatchEither (
         constraints.map {
           case (constraintTable, constraintName) => s"ALTER TABLE $constraintTable DROP CONSTRAINT IF EXISTS $constraintName;"
@@ -153,15 +152,12 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
 
   def doWriteEither(query: String): SQLEither[Unit] = SQLEither {
     val fixedQuery = if (query.endsWith(";")) query else query + ";"
-    println(fixedQuery)
     val stmt = connection.createStatement()
     stmt.executeUpdate(fixedQuery)
   }
   def writeBatch(queries: TraversableOnce[String]): SQLFuture[Unit] = SQLFutureE {writeBatchEither(queries)}
 
   def writeBatchEither(queries: TraversableOnce[String]): SQLEither[Unit] = SQLEither {
-
-    println("Batch write = " + queries.mkString("\n\t\t"))
     val stmt = connection.createStatement()
     for (query <- queries) stmt.addBatch(query)
     stmt.executeBatch()

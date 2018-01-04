@@ -6,7 +6,8 @@ import impl.lmdb.access.Storeable.StoreableLong
   * Created by Al on 28/12/2017.
   */
 case class Commit(id: Long) extends AnyVal {
-  def ++ : Commit = new Commit(id + 1)
+  def increment : Commit = new Commit(id + 1)
+
 }
 
 object Commit {

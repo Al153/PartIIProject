@@ -7,8 +7,8 @@ import core.view.View
 import impl.lmdb.LMDBEither
 import impl.lmdb.errors.{BooleanExtractError, UnexpectedStreamLength, UnrecognisedDBHeader}
 
+import scala.collection.mutable
 import scalaz.Scalaz._
-import scalaz._
 
 /**
   * Created by Al on 29/12/2017.
@@ -22,31 +22,30 @@ trait Storeable[A] {
 object Storeable {
   def extractWhileSet[A](iterated: Vector[Byte] => LMDBEither[(A, Vector[Byte])])
                         (in: Vector[Byte]): LMDBEither[Set[A]] = {
-    var res: LMDBEither[Set[A]] = Set[A]().right
+    var res: LMDBEither[mutable.Builder[A, Set[A]]] = Set.newBuilder[A].right
     var arr = in
     while (arr.nonEmpty && res.isRight) {
-      println("\t\t\tarray = " + arr)
       res = for {
         aAndRest <- iterated(arr)
         (a, rest) = aAndRest
         as <- res
-      } yield {arr = rest; println("\t\t\t\tarray = " + arr) ; as + a}
+      } yield {arr = rest; as.+=(a)}
     }
-    res
+    res.map(_.result())
   }
 
   def extractWhileVector[A](iterated: Vector[Byte] => LMDBEither[(A, Vector[Byte])])
                         (in: Vector[Byte]): LMDBEither[Vector[A]] = {
-    var res: LMDBEither[Vector[A]] = Vector[A]().right
+    var res: LMDBEither[mutable.Builder[A, Vector[A]]] = Vector.newBuilder[A].right
     var arr = in
     while (arr.nonEmpty && res.isRight) {
       res = for {
         aAndRest <- iterated(arr)
         (a, rest) = aAndRest
         as <- res
-      } yield {arr = rest; as :+ a}
+      } yield {arr = rest; as += a}
     }
-    res
+    res.map(_.result())
   }
 
 
@@ -119,7 +118,6 @@ object Storeable {
     }
 
     override def fromBytes(bytes: Vector[Byte]): LMDBEither[Set[A]] = {
-      println("Extracting set " + bytes)
       def iterator(in: Vector[Byte]): LMDBEither[(A, Vector[Byte])] = for {
           count <- StoreableInt.fromBytes(in.take(4))
           tail = in.drop(4)
@@ -131,9 +129,7 @@ object Storeable {
           a <- sa.fromBytes(top)
         } yield (a, tail)
 
-      val res = extractWhileSet(iterator)(bytes)
-      println("\t\tgot: " + res)
-      res
+      extractWhileSet(iterator)(bytes)
     }
   }
 

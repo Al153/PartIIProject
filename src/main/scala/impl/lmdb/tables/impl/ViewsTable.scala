@@ -17,5 +17,6 @@ class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
   newChildView(initialView, Set())
 
   def lookupCommits(v: View): LMDBEither[Set[Commit]] = get(path >> v)
+
   def newChildView(newView: View, commits: Set[Commit]): LMDBEither[Unit] = put(path >> newView, commits)
 }

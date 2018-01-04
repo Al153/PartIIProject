@@ -1,6 +1,5 @@
 package core.backend.common.algorithms
 
-import core.backend.common.EmptyFringeError
 import core.utils._
 
 import scala.collection.immutable.Queue
@@ -63,6 +62,6 @@ object PathFinding {
       } yield res
     }
 
-    aux(toQueue(start.map(a => Vector(a))), Set(), Set()).recover{ case EmptyFringeError => None}
+    aux(toQueue(start.map(a => Vector(a))), Set(), Set()).recover{ case e if e == onEmptyFringe => None}
   }  
 }

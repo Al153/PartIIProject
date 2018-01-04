@@ -72,10 +72,7 @@ case class CompletedPairQuery(
       rightDescription.pattern.indices
         .map(i => s"${SQLDB.rightmostTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.rightColumn(i)}")
 
-    val res = (leftPairs ++ rightPairs).mkString(", ")
-    println("Left description = " + leftDescription.pattern)
-    println("Columns = " + res)
-    res
+    (leftPairs ++ rightPairs).mkString(", ")
   }
 
 

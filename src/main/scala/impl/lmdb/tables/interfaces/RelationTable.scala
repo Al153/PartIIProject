@@ -24,8 +24,6 @@ trait RelationTable extends LMDBTable {
     ).map(_.flatten)
 
   def insert(from: ObjId, commit: Commit, relationName: RelationName, to: Set[ObjId]): LMDBEither[Unit] =
-    {
-      println(s"Inserting: [$from] = $relationName => $to")
       transactionalUnion(getKey(from, commit, relationName), to)
-    }
+
 }

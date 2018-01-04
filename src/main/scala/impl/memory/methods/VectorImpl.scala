@@ -36,7 +36,6 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
 
 
   def findPairsImpl(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
-    println(tree)
     def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairsImpl(t, left, tree)
 
     q match {
@@ -84,11 +83,9 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
 
 
       case USRevRel(rel) =>
-        println("RevRel Left = " + left)
         EitherOps.sequence(left.map {
           leftObject: MemoryObject => {
             val related = leftObject.getRevRelated(rel.name).toVector
-            println("Rev related = " + related.mkString("\n"))
             val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.from, o)))
             val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
             res
@@ -109,8 +106,6 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
         } else {
           // otherwise find a fixed point
-          println("Atleast: Finding fixed point")
-          println("Atleast: Left = " + left.mkString("\n\t\t\t"))
           val stepFunction: Set[MemoryObject] => E \/ Set[MemoryObject] = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
           for {
             res <- fixedPoint(stepFunction, left.toSet.mapPair)

@@ -106,8 +106,6 @@ trait Write { self: Methods =>
           } yield m + (a -> mset)
       }
 
-      _ = println("\tDone first indexing")
-
       bMap <- t.toSeq.foldLeft(LMDBEither(Map[B, Map[RelationName, Set[A]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
           for {
@@ -119,18 +117,11 @@ trait Write { self: Methods =>
           } yield m + (b -> mset)
       }
 
-      _ = println("\tDone second index")
 
       aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
-
-      _ = println("\t\tDone first lookup")
-
       bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
 
-      _ = println("\t\tDone second lookup")
-
       aRes <- convertMap[A, B](aMap, aLookup, bLookup)
-
       bRes <- convertMap[B, A](bMap, bLookup, aLookup)
     } yield aRes -> bRes
 

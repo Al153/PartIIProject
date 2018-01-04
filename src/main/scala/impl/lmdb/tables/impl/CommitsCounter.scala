@@ -10,9 +10,11 @@ import scala.language.postfixOps
   * Created by Al on 28/12/2017.
   */
 class CommitsCounter(implicit val instance: LMDBInstance) extends MutableCounter[Commit] {
-  override def path: Key = "db".key :: "nextCommit".key
+  override val path: Key = "db" >> "nextCommit"
 
   override protected def initialValue: Commit = Commit(0)
 
-  override def next(a: Commit): Commit = a++
+  override def next(a: Commit): Commit = a.increment
+
+  initialise()
 }

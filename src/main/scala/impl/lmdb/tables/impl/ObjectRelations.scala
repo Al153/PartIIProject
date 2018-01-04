@@ -11,5 +11,5 @@ import impl.lmdb.tables.interfaces.RelationTable
   * Table containing all outgoing relations from objects
   */
 class ObjectRelations(implicit val instance: LMDBInstance) extends RelationTable {
-  override val path: Key = "db".key :: "outGoingRelations".key
+  override val path: Key = "db" >> "outGoingRelations"
 }

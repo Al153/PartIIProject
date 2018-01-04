@@ -17,14 +17,10 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
   override val path: Key = "db" >> "emptyIndex" >> tableName
   def getPath(commit: Commit): Key = path >> commit
 
-  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = {
-    val res = get[Set[ObjId]](getPath(commit))
-    println("looked up set (empty index) " + res)
-    res
-  }
+  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = get[Set[ObjId]](getPath(commit))
+
 
   def lookupSet(commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
-    println("Doing empty lookup")
     for {
       sets <- EitherOps.sequence(commits.map(lookup))
     } yield sets.flatten

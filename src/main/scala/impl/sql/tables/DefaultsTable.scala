@@ -11,7 +11,6 @@ class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
   import instance.executionContext
 
   def setDefaultView(v: View): SQLEither[Unit] = {
-    println(instance.reader.getView(s"SELECT ${DefaultsTable.viewId} FROM $name"))
     instance.doWriteEither(s"UPDATE $name SET ${DefaultsTable.viewId} = ${v.id}")
   }
 

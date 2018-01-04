@@ -45,13 +45,12 @@ package object lmdb {
     instance.db.put(key.render, sa.toBytes(a).toArray)
   }
 
-  def get[A](key: Key)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] = {
-    println("\n\nin get")
+  def get[A](key: Key)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] =
     for {
       b <- LMDBEither(instance.db.get(key.render))
       r <- sa.fromBytes(safeRetrieve(b))
     } yield r
-  }
+
 
   def transactionalGetAndSet[A](key: Key)(compute: A => LMDBEither[A])(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] = {
     import org.fusesource.lmdbjni.Transaction
@@ -64,7 +63,6 @@ package object lmdb {
           bytes <- LMDBEither(instance.db.get(tx, k))
           a <- sa.fromBytes(safeRetrieve(bytes))
           res <- compute(a)
-          _ = println(s"Computed result: $a => $res")
           _ <- LMDBEither(instance.db.put(tx, k, sa.toBytes(res).toArray))
         } yield a
         res

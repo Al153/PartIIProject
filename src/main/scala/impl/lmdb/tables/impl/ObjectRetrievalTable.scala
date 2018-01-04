@@ -10,10 +10,8 @@ import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb.errors.{LMDBMissingTable, UnmarshallingError}
 import impl.lmdb.tables.interfaces.LMDBTable
 import impl.lmdb.{BigSetOps, LMDBEither, LMDBInstance}
-import impl.lmdb._
 
 import scalaz.Scalaz._
-import scalaz._
 
 /**
   * Created by Al on 28/12/2017.
@@ -21,22 +19,18 @@ import scalaz._
   * A table for the lookup of objectId -> A
   */
 class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBInstance) extends LMDBTable {
-  override val path: Key = "db".key :: "objects".key :: sa.name.key
+  override val path: Key = "db" >> "objects" >> sa.name
   val indices: Vector[ColumnIndexTable] = sa.schemaComponents.zipWithIndex.map{ // index table for each column
     case (component, column) => new ColumnIndexTable(sa.name, column, component)
   }
   val emptyIndex = new EmptyIndexTable(sa.name)
 
-  def lookup(f: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
-    println(s"looking up: $f")
-
+  def lookup(f: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
     for {
       ifEmpty <- emptyIndex.lookupSet(commits)
-      _ = println(s"Starting lookup")
       indexResults <- EitherOps.sequence(f.pattern.zipWithIndex.collect {case (Some(v), i) => indices(i).lookup(v, commits)})
-      _ = println(s"Result of lookup = $indexResults")
     } yield BigSetOps.bigIntersection(ifEmpty, indexResults)
-  }
+
 
   def lookup(commits: Set[Commit]): LMDBEither[Set[ObjId]] = emptyIndex.lookupSet(commits)
   def lookupVector(commits: Set[Commit]): LMDBEither[Vector[ObjId]] = emptyIndex.lookupVector(commits)
@@ -68,7 +62,6 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
       res <- lookupResult.headOption.fold(insert(a, newCommit)){
         _.right
       }
-      _ = println(s"Inserting object $a -> $res")
     } yield res
 
 
@@ -78,7 +71,6 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
     // Insert to retrieval table
       objId <- instance.controlTables.objectCounter.getAndUpdate()
 
-      _ = println("\tAssigned objId = " + objId)
       _ <- emptyIndex.insert(commit, objId)
 
       _ <- EitherOps.sequence(

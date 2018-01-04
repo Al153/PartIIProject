@@ -19,6 +19,7 @@ case class Key private (components: Vector[KeyComponent]) {
   def ++(that: Key) = Key(this.components ++ that.components)
   def +(that: KeyComponent) = Key(this.components :+ that)
 
+  override def toString: String = components.map(_.toString).toString
   def render: Array[Byte] = bytes(components.map(_.toBase64).mkString(":"))
 }
 
@@ -48,6 +49,7 @@ implicit object KeyableTableName extends Keyable[TableName] {
 
 implicit class KeyableOps[K](k: K)(implicit kev: Keyable[K]) {
   def component = new KeyComponent {
+    override def toString: String = k.toString
     override def toBase64: String = Base64.getEncoder.encode(kev.bytes(k)).mkString("")
   }
 

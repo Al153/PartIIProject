@@ -9,58 +9,10 @@ CREATE TABLE Test (
 
 
 SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'test';
-
 SELECT table_name FROM information_schema.tables WHERE table_schema='public';
+SELECT constraint_name FROM information_schema.referential_constraints WHERE constraint_schema = 'public';
+
 
 SELECT table_name FROM information_schema.tables
 
 
-
-
-WITH VIEW_2 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 2), Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_2 ON REL_0_0.CommitId = VIEW_2.CommitId), main_query AS (SELECT * FROM Relation0 )(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0 FROM (((USERSPACE_People_0 AS left_table) JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN (USERSPACE_People_0 AS right_table) ON right_id = right_table.obj_id))
-
-WITH VIEW_2 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 2), Relation3 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_2 ON REL_0_0.CommitId = VIEW_2.CommitId), main_query AS (SELECT Var0.left_id AS left_id, Var1.right_id AS right_id FROM (((SELECT obj_id AS left_id, obj_id AS right_id FROM Table2 WHERE col_0 == Alice) AS Var0) INNER JOIN ((SELECT * FROM Relation3 ) AS Var1) ON Var0.right_id = Var1.left_id) )(SELECT single_table.col_0 AS col_0 FROM (USERSPACE_People_0 AS single_table JOIN main_query ON single_table.obj_id = main_query.right_id))
-
-WITH VIEW_2 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 2), Relation3 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_2 ON REL_0_0.CommitId = VIEW_2.CommitId), main_query AS (SELECT Var0.left_id AS left_id, Var1.right_id AS right_id FROM ((SELECT obj_id AS left_id, obj_id AS right_id FROM Table2 WHERE col_0 == Alice) AS Var0 INNER JOIN ((SELECT * FROM Relation3 ) AS Var1) ON Var0.right_id = Var1.left_id) )(SELECT single_table.col_0 AS col_0 FROM (USERSPACE_People_0 AS single_table JOIN main_query ON single_table.obj_id = main_query.right_id))
-
-WITH VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1), Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), Table1 AS USERSPACE_People_0, main_query AS (SELECT Var4.left_id AS left_id, Var5.right_id AS right_id FROM ((SELECT Var2.left_id AS left_id, Var2.right_id AS right_id FROM ((SELECT * FROM Relation0 ) AS Var2 INNER JOIN (SELECT obj_id AS left_id, obj_id AS right_id FROM Table1 WHERE ) AS Var3 ON Var2.right_id = Var3.right_id) ) AS Var4 INNER JOIN (SELECT * FROM Relation0 ) AS Var5 ON Var4.right_id = Var5.left_id) )(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0 FROM ((USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN USERSPACE_People_0 AS right_table ON right_id = right_table.obj_id))
-
-
-WITH VIEW_2
-AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 2), Relation3 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_2 ON REL_0_0.CommitId = VIEW_2.CommitId), Table2 AS (SELECT * FROM USERSPACE_People_0), main_query AS (SELECT Var0.left_id AS left_id, Var1.right_id AS right_id FROM ((SELECT obj_id AS left_id, obj_id AS right_id FROM Table2 WHERE col_0 == Alice) AS Var0 INNER JOIN (SELECT * FROM Relation3 ) AS Var1 ON Var0.right_id = Var1.left_id) )(SELECT single_table.col_0 AS col_0 FROM (USERSPACE_People_0 AS single_table JOIN main_query ON single_table.obj_id = main_query.right_id))
-
-
-WITH VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1), Relation3 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), Table2 AS (SELECT * FROM USERSPACE_People_0), View4 AS (SELECT * FROM Relation3 ), View6 AS ((SELECT *, 0 AS Var5 FROM (SELECT obj_id AS left_id, obj_id AS right_id FROM Table2) ) UNION ALL (SELECT View6.left_id AS left_id, View4.right_id AS right_id FROM (View6 INNER JOIN View4 ON View6.right_id = View4.left_id) WHERE Var5 < 1)), main_query AS (SELECT Var0.left_id AS left_id, Var1.right_id AS right_id FROM ((SELECT obj_id AS left_id, obj_id AS right_id FROM Table2 WHERE col_0 = 'Alice') AS Var0 INNER JOIN (SELECT left_id, right_id FROM View6 ) AS Var1 ON Var0.right_id = Var1.left_id) )(SELECT single_table.col_0 AS col_0 FROM (USERSPACE_People_0 AS single_table JOIN main_query ON single_table.obj_id = main_query.right_id))
-
-WITH RECURSIVE VIEW_2 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 2), Relation0 AS (SELECT left_id, right_id FROM REL_1_1 JOIN VIEW_2 ON REL_1_1.CommitId = VIEW_2.CommitId), Table1 AS (SELECT * FROM USERSPACE_Cars_1), 
-
-main_query AS (
-	SELECT left_id, right_id FROM (
-		SELECT Var4.left_id AS left_id, Var5.right_id AS right_id FROM (
-			(
-				SELECT Var2.left_id AS left_id, Var2.right_id AS right_id FROM (
-					(
-						SELECT * FROM Relation0
-					) AS Var2 INNER JOIN (
-						SELECT obj_id AS left_id, obj_id AS right_id FROM Table1 WHERE col_0 = 'VW'
-					) AS Var3 ON Var2.right_id = Var3.right_id
-				) 
-			) AS Var4 INNER JOIN (SELECT Relation0.right_id AS left_id, Relation0.left_id AS right_id FROM Relation0 ) AS Var5 ON Var4.right_id = Var5.left_id
-		)
-	) WHERE left_id != right_id)(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0 FROM ((USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN USERSPACE_People_0 AS right_table ON right_id = right_table.obj_id))
-
-
-WITH RECURSIVE VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1), Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), Table1 AS (SELECT * FROM USERSPACE_People_0), main_query AS (SELECT Var8.left_id AS left_id, Var9.right_id AS right_id FROM (SELECT Var4.left_id AS left_id, Var4.right_id AS right_id FROM (SELECT * FROM Relation0 ) AS Var4 INNER JOIN (SELECT obj_id AS left_id, obj_id AS right_id FROM Table1 WHERE ) AS Var5 ON Var4.right_id = Var5.right_id ) AS Var8 INNER JOIN (SELECT * FROM Relation0 ) AS Var9 ON Var8.right_id = Var9.left_id )(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0 FROM ((USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id) JOIN USERSPACE_People_0 AS right_table ON right_id = right_table.obj_id))
-
-
-WITH RECURSIVE VIEW_1 AS (SELECT CommitId FROM VIEWS_ID WHERE ViewId = 1), Relation0 AS (SELECT left_id, right_id FROM REL_0_0 JOIN VIEW_1 ON REL_0_0.CommitId = VIEW_1.CommitId), main_query AS (SELECT * FROM Relation0 )(SELECT left_id, right_id FROM main_query)
-
-
-
-
-INSERT INTO REL_0_0 (left_id, CommitId, right_id) VALUES (4, 1, 3)
-INSERT INTO REL_0_0 (left_id, CommitId, right_id) VALUES (3, 1, 2)
-INSERT INTO REL_0_0 (left_id, CommitId, right_id) VALUES (2, 1, 1)
-INSERT INTO REL_0_0 (left_id, CommitId, right_id) VALUES (1, 1, 5)
-
-4 -> 3 -> 2 -> 1 -> 5

@@ -11,9 +11,12 @@ import scala.language.postfixOps
   * Created by Al on 29/12/2017.
   */
 class ObjectsCounter(implicit val instance: LMDBInstance) extends MutableCounter[ObjId] {
-  override def path: Key = "db".key :: "nextCommit".key
-
+  override def path: Key = "db" >> "nextObject"
   override val initialValue = ObjId(0)
+
+  initialise()
+
+
 
   override def next(a: ObjId): ObjId = a.increment
 }

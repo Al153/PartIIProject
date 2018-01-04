@@ -31,11 +31,8 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
       case USAnd(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
-      } yield {
-        println("left = " + leftRes)
-        println("right = " + rightRes)
-        leftRes.intersect(rightRes)
-      }
+      } yield leftRes.intersect(rightRes)
+
 
       case USAndSingle(l, r) => for {
         leftRes <- recurse(l, left)
@@ -50,33 +47,17 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
       case USChain(l, r) => for {
         lres <- recurse(l, left)
         rres <- recurse(r, lres.map(_._2))
-      } yield {
-        println("(Distinct) Chain Left result = " + lres)
-        println("(Distinct) Chain right Result = " + rres)
-        val res = joinSet(lres, rres)
-        println("Chain res = " + res)
-        res
-      }
+      } yield joinSet(lres, rres)
 
       case USDistinct(r) => for {
         rres <- recurse(r, left)
-      } yield {
-        println("Subexpr = " + r)
-        println("Before distinction = " + rres)
-        println("After distinction = " +  rres.filter{case (a, b) => a != b})
-        rres.filter{case (a, b) => a != b}
-      }
+      } yield rres.filter{case (a, b) => a != b}
 
       case USId(_) => left.map(x => (x, x)).right
 
       case USNarrow(l, p) => for {
         broad <- recurse(l, left)
-      } yield {
-        println("(Distinct) Broad = " + broad)
-        val res = broad.filter(pair => matches(pair._2, p))
-        println("(Distinct) Narrowed = " + res)
-        res
-      }
+      } yield broad.filter(pair => matches(pair._2, p))
 
       case USRel(rel) =>
         EitherOps.sequence(left.map {
@@ -108,7 +89,6 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
         } else {
           // otherwise find a fixed point
-          println("Atleast: Left = " + left.mkString("\n\t\t\t"))
           val stepFunction: Set[MemoryObject] => E \/ Set[MemoryObject] = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
           for {
             res <- fixedPoint(stepFunction, left.map(x => (x, x)))

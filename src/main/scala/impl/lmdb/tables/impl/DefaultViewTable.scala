@@ -16,7 +16,7 @@ import impl.lmdb.access.Storeable.StoreableView
 class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
   import instance._
 
-  override def path: Key =  "db".key :: "default".key
+  override def path: Key =  "db" >> "default"
 
   setDefault(initialView)
 
