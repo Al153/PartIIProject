@@ -1,4 +1,4 @@
-package impl.sql
+package impl.sql.names
 
 class SQLColumnName private (val s: String) extends AnyVal {
   override def toString: String = s

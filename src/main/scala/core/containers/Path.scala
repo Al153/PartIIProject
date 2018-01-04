@@ -1,16 +1,17 @@
 package core.containers
 
-import core.error.E
+import core.backend.common.ExtractError
 import core.intermediate.unsafe.ErasedPath
 import core.schema.SchemaObject
-import scalaz._, Scalaz._
-import scalaz.\/
+
+import scalaz.Scalaz._
+import scalaz.{\/, _}
 
 /**
   * Created by Al on 09/10/2017.
   */
 abstract class Path[A] {
-  def getSteps: Vector[(A, A)] // get all steps in the path. Todo: can we get more information out here
+  def getSteps: Vector[(A, A)] // get all steps in the path
 }
 
 final class PathImpl[A](steps: Vector[(A, A)])extends Path[A]() {
@@ -18,8 +19,8 @@ final class PathImpl[A](steps: Vector[(A, A)])extends Path[A]() {
 }
 
 object Path {
-  def from[A](e: ErasedPath, sa: SchemaObject[A]): E \/ Path[A] = {
-    e.getSteps.foldLeft(Vector[(A, A)]().right[E]){
+  def from[A](e: ErasedPath, sa: SchemaObject[A]): ExtractError \/ Path[A] = {
+    e.getSteps.foldLeft(Vector[(A, A)]().right[ExtractError]){
       case (ev, (d1, d2)) =>
         for {
           a1 <- sa.fromRow(d1)

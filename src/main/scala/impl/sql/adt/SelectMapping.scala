@@ -1,6 +1,6 @@
 package impl.sql.adt
 
-import impl.sql.SQLColumnName.{leftId, objId, rightId}
+import impl.sql.names.SQLColumnName.{leftId, objId, rightId}
 
 sealed trait SelectMapping
 case object All extends SelectMapping // Select * from ...

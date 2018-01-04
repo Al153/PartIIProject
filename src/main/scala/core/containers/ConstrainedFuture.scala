@@ -1,14 +1,13 @@
 package core.containers
 
-import core.error._
 import core.view.View
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scalaz._
-import Scalaz._
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.language.higherKinds
+import scalaz.Scalaz._
+import scalaz._
 
 /**
   * Created by Al on 14/10/2017.
@@ -42,14 +41,6 @@ object ConstrainedFuture {
       )
     )
 
-  /**
-    * Put a precomputed value into a constrained future
-    * @param a
-    * @param ec
-    * @tparam E
-    * @tparam A
-    * @return
-    */
   def immediatePoint[E, A](a: A)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] =
     new ConstrainedFuture(
       EitherT(
@@ -73,19 +64,6 @@ object ConstrainedFuture {
       }
     )
   )
-
-  /**
-    * Cop out construction.
-    * Evaluates value before it becomes a future, so more performant that the other constructs
-    */
-
-  def eitherR[A](ea: => E \/ A)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
-    EitherT(
-      Promise.successful[E \/ A](try ea catch {case e: Throwable => recoverAll(e).left}).future
-    )
-  )
-
-  def recoverAll(e: Throwable): E = UnknownError(e)
 
   implicit class ConstrainedFutureViewSyntax[E, A](underlying: ConstrainedFuture[E, (A, View)]) {
     def proj: ConstrainedFuture[E, A] = underlying.map(_._1)

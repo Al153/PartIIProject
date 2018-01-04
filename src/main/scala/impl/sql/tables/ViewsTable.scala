@@ -1,9 +1,10 @@
 package impl.sql.tables
 
 import core.view.View
+import impl.sql.names.{PrecomputedView, SQLColumnName, SQLTableName, ViewsTableName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.Commit
-import impl.sql.{ViewsTableName, _}
+import impl.sql._
 
 class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
   import ViewsTable._

@@ -9,6 +9,8 @@ import core.schema._
 /**
   * Created by Al on 09/10/2017.
   */
+
+// todo: is this actually used?
 case class Singleton() extends UnaryQuery[Singleton]()(Singleton.SingletonSchema) {
   override def tree(implicit sd: SchemaDescription): FindPair[Singleton, Singleton] = Id()(Singleton.SingletonSchema, sd)
 }

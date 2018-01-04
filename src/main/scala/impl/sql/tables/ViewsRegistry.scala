@@ -5,6 +5,7 @@ import java.sql.Statement
 import core.view.View
 import impl.sql._
 import impl.sql.errors.{SQLError, UnableToCreateView}
+import impl.sql.names.{SQLColumnName, SQLTableName, ViewsRegistryName}
 import impl.sql.schema.{SQLInt, SQLPrimaryRef, SQLSchema}
 
 import scalaz.Scalaz._

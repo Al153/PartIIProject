@@ -1,11 +1,11 @@
 package impl.sql.schema
 
-import impl.sql.SQLColumnName
+import impl.sql.names.SQLColumnName
 
 /**
   * Created by Al on 10/12/2017.
-
-  */
+ *
+ */
 
 
 

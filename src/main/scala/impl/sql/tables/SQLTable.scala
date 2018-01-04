@@ -2,8 +2,9 @@ package impl.sql.tables
 
 import core.utils.{EitherOps, _}
 import impl.sql.errors.{SQLSchemaColumnMissing, SQLSchemaLengthMismatch}
+import impl.sql.names.{SQLColumnName, SQLTableName}
 import impl.sql.schema._
-import impl.sql.{SQLColumnName, SQLEither, SQLInstance, SQLTableName}
+import impl.sql.{SQLEither, SQLInstance}
 
 import scalaz.Scalaz._
 import scalaz._

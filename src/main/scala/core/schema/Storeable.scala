@@ -9,6 +9,8 @@ import scalaz.Scalaz._
 /**
   * Created by Al on 17/10/2017.
   */
+
+// todo: Can this be optimised out?
 trait Storeable[T] {
   def SchemaComponent: SchemaComponent
   def toDBCell(t: T): DBCell

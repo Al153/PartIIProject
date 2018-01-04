@@ -1,6 +1,5 @@
 package core.backend.interfaces
 
-import java.net.InetAddress
 import java.nio.file.{Path, Paths}
 
 /**

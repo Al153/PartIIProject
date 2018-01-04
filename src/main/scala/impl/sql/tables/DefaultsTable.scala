@@ -3,6 +3,7 @@ package impl.sql.tables
 import core.view.View
 import impl.sql._
 import impl.sql.errors.MissingDefaultViewError
+import impl.sql.names.{DefaultsTableName, SQLColumnName, SQLTableName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 
 import scalaz.Scalaz._

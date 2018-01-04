@@ -4,6 +4,7 @@ import java.sql.Statement
 
 import impl.sql._
 import impl.sql.errors.UnableToCreateCommit
+import impl.sql.names.{CommitsRegistryName, SQLColumnName, SQLTableName}
 import impl.sql.schema.{SQLInt, SQLPrimaryRef, SQLSchema}
 import impl.sql.tables.ViewsTable.commitID
 import impl.sql.types.Commit

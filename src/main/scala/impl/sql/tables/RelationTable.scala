@@ -3,6 +3,7 @@ package impl.sql.tables
 import ViewsTable._
 import core.view.View
 import impl.sql._
+import impl.sql.names.{RelationTableName, SQLColumnName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.{Commit, ObjId}
 

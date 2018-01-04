@@ -1,10 +1,10 @@
 package impl.sql.tables
 
-import core.view.View
-import ViewsTable._
+import impl.sql.names.{AuxialliaryName, SQLColumnName, SQLTableName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
+import impl.sql.tables.ViewsTable._
 import impl.sql.types.{Commit, ObjId}
-import impl.sql.{AuxialliaryName, SQLColumnName, SQLEither, SQLInstance, SQLTableName}
+import impl.sql.{SQLEither, SQLInstance}
 
 /**
   * Created by Al on 27/12/2017.

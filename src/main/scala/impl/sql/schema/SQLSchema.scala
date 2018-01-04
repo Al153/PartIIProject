@@ -1,6 +1,6 @@
 package impl.sql.schema
 
-import impl.sql.{SQLColumnName, SQLTableName}
+import impl.sql.names.{SQLColumnName, SQLTableName}
 
 /**
   * Created by Al on 11/12/2017.

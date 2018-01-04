@@ -1,6 +1,6 @@
 package impl.sql.adt
 
-import impl.sql.SQLColumnName.{leftId, rightId}
+import impl.sql.names.SQLColumnName.{leftId, rightId}
 
 // can infer variable names from context
 sealed trait JoinMapping

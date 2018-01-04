@@ -3,20 +3,19 @@ package impl.memory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-import core.backend.common.MissingViewError
 import core.backend.interfaces.{DBExecutor, DBInstance}
-import core.containers.{ConstrainedFuture, Operation}
+import core.containers.{ConstrainedFuture, Operation, ReadOperation, WriteOperation}
 import core.error.E
 import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.SchemaDescription
-import core.view.View
 import core.utils._
+import core.view.View
+import impl.memory.errors.MissingViewError
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
-import scalaz._
 
 /**
   * Created by Al on 29/10/2017.
@@ -36,11 +35,11 @@ class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: E
 
     memoryStore(defaultView) = defaultTree
 
-    def get(v: View): E \/ MemoryTree = this.synchronized {
+    def get(v: View): MemoryEither[MemoryTree] = this.synchronized {
       memoryStore.getOrError(v, MissingViewError(v))
     }
 
-    def put(t: MemoryTree): E \/ View = this.synchronized {
+    def put(t: MemoryTree): MemoryEither[View] = this.synchronized {
       val view = View(viewId.incrementAndGet())
       memoryStore(view) = t
       return view.right
@@ -52,24 +51,24 @@ class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: E
   }
 
 
-  def readOp[A](f: MemoryTree => E \/ A): Operation[E, A] =
-    Operation.either(v => for {
+  def readOp[A](f: MemoryTree => MemoryEither[A]): Operation[E, A] =
+    new ReadOperation(v => MemoryFutureE(for {
       t <- Store.get(v)
       a <- f(t)
-    } yield (a, v))(throwable => UnknownMemoryError(throwable))
+    } yield a).asCFuture)
 
-  def writeOp(f: MemoryTree => E \/ MemoryTree): Operation[E, Unit]  =
-    Operation.either(u => for {
+  def writeOp(f: MemoryTree => MemoryEither[MemoryTree]): Operation[E, Unit]  =
+    new WriteOperation (u => MemoryFutureE(for {
       t <- Store.get(u)
       newTree <- f(t)
       v <- Store.put(newTree)
-    } yield ((), v))(throwable => UnknownMemoryError(throwable))
+    } yield v).asCFuture)
 
   override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = ConstrainedFuture.immediatePoint(Store.setDefaultView(view))
 
-  override def getDefaultView: ConstrainedFuture[E, View] = ConstrainedFuture.immediatePoint(Store.getDefaultView)
+  override def getDefaultView: ConstrainedFuture[E, View] = MemoryFutureI(Store.getDefaultView).asCFuture
 
-  override def getViews: ConstrainedFuture[E, Set[View]] = ConstrainedFuture.point[E, Set[View]](Store.getViews)(UnknownMemoryError)
+  override def getViews: ConstrainedFuture[E, Set[View]] = MemoryFuture(Store.getViews).asCFuture
 
   override def close(): Unit = ()
 }

@@ -4,7 +4,8 @@ import core.schema._
 import core.utils._
 import impl.sql.errors.{SQLSchemaTypeCheckError, SQLSchemaUnexpectedType}
 import impl.sql.tables.SQLTable
-import impl.sql.{SQLColumnName, SQLEither}
+import impl.sql.SQLEither
+import impl.sql.names.SQLColumnName
 
 import scalaz.Scalaz._
 import scalaz._

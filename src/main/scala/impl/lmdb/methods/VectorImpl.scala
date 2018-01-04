@@ -6,7 +6,7 @@ import core.schema.{SchemaDescription, SchemaObject}
 import core.utils.EitherOps
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, ObjId}
-import impl.lmdb.errors.{LMDBError, LMDBMissingExtract, LMDBMissingTable}
+import impl.lmdb.errors.{LMDBError, MissingIndex, LMDBMissingTable}
 import impl.lmdb.tables.impl.ObjectRetrievalTable
 import core.utils._
 
@@ -66,8 +66,8 @@ trait VectorImpl { self: Methods =>
       in.map {
         case (leftId, rightId) =>
           for {
-            a <- leftIndex.getOrError(leftId, LMDBMissingExtract(leftId, leftIndex))
-            b <- rightIndex.getOrError(rightId, LMDBMissingExtract(rightId, rightIndex))
+            a <- leftIndex.getOrError(leftId, MissingIndex(leftId, leftIndex))
+            b <- rightIndex.getOrError(rightId, MissingIndex(rightId, rightIndex))
           } yield (a, b)
       }
     )

@@ -5,25 +5,27 @@ import core.error.E
 import core.intermediate.Find
 import core.intermediate.unsafe._
 import core.schema.{SchemaDescription, SchemaObject}
-import impl.memory.{MemoryObject, MemoryTree}
-import impl.memory.RelatedPair
+import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 import core.utils._
+import impl.memory.errors.{MemoryMissingRelation, MemoryMissingTableName}
 
 import scalaz.Scalaz._
 import scalaz._
 
 trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with RepetitionImpl =>
-  def find[A](a: A, t: MemoryTree)(implicit sa: SchemaObject[A], sd: SchemaDescription): E \/ Set[MemoryObject] =
+  def find[A](a: A, t: MemoryTree)
+             (implicit sa: SchemaObject[A], sd: SchemaDescription): MemoryEither[Set[MemoryObject]] =
     for {
-      unsafeQuery <- Find(sa.findable(a)).getUnsafe
+      unsafeQuery <- Find(sa.findable(a)).getUnsafe.leftMap(MemoryMissingRelation)
       res <- findSingleImpl(unsafeQuery, t)
     } yield res.toSet
 
-  def findSingleImpl(t: UnsafeFindSingle, tree: MemoryTree): E \/ Vector[MemoryObject] = {
+  def findSingleImpl(t: UnsafeFindSingle, tree: MemoryTree): MemoryEither[Vector[MemoryObject]] = {
     def recurse(t: UnsafeFindSingle) = findSingleImpl(t, tree)
 
     t match {
-      case USFind(pattern) => tree.getOrError(pattern.tableName, MissingTableName(pattern.tableName)).flatMap(_.find(pattern))
+      case USFind(pattern) =>
+        tree.getOrError(pattern.tableName, MemoryMissingTableName(pattern.tableName)).flatMap(_.find(pattern))
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairsImpl(rel, left, tree).map(_.mapProj2)
@@ -35,7 +37,7 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
   }
 
 
-  def findPairsImpl(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): E \/ Vector[RelatedPair] = {
+  def findPairsImpl(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): MemoryEither[Vector[RelatedPair]] = {
     def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairsImpl(t, left, tree)
 
     q match {
@@ -93,20 +95,22 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
         }).map(_.flatten)
 
       case USUpto(n, rel) =>
-        val stepFunction: Set[MemoryObject] => E \/ Set[MemoryObject] = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+        val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]]
+        = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
           for {
             rres <- upTo(stepFunction, left.toSet, n)
           } yield rres.toVector
 
-      case USBetween(low, high, rel) => {
+      case USBetween(low, high, rel) =>
         recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
-      }
+
       case USAtleast(n, rel) =>
         if (n > 0) {
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
         } else {
           // otherwise find a fixed point
-          val stepFunction: Set[MemoryObject] => E \/ Set[MemoryObject] = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+          val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
+            left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
           for {
             res <- fixedPoint(stepFunction, left.toSet.mapPair)
           } yield res.toVector

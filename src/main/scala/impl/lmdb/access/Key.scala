@@ -37,11 +37,6 @@ object Key {
 
     override def bytes(k: String): Array[Byte] = k.getBytes
   }
-  /*
-  implicit object KeyableInt extends Keyable[Int] {
-    override def bytes(k: Int): Array[Byte] = BigInt(k).toByteArray
-  }
-  */
 
 implicit object KeyableTableName extends Keyable[TableName] {
   override def bytes(k: TableName): Array[Byte] = KeyableString.bytes(k.value)

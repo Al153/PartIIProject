@@ -1,6 +1,6 @@
 package impl.sql.jdbc
 
-import impl.sql.SQLColumnName
+import impl.sql.names.SQLColumnName
 
 sealed trait Side {
   def columnName(i: Int): SQLColumnName

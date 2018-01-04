@@ -1,7 +1,8 @@
 package impl.sql.adt.queries
 
 import core.intermediate.unsafe.UnsafeFindable
-import impl.sql.{SQLColumnName, SQLDB}
+import impl.sql.SQLDB
+import impl.sql.names.SQLColumnName
 
 /**
   * Created by Al on 22/12/2017.

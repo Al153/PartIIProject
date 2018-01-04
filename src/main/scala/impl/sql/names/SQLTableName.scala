@@ -1,4 +1,4 @@
-package impl.sql
+package impl.sql.names
 
 import java.util.UUID
 
@@ -60,7 +60,7 @@ case object DefaultsTableName extends SQLTableName {
 case class TableNameFromDatabase(name: String) extends SQLTableName
 
 object SQLTableName {
-  class Context private[SQLTableName] (relations: Long, objects: Long) {
+  class Context private[SQLTableName](relations: Long, objects: Long) {
     private[SQLTableName] def newRel: (Long, Context) = (relations, new Context(relations+1, objects))
     private[SQLTableName] def newObj: (Long, Context) = (objects, new Context(relations, objects+1))
   }

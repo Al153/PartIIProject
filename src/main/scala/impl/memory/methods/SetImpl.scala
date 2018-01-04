@@ -1,20 +1,19 @@
 package impl.memory.methods
 
-import core.backend.common.MissingTableName
-import core.error.E
 import core.intermediate.unsafe._
-import impl.memory.{MemoryObject, MemoryTree, RelatedPair}
 import core.utils._
+import impl.memory.errors.MemoryMissingTableName
+import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 
 import scalaz.Scalaz._
-import scalaz._
 
 trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
-  def findSingleSetImpl(t: UnsafeFindSingle, tree: MemoryTree): E \/ Set[MemoryObject] = {
+  def findSingleSetImpl(t: UnsafeFindSingle, tree: MemoryTree): MemoryEither[Set[MemoryObject]] = {
     def recurse(t: UnsafeFindSingle) = findSingleSetImpl(t, tree)
 
     t match {
-      case USFind(pattern) => tree.getOrError(pattern.tableName, MissingTableName(pattern.tableName)).flatMap(_.find(pattern).map(_.toSet))
+      case USFind(pattern) =>
+        tree.getOrError(pattern.tableName, MemoryMissingTableName(pattern.tableName)).flatMap(_.find(pattern).map(_.toSet))
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairsSetImpl(rel, left, tree).map(_.mapProj2)
@@ -25,7 +24,7 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
     }
   }
 
-  def findPairsSetImpl(t: UnsafeFindPair, left: Set[MemoryObject], tree: MemoryTree): E \/ Set[RelatedPair] = {
+  def findPairsSetImpl(t: UnsafeFindPair, left: Set[MemoryObject], tree: MemoryTree): MemoryEither[Set[RelatedPair]] = {
     def recurse(t: UnsafeFindPair, left: Set[MemoryObject]) = findPairsSetImpl(t, left, tree)
     t match {
       case USAnd(l, r) => for {
@@ -80,7 +79,8 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
         }).map(_.flatten)
 
       case USUpto(n, rel) =>
-        val stepFunction: Set[MemoryObject] => E \/ Set[MemoryObject] = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+        val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
+          left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
         upTo(stepFunction, left, n)
 
       case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
@@ -89,7 +89,8 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
         } else {
           // otherwise find a fixed point
-          val stepFunction: Set[MemoryObject] => E \/ Set[MemoryObject] = left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+          val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
+            left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
           for {
             res <- fixedPoint(stepFunction, left.map(x => (x, x)))
           } yield res

@@ -35,7 +35,7 @@ trait SchemaObject0[A] extends SchemaObject[A] {
   final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
   final override def findable(a: A): DBTuple[A] = toTuple(a)
   final override def fromRow(row: DBObject): ExtractError \/ A =
-    if (row.fields.isEmpty) construct().right else LengthMismatch().left
+    if (row.fields.isEmpty) construct().right else LengthMismatch(row.fields.length, 0).left
 
 }
 
@@ -52,7 +52,7 @@ abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaOb
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 1) {
       s1.get(row.fields(0)).map(construct)
-    } else LengthMismatch().left
+    } else LengthMismatch(row.fields.length, 1).left
 
 }
 
@@ -73,7 +73,7 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
         a1 <- s1.get(row.fields(0))
         a2 <- s2.get(row.fields(1))
       } yield construct(a1, a2)
-    } else LengthMismatch().left
+    } else LengthMismatch(row.fields.length, 2).left
 
 }
 
@@ -94,5 +94,5 @@ abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Stor
         a2 <- s2.get(row.fields(1))
         a3 <- s3.get(row.fields(3))
       } yield construct(a1, a2, a3)
-    } else LengthMismatch().left
+    } else LengthMismatch(row.fields.length, 3).left
 }

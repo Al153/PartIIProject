@@ -1,13 +1,10 @@
 package core
 
-import core.error.E
-
-import scala.collection.{MapLike, SetLike, TraversableLike, mutable}
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable
+import scala.collection.{MapLike, SetLike, immutable, mutable}
 import scala.language.higherKinds
 import scalaz.Scalaz.{ToEitherOps, ToOptionIdOps}
-import scalaz.{Monad, \/}
+import scalaz._, Scalaz._
 
 /**
   * Created by Al on 24/10/2017.
@@ -156,13 +153,7 @@ package object utils {
     def strip: String = s.replaceAll("[\\W]|_", "")
   }
 
-  implicit class MonadSyntax[F[_], A](fa: F[A])(implicit M: Monad[F]) {
-    def >>=[B](f: A => F[B]): F[B] = M.bind(fa)(f)
-    def >>[B](f: A => B): F[B] = M.bind(fa)(a => M.point(f(a)))
-    def flatMap[B](f: A => F[B]): F[B] = M.bind(fa)(f)
-    def map[B](f: A => B): F[B] = M.bind(fa)(a => M.point(f(a)))
-    def ~>[B](b: B): F[B] = M.bind(fa)(_ => M.point(b)) // use for side effects only
-  }
+
 
   object MonadOps {
     def sequence[F[_], A, T[X] <: TraversableOnce[X]](ta: T[F[A]])

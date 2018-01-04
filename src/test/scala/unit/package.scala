@@ -3,6 +3,7 @@ import core.error.E
 import core.relations.RelationAttributes
 import org.junit.Assert
 import core.schema._
+import errors.{AssertionFailure, UnknownError}
 
 import scala.concurrent.ExecutionContext
 
@@ -39,19 +40,16 @@ package object unit {
   def assertEqOp[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
     _ => ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
       case e: AssertionError => AssertionFailure(e, msg)
-      case e => core.error.UnknownError(e)
+      case e => UnknownError(e)
     }
   )
 
   def assertEq[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
       case e: AssertionError => AssertionFailure(e, msg)
-      case e => core.error.UnknownError(e)
+      case e => UnknownError(e)
     }
 
-  case class AssertionFailure(e: Throwable, msg: String) extends E {
-    override def toString: String = s"AssertionFailure:\n$msg\n${e.getMessage}"
-  }
 
   implicit def PersonOrdering(implicit os: Ordering[String]) = new Ordering[Person] {
     override def compare(x: Person, y: Person): Int = os.compare(x.name, y.name)

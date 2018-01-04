@@ -1,9 +1,8 @@
 package impl.sql.adt
 
-import core.backend.common.DBCell
 import core.intermediate.unsafe.UnsafeFindable
-import impl.sql.SQLColumnName.{column, leftId, rightId}
 import impl.sql.jdbc.Conversions
+import impl.sql.names.SQLColumnName.{column, leftId, rightId}
 
 sealed trait WhereTable
 sealed trait Where

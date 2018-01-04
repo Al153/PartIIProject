@@ -35,7 +35,7 @@ final class SchemaDescription(
 
   def getRelation[A, B](r: RelationAttributes[A, B]): MissingRelation \/ ErasedRelationAttributes =
     relationMap.getOrError(r, MissingRelation(r))
-  def getRelationName[A, B](r: RelationAttributes[A, B]): E \/ RelationName = getRelation(r).map(_.name)
+  def getRelationName[A, B](r: RelationAttributes[A, B]): MissingRelation \/ RelationName = getRelation(r).map(_.name)
   def tableNames: Set[TableName] = objects.map(_.tableName)
 }
 

@@ -9,11 +9,4 @@ trait E {
 
 }
 
-case class UnknownError(t: Throwable) extends E {
-  override def toString: String = "UknownError\n"+ t.getStackTrace.mkString("\n")
-}
 
-// Error thrown by a sequencing operation
-case class SequenceError(t: Throwable) extends E {
-  override def toString: String = t.toString
-}

@@ -1,6 +1,5 @@
 package core.containers
 
-import core.error.E
 import core.view.View
 
 import scala.concurrent.{ExecutionContext, Promise}
@@ -42,17 +41,4 @@ object Operation {
     def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(recover))
     def bind[A, B](fa: Operation[E, A])(f: (A) => Operation[E, B]): Operation[E, B] = fa.flatMap(f)
   }
-
-  def either[E, A](f: View => E \/ (A, View))(recover: Throwable => E)(implicit ec: ExecutionContext) = Operation(v => ConstrainedFuture.either(f(v))(recover))
-
-
-  def readOp[A](action: View => ConstrainedFuture[E, A])(implicit ec: ExecutionContext): Operation[E, A] =
-    Operation(v => for {
-      a <- action(v)
-    } yield (a, v))
-
-  def writeOp(f: View => ConstrainedFuture[E, View])(implicit ec: ExecutionContext): Operation[E, Unit]  =
-    Operation(u => for {
-      v <- f(u)
-    } yield ((), v))
 }

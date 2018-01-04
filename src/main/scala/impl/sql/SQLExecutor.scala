@@ -1,8 +1,8 @@
 package impl.sql
 
-import core.backend.common.algorithms.Algorithms
+import core.backend.common.algorithms.BreadthFirstTraversal
 import core.backend.interfaces.DBExecutor
-import core.containers.{Operation, Path}
+import core.containers.{Operation, Path, ReadOperation, WriteOperation}
 import core.dsl.RelationalQuery
 import core.error.E
 import core.intermediate.{FindPair, FindSingle}
@@ -24,7 +24,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                            implicit sa: SchemaObject[A],
                            sd: SchemaDescription
                          ): Operation[E, Vector[A]] =
-    Operation.readOp {
+    new ReadOperation({
       v: View =>
         (for {
           query <- compileSingleQuery(t, sd, v)
@@ -34,7 +34,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
               .getAllSingles[A](query)
           )
         } yield res).asCFuture
-    }
+    })
 
   override def findAllPairs[A, B](t: FindPair[A, B])
                                  (
@@ -42,17 +42,17 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                                    sb: SchemaObject[B],
                                    sd: SchemaDescription
                                  ): Operation[E, Vector[(A, B)]] =
-    Operation.readOp {
+    new ReadOperation({
       v: View =>
         (for {
           query <- compilePairQuery(t, sd, v)
-            res <- SQLFutureE(
-              instance
-                .reader
-                .getAllPairs[A, B](query)
-            )
+          res <- SQLFutureE(
+            instance
+              .reader
+              .getAllPairs[A, B](query)
+          )
         } yield res).asCFuture
-      }
+    })
 
 
   override def findDistinct[A](t: FindSingle[A])
@@ -60,7 +60,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                                 implicit extractor: SchemaObject[A],
                                 sd: SchemaDescription
                               ): Operation[E, Set[A]] =
-    Operation.readOp {
+    new ReadOperation({
       v: View => {
         for {
           query <- compileSingleQuery(t, sd, v)
@@ -71,11 +71,11 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
           )
         } yield res
       }.asCFuture
-  }
+  })
 
   override def findDistinctPairs[A, B](t: FindPair[A, B])
                                       (implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Set[(A, B)]] =
-    Operation.readOp {
+    new ReadOperation({
       v: View =>
         (for {
           query <- compilePairQuery(t, sd, v)
@@ -85,49 +85,50 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
               .getDistinctPairs[A, B](query)
           )
         } yield res).asCFuture
-  }
+  })
 
   override def shortestPath[A](start: A, end: A, t: RelationalQuery[A, A])
                               (
                                 implicit sa: SchemaObject[A],
                                 sd: SchemaDescription
-                              ): Operation[E, Option[Path[A]]] = Operation.readOp {
-    v: View => {
-      val cfTable = SQLFutureE(
-        instance.lookupTable(sa.tableName)
-      )
+                              ): Operation[E, Option[Path[A]]] =
+    new ReadOperation({
+      v: View => {
+        val cfTable = SQLFutureE(
+          instance.lookupTable(sa.tableName)
+        )
 
-      val cfStart = SQLFutureE(
-        instance
-          .reader
-          .getPathfindingEnd(start))
-
-      val cfEnd = SQLFutureE(
-        instance
-          .reader
-          .getPathfindingEnd(end))
-
-      for {
-        s <- cfStart
-        e <- cfEnd
-
-        query <- compilePathQuery(t.tree(sd), sd, v)
-
-        pairs <- SQLFutureE(
+        val cfStart = SQLFutureE(
           instance
             .reader
-            .getRelationPairs(query))
+            .getPathfindingEnd(start))
 
-        table <- cfTable
+        val cfEnd = SQLFutureE(
+          instance
+            .reader
+            .getPathfindingEnd(end))
 
-        path <- findPath(s, e, pairs)
+        for {
+          s <- cfStart
+          e <- cfEnd
 
-        populatedPath <- SQLFutureE(EitherOps.switch(
-          path.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
-        )
-      } yield populatedPath
-    }.asCFuture
-  }
+          query <- compilePathQuery(t.tree(sd), sd, v)
+
+          pairs <- SQLFutureE(
+            instance
+              .reader
+              .getRelationPairs(query))
+
+          table <- cfTable
+
+          path <- findPath(s, e, pairs)
+
+          populatedPath <- SQLFutureE(EitherOps.switch(
+            path.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
+          )
+        } yield populatedPath
+      }.asCFuture
+    })
 
 
 
@@ -137,38 +138,39 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
                                   (
                                     implicit sa: SchemaObject[A],
                                     sd: SchemaDescription
-                                  ): Operation[E, Set[Path[A]]] = Operation.readOp {
-    v: View => {
-      val cfTable = SQLFutureE(
-        instance.lookupTable(sa.tableName)
-      )
+                                  ): Operation[E, Set[Path[A]]] =
+    new ReadOperation({
+      v: View => {
+        val cfTable = SQLFutureE(
+          instance.lookupTable(sa.tableName)
+        )
 
-      val cfStart =  SQLFutureE(
-        instance
-          .reader
-          .getPathfindingEnd(start))
-
-      for {
-        query <- compilePathQuery(t.tree(sd), sd, v)
-        pairs <- SQLFutureE(
+        val cfStart =  SQLFutureE(
           instance
             .reader
-            .getRelationPairs(query))
+            .getPathfindingEnd(start))
 
-        s <- cfStart
-        table <- cfTable
+        for {
+          query <- compilePathQuery(t.tree(sd), sd, v)
+          pairs <- SQLFutureE(
+            instance
+              .reader
+              .getRelationPairs(query))
 
-        paths <- allPaths(s, pairs)
-        populatedPaths <- SQLFutureE(EitherOps.sequence(
-            paths.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
-        )
-      } yield populatedPaths
-    }.asCFuture
-  }
+          s <- cfStart
+          table <- cfTable
+
+          paths <- allPaths(s, pairs)
+          populatedPaths <- SQLFutureE(EitherOps.sequence(
+              paths.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
+          )
+        } yield populatedPaths
+      }.asCFuture
+  })
 
   override def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(
     implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] = {
-      Operation.writeOp(
+      new WriteOperation (
         view => {
           // set off non-dependent operations asynchronously
           val cfLeftTable = SQLFutureE(instance.lookupTable(sa.tableName))
@@ -240,7 +242,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
         s <- s
         e <- e
         index = pairs.collectSets(identity)
-        res <- Algorithms.breadthFirstSearch[ObjId](s, k => index.getOrElse(k, Set()), e)
+        res <- BreadthFirstTraversal.breadthFirstSearch[ObjId](s, k => index.getOrElse(k, Set()), e)
       } yield res
     }
 
@@ -249,7 +251,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       val index = pairs.collectSets(identity)
       s match {
         case None => Set()
-        case Some(start) => Algorithms.allPaths(start, k => index.getOrElse(k, Set()))
+        case Some(start) => BreadthFirstTraversal.allPaths(start, k => index.getOrElse(k, Set()))
       }
   }
 }

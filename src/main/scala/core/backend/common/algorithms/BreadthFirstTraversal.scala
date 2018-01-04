@@ -2,7 +2,7 @@ package core.backend.common.algorithms
 
 import scala.collection.immutable.Queue
 
-object Algorithms {
+object BreadthFirstTraversal {
   /**
     * Runs a breadth first traversal of a subgraph defined by the relation function f
     * @param node - starting node

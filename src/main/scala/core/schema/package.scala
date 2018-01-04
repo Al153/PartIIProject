@@ -19,9 +19,8 @@ package object schema {
     def tableName: TableName
     def getUnsafe = UnsafeFindable(pattern, tableName)
   }
-  sealed trait Writeable[A] // can be written to the database (necessarily complete data)
 
-  sealed trait DBTuple[A] extends Findable[A] with Writeable[A]{
+  sealed trait DBTuple[A] extends Findable[A] {
     def toDBObject: DBObject
   }
 

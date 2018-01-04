@@ -1,24 +1,24 @@
 package impl.memory
 
 import core.backend.common.{DBCell, DBObject, LengthMismatch}
-import core.error.E
 import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
 import core.schema.TableName
 import core.utils._
+import impl.memory.errors.MemoryExtractError
 
 import scalaz.Scalaz._
-import scalaz.\/
 
 /**
   * Created by Al on 25/10/2017.
   */
 
 case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[DBCell, Set[MemoryObject]]], name: TableName) {
-  def find(findable: UnsafeFindable): E \/ Vector[MemoryObject] = {
+  def find(findable: UnsafeFindable): MemoryEither[Vector[MemoryObject]] = {
     val pattern = findable.pattern
-    if (pattern.length != index.length) LengthMismatch().left
+    if (pattern.length != index.length)
+      MemoryExtractError(LengthMismatch(pattern.length, index.length)).left
     else {
-      pattern.zip(index).foldLeft(objects.values.toVector.right[E]){
+      pattern.zip(index).foldLeft(MemoryEither(objects.values.toVector)){
         case (eos, (filter, map)) =>
           filter match {
             case None => eos
@@ -34,8 +34,8 @@ case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[D
 
   def find(value: DBObject): Option[MemoryObject] = objects.get(value)
 
-  def findOrWrite(findable: DBObject): \/[E, MemoryObject] =
-    find(findable).getOrElse(MemoryObject(findable, name, Map(), Map())).right[E]
+  def findOrWrite(findable: DBObject): MemoryEither[MemoryObject] =
+    MemoryEither(find(findable).getOrElse(MemoryObject(findable, name, Map(), Map())))
 
   def  insert(o: MemoryObject): MemoryTable = {
     if (o.value in objects){

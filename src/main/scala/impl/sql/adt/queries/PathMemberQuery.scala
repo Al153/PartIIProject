@@ -3,6 +3,7 @@ package impl.sql.adt.queries
 import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
 import core.view.View
 import impl.sql._
+import impl.sql.names.SQLColumnName
 import impl.sql.tables.ViewsTable._
 import impl.sql.tables.{ObjectTable, ViewsTable}
 import impl.sql.types.ObjId

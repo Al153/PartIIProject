@@ -10,15 +10,16 @@ import core.intermediate.unsafe.ErasedRelationAttributes
 import core.schema.{SchemaDescription, TableName}
 import core.utils._
 import core.view.View
-import impl.sql.errors.{SQLError, SQLExtractError, SQLRelationMissing}
+import impl.sql.errors.{SQLErasedRelationMissing, SQLError, SQLExtractError}
 import impl.sql.jdbc.{JDBCReader, JDBCWriter}
 import impl.sql.tables._
 import core.utils._
-import SQLTableName._
+import impl.sql.names.SQLTableName
 
 import scala.concurrent.ExecutionContext
 import scalaz.\/
-import scalaz.Scalaz.ToEitherOps
+import scalaz._
+import Scalaz._
 
 /**
   * An instance should hold connection pool settings
@@ -48,7 +49,9 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
       MonadOps.sequence(
         schema.erasedObjects.map {
           o =>
-            SQLTableName.getName(o.name) >> (name => o.name -> new ObjectTable(name, this, o))
+            for {
+              name <- SQLTableName.getName(o.name)
+            } yield o.name -> new ObjectTable(name, this, o)
         }
       )
     ).toMap
@@ -90,7 +93,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
 
 
   def lookupRelation(er: ErasedRelationAttributes): SQLEither[RelationTable] =
-    relationLookup.flatMap(_.getOrError(er, SQLRelationMissing(er)))
+    relationLookup.flatMap(_.getOrError(er, SQLErasedRelationMissing(er)))
 
 
   // read from the views table

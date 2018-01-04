@@ -1,19 +1,23 @@
 package impl.memory.methods
 
-import core.backend.common.{DBObject, MissingTableName}
-import core.error.E
+import core.backend.common.DBObject
 import core.schema.{RelationName, TableName}
 import core.utils._
-import impl.memory.MemoryTree
-
-import scalaz.\/
+import impl.memory.errors.MemoryMissingTableName
+import impl.memory.{MemoryEither, MemoryTree}
 
 trait Writes {
-  def write[A](t: MemoryTree, tableName1: TableName, memoryObject1: DBObject, relationName: RelationName, tableName2: TableName, memoryObject2: DBObject): E \/ MemoryTree = {
+  def write[A](
+                t: MemoryTree, tableName1: TableName,
+                memoryObject1: DBObject,
+                relationName: RelationName,
+                tableName2: TableName,
+                memoryObject2: DBObject
+              ): MemoryEither[MemoryTree] = {
     if (tableName1 != tableName2) { // different behaviour
       for {
-        table1 <- t.getOrError(tableName1, MissingTableName(tableName1))
-        table2 <- t.getOrError(tableName2, MissingTableName(tableName2))
+        table1 <- t.getOrError(tableName1, MemoryMissingTableName(tableName1))
+        table2 <- t.getOrError(tableName2, MemoryMissingTableName(tableName2))
 
         o1 <- table1.findOrWrite(memoryObject1)
         updatedO1 =  o1.addRelation(relationName, memoryObject2)
@@ -26,9 +30,15 @@ trait Writes {
     }
   }
 
-  private def writeSelfRelation(t: MemoryTree, tableName1: TableName, memoryObject1: DBObject, relationName: RelationName, memoryObject2: DBObject) =
+  private def writeSelfRelation(
+                                 t: MemoryTree,
+                                 tableName1: TableName,
+                                 memoryObject1: DBObject,
+                                 relationName: RelationName,
+                                 memoryObject2: DBObject
+                               ): MemoryEither[MemoryTree] =
     for {
-      table1 <- t.getOrError(tableName1, MissingTableName(tableName1))
+      table1 <- t.getOrError(tableName1, MemoryMissingTableName(tableName1))
 
       o1 <- table1.findOrWrite(memoryObject1)
       updatedO1 =  o1.addRelation(relationName, memoryObject2)

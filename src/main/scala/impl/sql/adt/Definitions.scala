@@ -3,6 +3,7 @@ package impl.sql.adt
 import core.view.View
 import impl.sql._
 import impl.sql.adt.CompilationContext.Compilation
+import impl.sql.names.{RelationTableName, SQLColumnName}
 import impl.sql.tables.ViewsTable._
 import queries._
 

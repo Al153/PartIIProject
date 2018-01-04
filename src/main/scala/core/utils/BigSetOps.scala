@@ -1,4 +1,4 @@
-package impl.lmdb
+package core.utils
 
 /**
   * Created by Al on 01/01/2018.

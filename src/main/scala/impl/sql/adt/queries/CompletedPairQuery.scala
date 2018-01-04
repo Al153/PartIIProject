@@ -5,9 +5,8 @@ import core.view.View
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.SQLExtractError
+import impl.sql.names.SQLColumnName
 import impl.sql.tables.ObjectTable
-
-import scalaz._
 
 
 /**

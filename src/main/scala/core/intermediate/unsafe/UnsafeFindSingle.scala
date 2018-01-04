@@ -1,6 +1,5 @@
 package core.intermediate.unsafe
 
-import core.backend.common.DBCell
 import core.schema.TableName
 
 /**

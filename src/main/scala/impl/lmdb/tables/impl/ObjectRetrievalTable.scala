@@ -9,7 +9,7 @@ import impl.lmdb.access.Key._
 import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb.errors.{LMDBMissingTable, UnmarshallingError}
 import impl.lmdb.tables.interfaces.LMDBTable
-import impl.lmdb.{BigSetOps, LMDBEither, LMDBInstance}
+import impl.lmdb.{LMDBEither, LMDBInstance}
 
 import scalaz.Scalaz._
 

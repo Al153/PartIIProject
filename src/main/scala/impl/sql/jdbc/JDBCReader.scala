@@ -10,6 +10,7 @@ import impl.sql._
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
 import impl.sql.jdbc.Conversions._
+import impl.sql.names.{SQLColumnName, SQLTableName, TableNameFromDatabase}
 import impl.sql.schema.{ColumnSpecification, SQLType}
 import impl.sql.tables.ObjectTable
 import impl.sql.types.{Commit, ObjId}
@@ -117,9 +118,8 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   /**
-    * Get views from the result of executinf a query
+    * Get views from the result of executing a query
     * @param query - query to run
-    * @return - E \/ Set[View]
     */
 
   def getView(query: String): SQLEither[Set[View]] = {

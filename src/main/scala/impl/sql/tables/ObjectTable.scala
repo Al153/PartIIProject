@@ -5,9 +5,10 @@ import core.error.E
 import core.intermediate.unsafe.SchemaObjectErased
 import impl.sql.errors.ColumnMismatchException
 import impl.sql.jdbc.Conversions._
+import impl.sql.names.{ObjectTableName, SQLColumnName}
 import impl.sql.schema.{SQLPrimaryRef, SQLSchema, SQLType}
 import impl.sql.types.ObjId
-import impl.sql.{ObjectTableName, SQLColumnName, SQLFuture, SQLInstance, _}
+import impl.sql.{SQLFuture, SQLInstance, _}
 
 import scalaz.Scalaz._
 import scalaz._

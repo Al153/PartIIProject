@@ -1,7 +1,7 @@
 package impl.sql.jdbc
 
 import core.backend.common._
-import impl.sql.SQLColumnName
+import impl.sql.names.SQLColumnName
 import org.apache.commons.lang.StringEscapeUtils
 
 
