@@ -1,7 +1,8 @@
 package impl.memory
 
 import core.backend.common.DBObject
-import core.schema.{RelationName, TableName}
+import core.backend.intermediate.RelationName
+import core.user.schema.TableName
 
 /**
   * Created by Al on 25/10/2017.

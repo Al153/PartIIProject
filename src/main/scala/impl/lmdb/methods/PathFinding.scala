@@ -1,12 +1,11 @@
 package impl.lmdb.methods
 
 import core.backend.common.algorithms
-import core.containers.{Operation, Path, ReadOperation}
-import core.dsl.RelationalQuery
-import core.error.E
-import core.schema.{SchemaDescription, SchemaObject}
+import core.user.containers.{Operation, Path, ReadOperation}
+import core.user.dsl.{E, View}
+import core.backend.intermediate.RelationalQuery
+import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.{EitherOps, _}
-import core.view.View
 import impl.lmdb._
 import impl.lmdb.access.ObjId
 import impl.lmdb.errors.{LMDBEmptyFringe, LMDBMissingRelation, LMDBMissingTable}

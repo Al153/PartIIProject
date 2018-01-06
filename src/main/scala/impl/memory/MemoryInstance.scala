@@ -3,13 +3,12 @@ package impl.memory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-import core.backend.interfaces.{DBExecutor, DBInstance}
-import core.containers.{ConstrainedFuture, Operation, ReadOperation, WriteOperation}
-import core.error.E
-import core.intermediate.unsafe.ErasedRelationAttributes
-import core.schema.SchemaDescription
+import core.user.interfaces.{DBExecutor, DBInstance}
+import core.user.containers.{ConstrainedFuture, Operation, ReadOperation, WriteOperation}
+import core.user.dsl.{E, View}
+import core.backend.intermediate.unsafe.ErasedRelationAttributes
+import core.user.schema.SchemaDescription
 import core.utils._
-import core.view.View
 import impl.memory.errors.MissingViewError
 
 import scala.collection.JavaConverters._

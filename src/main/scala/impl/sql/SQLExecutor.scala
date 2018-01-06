@@ -1,15 +1,12 @@
 package impl.sql
 
 import core.backend.common.algorithms.BreadthFirstTraversal
-import core.backend.interfaces.DBExecutor
-import core.containers.{Operation, Path, ReadOperation, WriteOperation}
-import core.dsl.RelationalQuery
-import core.error.E
-import core.intermediate.{FindPair, FindSingle}
-import core.relations.CompletedRelation
-import core.schema.{SchemaDescription, SchemaObject}
+import core.user.interfaces.DBExecutor
+import core.user.containers.{Operation, Path, ReadOperation, WriteOperation}
+import core.user.dsl.{CompletedRelation, E, View}
+import core.backend.intermediate.{FindPair, FindSingle, RelationalQuery}
+import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.{EitherOps, _}
-import core.view.View
 import impl.sql.adt.queries.{CompletedPairQuery, CompletedSingleQuery, PathFindingQuery}
 import impl.sql.errors.SQLMissingRelation
 import impl.sql.types.ObjId

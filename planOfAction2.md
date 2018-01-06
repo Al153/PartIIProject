@@ -21,7 +21,7 @@
     
 ### Build a views system  - *Several days to a week*
 - (requires adding extra columns to SQL DB to manage the views an entry is a part of)
-- This also fits in to how we want to define core.schema for objects in the database
+- This also fits in to how we want to define core.user.schema for objects in the database
 - Build a simple  reference counting garbage collector under the assumption of a single client (this is easy enough because, due to immutability, the relation between views is a directed acyclic graph)
 - My initial thinking is:
     - We tag each row in each user accessible table with the ID of the core.view that it is part of
@@ -45,7 +45,7 @@
 - This could be done with a big monad transformer stack or be built in a more purposed style
 - I've given the first a go, and it leaves me fighting with the scala type system slightly, but the issues I'm having seem to be something that can be stack-overflow-ed for help
 
-### Construct an underlying core.intermediate representation as a step between the DSL and SQL - *A day to build the raw Algebraic datatype*
+### Construct an underlying core.backend.intermediate representation as a step between the DSL and SQL - *A day to build the raw Algebraic datatype*
 - This should act a bit like a bytecode
 - Relatively easy to build in scala as an algebraic data type
 - This would consist of write operations 
@@ -57,16 +57,16 @@
         - i.e. various breadth first searches, such as shortest path, all nodes within n relations from a start node
         - A task is to come up with a set of useful queries like this, which increase the expressive power of the query layer, but which are still easy enough to implement
         
-### Execution of core.intermediate representation of a query against a core.view to produce a result monad - *A week, Open to extensions*
+### Execution of core.backend.intermediate representation of a query against a core.view to produce a result monad - *A week, Open to extensions*
 - This should be a translation of the query into a query on the underlying SQL database, with respect to the current core.view
 - For read operations, which don't affect the database (i.e. they don't create any new views), this is fairly easy. We just make a query, and filter by the appropriate core.view
 - Writes a little more complex:
     - Need to create a new commit entry
         
-### Construct an algebraic extensible DSL and translation to core.intermediate upon execution - *open ended timescale*
+### Construct an algebraic extensible DSL and translation to core.backend.intermediate upon execution - *open ended timescale*
 - This will probably make heavy use of the scala "pimp-my-library" pattern (`https://coderwall.com/p/k_1jzw/scala-s-pimp-my-library-pattern-example`)
-- We want to make it easy for users to build databases with core.schema matching their use cases.
-- I propose to do this by letting users define simple `case class`es and then also defining implicit conversions to objects that do the things like pattern matching and which define the database core.schema
+- We want to make it easy for users to build databases with core.user.schema matching their use cases.
+- I propose to do this by letting users define simple `case class`es and then also defining implicit conversions to objects that do the things like pattern matching and which define the database core.user.schema
 - Build some nice syntax to allow users to algebraically construct
 
 ### Testing of components

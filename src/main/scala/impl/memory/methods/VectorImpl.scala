@@ -1,10 +1,10 @@
 package impl.memory.methods
 
 import core.backend.common.MissingTableName
-import core.error.E
-import core.intermediate.Find
-import core.intermediate.unsafe._
-import core.schema.{SchemaDescription, SchemaObject}
+import core.user.dsl.E
+import core.backend.intermediate.Find
+import core.backend.intermediate.unsafe._
+import core.user.schema.{SchemaDescription, SchemaObject}
 import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 import core.utils._
 import impl.memory.errors.{MemoryMissingRelation, MemoryMissingTableName}

@@ -2,10 +2,10 @@ package impl.lmdb
 
 import java.nio.file.Files
 
-import core.backend.interfaces._
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.schema.SchemaDescription
+import core.user.interfaces._
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
+import core.user.schema.SchemaDescription
 import org.fusesource.lmdbjni.Env
 
 import scala.concurrent.ExecutionContext

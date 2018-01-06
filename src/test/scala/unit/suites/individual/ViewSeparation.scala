@@ -1,9 +1,8 @@
 package unit.suites.individual
 
-import core.backend._
-import core.backend.interfaces._
-import core.dsl.Commands._
-import core.relations.CompletedRelation
+import core.user.interfaces._
+import core.user.dsl._
+
 import org.junit.Test
 import unit.Objects._
 import unit._

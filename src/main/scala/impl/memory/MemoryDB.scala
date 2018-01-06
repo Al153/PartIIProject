@@ -1,9 +1,9 @@
 package impl.memory
 
-import core.backend.interfaces.{DBBackend, DBInstance, DatabaseAddress}
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.schema.SchemaDescription
+import core.user.interfaces.{DBBackend, DBInstance}
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.{DatabaseAddress, E}
+import core.user.schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
 

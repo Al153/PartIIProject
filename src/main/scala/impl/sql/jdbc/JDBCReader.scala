@@ -3,9 +3,10 @@ package impl.sql.jdbc
 import java.sql.ResultSet
 
 import core.backend.common._
-import core.containers.Path
-import core.schema._
-import core.view.View
+import core.user.containers.Path
+import core.user.dsl.View
+import core.backend.intermediate._
+import core.user.schema._
 import impl.sql._
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}

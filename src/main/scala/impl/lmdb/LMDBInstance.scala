@@ -1,11 +1,10 @@
 package impl.lmdb
 
-import core.backend.interfaces.{DBExecutor, DBInstance}
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.intermediate.unsafe.UnsafeFindable
-import core.schema.{SchemaDescription, TableName}
-import core.view.View
+import core.user.interfaces.{DBExecutor, DBInstance}
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.{E, View}
+import core.backend.intermediate.unsafe.UnsafeFindable
+import core.user.schema.{SchemaDescription, TableName}
 import impl.lmdb.access.{Commit, ObjId}
 
 import scalaz._

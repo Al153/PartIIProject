@@ -1,6 +1,6 @@
 package impl.sql.adt
 
-import core.view.View
+import core.user.dsl.View
 import impl.sql._
 import impl.sql.adt.CompilationContext.Compilation
 import impl.sql.names.{RelationTableName, SQLColumnName}

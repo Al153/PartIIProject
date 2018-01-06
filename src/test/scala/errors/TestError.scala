@@ -1,6 +1,6 @@
 package errors
 
-import core.error.E
+import core.user.dsl.E
 
 /**
   * Created by Al on 04/01/2018.

@@ -1,6 +1,6 @@
 package impl.memory.methods
 
-import core.intermediate.unsafe._
+import core.backend.intermediate.unsafe._
 import core.utils._
 import impl.memory.errors.MemoryMissingTableName
 import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}

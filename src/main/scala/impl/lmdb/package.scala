@@ -1,8 +1,7 @@
 package impl
 
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.view.View
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.{E, View}
 import impl.lmdb.access.{Key, Storeable}
 import impl.lmdb.errors.{LMDBError, _}
 

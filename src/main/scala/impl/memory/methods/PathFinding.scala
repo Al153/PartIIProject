@@ -1,7 +1,7 @@
 package impl.memory.methods
 
 import core.backend.common.{MissingTableName, algorithms}
-import core.intermediate.unsafe.UnsafeFindable
+import core.backend.intermediate.unsafe.UnsafeFindable
 import core.utils._
 import impl.memory.errors.{EmptyFringeError, MemoryError, MemoryMissingTableName}
 import impl.memory.{MemoryEither, MemoryObject, MemoryPath, MemoryTree, RelatedPair}

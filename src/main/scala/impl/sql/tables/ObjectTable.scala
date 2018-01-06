@@ -1,8 +1,8 @@
 package impl.sql.tables
 
 import core.backend.common.DBObject
-import core.error.E
-import core.intermediate.unsafe.SchemaObjectErased
+import core.user.dsl.E
+import core.backend.intermediate.unsafe.SchemaObjectErased
 import impl.sql.errors.ColumnMismatchException
 import impl.sql.jdbc.Conversions._
 import impl.sql.names.{ObjectTableName, SQLColumnName}

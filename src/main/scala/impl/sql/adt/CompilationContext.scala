@@ -1,7 +1,7 @@
 package impl.sql.adt
 
-import core.intermediate.unsafe.ErasedRelationAttributes
-import core.schema.TableName
+import core.backend.intermediate.unsafe.ErasedRelationAttributes
+import core.user.schema.TableName
 import core.utils._
 import impl.sql.tables.{AuxObjectTable, ObjectTable, RelationTable}
 import impl.sql.{SQLEither, SQLInstance}

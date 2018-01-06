@@ -1,12 +1,10 @@
 package impl.memory
 
-import core.backend.interfaces.DBExecutor
-import core.containers.{Operation, Path}
-import core.dsl.RelationalQuery
-import core.error.E
-import core.intermediate._
-import core.relations.CompletedRelation
-import core.schema.{SchemaDescription, SchemaObject}
+import core.user.interfaces.DBExecutor
+import core.user.containers.{Operation, Path}
+import core.user.dsl.{CompletedRelation, E}
+import core.backend.intermediate._
+import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils._
 import impl.memory.errors.{MemoryExtractError, MemoryMissingRelation}
 

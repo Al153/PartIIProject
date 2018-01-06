@@ -1,6 +1,5 @@
 package core.backend.common
 
-import core.error.E
-import core.relations.RelationAttributes
+import core.user.dsl.{E, RelationAttributes}
 
 case class MissingRelation(r: RelationAttributes[_, _])

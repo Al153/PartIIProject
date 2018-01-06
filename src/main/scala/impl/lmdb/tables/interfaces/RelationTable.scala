@@ -1,11 +1,11 @@
 package impl.lmdb.tables.interfaces
 
-import core.schema.RelationName
 import core.utils.EitherOps
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb._
 import Key._
+import core.backend.intermediate.RelationName
 
 /**
   * Created by Al on 29/12/2017.

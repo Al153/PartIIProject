@@ -1,7 +1,7 @@
 package impl.memory
 
 import core.backend.common.DBObject
-import core.intermediate.unsafe.ErasedPath
+import core.backend.intermediate.unsafe.ErasedPath
 
 /**
   * Created by Al on 27/10/2017.

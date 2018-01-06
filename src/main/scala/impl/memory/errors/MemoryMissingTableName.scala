@@ -1,6 +1,6 @@
 package impl.memory.errors
 
-import core.schema.TableName
+import core.user.schema.TableName
 
 /**
   * Created by Al on 04/01/2018.

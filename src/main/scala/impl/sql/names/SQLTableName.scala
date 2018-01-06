@@ -2,7 +2,8 @@ package impl.sql.names
 
 import java.util.UUID
 
-import core.schema.{RelationName, TableName}
+import core.backend.intermediate.RelationName
+import core.user.schema.TableName
 import core.utils._
 
 import scalaz.Monad

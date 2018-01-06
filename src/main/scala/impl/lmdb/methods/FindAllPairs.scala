@@ -1,10 +1,9 @@
 package impl.lmdb.methods
 
-import core.containers.{Operation, ReadOperation}
-import core.error.E
-import core.intermediate.FindPair
-import core.schema.{SchemaDescription, SchemaObject}
-import core.view.View
+import core.user.containers.{Operation, ReadOperation}
+import core.user.dsl.{E, View}
+import core.backend.intermediate.FindPair
+import core.user.schema.{SchemaDescription, SchemaObject}
 import impl.lmdb.LMDBFutureE
 import impl.lmdb.errors.{LMDBMissingRelation, LMDBMissingTable}
 import core.utils._

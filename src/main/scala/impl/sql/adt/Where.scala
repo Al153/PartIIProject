@@ -1,6 +1,6 @@
 package impl.sql.adt
 
-import core.intermediate.unsafe.UnsafeFindable
+import core.backend.intermediate.unsafe.UnsafeFindable
 import impl.sql.jdbc.Conversions
 import impl.sql.names.SQLColumnName.{column, leftId, rightId}
 

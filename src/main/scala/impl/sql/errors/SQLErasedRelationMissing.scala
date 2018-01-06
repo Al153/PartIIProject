@@ -1,5 +1,5 @@
 package impl.sql.errors
 
-import core.intermediate.unsafe.ErasedRelationAttributes
+import core.backend.intermediate.unsafe.ErasedRelationAttributes
 
 case class SQLErasedRelationMissing(r: ErasedRelationAttributes) extends SQLError

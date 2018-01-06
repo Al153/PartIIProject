@@ -1,10 +1,10 @@
 package impl
 
 import core.backend.common._
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.intermediate.unsafe._
-import core.schema.TableName
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.E
+import core.backend.intermediate.unsafe._
+import core.user.schema.TableName
 import core.utils._
 import impl.memory.errors.{MemoryError, MemoryMissingTableName}
 

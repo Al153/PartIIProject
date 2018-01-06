@@ -1,7 +1,7 @@
 package impl
 
-import core.containers.ConstrainedFuture
-import core.error.E
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.E
 import impl.sql.errors.SQLError
 
 import scalaz._

@@ -2,7 +2,7 @@ package impl.sql.tables
 
 import java.sql.Statement
 
-import core.view.View
+import core.user.dsl.View
 import impl.sql._
 import impl.sql.errors.{SQLError, UnableToCreateView}
 import impl.sql.names.{SQLColumnName, SQLTableName, ViewsRegistryName}

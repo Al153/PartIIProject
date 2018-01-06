@@ -2,7 +2,8 @@ package impl.lmdb.access
 
 import java.util.Base64
 
-import core.schema.{RelationName, TableName}
+import core.backend.intermediate.RelationName
+import core.user.schema.TableName
 import org.fusesource.lmdbjni.Constants._
 
 

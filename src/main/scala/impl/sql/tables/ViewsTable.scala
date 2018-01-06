@@ -1,6 +1,6 @@
 package impl.sql.tables
 
-import core.view.View
+import core.user.dsl.View
 import impl.sql.names.{PrecomputedView, SQLColumnName, SQLTableName, ViewsTableName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.Commit

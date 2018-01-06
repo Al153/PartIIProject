@@ -1,7 +1,8 @@
 package impl.memory.methods
 
 import core.backend.common.DBObject
-import core.schema.{RelationName, TableName}
+import core.backend.intermediate.RelationName
+import core.user.schema.TableName
 import core.utils._
 import impl.memory.errors.MemoryMissingTableName
 import impl.memory.{MemoryEither, MemoryTree}

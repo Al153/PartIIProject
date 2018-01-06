@@ -1,6 +1,6 @@
 package impl.lmdb.errors
 
-import core.view.View
+import core.user.dsl.View
 
 /**
   * Created by Al on 02/01/2018.

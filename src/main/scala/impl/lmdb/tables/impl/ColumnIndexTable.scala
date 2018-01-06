@@ -1,7 +1,8 @@
 package impl.lmdb.tables.impl
 
 import core.backend.common.DBCell
-import core.schema.{SchemaComponent, TableName}
+import core.backend.intermediate.SchemaComponent
+import core.user.schema.TableName
 import core.utils.EitherOps
 import impl.lmdb.access.Key._
 import impl.lmdb.access.{Commit, Key, ObjId}

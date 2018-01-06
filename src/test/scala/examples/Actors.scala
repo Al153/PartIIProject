@@ -1,11 +1,10 @@
 package examples
 
-import core.backend._
-import core.backend.interfaces.DatabaseAddress._
-import core.dsl.Commands._
-import core.relations.{CompletedRelation, RelationAttributes, Singleton}
+import core.user.dsl.DatabaseAddress._
+import core.user.dsl.{CompletedRelation, RelationAttributes}
 import examples.Schema.{Borders, Country, _}
 import impl.memory.MemoryDB
+import core.user.dsl._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalaz.\/-
@@ -17,7 +16,7 @@ import scalaz.\/-
 class Actors {
 
   /*
-    * Define the core.schema we expect from the database
+    * Define the core.user.schema we expect from the database
     * This might be loaded from a file or a library
    */
 

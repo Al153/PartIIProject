@@ -1,14 +1,13 @@
-import core.containers.{ConstrainedFuture, Operation, ReadOperation}
-import core.error.E
-import core.relations.RelationAttributes
-import org.junit.Assert
-import core.schema._
+import core.user.containers.{ConstrainedFuture, Operation, ReadOperation}
+import core.user.dsl.{E, RelationAttributes}
+import core.user.schema._
 import errors.{AssertionFailure, UnknownError}
+import org.junit.Assert
 
 import scala.concurrent.ExecutionContext
 
 /**
-  * Some simple test core.schema for unit tests
+  * Some simple test core.user.schema for unit tests
   */
 
 package object unit {

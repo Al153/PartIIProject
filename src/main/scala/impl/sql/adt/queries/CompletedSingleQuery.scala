@@ -1,8 +1,8 @@
 package impl.sql.adt.queries
 
-import core.intermediate.unsafe.{UnsafeFindSingle, UnsafeFindable}
-import core.schema.SchemaDescription
-import core.view.View
+import core.user.dsl.View
+import core.backend.intermediate.unsafe.{UnsafeFindSingle, UnsafeFindable}
+import core.user.schema.SchemaDescription
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.SQLExtractError

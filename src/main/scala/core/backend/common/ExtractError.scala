@@ -1,6 +1,7 @@
 package core.backend.common
 
-import core.schema.{SchemaComponent, TableName}
+import core.backend.intermediate.SchemaComponent
+import core.user.schema.TableName
 
 /**
   * Created by Al on 20/10/2017.

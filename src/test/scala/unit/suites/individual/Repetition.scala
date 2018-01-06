@@ -1,15 +1,9 @@
 package unit.suites.individual
 
-import core.backend.interfaces.{DBInstance, Empty}
-import core.backend.using
-import core.containers.Operation
-import core.dsl.Commands._
-import core.dsl.NodeSyntax.NodeSyntax1
-import core.dsl.RelationalQuery._
-import core.dsl.Repetition._
-import core.error.E
-import core.relations.CompletedRelation
-import core.schema.SchemaObject
+import core.user.interfaces.DBInstance
+import core.user.containers.Operation
+import core.user.dsl._
+import core.user.schema.SchemaObject
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description, _}

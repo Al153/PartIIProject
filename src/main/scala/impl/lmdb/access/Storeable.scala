@@ -3,7 +3,7 @@ package impl.lmdb.access
 import java.nio.ByteBuffer
 
 import core.backend.common._
-import core.view.View
+import core.user.dsl.View
 import impl.lmdb.LMDBEither
 import impl.lmdb.errors.{BooleanExtractError, UnexpectedStreamLength, UnrecognisedDBHeader}
 

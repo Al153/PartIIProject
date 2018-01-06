@@ -1,6 +1,6 @@
 package impl.lmdb
 
-import core.backend.interfaces.DBExecutor
+import core.user.interfaces.DBExecutor
 import impl.lmdb.methods.Methods
 
 /**

@@ -1,8 +1,8 @@
 package impl.lmdb.methods
 
 import core.backend.common.algorithms.{FixedPointTraversal, Joins}
-import core.intermediate.unsafe._
-import core.schema.{SchemaDescription, SchemaObject}
+import core.backend.intermediate.unsafe._
+import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.EitherOps
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, ObjId}

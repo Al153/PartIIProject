@@ -1,7 +1,7 @@
 package impl.sql.tables
 
 import ViewsTable._
-import core.view.View
+import core.user.dsl.View
 import impl.sql._
 import impl.sql.names.{RelationTableName, SQLColumnName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}

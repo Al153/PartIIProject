@@ -1,6 +1,6 @@
 package impl.memory.methods
 
-import core.intermediate.unsafe.UnsafeFindable
+import core.backend.intermediate.unsafe.UnsafeFindable
 import impl.memory.MemoryObject
 
 trait ExecutorMethods  {

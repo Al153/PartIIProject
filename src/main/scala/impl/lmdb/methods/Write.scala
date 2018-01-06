@@ -1,11 +1,10 @@
 package impl.lmdb.methods
 
-import core.containers.{Operation, WriteOperation}
-import core.error.E
-import core.relations.CompletedRelation
-import core.schema.{RelationName, SchemaDescription, SchemaObject}
+import core.user.containers.{Operation, WriteOperation}
+import core.user.dsl.{CompletedRelation, E, View}
+import core.backend.intermediate.RelationName
+import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.EitherOps
-import core.view.View
 import impl.lmdb._
 import impl.lmdb.access.{Commit, ObjId}
 import core.utils._

@@ -1,6 +1,6 @@
 package impl.lmdb.errors
 
-import core.schema.TableName
+import core.user.schema.TableName
 
 /**
   * Created by Al on 29/12/2017.

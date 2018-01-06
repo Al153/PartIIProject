@@ -1,8 +1,8 @@
 package impl.lmdb.tables.impl
 
 import core.backend.common.DBObject
-import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
-import core.schema.SchemaObject
+import core.backend.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
+import core.user.schema.SchemaObject
 import core.utils._
 import impl.lmdb
 import impl.lmdb.access.Key._

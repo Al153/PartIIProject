@@ -3,11 +3,10 @@ package impl.sql
 import java.sql.{Connection, DriverManager}
 import java.util.Properties
 
-import core.backend.interfaces._
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.schema.SchemaDescription
-import impl.sql.errors.SQLError
+import core.user.interfaces._
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
+import core.user.schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
 

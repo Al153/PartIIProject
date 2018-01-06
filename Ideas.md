@@ -3,7 +3,7 @@
 - Highly functional wrapper to provide typesafe graph operations on a relational database
 - The premise is to provide the following:
     - An algebraic DSL in scala to allow construction of complex queries
-    - A conversion from algebraic DSL to an core.intermediate tree of actions to be executed against the database
+    - A conversion from algebraic DSL to an core.backend.intermediate tree of actions to be executed against the database
     - A Monadic results container type (to contain the result of a given expression), which represents the asynchronicity and ability to return a collection of results, along with the `core.view` that the reslts were generated against
         - This would likely be a monad transformer stack of the core.monads: Future (asynchronicity), State (to hold the core.view the query was executed with), Either (Typesafe and elegant core.error case handling), and List (a query may return a colleciton of results from the same core.view, eg "find all people who are related to John Smith")
     - A system of logical "`core.view`s" of the underlying database
@@ -12,7 +12,7 @@
             - Hence, `core.view`s essentially act like commits in git
         - we need to do garbage collection. when an in-memory `core.view` runs out of objects holding it, it should garbage collect itself from the SQL implementation - could be very tricky over a distributed system.
             - so distributed semantics are probably a major extension/out of current scope
-    - An execution engine to compile the core.intermediate language to an SQL query that executes the graph level query represented against the internal database 
+    - An execution engine to compile the core.backend.intermediate language to an SQL query that executes the graph level query represented against the internal database 
         - This should start out relatively trivial and if I have time left over, I might look at doing some simple optimisations, since we have some nice functional features to exploit
        
 ## Motivating example
@@ -21,7 +21,7 @@
   def main(): Unit = {
 
     /*
-     * Define the core.schema we expect from the database
+     * Define the core.user.schema we expect from the database
      * This might be loaded from a file or a library
      */
 
@@ -103,14 +103,14 @@
 - Build a views system (requires adding extra columns to SQL DB to manage the views an entry is a part of) - day or two of research
 - Build a simple  reference counting garbage collector under the assumption of a single client (this is easy enough because due to immutability, the relation between views is a directed acyclic graph)
 - Construct an appropriate monadic results container
-- Construct an underlying core.intermediate representation as a step between the DSL and SQL
-- Execution of core.intermediate representation of a query against a core.view to produce a result monad
-- Construct an algebraic extensible DSL and translation to core.intermediate upon execution
+- Construct an underlying core.backend.intermediate representation as a step between the DSL and SQL
+- Execution of core.backend.intermediate representation of a query against a core.view to produce a result monad
+- Construct an algebraic extensible DSL and translation to core.backend.intermediate upon execution
 
 ## Extensions
 - garbage collector under multiple clients (tough)
 - Then correct distributed semantics, such as a way to merge two views to produce a new one
-- Optimisations upon the core.intermediate representation, making queries as lazy as possible to allow cross query optimisation
+- Optimisations upon the core.backend.intermediate representation, making queries as lazy as possible to allow cross query optimisation
 - Store schemas as libraries within the database
 -
 

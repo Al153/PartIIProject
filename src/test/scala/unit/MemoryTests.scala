@@ -1,6 +1,6 @@
 package unit
 
-import core.backend.interfaces.DBBackend
+import core.user.interfaces.DBBackend
 import impl.memory.MemoryDB
 import unit.suites._
 

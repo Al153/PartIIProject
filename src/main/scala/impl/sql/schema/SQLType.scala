@@ -1,6 +1,7 @@
 package impl.sql.schema
 
-import core.schema._
+import core.backend.intermediate._
+import core.user.schema._
 import core.utils._
 import impl.sql.errors.{SQLSchemaTypeCheckError, SQLSchemaUnexpectedType}
 import impl.sql.tables.SQLTable

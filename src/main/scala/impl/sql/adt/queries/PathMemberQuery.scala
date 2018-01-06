@@ -1,7 +1,7 @@
 package impl.sql.adt.queries
 
-import core.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
-import core.view.View
+import core.user.dsl.View
+import core.backend.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
 import impl.sql._
 import impl.sql.names.SQLColumnName
 import impl.sql.tables.ViewsTable._

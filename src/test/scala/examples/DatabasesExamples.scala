@@ -1,8 +1,7 @@
 package examples
 
-import core.backend._
-import core.backend.interfaces.DatabaseAddress._
-import core.dsl.Commands.find
+import core.user.dsl.DatabaseAddress._
+import core.user.dsl._
 import examples.Schema._
 import impl.memory.MemoryDB
 

@@ -1,9 +1,9 @@
 package impl.sql.jdbc
 
 import core.backend.common.DBObject
-import core.containers.ConstrainedFuture
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.View
 import core.utils._
-import core.view.View
 import impl.sql._
 import impl.sql.tables.{ObjectTable, RelationTable}
 import impl.sql.types.{Commit, ObjId}

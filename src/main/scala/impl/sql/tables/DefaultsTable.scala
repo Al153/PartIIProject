@@ -1,6 +1,6 @@
 package impl.sql.tables
 
-import core.view.View
+import core.user.dsl.View
 import impl.sql._
 import impl.sql.errors.MissingDefaultViewError
 import impl.sql.names.{DefaultsTableName, SQLColumnName, SQLTableName}

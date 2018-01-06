@@ -1,6 +1,7 @@
 package impl.sql.errors
 
-import core.schema.{SchemaComponent, TableName}
+import core.backend.intermediate.SchemaComponent
+import core.user.schema.TableName
 
 case class ColumnMismatchException(
                                     index: Int,

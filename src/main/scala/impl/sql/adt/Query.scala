@@ -1,8 +1,8 @@
 package impl.sql.adt
 
-import core.intermediate.unsafe._
-import core.schema.TableName
-import core.view.View
+import core.user.dsl.View
+import core.backend.intermediate.unsafe._
+import core.user.schema.TableName
 import impl.sql.adt.CompilationContext.Compilation
 import impl.sql.tables.ObjectTable
 import queries._

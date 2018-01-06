@@ -1,6 +1,6 @@
 package unit
 
-import core.backend.interfaces.DBBackend
+import core.user.interfaces.DBBackend
 import impl.sql.SQLDB
 import unit.suites._
 import unit.suites.individual._

@@ -1,6 +1,6 @@
 package impl.memory.errors
 
-import core.view.View
+import core.user.dsl.View
 
 /**
   * Created by Al on 22/10/2017.

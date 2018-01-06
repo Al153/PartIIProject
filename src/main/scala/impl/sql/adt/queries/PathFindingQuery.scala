@@ -1,7 +1,7 @@
 package impl.sql.adt.queries
 
-import core.intermediate.unsafe.UnsafeFindPair
-import core.view.View
+import core.user.dsl.View
+import core.backend.intermediate.unsafe.UnsafeFindPair
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
 import impl.sql.names.SQLColumnName

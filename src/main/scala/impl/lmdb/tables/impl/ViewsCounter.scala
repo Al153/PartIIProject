@@ -1,6 +1,6 @@
 package impl.lmdb.tables.impl
 
-import core.view.View
+import core.user.dsl.View
 import impl.lmdb.LMDBInstance
 import impl.lmdb.access.Key
 import impl.lmdb.access.Key._

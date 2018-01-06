@@ -3,13 +3,12 @@ package impl.sql
 import java.sql.Connection
 
 import core.backend.common.MissingTableName
-import core.backend.interfaces.{DBExecutor, DBInstance}
-import core.containers.ConstrainedFuture
-import core.error.E
-import core.intermediate.unsafe.ErasedRelationAttributes
-import core.schema.{SchemaDescription, TableName}
+import core.user.interfaces.{DBExecutor, DBInstance}
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.{E, View}
+import core.backend.intermediate.unsafe.ErasedRelationAttributes
+import core.user.schema.{SchemaDescription, TableName}
 import core.utils._
-import core.view.View
 import impl.sql.errors.{SQLErasedRelationMissing, SQLError, SQLExtractError}
 import impl.sql.jdbc.{JDBCReader, JDBCWriter}
 import impl.sql.tables._
