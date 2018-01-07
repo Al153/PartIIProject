@@ -1,8 +1,10 @@
 package core.backend.common.algorithms
 
+import core.backend.common.algorithms.PathFinding.doStep
 import core.utils._
 
 import scala.collection.immutable.Queue
+import scala.collection.mutable
 import scalaz.Scalaz._
 import scalaz._
 
@@ -10,28 +12,34 @@ import scalaz._
   * Created by Al on 31/12/2017.
   */
 object PathFinding {
-  def allShortestPathsImpl[E, A](start: Set[A], searchStep: A => E \/ Set[(A, A)], onEmptyFringe: => E): E \/ Set[Vector[A]] = {
-    def aux(fringe: Queue[Vector[A]], alreadyExplored: Set[A], acc: Set[Vector[A]]): E \/ Set[Vector[A]] = {
-      for {
-        stepResult <- doStep(searchStep, fringe, alreadyExplored, onEmptyFringe)
 
+  // Non recursive implementations to avoid stack overflows
+  def allShortestPathsImpl[E, A](start: Set[A], searchStep: A => E \/ Set[(A, A)]): E \/ Set[Vector[A]] = {
+    var fringe: Queue[Vector[A]] = toQueue(start.map(a => Vector[A](a)))
+    var alreadyExplored: Set[A] = Set()
+    var resBuilder:mutable.Builder[Vector[A], Set[Vector[A]]] = Set.newBuilder[Vector[A]]
+
+    var okay: E \/ Unit = ().right
+
+    while (fringe.nonEmpty && okay.isRight) {
+      okay = for {
+        stepResult <- doStep(searchStep, fringe, alreadyExplored)
         (newFringe, path, objects) = stepResult
 
-        newExplored = alreadyExplored | objects
-        newAcc = acc | objects.map(path :+ _)
-        res <-
-        if (newFringe.isEmpty)
-          newAcc.right
-        else
-          aux(newFringe, newExplored, newAcc)
-      } yield res
+
+        _ =  resBuilder ++= objects.map(path :+ _)
+        _ = fringe = newFringe
+        _ = alreadyExplored = alreadyExplored | objects
+
+      } yield ()
     }
 
-    aux(toQueue(start.map(a => Vector[A](a))), Set(), Set()).recover{ case e if e == onEmptyFringe => Set()}
+    okay.map(_ => resBuilder.result())
+
   }
 
   // Step function, fringe => NewFringe, pickedPath, newlyFound
-  private def doStep[E, A](searchStep: A => E \/ Set[(A, A)], fringe: Queue[Vector[A]], alreadyExplored: Set[A], onEmptyFringe: => E): E \/ (Queue[Vector[A]], Vector[A], Set[A]) =
+  private def doStep[E, A](searchStep: A => E \/ Set[(A, A)], fringe: Queue[Vector[A]], alreadyExplored: Set[A]): E \/ (Queue[Vector[A]], Vector[A], Set[A]) =
     if (fringe.nonEmpty) {
       val top = fringe.head // pop the top off of the fringe
       for {
@@ -40,28 +48,33 @@ object PathFinding {
         newFringe = fringe.tail ++ newObjects.diff(alreadyExplored).map(top :+ _) // todo: Probably slow
       } yield (newFringe, top, newObjects)
     } else {
-      onEmptyFringe.left
+      (fringe, Vector(), alreadyExplored).right
     }
 
   private def toQueue[A](s: Set[A]): Queue[A] = Queue() ++ s
 
 
-  def singleShortestsPathImpl[E, A](start: Set[A], end: A, searchStep: A => E \/ Set[(A, A)], onEmptyFringe: => E): E \/ Option[Vector[A]] = {
-    def aux(fringe: Queue[Vector[A]], alreadyExplored: Set[A], acc: Set[Vector[A]]): E \/ Option[Vector[A]] = {
-      for {
-        stepResult <- doStep(searchStep, fringe, alreadyExplored, onEmptyFringe)
-        (newFringe, path, objects) = stepResult
-        res <-
-          if (end in objects)  (path :+ end).some.right
-          else {
-            val newExplored = alreadyExplored | objects
-            val newAcc = acc | objects.map(path :+ _)
-            if (newFringe.isEmpty) None.right // return no result
-            else aux(newFringe, newExplored, newAcc)
-          }
-      } yield res
-    }
+  def singleShortestsPathImpl[E, A](start: Set[A], end: A, searchStep: A => E \/ Set[(A, A)]): E \/ Option[Vector[A]] = {
+    var fringe: Queue[Vector[A]] = toQueue(start.map(a => Vector[A](a)))
+    var alreadyExplored: Set[A] = Set()
+    var result: E \/ Option[Vector[A]] = None.right
+    var done = false
 
-    aux(toQueue(start.map(a => Vector(a))), Set(), Set()).recover{ case e if e == onEmptyFringe => None}
+    while (fringe.nonEmpty && result.isRight && !done) {
+      result = for {
+        stepResult <- doStep(searchStep, fringe, alreadyExplored)
+        (newFringe, path, objects) = stepResult
+
+        r = if (end in objects) {
+          done = true
+          (path :+ end).some
+        } else {
+          fringe = newFringe
+          alreadyExplored =  alreadyExplored | objects
+          None
+        }
+      } yield r
+    }
+    result
   }  
 }

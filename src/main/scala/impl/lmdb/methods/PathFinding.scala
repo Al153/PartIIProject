@@ -8,7 +8,7 @@ import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.{EitherOps, _}
 import impl.lmdb._
 import impl.lmdb.access.ObjId
-import impl.lmdb.errors.{LMDBEmptyFringe, LMDBMissingRelation, LMDBMissingTable}
+import impl.lmdb.errors.{LMDBMissingRelation, LMDBMissingTable}
 
 /**
   * Created by Al on 29/12/2017.
@@ -39,7 +39,7 @@ trait PathFinding { self: Methods =>
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
 
         optionalPath <- target.fold(LMDBEither[Option[Vector[ObjId]]](None)) {
-          e => algorithms.PathFinding.singleShortestsPathImpl(initialSet, e, searchStep, LMDBEmptyFringe)
+          e => algorithms.PathFinding.singleShortestsPathImpl(initialSet, e, searchStep)
         }
 
         res <- EitherOps.switch(optionalPath.map(p => extractor.retrieve[A](p).map(Path.fromVector)))
@@ -66,7 +66,7 @@ trait PathFinding { self: Methods =>
         query <- relationalQuery.tree.getUnsafe.leftMap(LMDBMissingRelation)
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
 
-        optionalPath <- algorithms.PathFinding.allShortestPathsImpl(initialSet, searchStep, LMDBEmptyFringe)
+        optionalPath <- algorithms.PathFinding.allShortestPathsImpl(initialSet, searchStep)
 
 
         res <- EitherOps.sequence(optionalPath.map(p => extractor.retrieve[A](p).map(Path.fromVector)))
