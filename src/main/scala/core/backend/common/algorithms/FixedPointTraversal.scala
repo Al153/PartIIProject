@@ -10,26 +10,23 @@ import scalaz._, Scalaz._
   */
 object FixedPointTraversal {
   def fixedPoint[E, A](searchStep: Set[A] => E \/ Set[A], initial: Set[(A, A)]): E \/ Set[(A, A)] = {
+    // Memo is threaded through by the combinator
     def reachableFrom(root: A, memo: Map[A, Set[A]]): E \/ Set[A] = {
-      // fromMemo: found -> keysFoundInMemo, ValuesFromMemo
-      def fromMemo(found: Set[A]): (Set[A], Set[A]) = {
-        val keys = found.filter(_ in memo)
-        val values = keys.flatMap(memo)
-        (keys, values)
-      }
+      var fringe: Set[A] = Set(root)
+      var acc: Set[A] = Set(root)
+      var okay: E \/ Unit = ().right
 
-      def aux(fringe: Set[A], acc: Set[A]): E \/ Set[A] = {
-        if (fringe.isEmpty) acc.right
-        else for {
+      while (fringe.nonEmpty && okay.isRight) {
+        okay = for {
           found <- searchStep(fringe)
-          (memoized, memoizedValues) = fromMemo(found)
-          newFringe = found.diff(acc).diff(memoized)
-          newAcc = acc.union(newFringe).union(memoizedValues)
-          res <- aux(newFringe, newAcc)
-        } yield res
+          memoized = found.filter(_ in memo)
+          memoizedValues = memoized.flatMap(memo)
+          _ = fringe = found.diff(acc).diff(memoized)
+          _ = acc = acc.union(fringe).union(memoizedValues)
+        } yield ()
       }
 
-      aux(Set(root), Set(root))
+      okay.map(_ => acc)
     }
 
     def combinator(root: A, eacc: E \/ Map[A, Set[A]]): E \/ Map[A, Set[A]] = {
@@ -46,6 +43,10 @@ object FixedPointTraversal {
     } yield doJoin(initial, dict)
   }
 
+  /**
+    * Awkward, per-root implementation so we can reconstruct pairs afterwards. Otherwise would need a join
+    * How about memoizing the search step using a suitable cache?
+    */
 
   def upTo[E, A](
                   searchStep: Set[A] => E \/ Set[A],
@@ -53,26 +54,25 @@ object FixedPointTraversal {
                   limit: Int
                 ): E \/ Set[(A, A)] = {
     // do A depth first search up to a limit
-
-    def fromRoot(root: A, limit: Int): E \/ Set[(A, A)] = {
-      def aux(limit: Int, fringe: Set[A], acc: Set[A]): E \/ Set[A] = {
-        if (limit <= 0 || fringe.isEmpty) acc.right
-        else for {
+    def fromRoot(root: A): E \/ Set[(A, A)] = {
+      var count = limit
+      var fringe: Set[A] = Set(root)
+      var acc: Set[A] = Set(root)
+      var okay: E \/ Unit = ().right
+      while (count > 0 && okay.isRight) {
+        count = count - 1
+        okay = for {
           found <- searchStep(fringe)
-          newFringe = found.diff(acc) // all those that haven't yet been found
-          newAcc = acc.union(newFringe)
-          res <- aux(limit - 1, newFringe, newAcc)
-        } yield res
+          _ = fringe = found.diff(acc) // all those that haven't yet been found
+          _ = acc = acc.union(fringe)
+        } yield ()
       }
-
-      aux(limit, Set(root), Set(root)).map(s => s.map((root, _)))
+      okay.map(_ => acc.map((root, _)))
     }
-
 
     (for {
       root <- initial
-    } yield fromRoot(root, limit)).flattenE
-
+    } yield fromRoot(root)).flattenE
   }
 
   private def doJoin[A](left: Set[(A, A)], right: Map[A, Set[A]]): Set[(A, A)] = {
