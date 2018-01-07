@@ -2,15 +2,16 @@ package core.user.interfaces
 
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, View}
+import core.user.schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
-import scalaz.\/
 
 /**
   * Created by Al on 29/10/2017.
   */
 trait DBInstance {
-  implicit val executionContext: ExecutionContext
+  implicit def executionContext: ExecutionContext
+  def schema: SchemaDescription
   def executor: DBExecutor
 
 

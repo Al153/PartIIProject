@@ -9,6 +9,7 @@ import core.user.schema.SchemaDescription
 import org.fusesource.lmdbjni.Env
 
 import scala.concurrent.ExecutionContext
+import scalaz._, Scalaz._
 
 
 /**
@@ -20,11 +21,11 @@ import scala.concurrent.ExecutionContext
 
 
 object LMDB extends DBBackend {
-  override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] =
-    ConstrainedFuture.point[E, DBInstance] {
+  override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
+    try {
       val env = initEnvironment(address)
-      new LMDBInstance(env, schema)
-    }(errors.recoverLMDBException)
+      new LMDBInstance(env, schema).right
+    } catch {case e: Throwable => errors.recoverLMDBException(e).left}
 
   private def initEnvironment(address: DatabaseAddress): Env = {
 

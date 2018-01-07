@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext
 /**
   * Created by Al on 12/12/2017.
   */
-class LMDBInstance(val env: Env, schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
+class LMDBInstance(val env: Env, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
   implicit val instance: LMDBInstance = this
 
   val db: Database = env.openDatabase()

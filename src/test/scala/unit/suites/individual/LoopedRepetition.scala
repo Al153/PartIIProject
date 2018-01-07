@@ -1,17 +1,15 @@
 package unit.suites.individual
 
-import core.user.interfaces.DBInstance
 import core.user.containers.Operation
 import core.user.dsl._
+import core.user.interfaces.DBInstance
 import core.user.schema.SchemaObject
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
-import scalaz.{-\/, \/-}
 
 trait LoopedRepetition { self: HasBackend =>
   /**
@@ -27,7 +25,7 @@ trait LoopedRepetition { self: HasBackend =>
   )
 
   @Test
-  def loopedAtLeast(): Unit = {
+  def loopedAtLeast(): Unit = runTest { implicit instance =>
     val expectedPairs = Vector[(Person, Person)](
       Alice -> Alice,
       Alice -> Bob,
@@ -50,53 +48,34 @@ trait LoopedRepetition { self: HasBackend =>
       David -> David
 
     )
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- findPairs(Knows * (3 ++))
-          res2 <- findPairsDistinct(Knows * (3 ++))
-          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
-          _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- findPairs(Knows * (3 ++))
+        res2 <- findPairsDistinct(Knows * (3 ++))
+        _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
+        _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
+      } yield ()
     }
   }
 
   @Test
-  def loopedExactly(): Unit = {
+  def loopedExactly(): Unit = runTest { implicit instance =>
     val expectedPairs = Vector[(Person, Person)](
       Alice -> Alice,
       Bob -> Bob,
       Charlie -> Charlie,
       David -> David
     )
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- findPairs(Knows * 4)
-          res2 <- findPairsDistinct(Knows * 4)
-          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Exactly (all pairs)")
-          _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
-        } yield ()
-    }
 
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- findPairs(Knows * 4)
+        res2 <- findPairsDistinct(Knows * 4)
+        _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Exactly (all pairs)")
+        _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
+      } yield ()
     }
   }
 
@@ -106,76 +85,46 @@ trait LoopedRepetition { self: HasBackend =>
     */
 
   @Test
-  def loopedFullTransitiveClosure(): Unit = {
+  def loopedFullTransitiveClosure(): Unit = runTest {implicit instance =>
     val expected = Vector[Person](Alice, Bob, Charlie, David)
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- find(Alice >> Knows.**)
-          res2 <- findDistinct(Alice >> Knows.**)
-          _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
-          _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- find(Alice >> Knows.**)
+        res2 <- findDistinct(Alice >> Knows.**)
+        _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
+        _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
+      } yield ()
     }
   }
 
   @Test
-  def loopedBetween(): Unit = {
+  def loopedBetween(): Unit = runTest {implicit instance =>
     val expected = Vector[Person](Charlie, David)
 
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- find(Alice >> Knows * (2 --> 3))
-          res2 <- findDistinct(Alice >> Knows * (2 --> 3))
-          _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
-          _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- find(Alice >> Knows * (2 --> 3))
+        res2 <- findDistinct(Alice >> Knows * (2 --> 3))
+        _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
+        _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
+      } yield ()
     }
   }
 
   @Test
-  def loopedUpto(): Unit = {
+  def loopedUpto(): Unit = runTest {implicit instance =>
     val expected = Vector[Person](Alice, Bob)
 
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- find(Alice >> Knows.?)
-          res2 <- findDistinct(Alice >> Knows.?)
-          _ <- assertEqOp(expected.toSet, res1.toSet, "Up to (all pairs)")
-          _ <- assertEqOp(expected.toSet, res2, "Up to (distinct)")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- find(Alice >> Knows.?)
+        res2 <- findDistinct(Alice >> Knows.?)
+        _ <- assertEqOp(expected.toSet, res1.toSet, "Up to (all pairs)")
+        _ <- assertEqOp(expected.toSet, res2, "Up to (distinct)")
+      } yield ()
     }
   }
 }

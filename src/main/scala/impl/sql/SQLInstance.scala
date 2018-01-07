@@ -102,20 +102,19 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
 
 
   // Returns an error if the tables are invalid
-  def validateTables(): SQLFuture[Unit] =
-    SQLFutureE(
-      for {
-        definedTables <- definedTables
-        relations <- relationLookup
-        auxiliaryTables = tableLookup.map{case (_, ot) => ot.auxTable.name -> ot.auxTable}
-        validated <- EitherOps.sequence(
-            for {
-              (name, table) <-
-                constructionTables ++ tableLookup ++ auxiliaryTables ++ relations // Order is important
-            } yield table.validateOrCreate(definedTables)
-          )
-      } yield ()
-    )
+  def validateTables(): SQLEither[Unit] =
+    for {
+      definedTables <- definedTables
+      relations <- relationLookup
+      auxiliaryTables = tableLookup.map{case (_, ot) => ot.auxTable.name -> ot.auxTable}
+      validated <- EitherOps.sequence(
+        for {
+          (name, table) <-
+          constructionTables ++ tableLookup ++ auxiliaryTables ++ relations // Order is important
+        } yield table.validateOrCreate(definedTables)
+      )
+    } yield ()
+
 
 
 
@@ -136,7 +135,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
  }
 
   // drop all existing user tables
-  def freshen(): SQLFuture[Unit] = SQLFutureE {
+  def freshen(): SQLEither[Unit] =
     for {
       constraints <- definedConstraints
       tables <- definedTables
@@ -147,7 +146,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
       ) else ().right
       _ <- if (tables.nonEmpty) doWriteEither(s"DROP TABLE ${tables.mkString(", ")} CASCADE;") else ().right
     } yield ()
-  }
+
 
 
   def doWrite(query: String): SQLFuture[Unit] = SQLFutureE {doWriteEither(query)}

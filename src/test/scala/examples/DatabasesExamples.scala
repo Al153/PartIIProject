@@ -2,6 +2,7 @@ package examples
 
 import core.user.dsl.DatabaseAddress._
 import core.user.dsl._
+import core.user.interfaces.DBInstance
 import examples.Schema._
 import impl.memory.MemoryDB
 
@@ -14,14 +15,13 @@ import scalaz.\/-
   */
 class DatabasesExamples {
 
-  def query: Unit = {
-    using(MemoryDB.open("/path/to/database".db, Schema.description)){
-      implicit instance =>
-        for {
-          actors <- find(coactor.from(jenniferLawrence))
-        } yield {
-          actors.filter(_ != jenniferLawrence).groupBy(identity).mapValues(_.size)
-        }
+  def query(implicit instance: DBInstance): Unit = {
+    using(instance){
+      for {
+         actors <- find(coactor.from(jenniferLawrence))
+      } yield {
+        actors.filter(_ != jenniferLawrence).groupBy(identity).mapValues(_.size)
+      }
     }.andThen { case \/-(m)=> m.foreach{case (Actor(name), count) => println(s"$name: $count")}}
   }
 }

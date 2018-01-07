@@ -21,7 +21,7 @@ import scalaz.Scalaz._
   *
   * Instance that hold a database instance
   */
-class MemoryInstance(schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
+class MemoryInstance(val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
   override lazy val executor: DBExecutor = new InMemoryExecutor(this, schema)
 
   val relations: Set[ErasedRelationAttributes] = schema.relationMap.values.toSet

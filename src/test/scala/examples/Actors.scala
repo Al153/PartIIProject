@@ -1,10 +1,8 @@
 package examples
 
-import core.user.dsl.DatabaseAddress._
-import core.user.dsl.{CompletedRelation, RelationAttributes}
+import core.user.dsl.{CompletedRelation, RelationAttributes, _}
+import core.user.interfaces.DBInstance
 import examples.Schema.{Borders, Country, _}
-import impl.memory.MemoryDB
-import core.user.dsl._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalaz.\/-
@@ -21,7 +19,7 @@ class Actors {
    */
 
 
-  def query(): Unit = {
+  def query(implicit instance: DBInstance): Unit = {
 
      /*
       * This is the interesting bit
@@ -32,8 +30,7 @@ class Actors {
       */
 
 
-    using(MemoryDB.open("/path/to/sql/database".db, Schema.description)){
-       implicit instance =>
+    using(instance){
         for {
           actors <- find((coactor * 4).from(tomCruise))
           namedActors = actors.filter(actor => actor.name.startsWith("A"))
@@ -43,20 +40,18 @@ class Actors {
       }.andThen {case \/-(actors) => actors.foreach(println)}
   }
 
-  def paths(): Unit = {
-    using(MemoryDB.open("/path/to/database".db, Schema.description)){
-      implicit instance =>
-        allShortestPaths(jenniferLawrence, coactor)
+  def paths(implicit instance: DBInstance): Unit = {
+    using(instance){
+      allShortestPaths(jenniferLawrence, coactor)
     }.andThen {case \/-(paths) => paths.foreach(println)}
   }
 
-  def borders(): Unit = {
-    using(MemoryDB.open("/path/to/database".db, Schema.description)){
-      implicit instance =>
-        for {
-          pairs <- findPairsDistinct(Borders.**.tree)
-          _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
-        } yield ()
+  def borders(implicit instance: DBInstance): Unit = {
+    using(instance){
+      for {
+        pairs <- findPairsDistinct(Borders.**.tree)
+        _     <- insert(pairs.map{case (country1, country2) => CompletedRelation(country1, Borders: RelationAttributes[Country, Country], country2)})
+      } yield ()
     }
   }
 }

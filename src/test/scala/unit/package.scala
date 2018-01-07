@@ -53,5 +53,9 @@ package object unit {
   implicit def PersonOrdering(implicit os: Ordering[String]) = new Ordering[Person] {
     override def compare(x: Person, y: Person): Int = os.compare(x.name, y.name)
   }
+
+  def errorThrowable[A](e: E): A = throw new Throwable {
+    override def toString: String = e.toString
+  }
 }
 

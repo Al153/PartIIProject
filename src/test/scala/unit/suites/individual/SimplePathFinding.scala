@@ -1,17 +1,14 @@
 package unit.suites.individual
 
-import core.user.interfaces.DBInstance
 import core.user.containers.{Operation, PathImpl}
 import core.user.dsl.{E, _}
-
+import core.user.interfaces.DBInstance
 import core.user.schema.SchemaObject
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
-import scalaz.{-\/, \/-}
+import scala.concurrent.ExecutionContext
 
 /**
   * Created by Al on 23/12/2017.
@@ -31,119 +28,65 @@ trait SimplePathFinding {self: HasBackend =>
   )
 
   @Test
-  def SimpleShortestPath(): Unit = {
+  def SimpleShortestPath(): Unit = runTest { implicit instance =>
     // A -> B -> E -> F -> G
     val expectedPath = new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred, Fred -> Georgie))
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- shortestPath(Alice, Georgie, Knows)
-          _ <- assertEqOp(expectedPath.getSteps, res1.get.getSteps, "ShortestPaths")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- shortestPath(Alice, Georgie, Knows)
+        _ <- assertEqOp(expectedPath.getSteps, res1.get.getSteps, "ShortestPaths")
+      } yield ()
     }
   }
 
   @Test
-  def SimpleAllShortestPaths(): Unit = {
+  def SimpleAllShortestPaths(): Unit = runTest { implicit instance =>
     val expectedPaths = Set(
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred, Fred -> Georgie)),
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve, Eve -> Fred)),
       new PathImpl(Vector(Alice -> Bob, Bob -> Eve)),
       new PathImpl(Vector(Alice -> Bob))
     )
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- allShortestPaths(Alice, Knows)
-          _ <- assertEqOp(expectedPaths.map(_.getSteps).toVector.sorted, res1.map(_.getSteps).toVector.sorted, "ShortestPaths")
-        } yield ()
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- allShortestPaths(Alice, Knows)
+        _ <- assertEqOp(expectedPaths.map(_.getSteps).toVector.sorted, res1.map(_.getSteps).toVector.sorted, "ShortestPaths")
+      } yield ()
     }
   }
 
   @Test
-  def SimpleNoEnd(): Unit = {
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res2 <- shortestPath(Alice, Zoe, Knows)
-          _ <- assertEqOp(None, res2, "ShortestPath, No end")
-        } yield res2
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+  def SimpleNoEnd(): Unit = runTest { implicit instance =>
+     using(instance) {
+      for {
+        _ <- setupPath
+        res2 <- shortestPath(Alice, Zoe, Knows)
+        _ <- assertEqOp(None, res2, "ShortestPath, No end")
+      } yield ()
     }
   }
 
   @Test
-  def simpleNoStart(): Unit = {
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res1 <- shortestPath(Zoe, Alice, Knows)
-          _ <- assertEqOp(None, res1, "ShortestPath, No start")
-        } yield res1
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+  def simpleNoStart(): Unit = runTest { implicit instance =>
+    using(instance) {
+      for {
+        _ <- setupPath
+        res1 <- shortestPath(Zoe, Alice, Knows)
+        _ <- assertEqOp(None, res1, "ShortestPath, No start")
+      } yield ()
     }
   }
 
   @Test
-  def simpleNoStartAllShortestPaths(): Unit = {
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- setupPath
-          res3 <- allShortestPaths(Zoe, Knows)
-          _ <- assertEqOp(Set(), res3, "All Shortest paths, no start")
-        } yield res3
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+  def simpleNoStartAllShortestPaths(): Unit = runTest { implicit instance =>
+    using(instance) {
+      for {
+        _ <- setupPath
+        res3 <- allShortestPaths(Zoe, Knows)
+        _ <- assertEqOp(Set(), res3, "All Shortest paths, no start")
+      } yield ()
     }
   }
-
-
-
-
 }

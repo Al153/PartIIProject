@@ -1,14 +1,10 @@
 package unit.suites.individual
 
-import core.user.dsl.{Empty, _}
+import core.user.dsl._
 import core.utils._
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Person, assertEqOp, description}
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scalaz.{-\/, \/-}
 
 trait ReadWrite { self: HasBackend =>
   /**
@@ -16,29 +12,18 @@ trait ReadWrite { self: HasBackend =>
     */
 
   @Test
-  def WriteAndReadPair(): Unit = {
+  def WriteAndReadPair(): Unit = runTest {implicit instance =>
     val expectedPairs = Vector[(Person, Person)](Alice -> Bob, Alice -> Charlie)
     val expectedSingle = expectedPairs.mapProj2
 
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- insert(CompletedRelation(Alice, Knows, Bob), CompletedRelation(Alice, Knows, Charlie))
-
-          res1 <- findPairs(Knows)
-          _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write and read pairs failure")
-          res2 <- find(Alice >> Knows)
-          r <- assertEqOp(expectedSingle.sorted, res2.sorted, "Write and read single failure")
-        } yield r
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- insert(CompletedRelation(Alice, Knows, Bob), CompletedRelation(Alice, Knows, Charlie))
+        res1 <- findPairs(Knows)
+        _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write and read pairs failure")
+        res2 <- find(Alice >> Knows)
+        r <- assertEqOp(expectedSingle.sorted, res2.sorted, "Write and read single failure")
+      } yield r
     }
   }
 
@@ -47,28 +32,18 @@ trait ReadWrite { self: HasBackend =>
     */
 
   @Test
-  def ReadAndWriteSimplePairs(): Unit = {
+  def ReadAndWriteSimplePairs(): Unit = runTest { implicit instance =>
     val expectedPairs = Vector[(Person, Person)](Alice -> Bob, Alice -> Charlie)
-    val op = using(backend.open(Empty, description)) {
-      implicit instance =>
-        for {
-          _ <- insert(
-            CompletedRelation(Alice, Knows, Bob),
-            CompletedRelation(Alice, Knows, Bob),
-            CompletedRelation(Alice, Knows, Charlie)
-          )
-          res1 <- findPairs(Knows)
-          r <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write duplicates failure")
-        } yield r
-    }
-
-    Await.result(
-      op.run , 2.seconds
-    ) match {
-      case \/-(_) => ()
-      case -\/(e) => throw new Throwable {
-        override def toString: String = e.toString
-      }
+    using(instance) {
+      for {
+        _ <- insert(
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Alice, Knows, Charlie)
+        )
+        res1 <- findPairs(Knows)
+        r <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write duplicates failure")
+      } yield r
     }
   }
 }

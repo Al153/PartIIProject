@@ -9,6 +9,7 @@ import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
 import core.user.schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
+import scalaz._, Scalaz._
 
 /**
   * To use postgreSQL
@@ -18,23 +19,23 @@ object SQLDB extends DBBackend {
   override def open(
                      address: DatabaseAddress,
                      schema: SchemaDescription
-                   )(implicit e: ExecutionContext): ConstrainedFuture[E, DBInstance] = {
-    val r = for {
-      conn <- openConnection(address, schema)
-      instance = new SQLInstance(conn, schema)
-      _ <- if (address.isInstanceOf[Empty.type]) instance.freshen() else SQLFuture(())
+                   )(implicit e: ExecutionContext): \/[E, DBInstance] = try {
+    val conn = openConnection(address, schema)
+    val instance = new SQLInstance(conn, schema)
+    for {
+      _ <- if (address.isInstanceOf[Empty.type]) instance.freshen() else ().right
       _ <- instance.validateTables()
     } yield instance: DBInstance
-    r.asCFuture
-  }
+  } catch {case e: Throwable => errors.recoverSQLException(e).left}
+
+
 
   // Opens a database connection somehow
 
   private def openConnection(
                               address: DatabaseAddress,
                               schema: SchemaDescription
-                            )(implicit ec: ExecutionContext): SQLFuture[Connection] =
-    SQLFuture {
+                            )(implicit ec: ExecutionContext): Connection =
       address match {
         case DBDir(path, user, password) =>
           val jdbcUrl = s"jdbc:postgresql://localhost/${path.toString}"
@@ -50,7 +51,7 @@ object SQLDB extends DBBackend {
           props.setProperty("password", " ")
           props.setProperty("ssl", "false")
           DriverManager.getConnection(jdbcUrl, props)
-    }}
+    }
 
 
     val leftmostTable = "left_table"
