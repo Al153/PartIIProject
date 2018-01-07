@@ -2,9 +2,10 @@ package unit.suites.individual
 
 import core.user.dsl._
 import core.utils._
+import core.user.schema._
 import org.junit.Test
 import unit.Objects._
-import unit.{Knows, Person, assertEqOp, description}
+import unit._
 
 trait ReadWrite { self: HasBackend =>
   /**
@@ -45,5 +46,24 @@ trait ReadWrite { self: HasBackend =>
         r <- assertEqOp(expectedPairs.sorted, res1.sorted, "Write duplicates failure")
       } yield r
     }
+  }
+
+  @Test
+  def findSingles(): Unit = runTest { implicit  instance =>
+    val expected = Vector[Person](Alice, Bob, Charlie)
+    using(instance) {
+      for {
+        _ <- insert(
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Alice, Knows, Charlie)
+        )
+        res1 <- find(?(personSchema))
+        res2 <- findDistinct(?(personSchema))
+        _ <- assertEqOp(expected.sorted, res1.sorted, "Find singles failure")
+        _ <- assertEqOp(expected.toSet, res2, "Find Singles set failure")
+      } yield ()
+    }
+
   }
 }

@@ -1,11 +1,11 @@
 package core.user.schema
 
 import core.backend.common._
-import core.backend.intermediate.{SchemaComponent, Storeable}
 import core.backend.intermediate.unsafe.SchemaObjectErased
+import core.backend.intermediate.{SchemaComponent, Storeable}
 
 import scalaz.Scalaz._
-import scalaz.{\/, _}
+import scalaz.\/
 
 /**
   * Created by Al on 17/10/2017.
