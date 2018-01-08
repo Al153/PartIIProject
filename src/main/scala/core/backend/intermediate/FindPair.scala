@@ -38,7 +38,7 @@ case class And[A, B](left: FindPair[A, B], right: FindPair[A, B])(implicit sa: S
 
 // Search pairs in the result of the left subexpression, such that the right of the pair is in result of the right subexpression
 case class AndSingle[A, B](left: FindPair[A, B], right: FindSingle[B])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription) extends FindPair[A, B] {
-  override def reverse: FindPair[B, A] = Chain(AndSingle(new Id(), right), left.reverse)
+  override def reverse: FindPair[B, A] = Chain(AndSingle(new FindIdentity(), right), left.reverse)
   override def getUnsafe:  MissingRelation \/ UnsafeFindPair = for {
       l <- left.getUnsafe
       r <- right.getUnsafe
@@ -65,14 +65,14 @@ case class Chain[A, B, C](left: FindPair[A, B], right: FindPair[B, C])(implicit 
 
 // Search pairs in the result of the left subexpression, such that the right of the pair matches the pattern
 case class Narrow[A, B](rel: FindPair[A, B], pattern: Findable[B])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription) extends FindPair[A, B] {
-  override def reverse: FindPair[B, A] = Chain(Narrow(new Id(), pattern), rel.reverse)
+  override def reverse: FindPair[B, A] = Chain(Narrow(new FindIdentity(), pattern), rel.reverse)
   override def getUnsafe: MissingRelation \/ UnsafeFindPair = for {
     r <- rel.getUnsafe
   } yield USNarrow(r, pattern.getUnsafe)
 }
 
 // return a set of repeated pairs of the type
-case class Id[A]()(implicit sa: SchemaObject[A], sd: SchemaDescription) extends FindPair[A, A] {
+case class FindIdentity[A]()(implicit sa: SchemaObject[A], sd: SchemaDescription) extends FindPair[A, A] {
   override def reverse: FindPair[A, A] = this
   override def getUnsafe: MissingRelation \/ UnsafeFindPair = USId(sa.tableName).right[MissingRelation]
 }

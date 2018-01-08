@@ -7,7 +7,5 @@ package object dsl extends Commands
   with NodeSyntax
   with RelationSyntax
   with Opening
-  with RepetitionOps {
-
-
-}
+  with RepetitionOps
+  with FindableSyntax

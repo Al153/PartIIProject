@@ -13,6 +13,7 @@ import scala.concurrent.ExecutionContext
 package object unit {
   case class Person(n: String) { def name: String = n}
   case class Car(m: String) { def make: String = m}
+  case class Pet(name: String, age: Int, height: Double, isDog: Boolean)
 
 
   implicit def personSchema = new SchemaObject1[Person, String] {
@@ -27,13 +28,20 @@ package object unit {
     override def toTuple(a: Car): DBTuple1[Car, String] = DBTuple1(tableName, a.make)
   }
 
+  implicit def petSchema  = new SchemaObject4[Pet, String, Int, Double, Boolean] {
+    override def construct(a1: String, a2: Int, a3: Double, a4: Boolean): Pet = Pet(a1, a2, a3, a4)
+    override def tableName: TableName = TableName("Pets")
+    override def toTuple(a: Pet): DBTuple4[Pet, String, Int, Double, Boolean] = DBTuple4(tableName, a.name, a.age, a.height, a.isDog)
+  }
+
   case object Knows extends RelationAttributes[Person, Person]
   case object Owns extends RelationAttributes[Person, Car]
+  case object OwnedBy extends RelationAttributes[Pet, Person]
 
 
   implicit val description = new SchemaDescription(
-    Set(personSchema, carSchema),
-    Set(Knows, Owns)
+    Set(personSchema, carSchema, petSchema),
+    Set(Knows, Owns, OwnedBy)
   )
 
   def assertEqOp[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
@@ -52,6 +60,10 @@ package object unit {
 
   implicit def PersonOrdering(implicit os: Ordering[String]) = new Ordering[Person] {
     override def compare(x: Person, y: Person): Int = os.compare(x.name, y.name)
+  }
+
+  implicit def PetOrdering(implicit os: Ordering[String]) = new Ordering[Pet] {
+    override def compare(x: Pet, y: Pet): Int = os.compare(x.name, y.name)
   }
 
   def errorThrowable[A](e: E): A = throw new Throwable {

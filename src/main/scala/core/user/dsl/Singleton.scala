@@ -1,6 +1,6 @@
 package core.user.dsl
 
-import core.backend.intermediate.{FindPair, Id}
+import core.backend.intermediate.{FindPair, FindIdentity}
 import core.user.schema._
 
 
@@ -11,7 +11,7 @@ import core.user.schema._
 
 // todo: is this actually used?
 case class Singleton() extends UnaryQuery[Singleton]()(Singleton.SingletonSchema) {
-  override def tree(implicit sd: SchemaDescription): FindPair[Singleton, Singleton] = Id()(Singleton.SingletonSchema, sd)
+  override def tree(implicit sd: SchemaDescription): FindPair[Singleton, Singleton] = FindIdentity()(Singleton.SingletonSchema, sd)
 }
 
 object Singleton {

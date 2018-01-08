@@ -25,7 +25,7 @@ package object examples {
   val produced = hasNationality.reverse -->--> ActsIn
 
   def coactorWithGenre(g: Genre) = {
-    ActsIn --> ?(movieSchema)(None, g.some.map(_.g)) <-- ActsIn
+    ActsIn --> movieSchema.pattern(None, g.g.some) <-- ActsIn
   }
 
   val getLinked: UnaryQuery[Schema.Actor] = point --> LinkedToTomCruise

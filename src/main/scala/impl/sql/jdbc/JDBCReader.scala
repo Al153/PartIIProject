@@ -393,6 +393,7 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   private def getResultSet(q: String): ResultSet = {
+    println("Query = " + q)
     val stmt = instance.connection.createStatement()
     stmt.executeQuery(q)
   }

@@ -1,7 +1,7 @@
 package core.user.dsl
 
-import core.backend.intermediate.{From, RelationalQuery}
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.backend.intermediate.{Find, FindSingle, From, RelationalQuery}
+import core.user.schema.{Findable, SchemaDescription, SchemaObject}
 
 
 trait NodeSyntax {
@@ -11,3 +11,4 @@ trait NodeSyntax {
     def >>[B](r: RelationalQuery[A, B])(implicit sb: SchemaObject[B], sd: SchemaDescription): From[A, B] = reachableWith(r)
   }
 }
+

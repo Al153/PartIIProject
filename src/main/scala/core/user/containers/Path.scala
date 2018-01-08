@@ -12,6 +12,8 @@ import scalaz.{\/, _}
   */
 abstract class Path[A] {
   def getSteps: Vector[(A, A)] // get all steps in the path
+  def length: Int = getSteps.length
+  def end: A = getSteps.last._2
 }
 
 final class PathImpl[A](steps: Vector[(A, A)])extends Path[A]() {

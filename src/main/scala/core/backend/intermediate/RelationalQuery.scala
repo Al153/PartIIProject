@@ -63,6 +63,20 @@ abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: S
     }
   }
 
+  def leftAnd(f: FindSingle[A]): RelationalQuery[A, B] = {
+    val left = this
+    new RelationalQuery[A, B] {
+      override def tree(implicit sd: SchemaDescription): FindPair[A, B] = Chain(AndSingle(FindIdentity[A](), f), left.tree)
+    }
+  }
+
+  def rightAnd(f: FindSingle[B]): RelationalQuery[A, B] = {
+    val left = this
+    new RelationalQuery[A, B] {
+      override def tree(implicit sd: SchemaDescription): FindPair[A, B] = AndSingle(left.tree, f)
+    }
+  }
+
 }
 
 object RelationalQuery {
@@ -104,7 +118,7 @@ object RelationalQuery {
   }
 
   def emptyRelation[A](implicit sa: SchemaObject[A]): RelationalQuery[A, A] = new RelationalQuery[A, A] {
-    override def tree(implicit sd: SchemaDescription): FindPair[A, A] = intermediate.Id[A]()(sa, sd)
+    override def tree(implicit sd: SchemaDescription): FindPair[A, A] = intermediate.FindIdentity[A]()(sa, sd)
   }
 
   implicit def relationMonoid[A](implicit sa: SchemaObject[A], sd: SchemaDescription) = new Monoid[RelationalQuery[A, A]] {

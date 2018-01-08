@@ -46,7 +46,7 @@ object SQLType {
   def toTypeString(t: SQLType): String = t match { // todo: are these correct?
     case SQLInt => "INT NOT NULL"
     case SQLBool => "BOOLEAN NOT NULL"
-    case SQLDouble => "REAL NOT NULL"
+    case SQLDouble => "DOUBLE PRECISION NOT NULL"
     case SQLString => "TEXT NOT NULL"
     case SQLRef => "BIGINT TEXT NOT NULL"
     case SQLPrimaryRef => "BIGSERIAL PRIMARY KEY"

@@ -39,7 +39,9 @@ trait SQLTable {
 
 
   protected def create: SQLEither[Unit] = {
-    instance.doWriteEither(this.schema.create(name))
+    val q = this.schema.create(name)
+    println("Creating table \n" + q)
+    instance.doWriteEither(q)
   }
 
   private def validateTable(): SQLEither[Unit] =  for {

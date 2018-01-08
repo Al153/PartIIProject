@@ -121,7 +121,7 @@ object Query {
 
     case USId(tableName) => for {
       n <- CompilationContext.getTableName(tableName)
-    } yield SelectWhere(Simple, NoConstraint, Var(n))
+    } yield SelectWhere(FromObject, NoConstraint, Var(n))
 
     case USNarrow(rel, findable) => for {
       l <- convertPair(rel)
