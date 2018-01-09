@@ -46,10 +46,16 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
         rightRes <- recurse(r, left)
       } yield leftRes.intersect(rightRes)
 
-      case USAndSingle(l, r) => for {
+      case USAndRight(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- findSingleSetImpl(r, tree)
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+
+      case USAndLeft(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- findSingleSetImpl(r, tree)
+      } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
+
 
       case USOr(l, r) => for {
         leftRes <- recurse(l, left)
@@ -68,10 +74,6 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
 
 
       case USId(_) => left.map(x => (x, x)).right
-
-      case USNarrow(l, p) => for {
-        broad <- recurse(l, left)
-      } yield broad.filter(pair => matches(pair._2, p))
 
       case USRel(rel) =>
         EitherOps.sequence(left.map {

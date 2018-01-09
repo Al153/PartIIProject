@@ -2,6 +2,8 @@ package core.backend.common
 
 /**
   * Created by Al on 05/11/2017.
+  *
+  *  A simple type hierarchy to allow easy conversion of each of the primitive types into storeable values
   */
 
 sealed trait DBCell

@@ -91,8 +91,8 @@ trait Write { self: Methods =>
     sd: SchemaDescription
   ): LMDBEither[(Map[ObjId, Map[RelationName, Set[ObjId]]], Map[ObjId, Map[RelationName, Set[ObjId]]])] =
     for {
-      aLookupTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
-      bLookupTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+      aLookupTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
+      bLookupTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
 
       aMap <- t.toSeq.foldLeft(LMDBEither(Map[A, Map[RelationName, Set[B]]]())) {
         case (em, CompletedRelation(a, r, b)) =>

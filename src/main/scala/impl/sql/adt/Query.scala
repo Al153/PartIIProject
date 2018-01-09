@@ -55,7 +55,7 @@ object Query {
       r <- convertPair(right)
     } yield IntersectAll(l, r)
 
-    case USAndSingle(left, right) => for {
+    case USAndRight(left, right) => for {
       l <- convertPair(left)
       l1 <- optionalAlias(l)
       r <- convertSingle(right)
@@ -63,6 +63,15 @@ object Query {
       a <- CompilationContext.newSymbol
       b <- CompilationContext.newSymbol
     } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l1, b -> r1, OnRight))
+
+    case USAndLeft(left, right) => for {
+      l <- convertPair(left)
+      l1 <- optionalAlias(l)
+      r <- convertSingle(right)
+      r1 <- optionalAlias(r)
+      a <- CompilationContext.newSymbol
+      b <- CompilationContext.newSymbol
+    } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l1, b -> r1, OnLeft))
 
     case USAtleast(n , rel) => for {
       precomputed <- convertPair(rel) // precompute a view
@@ -122,15 +131,6 @@ object Query {
     case USId(tableName) => for {
       n <- CompilationContext.getTableName(tableName)
     } yield SelectWhere(FromObject, NoConstraint, Var(n))
-
-    case USNarrow(rel, findable) => for {
-      l <- convertPair(rel)
-      r <- doFind(findable)
-      l1 <- optionalAlias(l)
-      r1 <- optionalAlias(r)
-      a <- CompilationContext.newSymbol
-      b <- CompilationContext.newSymbol
-    } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l1, b -> r1, OnRight))
 
     case USOr(left, right) =>  for {
       l <- convertPair(left)
@@ -256,7 +256,7 @@ object Query {
   } yield Var(auxTable)
 
 
-  private def doFind(findable: UnsafeFindable): Compilation[Query] = for {
+  private def doFind(findable: ErasedFindable): Compilation[Query] = for {
     name <- CompilationContext.getTableName(findable.tableName)
   } yield SelectTable(name, Pattern(findable)) // returns SQL code to do a find of a findable
 }

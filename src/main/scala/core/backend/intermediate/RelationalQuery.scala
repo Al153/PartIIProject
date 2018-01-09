@@ -22,21 +22,37 @@ abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: S
 
 
   // chain together two queries in sequence
-  def plus[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] = {
-    val left = this
-    implicit val outerSb = sb
-    new RelationalQuery[A, C] {
-      override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
-        Chain(Narrow(left.tree, middle), right.tree)(sa, outerSb, sc, sd)
+  def plus[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] =
+    if (middle.isEmpty) {
+      val left = this
+      implicit val outerSb = sb
+      new RelationalQuery[A, C] {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
+          Chain(left.tree, right.tree)(sa, outerSb, sc, sd)
+      }
+    } else {
+      val left = this
+      implicit val outerSb = sb
+      new RelationalQuery[A, C] {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
+          Chain(AndRight(left.tree, Find(middle)), right.tree)(sa, outerSb, sc, sd)
+      }
     }
-  }
 
-  def plusDistinct[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] = {
-    val left = this
-    implicit val outerSb = sb
-    new RelationalQuery[A, C] {
-      override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
-        Distinct(Chain(Narrow(left.tree, middle), right.tree)(sa, outerSb, sc, sd))(sa, sc, sd)
+  def plusDistinct[C](middle: Findable[B], right: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] =
+    if (middle.isEmpty) {
+      val left = this
+      implicit val outerSb = sb
+      new RelationalQuery[A, C] {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
+          Distinct(Chain(left.tree, right.tree)(sa, outerSb, sc, sd))(sa, sc, sd)
+      }
+    } else  {
+      val left = this
+      implicit val outerSb = sb
+      new RelationalQuery[A, C] {
+        override def tree(implicit sd: SchemaDescription): FindPair[A, C] =
+          Distinct(Chain(AndRight(left.tree, Find(middle)), right.tree)(sa, outerSb, sc, sd))(sa, sc, sd)
     }
   }
 
@@ -66,14 +82,14 @@ abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: S
   def leftAnd(f: FindSingle[A]): RelationalQuery[A, B] = {
     val left = this
     new RelationalQuery[A, B] {
-      override def tree(implicit sd: SchemaDescription): FindPair[A, B] = Chain(AndSingle(FindIdentity[A](), f), left.tree)
+      override def tree(implicit sd: SchemaDescription): FindPair[A, B] = Chain(AndRight(FindIdentity[A](), f), left.tree)
     }
   }
 
   def rightAnd(f: FindSingle[B]): RelationalQuery[A, B] = {
     val left = this
     new RelationalQuery[A, B] {
-      override def tree(implicit sd: SchemaDescription): FindPair[A, B] = AndSingle(left.tree, f)
+      override def tree(implicit sd: SchemaDescription): FindPair[A, B] = AndRight(left.tree, f)
     }
   }
 

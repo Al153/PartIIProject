@@ -7,6 +7,8 @@ import scalaz.\/
 
 /**
   * Created by Al on 17/10/2017.
+  *
+  * Typeclass for objects that can be converted to/from DBCells
   */
 
 // todo: Can this be optimised out?

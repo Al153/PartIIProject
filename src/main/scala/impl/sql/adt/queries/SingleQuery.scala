@@ -1,6 +1,6 @@
 package impl.sql.adt.queries
 
-import core.backend.intermediate.unsafe.UnsafeFindable
+import core.backend.intermediate.unsafe.ErasedFindable
 import impl.sql.SQLDB
 import impl.sql.names.SQLColumnName
 
@@ -9,7 +9,7 @@ import impl.sql.names.SQLColumnName
   */
 trait SingleQuery {
   protected def getColumns(
-                  desc: UnsafeFindable
+                  desc: ErasedFindable
                 ): String =
     if (desc.pattern.nonEmpty) desc.pattern.indices
       .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.column(i)}")
@@ -17,7 +17,7 @@ trait SingleQuery {
     else "0 AS _" // no columns
 
   protected def getColumnsAndObjId(
-                                    desc: UnsafeFindable
+                                    desc: ErasedFindable
                                   ): String =
     if (desc.pattern.nonEmpty) desc.pattern.indices
       .map(i => s"${SQLDB.singleTable}.${SQLColumnName.column(i)} AS ${SQLColumnName.column(i)}")

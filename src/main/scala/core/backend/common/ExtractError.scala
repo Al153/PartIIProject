@@ -5,6 +5,8 @@ import core.user.schema.TableName
 
 /**
   * Created by Al on 20/10/2017.
+  *
+  * A small error hierarchy for extracting values from DBObjects
   */
 
 sealed trait ExtractError

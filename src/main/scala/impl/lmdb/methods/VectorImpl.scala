@@ -48,8 +48,8 @@ trait VectorImpl { self: Methods =>
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
   ): LMDBEither[Vector[(A, B)]] = for {
-    aTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
-    bTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+    aTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
+    bTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
 
     leftIds = in.mapProj1.toSet
     rightIds = in.mapProj2.toSet
@@ -104,10 +104,16 @@ trait VectorImpl { self: Methods =>
       } yield a intersect b // todo: this is a O(N^2) intersection
 
 
-      case USAndSingle(l, r) => for {
+      case USAndRight(l, r) => for {
         leftRes <- recurse(l, from)
-        rightRes <- findPairSingle(r, commits) // todo: use a set here
+        rightRes <- findSingleSet(r, commits) // todo: use a set here
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+
+      case USAndLeft(l, r) => for {
+        leftRes <- recurse(l, from)
+        rightRes <- findSingleSet(r, commits) // todo: use a set here
+      } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
+
 
       case USOr(l, r) => for {
         leftRes <- recurse(l, from)
@@ -126,9 +132,6 @@ trait VectorImpl { self: Methods =>
 
 
       case USId(_) => from.map(x => (x, x)).right
-
-      case USNarrow(l, p) => recurse(USAndSingle(l, USFind(p)), from)
-
 
       case USRel(rel) =>
         EitherOps.sequence(from.map {

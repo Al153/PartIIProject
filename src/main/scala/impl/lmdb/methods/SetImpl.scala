@@ -23,7 +23,7 @@ trait SetImpl { self: Methods =>
                      objectTable: ObjectRetrievalTable
                    )(implicit extractor: SchemaObject[A], sd: SchemaDescription): LMDBEither[Set[A]] = {
     for {
-      ids <- findPairSingle(ut, commits)
+      ids <- findSingleSet(ut, commits)
       res <- objectTable.retrieve(ids)
     } yield res
   }
@@ -47,8 +47,8 @@ trait SetImpl { self: Methods =>
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
   ): LMDBEither[Set[(A, B)]] = for {
-    aTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
-    bTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+    aTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
+    bTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
 
     leftIds = in.mapProj1.toSet
     rightIds = in.mapProj2.toSet
@@ -72,8 +72,8 @@ trait SetImpl { self: Methods =>
     )
   } yield res
 
-  def findPairSingle(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
-    def recurse(t: UnsafeFindSingle) = findPairSingle(t, commits)
+  def findSingleSet(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
+    def recurse(t: UnsafeFindSingle) = findSingleSet(t, commits)
 
     ut match {
       case USFind(pattern) => instance.lookupPattern(pattern, commits)
@@ -101,10 +101,16 @@ trait SetImpl { self: Methods =>
       } yield a intersect b
 
 
-      case USAndSingle(l, r) => for {
+      case USAndRight(l, r) => for {
         leftRes <- recurse(l, from)
-        rightRes <- findPairSingle(r, commits)
+        rightRes <- findSingleSet(r, commits)
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+
+      case USAndLeft(l, r) => for {
+        leftRes <- recurse(l, from)
+        rightRes <- findSingleSet(r, commits) // todo: use a set here
+      } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
+
 
       case USOr(l, r) => for {
         leftRes <- recurse(l, from)
@@ -123,9 +129,6 @@ trait SetImpl { self: Methods =>
 
 
       case USId(_) => from.map(x => (x, x)).right
-
-      case USNarrow(l, p) => recurse(USAndSingle(l, USFind(p)), from)
-
 
       case USRel(rel) =>
         EitherOps.sequence(from.map {

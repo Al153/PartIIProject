@@ -2,7 +2,7 @@ package impl.sql.tables
 
 import core.backend.common.DBObject
 import core.user.dsl.E
-import core.backend.intermediate.unsafe.SchemaObjectErased
+import core.user.schema.SchemaObject
 import impl.sql.errors.ColumnMismatchException
 import impl.sql.jdbc.Conversions._
 import impl.sql.names.{ObjectTableName, SQLColumnName}
@@ -16,7 +16,7 @@ import scalaz._
 class ObjectTable(
                    override val name: ObjectTableName,
                    override val instance: SQLInstance,
-                   tableSchema: SchemaObjectErased
+                   tableSchema: SchemaObject[_]
                  ) extends SQLTable {
 
   import ObjectTable._

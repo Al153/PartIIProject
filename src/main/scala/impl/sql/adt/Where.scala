@@ -1,12 +1,12 @@
 package impl.sql.adt
 
-import core.backend.intermediate.unsafe.UnsafeFindable
+import core.backend.intermediate.unsafe.ErasedFindable
 import impl.sql.jdbc.Conversions
 import impl.sql.names.SQLColumnName.{column, leftId, rightId}
 
 sealed trait WhereTable
 sealed trait Where
-case class Pattern(p: UnsafeFindable) extends WhereTable
+case class Pattern(p: ErasedFindable) extends WhereTable
 case object Distinct extends Where
 case object NoConstraint extends Where with WhereTable
 case class Limit(limit: VarName, n: Int) extends Where

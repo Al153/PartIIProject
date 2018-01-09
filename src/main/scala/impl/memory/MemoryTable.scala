@@ -1,8 +1,8 @@
 package impl.memory
 
 import core.backend.common.{DBCell, DBObject, LengthMismatch}
-import core.backend.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
-import core.user.schema.TableName
+import core.backend.intermediate.unsafe.ErasedFindable
+import core.user.schema.{SchemaObject, TableName}
 import core.utils._
 import impl.memory.errors.MemoryExtractError
 
@@ -13,7 +13,7 @@ import scalaz.Scalaz._
   */
 
 case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[DBCell, Set[MemoryObject]]], name: TableName) {
-  def find(findable: UnsafeFindable): MemoryEither[Vector[MemoryObject]] = {
+  def find(findable: ErasedFindable): MemoryEither[Vector[MemoryObject]] = {
     val pattern = findable.pattern
     if (pattern.length != index.length)
       MemoryExtractError(LengthMismatch(pattern.length, index.length)).left
@@ -61,7 +61,7 @@ case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[D
 object MemoryTable {
 
   // create an empty table based on a core.user.schema
-  def apply(so: SchemaObjectErased): MemoryTable = {
+  def apply(so: SchemaObject[_]): MemoryTable = {
     val objects = Map[DBObject, MemoryObject]()
     val index = so.schemaComponents.map(_ => Map[DBCell, Set[MemoryObject]]())
 

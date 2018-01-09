@@ -6,6 +6,8 @@ import core.user.schema.TableName
 
 /**
   * Created by Al on 25/10/2017.
+  *
+  * A type erased companion to [[RelationAttributes]]
   */
 case class ErasedRelationAttributes(name: RelationName, from: TableName, to: TableName )
 

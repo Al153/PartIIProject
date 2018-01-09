@@ -1,11 +1,11 @@
 package impl.sql.adt.queries
 
+import core.backend.intermediate.unsafe.ErasedFindable
 import core.user.dsl.View
-import core.backend.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
+import core.user.schema.SchemaObject
 import impl.sql._
 import impl.sql.names.SQLColumnName
-import impl.sql.tables.ViewsTable._
-import impl.sql.tables.{ObjectTable, ViewsTable}
+import impl.sql.tables.ObjectTable
 import impl.sql.types.ObjId
 
 /**
@@ -13,7 +13,7 @@ import impl.sql.types.ObjId
   */
 case class PathMemberQuery(
                             ids: TraversableOnce[ObjId],
-                            sa: SchemaObjectErased,
+                            sa: SchemaObject[_],
                             table: ObjectTable
                           )(implicit instance: SQLInstance) extends SingleQuery {
   /**
@@ -22,11 +22,11 @@ case class PathMemberQuery(
     * @param v
     * @return
     */
-  def render(v: View): String = extractMainQuery(sa.prototype, table)
+  def render(v: View): String = extractMainQuery(sa.any.getUnsafe, table)
 
 
   private def extractMainQuery(
-                                prototype: UnsafeFindable,
+                                prototype: ErasedFindable,
                                 table: ObjectTable
                               ): String = {
     s"SELECT ${getColumnsAndObjId(prototype)} " +

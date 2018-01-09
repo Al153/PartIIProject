@@ -58,8 +58,8 @@ trait ReadWrite { self: HasBackend =>
           CompletedRelation(Alice, Knows, Bob),
           CompletedRelation(Alice, Knows, Charlie)
         )
-        res1 <- find(?(personSchema))
-        res2 <- findDistinct(?(personSchema))
+        res1 <- find(personSchema.any)
+        res2 <- findDistinct(personSchema.any)
         _ <- assertEqOp(expected.sorted, res1.sorted, "Find singles failure")
         _ <- assertEqOp(expected.toSet, res2, "Find Singles set failure")
       } yield ()

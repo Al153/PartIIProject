@@ -33,10 +33,16 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
       } yield leftRes.intersect(rightRes)
 
 
-      case USAndSingle(l, r) => for {
+      case USAndRight(l, r) => for {
         leftRes <- recurse(l, left)
         rightRes <- findSingleSetImpl(r, tree)
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+
+      case USAndLeft(l, r) => for {
+        leftRes <- recurse(l, left)
+        rightRes <- findSingleSetImpl(r, tree)
+      } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
+
 
       case USOr(l, r) => for {
         leftRes <- recurse(l, left)
@@ -53,10 +59,6 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
       } yield rres.filter{case (a, b) => a != b}
 
       case USId(_) => left.map(x => (x, x)).right
-
-      case USNarrow(l, p) => for {
-        broad <- recurse(l, left)
-      } yield broad.filter(pair => matches(pair._2, p))
 
       case USRel(rel) =>
         EitherOps.sequence(left.map {

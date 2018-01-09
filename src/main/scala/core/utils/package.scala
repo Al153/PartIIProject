@@ -8,8 +8,10 @@ import scalaz._, Scalaz._
 
 /**
   * Created by Al on 24/10/2017.
+  *
+  * Big import-once of utility methods and syntax
   */
-package object utils {
+package object utils extends BigSetOps {
   implicit class SetOps[A](u: Set[A]) {
      def mapPair: Set[(A, A)] = u.map(x => (x, x))
   }

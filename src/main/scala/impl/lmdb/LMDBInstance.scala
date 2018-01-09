@@ -3,7 +3,7 @@ package impl.lmdb
 import core.user.interfaces.{DBExecutor, DBInstance}
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, View}
-import core.backend.intermediate.unsafe.UnsafeFindable
+import core.backend.intermediate.unsafe.ErasedFindable
 import core.user.schema.{SchemaDescription, TableName}
 import impl.lmdb.access.{Commit, ObjId}
 
@@ -53,7 +53,7 @@ class LMDBInstance(val env: Env, val schema: SchemaDescription)(implicit val exe
     val objectCounter = new ObjectsCounter()
   }
 
-  def lookupPattern(p: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+  def lookupPattern(p: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
     if (p.tableName in objects) objects(p.tableName).lookup(p, commits)
     else LMDBMissingTable(p.tableName).left
 

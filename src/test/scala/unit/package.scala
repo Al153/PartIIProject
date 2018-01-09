@@ -18,20 +18,20 @@ package object unit {
 
   implicit def personSchema = new SchemaObject1[Person, String] {
     override def construct(a1: String): Person = Person(a1)
-    override def tableName: TableName = TableName("People")
-    override def toTuple(a: Person): DBTuple1[Person, String] = DBTuple1(tableName, a.name)
+    override def name: TableName = TableName("People")
+    override def toTuple(a: Person): DBTuple1[Person, String] = DBTuple1(name, a.name)
   }
 
   implicit def carSchema = new SchemaObject1[Car, String] {
     override def construct(a1: String): Car = Car(a1)
-    override def tableName: TableName = TableName("Cars")
-    override def toTuple(a: Car): DBTuple1[Car, String] = DBTuple1(tableName, a.make)
+    override def name: TableName = TableName("Cars")
+    override def toTuple(a: Car): DBTuple1[Car, String] = DBTuple1(name, a.make)
   }
 
   implicit def petSchema  = new SchemaObject4[Pet, String, Int, Double, Boolean] {
     override def construct(a1: String, a2: Int, a3: Double, a4: Boolean): Pet = Pet(a1, a2, a3, a4)
-    override def tableName: TableName = TableName("Pets")
-    override def toTuple(a: Pet): DBTuple4[Pet, String, Int, Double, Boolean] = DBTuple4(tableName, a.name, a.age, a.height, a.isDog)
+    override def name: TableName = TableName("Pets")
+    override def toTuple(a: Pet): DBTuple4[Pet, String, Int, Double, Boolean] = DBTuple4(name, a.name, a.age, a.height, a.isDog)
   }
 
   case object Knows extends RelationAttributes[Person, Person]

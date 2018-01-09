@@ -10,9 +10,15 @@ import scalaz.\/
 /**
   * Created by Al on 22/10/2017.
   *
-  * A database connection can open
+  * A database connection can open an [[DBInstance]]
   */
 trait DBBackend {
+  /**
+    * Open an Instance
+    * @param address - Address to open
+    * @param schema - Schema to open with
+    * @return a [[DBInstance]]
+    */
   def open(address: DatabaseAddress, schema: SchemaDescription)
           (implicit e: ExecutionContext): \/[E, DBInstance]
 }

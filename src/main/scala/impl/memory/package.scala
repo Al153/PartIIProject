@@ -22,7 +22,7 @@ package object memory extends {
   type RelatedPair = (MemoryObject, MemoryObject)
 
   implicit class MemoryTreeOps(memoryTree: MemoryTree) {
-    def findPattern(findable: UnsafeFindable): MemoryEither[Vector[MemoryObject]] = for {
+    def findPattern(findable: ErasedFindable): MemoryEither[Vector[MemoryObject]] = for {
       table <- memoryTree.getOrError(findable.tableName, MemoryMissingTableName(findable.tableName))
       res <- table.find(findable)
     } yield res

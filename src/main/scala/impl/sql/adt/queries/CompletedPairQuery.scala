@@ -1,7 +1,7 @@
 package impl.sql.adt.queries
 
 import core.user.dsl.View
-import core.backend.intermediate.unsafe.{UnsafeFindPair, UnsafeFindable}
+import core.backend.intermediate.unsafe.{UnsafeFindPair, ErasedFindable}
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.SQLExtractError
@@ -28,7 +28,12 @@ case class CompletedPairQuery(
         leftPrototype <- instance.schema.lookupTable(p.leftMostTable).leftMap(SQLExtractError)
         rightPrototype <- instance.schema.lookupTable(p.rightMostTable).leftMap(SQLExtractError)
         res <- Definitions.compute(Query.convertPair(p), v) {
-          extractMainQuery(leftPrototype.prototype, rightPrototype.prototype, leftTable, rightTable)
+          extractMainQuery(
+            leftPrototype.any.getUnsafe,
+            rightPrototype.any.getUnsafe,
+            leftTable,
+            rightTable
+          )
         }
       } yield res
 
@@ -37,10 +42,10 @@ case class CompletedPairQuery(
   // actually pull out values
 
   private def extractMainQuery(
-                        leftProto: UnsafeFindable,
-                        rightProto: UnsafeFindable,
-                        leftTable: ObjectTable,
-                        rightTable: ObjectTable
+                                leftProto: ErasedFindable,
+                                rightProto: ErasedFindable,
+                                leftTable: ObjectTable,
+                                rightTable: ObjectTable
                       ): String = {
     s"SELECT ${getColumns(leftProto, rightProto)} " +
       s"FROM ${optionalBrackets(getRightJoin(rightTable, getLeftJoin(leftTable)))}"
@@ -61,8 +66,8 @@ case class CompletedPairQuery(
 
   // construct a query to rename columns
   private def getColumns(
-                         leftDescription: UnsafeFindable,
-                         rightDescription: UnsafeFindable
+                          leftDescription: ErasedFindable,
+                          rightDescription: ErasedFindable
                        ): String = {
     val leftPairs =
       leftDescription.pattern.indices

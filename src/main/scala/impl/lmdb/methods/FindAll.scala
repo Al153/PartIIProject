@@ -19,7 +19,7 @@ trait FindAll { self: Methods =>
     new ReadOperation({view: View => LMDBFutureE(for {
       _ <- instance.controlTables.availableViews.validateView(view)
       ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
-      objectTable <- instance.objects.getOrError(extractor.tableName, LMDBMissingTable(extractor.tableName))
+      objectTable <- instance.objects.getOrError(extractor.name, LMDBMissingTable(extractor.name))
       commits <- instance.controlTables.viewsTable.lookupCommits(view)
       res <- findVector(ut, commits, objectTable)
     } yield res).asCFuture})
@@ -29,7 +29,7 @@ trait FindAll { self: Methods =>
     new ReadOperation({view: View => LMDBFutureE(for {
       _ <- instance.controlTables.availableViews.validateView(view)
       ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
-      objectTable <- instance.objects.getOrError(extractor.tableName, LMDBMissingTable(extractor.tableName))
+      objectTable <- instance.objects.getOrError(extractor.name, LMDBMissingTable(extractor.name))
       commits <- instance.controlTables.viewsTable.lookupCommits(view)
       res <- findVector(ut, commits, objectTable)
     } yield res.toSet).asCFuture})

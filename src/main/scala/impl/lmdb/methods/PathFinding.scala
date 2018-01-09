@@ -33,7 +33,7 @@ trait PathFinding { self: Methods =>
         targetSet <- instance.lookupPattern(sa.findable(end).getUnsafe, commits)
         target = targetSet.headOption
 
-        extractor <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
+        extractor <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         query <- relationalQuery.tree.getUnsafe.leftMap(LMDBMissingRelation)
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
@@ -61,7 +61,7 @@ trait PathFinding { self: Methods =>
         commits <- instance.controlTables.viewsTable.lookupCommits(view)
         initialSet <- instance.lookupPattern(sa.findable(start).getUnsafe, commits)
 
-        extractor <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
+        extractor <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         query <- relationalQuery.tree.getUnsafe.leftMap(LMDBMissingRelation)
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}

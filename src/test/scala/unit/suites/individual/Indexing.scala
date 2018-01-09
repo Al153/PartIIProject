@@ -69,40 +69,24 @@ trait Indexing { self: HasBackend =>
         _ <- assertEqOp(expectedHeightSix.sorted, rHeightSix.sorted, "Single Index, HeightSix")
       } yield ()
     }
-
-
   }
 
   @Test
-  def LeftAnd(): Unit = runTest { implicit instance =>
-    val expected = Vector(fido -> Alice, rover -> Alice, buster -> David, pippa -> Georgie, nelson -> Hannah, lucy -> Ian, jasper -> Jane)
-    using(instance) {
-        for {
-          _ <- setupPath
+  def MultiIndex(): Unit = runTest { implicit instance =>
+    val expected = Vector(pippa, jasper)
 
-          dogOwnership <- findPairs(petSchema.pattern(None, None, None, true.some) -->> OwnedBy)
-
-
-        _ <- assertEqOp(expected.sorted, dogOwnership.sorted, "LeftAnd")
-      } yield ()
-    }
-  }
-
-  @Test
-  def RightAnd(): Unit = runTest { implicit instance =>
-
-    val expected = Vector(Bob -> fido, Bob -> rover, Fred -> pippa, Hannah -> lucy)
     using(instance) {
       for {
         _ <- setupPath
-
-        knowsOwner <- findPairs((Knows --><-- OwnedBy) -->> petSchema.pattern(None, None, None, true.some) )
-
-
-        _ <- assertEqOp(expected.sorted, knowsOwner.sorted, "rightAnd")
+        r <- find(petSchema.pattern(None, 12.some, None, true.some))
+        _ <- assertEqOp(expected.sorted, r.sorted, "Single Index, Dog")
       } yield ()
     }
+
   }
+
+
+
 
 
 }

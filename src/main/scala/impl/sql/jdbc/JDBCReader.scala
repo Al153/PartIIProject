@@ -143,8 +143,8 @@ class JDBCReader(implicit instance: SQLInstance) {
     implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLEither[Vector[(A, B)]] = {
 
     val rs = getResultSet(query)
-    val aComponents = sa.getSchemaComponents
-    val bComponents = sb.getSchemaComponents
+    val aComponents = sa.schemaComponents
+    val bComponents = sb.schemaComponents
 
     var result = Vector.newBuilder[(A, B)].right[SQLError]
     while (result.isRight && rs.next()) {
@@ -187,8 +187,8 @@ class JDBCReader(implicit instance: SQLInstance) {
     implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLEither[Set[(A, B)]] = {
 
     val rs = getResultSet(query)
-    val aComponents = sa.getSchemaComponents
-    val bComponents = sb.getSchemaComponents
+    val aComponents = sa.schemaComponents
+    val bComponents = sb.schemaComponents
 
     var result = Set.newBuilder[(A, B)].right[SQLError]
     while (result.isRight && rs.next()) {
@@ -230,7 +230,7 @@ class JDBCReader(implicit instance: SQLInstance) {
   def getAllSingles[A](query: String)(
     implicit sa: SchemaObject[A]): SQLEither[Vector[A]] = {
     val rs = getResultSet(query)
-    val aComponents = sa.getSchemaComponents
+    val aComponents = sa.schemaComponents
 
     var result = Vector.newBuilder[A].right[SQLError]
     while (result.isRight && rs.next() ) {
@@ -261,7 +261,7 @@ class JDBCReader(implicit instance: SQLInstance) {
   def getSingleDistinct[A](query: String)(
     implicit sa: SchemaObject[A]): SQLEither[Set[A]] = {
     val rs = getResultSet(query)
-    val aComponents = sa.getSchemaComponents
+    val aComponents = sa.schemaComponents
 
     var result = Set.newBuilder[A].right[SQLError]
     while (result.isRight && rs.next() ) {
@@ -314,7 +314,7 @@ class JDBCReader(implicit instance: SQLInstance) {
     val db = sa.getDBObject(a)
 
     for {
-      table <- instance.lookupTable(sa.tableName)
+      table <- instance.lookupTable(sa.name)
       pairs = createComparisons(db)
       q = s"""SELECT ${SQLColumnName.objId} FROM $table WHERE $pairs"""
       rs = getResultSet(q)
@@ -333,9 +333,9 @@ class JDBCReader(implicit instance: SQLInstance) {
                               table: ObjectTable,
                               v: View
                             )(implicit sa: SchemaObject[A]): SQLEither[Path[A]] = {
-    val query = PathMemberQuery(ids.toSet, sa.erased, table)
+    val query = PathMemberQuery(ids.toSet, sa, table)
     val rs = getResultSet(query.render(v))
-    val aComponents = sa.getSchemaComponents
+    val aComponents = sa.schemaComponents
 
     var result = Map.newBuilder[ObjId, A].right[SQLError]
     while (result.isRight && rs.next()) {

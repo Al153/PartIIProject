@@ -4,6 +4,8 @@ import core.utils._
 
 /**
   * Created by Al on 20/10/2017.
+  *
+  *  Any object with a SchemaObject can be converted into a vector of DBCell Fields
   */
 
 case class DBObject(fields: Vector[DBCell]) {

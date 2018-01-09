@@ -25,8 +25,8 @@ trait FindAllPairs { self: Methods =>
   ): Operation[E, Vector[(A, B)]] = new ReadOperation({view: View => LMDBFutureE(for {
     _ <- instance.controlTables.availableViews.validateView(view)
     ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
-    leftTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
-    rightTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+    leftTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
+    rightTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
     commits <- instance.controlTables.viewsTable.lookupCommits(view)
     res <- findVectorPairs[A, B](ut, commits, leftTable, rightTable)
   } yield res).asCFuture})
@@ -36,8 +36,8 @@ trait FindAllPairs { self: Methods =>
     new ReadOperation({view: View => LMDBFutureE(for {
       _ <- instance.controlTables.availableViews.validateView(view)
       ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
-      leftTable <- instance.objects.getOrError(sa.tableName, LMDBMissingTable(sa.tableName))
-      rightTable <- instance.objects.getOrError(sb.tableName, LMDBMissingTable(sb.tableName))
+      leftTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
+      rightTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
       commits <- instance.controlTables.viewsTable.lookupCommits(view)
       res <- readSetPairs[A, B](ut, commits, leftTable, rightTable)
     } yield res).asCFuture})

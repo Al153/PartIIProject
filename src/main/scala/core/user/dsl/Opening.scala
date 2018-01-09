@@ -6,7 +6,9 @@ import core.user.containers.{ConstrainedFuture, Operation}
 import scala.concurrent.ExecutionContext
 import scalaz.\/
 /**
-  * Created by Al on 07/10/2017.
+  * Created by Al on 17/10/2017.
+  *
+  * A number of helper methods/syntax for manipulating instances
   */
 trait Opening {
   def using[A]

@@ -1,7 +1,6 @@
 package core.user.schema
 
 import core.backend.common._
-import core.backend.intermediate.unsafe.SchemaObjectErased
 import core.backend.intermediate.{SchemaComponent, Storeable}
 
 import scalaz.Scalaz._
@@ -9,66 +8,190 @@ import scalaz.\/
 
 /**
   * Created by Al on 17/10/2017.
+  *
+  * A SchemaObject of a type is evidence that it can be converted to and from something in the database
   */
 
 sealed trait SchemaObject[A] {
-  def getSchemaComponents: Vector[SchemaComponent]
-  def generalPattern: Pattern[A]
+  /**
+    * Get the schema components for objects of type [[A]] in order to generate Schema to store them
+    */
+  def schemaComponents: Vector[SchemaComponent]
+
+  /**
+    * Get an empty [[Findable]] of [[A]]
+    */
+  def any: Pattern[A]
+
+  /**
+    * Convert an [[A]] into a [[Findable]]
+   */
   def findable(a: A): DBTuple[A]
-  def tableName: TableName
+
+  /**
+    * Name of the Table to store values in
+    */
+  def name: TableName
+
+  /**
+    * Extract an [[A]] from a DBObject
+    */
+
   def fromRow(row: DBObject): ExtractError \/ A
 
-  final def erased: SchemaObjectErased = SchemaObjectErased(tableName, getSchemaComponents)
+  /**
+    * Convert an A to something that can be stored in the DB
+    */
+
   final def getDBObject(a: A): DBObject = findable(a).toDBObject
-  final def length: Int = getSchemaComponents.length
 
-
+  /**
+    * Get the width of the schema for A
+    */
+  final def length: Int = schemaComponents.length
 }
 
+/**
+  * Separate subclasses for each size of object
+  */
+
 trait SchemaObject0[A] extends SchemaObject[A] {
+  /**
+    * Need to define a constructor for an [[A]] from the components gained from the table
+    */
   def construct(): A
-  override def tableName: TableName
+
+  /**
+    * Need to define the expected name of the table
+    */
+  override def name: TableName
+
+  /**
+    * Need to define how to convert an [[A]] into some storeable primitives
+    */
+
   def toTuple(a: A): DBTuple0[A]
 
-  final def fromTuple(tuple0: DBTuple0[A]): A = construct()
-  final def pattern: Pattern0[A] = Pattern0[A](tableName)
-  final def generalPattern: Pattern[A] = pattern
-  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
+  /**
+    * Empty Findable that lookups up all values of the type
+    */
+
+  final def any: Pattern[A] = Pattern0[A](name)
+
+
+  /**
+    * Get the schema components for objects of type [[A]] in order to generate Schema to store them
+    */
+  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+
+  /**
+    * Convert an [[A]] into a [[Findable]]
+    */
   final override def findable(a: A): DBTuple[A] = toTuple(a)
+
+  /**
+    * Extract an [[A]] from a DBObject
+    */
+
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.isEmpty) construct().right else LengthMismatch(row.fields.length, 0).left
+
+  /**
+    * Defines how to make a findable with certain fields
+    */
+
+  final def pattern: Pattern[A] = any
 
 }
 
 abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaObject[A] {
+
+  /**
+    * Need to define a constructor for an [[A]] from the components gained from the table
+    */
+
   def construct(a1: A1): A
-  override def tableName: TableName
+
+  /**
+    * Need to define the expected name of the table
+    */
+  override def name: TableName
+
+  /**
+    * Need to define how to convert an [[A]] into some storeable primitives
+    */
   def toTuple(a: A): DBTuple1[A, A1]
 
-  final def fromTuple(tuple1: DBTuple1[A, A1]): A = construct(tuple1.a1)
-  final def generalPattern: Pattern[A] = pattern
-  final def pattern: Pattern1[A, A1] = Pattern1[A, A1](tableName, None)
-  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
+  /**
+    * Empty Findable that lookups up all values of the type
+    */
+
+  final def any: Pattern[A] = Pattern1[A, A1](name, None)
+
+
+  /**
+    * Get the schema components for objects of type [[A]] in order to generate Schema to store them
+    */
+  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+
+  /**
+    * Convert an [[A]] into a [[Findable]]
+    */
   final override def findable(a: A): DBTuple[A] = toTuple(a)
+
+  /**
+    * Extract an [[A]] from a DBObject
+    */
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 1) {
       s1.get(row.fields(0)).map(construct)
     } else LengthMismatch(row.fields.length, 1).left
 
-  final def pattern(o1: Option[A1]): Pattern1[A, A1] = Pattern1[A, A1](tableName, o1)
+
+  /**
+    * Defines how to make a findable with certain fields
+    */
+
+  final def pattern(o1: Option[A1]): Pattern1[A, A1] = Pattern1[A, A1](name, o1)
 
 }
 
 abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeable[A2]) extends SchemaObject[A] {
+  /**
+    * Need to define a constructor for an [[A]] from the components gained from the table
+    */
   def construct(a1: A1, a2: A2): A
-  override def tableName: TableName
+
+  /**
+    * Need to define the expected name of the table
+    */
+  override def name: TableName
+
+  /**
+    * Need to define how to convert an [[A]] into some storeable primitives
+    */
   def toTuple(a: A): DBTuple2[A, A1, A2]
 
-  final def fromTuple(tuple2: DBTuple2[A, A1, A2]): A = construct(tuple2.a1, tuple2.a2)
-  final def generalPattern: Pattern[A] = pattern
-  final def pattern: Pattern2[A, A1, A2] = Pattern2[A, A1, A2](tableName, None, None)
-  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
+  /**
+    * Empty Findable that lookups up all values of the type
+    */
+
+  final def any: Pattern[A] = Pattern2[A, A1, A2](name, None, None)
+
+  /**
+    * Get the schema components for objects of type [[A]] in order to generate Schema to store them
+    */
+  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+
+  /**
+    * Convert an [[A]] into a [[Findable]]
+    */
   final override def findable(a: A): DBTuple[A] = toTuple(a)
+
+
+  /**
+    * Extract an [[A]] from a DBObject
+    */
 
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 2) {
@@ -78,19 +201,49 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
       } yield construct(a1, a2)
     } else LengthMismatch(row.fields.length, 2).left
 
-  final def pattern(o1: Option[A1], o2: Option[A2]): Pattern2[A, A1, A2] = Pattern2[A, A1, A2](tableName, o1, o2)
+  /**
+    * Defines how to make a findable with certain fields
+    */
+
+  final def pattern(o1: Option[A1], o2: Option[A2]): Pattern2[A, A1, A2] = Pattern2[A, A1, A2](name, o1, o2)
 }
 
 abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Storeable[A2], s3: Storeable[A3]) extends SchemaObject[A] {
+  /**
+    * Need to define a constructor for an [[A]] from the components gained from the table
+    */
+
   def construct(a1: A1, a2: A2, a3: A3): A
-  def tableName: TableName
+
+  /**
+    * Need to define the expected name of the table
+    */
+  def name: TableName
+
+  /**
+    * Need to define how to convert an [[A]] into some storeable primitives
+    */
   def toTuple(a: A): DBTuple3[A, A1, A2, A3]
 
-  final def fromTuple(tuple3: DBTuple3[A, A1, A2, A3]): A = construct(tuple3.a1, tuple3.a2, tuple3.a3)
-  final def generalPattern: Pattern[A] = pattern
-  final def pattern: Pattern3[A, A1, A2, A3] = Pattern3[A, A1, A2, A3](tableName, None, None, None)
-  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
+  /**
+    * Empty Findable that lookups up all values of the type
+    */
+  final def any: Pattern[A] = Pattern3[A, A1, A2, A3](name, None, None, None)
+
+  /**
+    * Get the schema components for objects of type [[A]] in order to generate Schema to store them
+    */
+  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+
+  /**
+    * Convert an [[A]] into a [[Findable]]
+    */
   final override def findable(a: A): DBTuple[A] = toTuple(a)
+
+  /**
+    * Extract an [[A]] from a DBObject
+    */
+
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 3) {
       for {
@@ -100,20 +253,51 @@ abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Stor
       } yield construct(a1, a2, a3)
     } else LengthMismatch(row.fields.length, 3).left
 
-  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3]): Pattern3[A, A1, A2, A3] = Pattern3[A, A1, A2, A3](tableName, o1, o2, o3)
+  /**
+    * Defines how to make a findable with certain fields
+    */
+
+  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3]): Pattern3[A, A1, A2, A3] = Pattern3[A, A1, A2, A3](name, o1, o2, o3)
 }
 
 
 abstract class SchemaObject4[A, A1, A2, A3, A4](implicit s1: Storeable[A1], s2: Storeable[A2], s3: Storeable[A3], s4: Storeable[A4]) extends SchemaObject[A] {
+  /**
+    * Need to define a constructor for an [[A]] from the components gained from the table
+    */
   def construct(a1: A1, a2: A2, a3: A3, a4: A4): A
-  def tableName: TableName
+
+  /**
+    * Need to define the expected name of the table
+    */
+  def name: TableName
+
+  /**
+    * Need to define how to convert an [[A]] into some storeable primitives
+    */
+
   def toTuple(a: A): DBTuple4[A, A1, A2, A3, A4]
 
-  final def fromTuple(tuple4: DBTuple4[A, A1, A2, A3, A4]): A = construct(tuple4.a1, tuple4.a2, tuple4.a3, tuple4.a4)
-  final def generalPattern: Pattern[A] = pattern
-  final def pattern: Pattern4[A, A1, A2, A3, A4] = Pattern4[A, A1, A2, A3, A4](tableName, None, None, None, None)
-  final override def getSchemaComponents: Vector[SchemaComponent] = pattern.toSchemaComponent
+  /**
+    * Empty Findable that lookups up all values of the type
+    */
+  final def any: Pattern[A] = Pattern4[A, A1, A2, A3, A4](name, None, None, None, None)
+
+  /**
+    * Get the schema components for objects of type [[A]] in order to generate Schema to store them
+    */
+  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+
+  /**
+    * Convert an [[A]] into a [[Findable]]
+    */
   final override def findable(a: A): DBTuple[A] = toTuple(a)
+
+  /**
+    * Extract an [[A]] from a DBObject
+    */
+
+
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 4) {
       for {
@@ -124,5 +308,9 @@ abstract class SchemaObject4[A, A1, A2, A3, A4](implicit s1: Storeable[A1], s2: 
       } yield construct(a1, a2, a3, a4)
     } else LengthMismatch(row.fields.length, 4).left
 
-  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3], o4: Option[A4]): Pattern4[A, A1, A2, A3, A4] = Pattern4[A, A1, A2, A3, A4](tableName, o1, o2, o3, o4)
+  /**
+    * Defines how to make a findable with certain fields
+    */
+
+  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3], o4: Option[A4]): Pattern4[A, A1, A2, A3, A4] = Pattern4[A, A1, A2, A3, A4](name, o1, o2, o3, o4)
 }

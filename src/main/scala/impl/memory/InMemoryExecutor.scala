@@ -30,7 +30,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     instance.readOp {
       t =>
         for {
-          unsafeSingle <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeSingle <- Find(q.sa.any)(q.sa, sd).getUnsafe.leftMap(MemoryMissingRelation)
           initial <- methods.findSingleImpl(unsafeSingle, t)
           unsafeQuery <-  q.getUnsafe.leftMap(MemoryMissingRelation)
           v <- methods.findPairsImpl(unsafeQuery, initial, t)
@@ -59,7 +59,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     instance.readOp {
       t =>
         for {
-          unsafeQuery <- Find(q.sa.generalPattern)(q.sa, sd).getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeQuery <- Find(q.sa.any)(q.sa, sd).getUnsafe.leftMap(MemoryMissingRelation)
           initial <- methods.findSingleSetImpl(unsafeQuery, t)
           unsafeQuery <- q.getUnsafe.leftMap(MemoryMissingRelation)
           v <- methods.findPairsSetImpl(unsafeQuery, initial, t)
@@ -122,7 +122,7 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
                 relationName =>
                   eTree.flatMap(
                     tree =>
-                      methods.write(tree, sa.tableName, sa.getDBObject(r.a), relationName, sb.tableName, sb.getDBObject(r.b))
+                      methods.write(tree, sa.name, sa.getDBObject(r.a), relationName, sb.name, sb.getDBObject(r.b))
                   )
               }
           }

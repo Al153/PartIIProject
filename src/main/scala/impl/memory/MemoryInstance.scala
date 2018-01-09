@@ -25,7 +25,7 @@ class MemoryInstance(val schema: SchemaDescription)(implicit val executionContex
   override lazy val executor: DBExecutor = new InMemoryExecutor(this, schema)
 
   val relations: Set[ErasedRelationAttributes] = schema.relationMap.values.toSet
-  val defaultTree: MemoryTree = schema.erasedObjects.map(o => o.name -> MemoryTable(o)).toMap
+  val defaultTree: MemoryTree = schema.objects.map(o => o.name -> MemoryTable(o)).toMap
 
   private object Store { // stores the mutable state
     private var defaultView: View = View(0)
@@ -63,7 +63,7 @@ class MemoryInstance(val schema: SchemaDescription)(implicit val executionContex
       v <- Store.put(newTree)
     } yield v).asCFuture)
 
-  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = ConstrainedFuture.immediatePoint(Store.setDefaultView(view))
+  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = MemoryFutureI(Store.setDefaultView(view)).asCFuture
 
   override def getDefaultView: ConstrainedFuture[E, View] = MemoryFutureI(Store.getDefaultView).asCFuture
 

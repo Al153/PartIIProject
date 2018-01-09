@@ -1,6 +1,5 @@
 package core.backend.common.algorithms
 
-import core.backend.common.algorithms.PathFinding.doStep
 import core.utils._
 
 import scala.collection.immutable.Queue
@@ -10,10 +9,20 @@ import scalaz._
 
 /**
   * Created by Al on 31/12/2017.
+  *
+  * Suite of pathfinding methods for the LMDB and memory implementations
+  * Non recursive implementations to avoid stack overflows
   */
 object PathFinding {
+  /**
+    *
+    * @param start - Starting set
+    * @param searchStep - step to use to search
+    * @tparam E - type of errors
+    * @tparam A -  types of nodes
+    * @return shortest path to each reachable node
+    */
 
-  // Non recursive implementations to avoid stack overflows
   def allShortestPathsImpl[E, A](start: Set[A], searchStep: A => E \/ Set[(A, A)]): E \/ Set[Vector[A]] = {
     var fringe: Queue[Vector[A]] = toQueue(start.map(a => Vector[A](a)))
     var alreadyExplored: Set[A] = Set()
@@ -53,7 +62,15 @@ object PathFinding {
 
   private def toQueue[A](s: Set[A]): Queue[A] = Queue() ++ s
 
-
+  /**
+    *
+    * @param start - Starting set
+    * @param end - target node
+    * @param searchStep - step to use to search
+    * @tparam E - type of errors
+    * @tparam A -  types of nodes
+    * @return shortest path to the end
+    */
   def singleShortestsPathImpl[E, A](start: Set[A], end: A, searchStep: A => E \/ Set[(A, A)]): E \/ Option[Vector[A]] = {
     var fringe: Queue[Vector[A]] = toQueue(start.map(a => Vector[A](a)))
     var alreadyExplored: Set[A] = Set()

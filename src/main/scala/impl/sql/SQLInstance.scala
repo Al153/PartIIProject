@@ -46,7 +46,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
   private val tableLookup: Map[TableName, ObjectTable] =
     SQLTableName.render(
       MonadOps.sequence(
-        schema.erasedObjects.map {
+        schema.objects.map {
           o =>
             for {
               name <- SQLTableName.getName(o.name)

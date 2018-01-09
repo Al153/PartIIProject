@@ -92,7 +92,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     new ReadOperation({
       v: View => {
         val cfTable = SQLFutureE(
-          instance.lookupTable(sa.tableName)
+          instance.lookupTable(sa.name)
         )
 
         val cfStart = SQLFutureE(
@@ -139,7 +139,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     new ReadOperation({
       v: View => {
         val cfTable = SQLFutureE(
-          instance.lookupTable(sa.tableName)
+          instance.lookupTable(sa.name)
         )
 
         val cfStart =  SQLFutureE(
@@ -170,8 +170,8 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       new WriteOperation (
         view => {
           // set off non-dependent operations asynchronously
-          val cfLeftTable = SQLFutureE(instance.lookupTable(sa.tableName))
-          val cfRightTable = SQLFutureE(instance.lookupTable(sb.tableName))
+          val cfLeftTable = SQLFutureE(instance.lookupTable(sa.name))
+          val cfRightTable = SQLFutureE(instance.lookupTable(sb.name))
           val cfSeq =
             SQLFutureE(
               EitherOps.sequence(

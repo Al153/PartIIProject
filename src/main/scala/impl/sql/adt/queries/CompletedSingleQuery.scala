@@ -1,7 +1,7 @@
 package impl.sql.adt.queries
 
 import core.user.dsl.View
-import core.backend.intermediate.unsafe.{UnsafeFindSingle, UnsafeFindable}
+import core.backend.intermediate.unsafe.{UnsafeFindSingle, ErasedFindable}
 import core.user.schema.SchemaDescription
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
@@ -21,13 +21,13 @@ case class CompletedSingleQuery(
     for {
       tablePrototype <- sd.lookupTable(p.table).leftMap(SQLExtractError)
       res <- Definitions.compute(Query.convertSingle(p), v) {
-        extractMainQuery(tablePrototype.prototype, table)
+        extractMainQuery(tablePrototype.any.getUnsafe, table)
       }
     } yield res
   }
 
   private def extractMainQuery(
-                                prototype: UnsafeFindable,
+                                prototype: ErasedFindable,
                                 table: ObjectTable
                               ): String = {
     s"SELECT ${getColumns(prototype)} " +

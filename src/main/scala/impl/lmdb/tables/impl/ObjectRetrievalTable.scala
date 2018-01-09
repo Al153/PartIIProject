@@ -1,7 +1,7 @@
 package impl.lmdb.tables.impl
 
 import core.backend.common.DBObject
-import core.backend.intermediate.unsafe.{SchemaObjectErased, UnsafeFindable}
+import core.backend.intermediate.unsafe.ErasedFindable
 import core.user.schema.SchemaObject
 import core.utils._
 import impl.lmdb
@@ -18,18 +18,18 @@ import scalaz.Scalaz._
   *
   * A table for the lookup of objectId -> A
   */
-class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBInstance) extends LMDBTable {
+class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInstance) extends LMDBTable {
   override val path: Key = "db" >> "objects" >> sa.name
   val indices: Vector[ColumnIndexTable] = sa.schemaComponents.zipWithIndex.map{ // index table for each column
     case (component, column) => new ColumnIndexTable(sa.name, column, component)
   }
   val emptyIndex = new EmptyIndexTable(sa.name)
 
-  def lookup(f: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+  def lookup(f: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
     for {
       ifEmpty <- emptyIndex.lookupSet(commits)
       indexResults <- EitherOps.sequence(f.pattern.zipWithIndex.collect {case (Some(v), i) => indices(i).lookup(v, commits)})
-    } yield BigSetOps.bigIntersection(ifEmpty, indexResults)
+    } yield bigIntersection(ifEmpty, indexResults)
 
 
   def lookup(commits: Set[Commit]): LMDBEither[Set[ObjId]] = emptyIndex.lookupSet(commits)
@@ -47,7 +47,7 @@ class ObjectRetrievalTable(sa: SchemaObjectErased)(implicit val instance: LMDBIn
   def retrieve[A](as: Vector[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Vector[A]] =
     EitherOps.sequence(as.map(retrieve[A]))
 
-  def lookupPattern(p: UnsafeFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+  def lookupPattern(p: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
     if (p.tableName in instance.objects) instance.objects(p.tableName).lookup(p, commits)
     else LMDBMissingTable(p.tableName).left
 

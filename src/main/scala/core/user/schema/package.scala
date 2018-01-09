@@ -1,30 +1,58 @@
 package core.user
 
 import core.backend.common.{DBCell, DBObject}
+import core.backend.intermediate.unsafe.ErasedFindable
 import core.backend.intermediate.{SchemaComponent, Storeable}
-import core.backend.intermediate.unsafe.UnsafeFindable
 
 import scalaz.Scalaz._
 
 /**
   * Created by Al on 17/10/2017.
-  *
-  * testing out conversion from object to core.user.schema value
+  * Single stop import for all the schema related objects
   */
 package object schema {
 
 
+  /**
+    * Something that can be looked up in the database (not necessarily complete data)
+    * @tparam A - used to typecheck constructions using the findable
+    */
 
-  sealed trait Findable[A] { // Can be found in the database (not necessarily complete data)
+  sealed trait Findable[A] {
+    /**
+      * The pattern that is used during lookup
+      * @return
+      */
     def pattern: Vector[Option[DBCell]]
+
+    /**
+      * The tablename associated with the finable
+      * @return
+      */
     def tableName: TableName
-    def getUnsafe = UnsafeFindable(pattern, tableName)
+
+    /**
+      * Convert the findable to an erased equivalent
+      * @return
+      */
+    def getUnsafe = ErasedFindable(pattern, tableName)
+    def isEmpty: Boolean = pattern.forall(_.isEmpty)
   }
+
+  /**
+    * A findable that is guaranteed to be complete
+    * Hence it also provides a midway point for conversion to a DBObject
+    */
 
   sealed trait DBTuple[A] extends Findable[A] {
     def toDBObject: DBObject
+
+    override val isEmpty: Boolean = false
   }
 
+  /**
+    * Distinct Subsclass for each number of parameters
+    */
   case class DBTuple0[Res](n: TableName) extends DBTuple[Res] {
     override def toDBObject = DBObject(Vector())
     override def pattern: Vector[Option[DBCell]] = Vector()
@@ -55,6 +83,12 @@ package object schema {
     override def tableName: TableName = n
   }
 
+
+  /**
+    * A pattern is a Findable that may or may not be full.
+    *
+    * Has a separate subclass for each possible number of arguments
+    */
 
   sealed trait Pattern[A] extends Findable[A] {
     def toSchemaComponent: Vector[SchemaComponent]
@@ -89,19 +123,5 @@ package object schema {
     override def tableName: TableName = n
     override def pattern: Vector[Option[DBCell]] = Vector(a1.map(s1.toDBCell), a2.map(s2.toDBCell), a3.map(s3.toDBCell), a4.map(s4.toDBCell))
   }
-
-
-  /**
-    * Some shorthand methods for getting patterns from objects
-    */
-
-  def ?[A](o: SchemaObject0[A]): Pattern0[A] = o.pattern
-  def ?[A, A1](o: SchemaObject1[A, A1]): Pattern1[A, A1] = o.pattern
-  def ?[A, A1, A2](o: SchemaObject2[A, A1, A2]): Pattern2[A, A1, A2] = o.pattern
-  def ?[A, A1, A2, A3](o: SchemaObject3[A, A1, A2, A3]): Pattern3[A, A1, A2, A3] = o.pattern
-
-  def ??[A](o: SchemaObject[A]): Pattern[A] = o.generalPattern
-
-  def !![A](a: A)(implicit schemaObject: SchemaObject[A]): Findable[A] = schemaObject.findable(a)
 }
 
