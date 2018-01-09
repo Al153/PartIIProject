@@ -1,16 +1,22 @@
 package impl.memory.methods
 
 import core.backend.common.algorithms
-import core.backend.common.algorithms.Joins
-import impl.memory.{MemoryObject, RelatedPair}
+import impl.memory.RelatedPair
 
 /**
   * In-memory joins
   */
 
 trait Joins {
+  /**
+    * Use the generic JoinVector implementation
+    */
   protected def join(leftRes: Vector[RelatedPair], rightRes: Vector[RelatedPair]): Vector[RelatedPair] =
-    Joins.joinVector(leftRes, rightRes)
+    algorithms.Joins.joinVector(leftRes, rightRes)
+
+  /**
+    * Use the generic joinSet implementation
+    */
 
   protected def joinSet(leftRes: Set[RelatedPair], rightRes: Set[RelatedPair]): Set[RelatedPair] =
     algorithms.Joins.joinSet(leftRes, rightRes)

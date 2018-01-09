@@ -7,22 +7,40 @@ import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 
 import scalaz.Scalaz._
 
+/**
+  * Implements lookup queries for Set commands
+  */
 trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
+  /**
+    * Implements findSingleSet, by recursing over the ADT
+    * @param t - query
+    * @param tree - [[MemoryTree]] to execute against
+    */
+
   def findSingleSetImpl(t: UnsafeFindSingle, tree: MemoryTree): MemoryEither[Set[MemoryObject]] = {
     def recurse(t: UnsafeFindSingle) = findSingleSetImpl(t, tree)
-
     t match {
       case USFind(pattern) =>
-        tree.getOrError(pattern.tableName, MemoryMissingTableName(pattern.tableName)).flatMap(_.find(pattern).map(_.toSet))
+        tree
+          .getOrError(pattern.tableName, MemoryMissingTableName(pattern.tableName))
+          .flatMap(_.find(pattern).map(_.toSet))
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairsSetImpl(rel, left, tree).map(_.mapProj2)
       } yield res
       case USNarrowS(start, pattern) => for {
         broad <- recurse(start)
-      } yield broad.filter(matches(_, pattern)) // todo: this should be more typesafe
+      } yield broad.filter(matches(_, pattern))
     }
   }
+  /**
+    * Implements findPairsSet, by recursing over the ADT
+    * @param t - query
+    * @param left - the objects from which relation should start. This minimises the amount of work that has to be done
+    * @param tree - [[MemoryTree]] to execute against
+    *
+    * Most cases are fairly straight forward
+    */
 
   def findPairsSetImpl(t: UnsafeFindPair, left: Set[MemoryObject], tree: MemoryTree): MemoryEither[Set[RelatedPair]] = {
     def recurse(t: UnsafeFindPair, left: Set[MemoryObject]) = findPairsSetImpl(t, left, tree)
@@ -61,24 +79,10 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
       case USId(_) => left.map(x => (x, x)).right
 
       case USRel(rel) =>
-        EitherOps.sequence(left.map {
-          leftObject: MemoryObject => {
-            val related = leftObject.getRelated(rel.name)
-            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
-            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
-            res
-          }
-        }).map(_.flatten)
+        left.map(_.getRelatedMemoryObjects(rel, tree)).flattenE
 
       case USRevRel(rel) =>
-        EitherOps.sequence(left.map {
-          leftObject: MemoryObject => {
-            val related = leftObject.getRevRelated(rel.name)
-            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.from, o)))
-            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
-            res
-          }
-        }).map(_.flatten)
+        left.map(_.getRevRelatedMemoryObjects(rel, tree)).flattenE
 
       case USUpto(n, rel) =>
         val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =

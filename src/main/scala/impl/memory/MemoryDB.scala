@@ -14,6 +14,12 @@ import scalaz._, Scalaz._
   *  A simple in memory implementation of a backend
   */
 object MemoryDB extends DBBackend {
+  /**
+    * Always opens a new DB
+    * @param address - Address to open
+    * @param schema - Schema to open with
+    * @return a [[DBInstance]]
+    */
   override def open(
                      address: DatabaseAddress,
                      schema: SchemaDescription

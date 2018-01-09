@@ -15,14 +15,24 @@ import Scalaz._
 /**
   * Created by Al on 20/10/2017.
   *
-  * An in-memory database executor
+  * An in-memory database executor.
+  * Stores a separate database per view
   */
 package object memory extends {
+  /**
+    * Convenience Types
+    */
   type MemoryTree = Map[TableName, MemoryTable]
+  /**
+    * Convenience Type
+    */
   type RelatedPair = (MemoryObject, MemoryObject)
 
+  /**
+    * Convenience methods for tree
+    */
   implicit class MemoryTreeOps(memoryTree: MemoryTree) {
-    def findPattern(findable: ErasedFindable): MemoryEither[Vector[MemoryObject]] = for {
+    def findPattern(findable: ErasedFindable): MemoryEither[Set[MemoryObject]] = for {
       table <- memoryTree.getOrError(findable.tableName, MemoryMissingTableName(findable.tableName))
       res <- table.find(findable)
     } yield res

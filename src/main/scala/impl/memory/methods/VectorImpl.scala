@@ -1,18 +1,22 @@
 package impl.memory.methods
 
-import core.backend.common.MissingTableName
-import core.user.dsl.E
 import core.backend.intermediate.Find
 import core.backend.intermediate.unsafe._
 import core.user.schema.{SchemaDescription, SchemaObject}
-import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 import core.utils._
 import impl.memory.errors.{MemoryMissingRelation, MemoryMissingTableName}
+import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 
 import scalaz.Scalaz._
-import scalaz._
 
+/**
+  * Implements lookup queries for Vector commands
+  */
 trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with RepetitionImpl =>
+
+  /**
+    * Find an A in the tree
+    */
   def find[A](a: A, t: MemoryTree)
              (implicit sa: SchemaObject[A], sd: SchemaDescription): MemoryEither[Set[MemoryObject]] =
     for {
@@ -20,12 +24,21 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
       res <- findSingleImpl(unsafeQuery, t)
     } yield res.toSet
 
+  /**
+    * Implements findSingleVector, by recursing over the ADT
+    * @param t - query
+    * @param tree - [[MemoryTree]] to execute against
+    */
+
   def findSingleImpl(t: UnsafeFindSingle, tree: MemoryTree): MemoryEither[Vector[MemoryObject]] = {
     def recurse(t: UnsafeFindSingle) = findSingleImpl(t, tree)
 
     t match {
       case USFind(pattern) =>
-        tree.getOrError(pattern.tableName, MemoryMissingTableName(pattern.tableName)).flatMap(_.find(pattern))
+        tree
+          .getOrError(pattern.tableName, MemoryMissingTableName(pattern.tableName))
+          .flatMap(_.find(pattern)
+            .map(_.toVector))
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairsImpl(rel, left, tree).map(_.mapProj2)
@@ -36,7 +49,14 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
     }
   }
 
-
+  /**
+    * Implements findPairsSet, by recursing over the ADT
+    * @param q - query
+    * @param left - the objects from which relation should start. This minimises the amount of work that has to be done
+    * @param tree - [[MemoryTree]] to execute against
+    *
+    * Most cases are fairly straight forward
+    */
   def findPairsImpl(q: UnsafeFindPair, left: Vector[MemoryObject], tree: MemoryTree): MemoryEither[Vector[RelatedPair]] = {
     def recurse(t: UnsafeFindPair, left: Vector[MemoryObject]) = findPairsImpl(t, left, tree)
 
@@ -76,25 +96,11 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
       case USId(_) => left.map(x => (x, x)).right
 
       case USRel(rel) =>
-        EitherOps.sequence(left.map {
-          leftObject: MemoryObject => {
-            val related = leftObject.getRelated(rel.name).toVector
-            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.to, o)))
-            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
-            res
-          }
-        }).map(_.flatten)
+        left.map {_.getRelatedMemoryObjects(rel, tree).map(_.toVector)}.flattenE
 
 
       case USRevRel(rel) =>
-        EitherOps.sequence(left.map {
-          leftObject: MemoryObject => {
-            val related = leftObject.getRevRelated(rel.name).toVector
-            val eRelatedObjects = EitherOps.sequence(related.map(o => tree.findObj(rel.from, o)))
-            val res = eRelatedObjects.map(relatedObjects => relatedObjects.flatten.map((leftObject, _)))
-            res
-          }
-        }).map(_.flatten)
+        left.map {_.getRevRelatedMemoryObjects(rel, tree).map(_.toVector)}.flattenE
 
       case USUpto(n, rel) =>
         val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]]

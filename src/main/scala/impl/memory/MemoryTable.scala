@@ -10,34 +10,41 @@ import scalaz.Scalaz._
 
 /**
   * Created by Al on 25/10/2017.
+  *
+  * Class containing an in memory lookup table.
+  * This allows the lookup of whole DBObjects and indexing by individual DBCells
   */
 
 case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[DBCell, Set[MemoryObject]]], name: TableName) {
-  def find(findable: ErasedFindable): MemoryEither[Vector[MemoryObject]] = {
+  /**
+    *    lookup a findable in the table
+    */
+
+  def find(findable: ErasedFindable): MemoryEither[Set[MemoryObject]] = {
     val pattern = findable.pattern
     if (pattern.length != index.length)
       MemoryExtractError(LengthMismatch(pattern.length, index.length)).left
     else {
-      pattern.zip(index).foldLeft(MemoryEither(objects.values.toVector)){
-        case (eos, (filter, map)) =>
-          filter match {
-            case None => eos
-            case Some(value) =>
-              eos.map(
-                os => os.intersect(map.getOrElse(value, Set()).toSeq)
-              )
-
-          }
-      }
+      bigIntersection(objects.values.toSet, pattern.zip(index).collect {case (Some(cell), map) => map.getOrElse(cell, Set())}).right
     }
   }
 
+  /**
+    * Lookup a DBObject in the table
+    */
   def find(value: DBObject): Option[MemoryObject] = objects.get(value)
+
+  /**
+    * Lookup a DBObject in the table, creating one if it doesn't exist, and returning the MemoryObject
+    */
 
   def findOrWrite(findable: DBObject): MemoryEither[MemoryObject] =
     MemoryEither(find(findable).getOrElse(MemoryObject(findable, name, Map(), Map())))
 
-  def  insert(o: MemoryObject): MemoryTable = {
+  /**
+    * Inserts a memory object to the table
+    */
+  def insert(o: MemoryObject): MemoryTable = {
     if (o.value in objects){
       // need to replace updated value in each table
       val newObjects = objects + (o.value -> o)
@@ -60,7 +67,10 @@ case class MemoryTable(objects: Map[DBObject, MemoryObject], index: Vector[Map[D
 
 object MemoryTable {
 
-  // create an empty table based on a core.user.schema
+  /**
+    * create an empty table based on a core.user.schema
+    */
+
   def apply(so: SchemaObject[_]): MemoryTable = {
     val objects = Map[DBObject, MemoryObject]()
     val index = so.schemaComponents.map(_ => Map[DBCell, Set[MemoryObject]]())

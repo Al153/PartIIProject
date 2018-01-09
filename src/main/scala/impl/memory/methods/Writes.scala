@@ -7,7 +7,14 @@ import core.utils._
 import impl.memory.errors.MemoryMissingTableName
 import impl.memory.{MemoryEither, MemoryTree}
 
+/**
+  * Provides Write implementations
+  */
+
 trait Writes {
+  /**
+    * Write a relation between a pair of objects to the database
+    */
   def write[A](
                 t: MemoryTree, tableName1: TableName,
                 memoryObject1: DBObject,
@@ -31,6 +38,9 @@ trait Writes {
     }
   }
 
+  /**
+    * Writes a relation between two objects in the same table, so the same table needs to be updated twice
+    */
   private def writeSelfRelation(
                                  t: MemoryTree,
                                  tableName1: TableName,

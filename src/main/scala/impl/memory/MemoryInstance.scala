@@ -19,42 +19,77 @@ import scalaz.Scalaz._
 /**
   * Created by Al on 29/10/2017.
   *
-  * Instance that hold a database instance
+  * Instance implementation
   */
 class MemoryInstance(val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
   override lazy val executor: DBExecutor = new InMemoryExecutor(this, schema)
 
-  val relations: Set[ErasedRelationAttributes] = schema.relationMap.values.toSet
+  /**
+    * initial default tree
+    */
   val defaultTree: MemoryTree = schema.objects.map(o => o.name -> MemoryTable(o)).toMap
 
-  private object Store { // stores the mutable state
+  /**
+    * stores the mutable state for the instance
+    */
+  private object Store {
     private var defaultView: View = View(0)
+    /**
+      * Stores View => Tree
+      */
     private val memoryStore: concurrent.Map[View, MemoryTree] = new ConcurrentHashMap[View, MemoryTree]().asScala
+
+    /**
+      * View counter - mutable
+      */
     private val viewId: AtomicLong = new AtomicLong(1)
 
+    // Setup the default view
     memoryStore(defaultView) = defaultTree
 
+    /**
+      * Pick a tree according to the view
+      */
     def get(v: View): MemoryEither[MemoryTree] = this.synchronized {
       memoryStore.getOrError(v, MissingViewError(v))
     }
 
+    /**
+      * Insert a tree and get its view
+      */
     def put(t: MemoryTree): MemoryEither[View] = this.synchronized {
       val view = View(viewId.incrementAndGet())
       memoryStore(view) = t
       return view.right
     }
 
+    /**
+      * get default view
+      */
     def getDefaultView: View = this.synchronized(defaultView)
+    /**
+      * set default view
+      */
     def setDefaultView(v: View): Unit = this.synchronized(defaultView = v)
+    /**
+      * get all views
+      */
     def getViews: Set[View] = memoryStore.keys.toSet
   }
 
+  /**
+    * Wraps a function of [[MemoryTree]] into an [[Operation]]
+    */
 
   def readOp[A](f: MemoryTree => MemoryEither[A]): Operation[E, A] =
     new ReadOperation(v => MemoryFutureE(for {
       t <- Store.get(v)
       a <- f(t)
     } yield a).asCFuture)
+
+  /**
+    * Wraps a function of [[MemoryTree]] => [[MemoryTree]] into an [[Operation]]
+    */
 
   def writeOp(f: MemoryTree => MemoryEither[MemoryTree]): Operation[E, Unit]  =
     new WriteOperation (u => MemoryFutureE(for {
@@ -63,11 +98,26 @@ class MemoryInstance(val schema: SchemaDescription)(implicit val executionContex
       v <- Store.put(newTree)
     } yield v).asCFuture)
 
+  /**
+    * Implements trait method
+    */
   override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = MemoryFutureI(Store.setDefaultView(view)).asCFuture
+
+  /**
+    * Implements trait method
+    */
 
   override def getDefaultView: ConstrainedFuture[E, View] = MemoryFutureI(Store.getDefaultView).asCFuture
 
+  /**
+    * Implements trait method
+    */
+
   override def getViews: ConstrainedFuture[E, Set[View]] = MemoryFuture(Store.getViews).asCFuture
+
+  /**
+    * Implements trait method
+    */
 
   override def close(): Unit = ()
 }
