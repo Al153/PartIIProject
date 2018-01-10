@@ -15,19 +15,38 @@ import Scalaz._
 
 /**
   * Created by Al on 30/12/2017.
+  *
+  * Implementation for set methods
   */
 trait SetImpl { self: Methods =>
+
+  /**
+    * Run a type-erased findable and get the result
+    * @param ut - query to run
+    * @param commits - commits to look at
+    * @param objectTable - table to extract from
+    * @return
+    */
   def readSet[A](
                      ut: UnsafeFindSingle,
                      commits: Set[Commit],
                      objectTable: ObjectRetrievalTable
-                   )(implicit extractor: SchemaObject[A], sd: SchemaDescription): LMDBEither[Set[A]] = {
+                   )(implicit sa: SchemaObject[A], sd: SchemaDescription): LMDBEither[Set[A]] = {
     for {
+      // find the object ids of the result
       ids <- findSingleSet(ut, commits)
+      // extract the objects
       res <- objectTable.retrieve(ids)
     } yield res
   }
-
+  /**
+    * Run a type-erased findable and get the result
+    * @param ut - query to run
+    * @param commits - commits to look at
+    * @param leftTable - table to extract left of each pair from
+    * @param rightTable - table to extract right of each pair from
+    * @return
+    */
   def readSetPairs[A, B](
                           ut: UnsafeFindPair,
                           commits: Set[Commit],
@@ -38,43 +57,59 @@ trait SetImpl { self: Methods =>
     sb: SchemaObject[B],
     sd: SchemaDescription
   ): LMDBEither[Set[(A, B)]] = for {
+    // starting values (all values in left table)
     initial <- leftTable.lookup(commits)
+    // runs the ADT on the intitial values
     pairs <- findPairSet(ut, commits, initial)
-    res <- extractPairSet[A, B](pairs)
+    // extract the pairs
+    res <- extractPairSet[A, B](pairs, leftTable, rightTable)
   } yield res
 
-  def extractPairSet[A, B](in: Set[(ObjId, ObjId)])(
+  /**
+    * Speeds up extracting values from a pair of sets by building an index
+    * @param in - Pairs to find results for
+    * @return All pairs extracted from the tables
+    */
+  def extractPairSet[A, B](in: Set[(ObjId, ObjId)], aTable: ObjectRetrievalTable, bTable: ObjectRetrievalTable)(
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
-  ): LMDBEither[Set[(A, B)]] = for {
-    aTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
-    bTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
+  ): LMDBEither[Set[(A, B)]] = {
+    val leftIds = in.mapProj1
+    val rightIds = in.mapProj2
 
-    leftIds = in.mapProj1.toSet
-    rightIds = in.mapProj2.toSet
+    for {
+      // build up an index for left and right hand side - O(root(N)) size index
+      // todo: merge indices if sa = sb?
+      leftIndex <- EitherOps.sequence(leftIds.map {
+        id => aTable.retrieve[A](id).map(id -> _)
+      }).toMapE
 
-    leftIndex <- EitherOps.sequence(leftIds.map {
-      id => aTable.retrieve[A](id).map(id -> _)
-    }).toMapE
+      rightIndex <- EitherOps.sequence(rightIds.map {
+        id => bTable.retrieve[B](id).map(id -> _)
+      }).toMapE
 
-    rightIndex <- EitherOps.sequence(rightIds.map {
-      id => bTable.retrieve[B](id).map(id -> _)
-    }).toMapE
+      // read from index
+      res <- EitherOps.sequence(
+        in.map {
+          case (leftId, rightId) =>
+            for {
+              a <- leftIndex.getOrError(leftId, MissingIndex(leftId, leftIndex))
+              b <- rightIndex.getOrError(rightId, MissingIndex(rightId, rightIndex))
+            } yield (a, b)
+        }
+      )
+    } yield res
+  }
 
-    res <- EitherOps.sequence(
-      in.map {
-        case (leftId, rightId) =>
-          for {
-            a <- leftIndex.getOrError(leftId, MissingIndex(leftId, leftIndex))
-            b <- rightIndex.getOrError(rightId, MissingIndex(rightId, rightIndex))
-          } yield (a, b)
-      }
-    )
-  } yield res
-
+  /**
+    * Interpret a [[UnsafeFindSingle]] AST to get all appropriate ObjIds
+    * Fairly straight forward
+    * @param ut - The AST to interpret
+    * @param commits - Commits to search
+    * @return
+    */
   def findSingleSet(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
     def recurse(t: UnsafeFindSingle) = findSingleSet(t, commits)
-
     ut match {
       case USFind(pattern) => instance.lookupPattern(pattern, commits)
       case USFrom(start, rel) => for {
@@ -87,7 +122,16 @@ trait SetImpl { self: Methods =>
       } yield broad.filter(_ in filtered)
     }
   }
-
+  /**
+    * Interpret a [[UnsafeFindPair]] AST to get all appropriate ObjIds
+    * Fairly straight forward recursive implementation
+    * @param ut - The AST to interpret
+    * @param commits - Commits to search
+    * @param from - the left hand object Ids we want to include. We use
+    *               this because we want to limit the number of objects
+    *               we search as much as possible
+    * @return
+    */
   protected def findPairSet(
                              ut: UnsafeFindPair,
                              commits: Set[Commit],
@@ -100,23 +144,21 @@ trait SetImpl { self: Methods =>
         b <- recurse(r, from)
       } yield a intersect b
 
-
       case USAndRight(l, r) => for {
         leftRes <- recurse(l, from)
         rightRes <- findSingleSet(r, commits)
-      } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
+      } yield leftRes.filter{case (_, b) => rightRes.contains(b)}
 
       case USAndLeft(l, r) => for {
         leftRes <- recurse(l, from)
-        rightRes <- findSingleSet(r, commits) // todo: use a set here
-      } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
+        rightRes <- findSingleSet(r, commits)
+      } yield leftRes.filter{case (a, _) => rightRes.contains(a)}
 
 
       case USOr(l, r) => for {
         leftRes <- recurse(l, from)
         rightRes <- recurse(r, from)
       } yield leftRes.union(rightRes)
-
 
       case USChain(l, r) => for {
         lres <- recurse(l, from)
@@ -166,7 +208,7 @@ trait SetImpl { self: Methods =>
       case USExactly(n, rel) => if (n <= 0) {
         from.map(x => (x, x)).right
       } else {
-        recurse(USChain(rel, USExactly(n-1, rel)), from) // todo: this is probably quite slow
+        recurse(USChain(rel, USExactly(n-1, rel)), from) // todo: this is probably quite slow, use exponentiall chaining?
       }
     }
   }

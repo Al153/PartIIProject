@@ -15,20 +15,40 @@ import Scalaz._
 
 /**
   * Created by Al on 30/12/2017.
+  *
+  * Implementation for multiset (Vector) methods
   */
 trait VectorImpl { self: Methods =>
-  def findVector[A](
+
+  /**
+    * Run a type-erased findable and get the result
+    * @param ut - query to run
+    * @param commits - commits to look at
+    * @param objectTable - table to extract from
+    * @return
+    */
+  def readVector[A](
                        ut: UnsafeFindSingle,
                        commits: Set[Commit],
                        objectTable: ObjectRetrievalTable
                      )(implicit extractor: SchemaObject[A]): LMDBEither[Vector[A]] =
     for {
+    // find the object ids of the result
       ids <- findSingleVector(ut, commits)
+      // extract the objects
       res <- objectTable.retrieve(ids)
     } yield res
 
+  /**
+    * Run a type-erased findable and get the result
+    * @param ut - query to run
+    * @param commits - commits to look at
+    * @param leftTable - table to extract left of each pair from
+    * @param rightTable - table to extract right of each pair from
+    * @return
+    */
 
-  def findVectorPairs[A, B](
+  def readVectorPairs[A, B](
                            ut: UnsafeFindPair,
                            commits: Set[Commit],
                            leftTable: ObjectRetrievalTable,
@@ -38,47 +58,70 @@ trait VectorImpl { self: Methods =>
     sb: SchemaObject[B],
     sd: SchemaDescription
   ): LMDBEither[Vector[(A, B)]] = for {
+  // starting values (all values in left table)
     initial <- leftTable.lookupVector(commits)
+    // runs the ADT on the intitial values
     pairs <- findPairVector(ut, commits, initial)
-    res <- extractPairVector[A, B](pairs)
+    // extract the pairs
+    res <- extractPairVector[A, B](pairs, leftTable, rightTable)
   } yield res
 
-
-  def extractPairVector[A, B](in: Vector[(ObjId, ObjId)])(
+  /**
+    * Speeds up extracting values from a pair of sets by building an index
+    * @param in - Pairs to find results for
+    * @return All pairs extracted from the tables
+    */
+  def extractPairVector[A, B](
+                               in: Vector[(ObjId, ObjId)],
+                               aTable: ObjectRetrievalTable,
+                               bTable: ObjectRetrievalTable
+                             )(
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
-  ): LMDBEither[Vector[(A, B)]] = for {
-    aTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
-    bTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
-
-    leftIds = in.mapProj1.toSet
-    rightIds = in.mapProj2.toSet
-
-    leftIndex <- EitherOps.sequence(leftIds.map {
-      id => aTable.retrieve[A](id).map(id -> _)
-    }).toMapE
-
-    rightIndex <- EitherOps.sequence(rightIds.map {
-      id => bTable.retrieve[B](id).map(id -> _)
-    }).toMapE
-
-    res <- EitherOps.sequence(
-      in.map {
-        case (leftId, rightId) =>
-          for {
-            a <- leftIndex.getOrError(leftId, MissingIndex(leftId, leftIndex))
-            b <- rightIndex.getOrError(rightId, MissingIndex(rightId, rightIndex))
-          } yield (a, b)
-      }
-    )
-  } yield res
+  ): LMDBEither[Vector[(A, B)]] = {
+    val leftIds = in.mapProj1.toSet
+    val rightIds = in.mapProj2.toSet
+    for {
+    // build up an index for left and right hand side - O(root(N)) size index
+    // todo: merge indices if sa = sb?
 
 
+
+      leftIndex <- EitherOps.sequence(leftIds.map {
+        id => aTable.retrieve[A](id).map(id -> _)
+      }).toMapE
+
+      rightIndex <- EitherOps.sequence(rightIds.map {
+        id => bTable.retrieve[B](id).map(id -> _)
+      }).toMapE
+
+
+      // read from index
+      res <- EitherOps.sequence(
+        in.map {
+          case (leftId, rightId) =>
+            for {
+              a <- leftIndex.getOrError(leftId, MissingIndex(leftId, leftIndex))
+              b <- rightIndex.getOrError(rightId, MissingIndex(rightId, rightIndex))
+            } yield (a, b)
+        }
+      )
+    } yield res
+  }
+
+  /**
+    * Interpret a [[UnsafeFindSingle]] AST to get all appropriate ObjIds
+    * Fairly straight forward
+    * @param ut - The AST to interpret
+    * @param commits - Commits to search
+    * @return
+    */
   def findSingleVector(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Vector[ObjId]] = {
     def recurse(t: UnsafeFindSingle) = findSingleVector(t, commits)
 
     ut match {
-      case USFind(pattern) => instance.lookupPattern(pattern, commits).map(_.toVector)
+      case USFind(pattern) =>
+        instance.lookupPattern(pattern, commits).map(_.toVector)
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairVector(rel, commits, left)
@@ -91,11 +134,22 @@ trait VectorImpl { self: Methods =>
     }
   }
 
+  /**
+    * Interpret a [[UnsafeFindPair]] AST to get all appropriate ObjIds
+    * Fairly straight forward recursive implementation
+    * @param ut - The AST to interpret
+    * @param commits - Commits to search
+    * @param from - the left hand object Ids we want to include. We use
+    *               this because we want to limit the number of objects
+    *               we search as much as possible
+    * @return
+    */
+
   def findPairVector(
-                             ut: UnsafeFindPair,
-                             commits: Set[Commit],
-                             from: Vector[ObjId]
-                           ): LMDBEither[Vector[(ObjId, ObjId)]] = {
+                      ut: UnsafeFindPair,
+                      commits: Set[Commit],
+                      from: Vector[ObjId]
+                    ): LMDBEither[Vector[(ObjId, ObjId)]] = {
     def recurse(ut: UnsafeFindPair, from: Vector[ObjId]) = findPairVector(ut, commits, from)
     ut match {
       case USAnd(l, r)  => for {
@@ -106,12 +160,12 @@ trait VectorImpl { self: Methods =>
 
       case USAndRight(l, r) => for {
         leftRes <- recurse(l, from)
-        rightRes <- findSingleSet(r, commits) // todo: use a set here
+        rightRes <- findSingleSet(r, commits)
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
 
       case USAndLeft(l, r) => for {
         leftRes <- recurse(l, from)
-        rightRes <- findSingleSet(r, commits) // todo: use a set here
+        rightRes <- findSingleSet(r, commits)
       } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
 
 
@@ -149,9 +203,7 @@ trait VectorImpl { self: Methods =>
         }).map(_.flatten)
 
       case USUpto(n, rel) =>
-        // todo: step function should use Set impl
-        // todo: fix these castings
-        val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left.toVector).map(_.mapProj2.toSet)
+        val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => findPairSet(rel, commits, left).map(_.mapProj2)
         for {
           rres <- FixedPointTraversal.upTo[LMDBError, ObjId](stepFunction, from.toSet, n)
         } yield rres.toVector
@@ -163,8 +215,7 @@ trait VectorImpl { self: Methods =>
           recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), from)
         } else {
           // otherwise find a fixed point
-          // todo: fix these castings
-          val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left.toVector).map(_.mapProj2.toSet)
+          val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => findPairSet(rel, commits, left).map(_.mapProj2)
           for {
             res <- FixedPointTraversal.fixedPoint(stepFunction, from.toSet.mapPair)
           } yield res.toVector

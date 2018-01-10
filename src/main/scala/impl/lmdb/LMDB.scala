@@ -17,9 +17,6 @@ import scalaz._, Scalaz._
   * Bespoke LMDB backend for the system
   */
 
-// todo: design key value system for system
-
-
 object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {

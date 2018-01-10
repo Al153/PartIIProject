@@ -10,13 +10,26 @@ import impl.lmdb.access.Storeable._
 
 /**
   * Created by Al on 28/12/2017.
+  *
+  * Relates views to commits
   */
+// todo: move away from the Set[Commit], since we only ever append to the collection of commits or traverse it.
+//       so a list might be quicker
 class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
   override def path: Key = "db" >> "views"
 
+  // initialise
   newChildView(initialView, Set())
 
+  /**
+    * Lokup commits associated with a view
+    * @param v
+    * @return
+    */
   def lookupCommits(v: View): LMDBEither[Set[Commit]] = get(path >> v)
 
+  /**
+    * Insert a new child view  with its commits
+    */
   def newChildView(newView: View, commits: Set[Commit]): LMDBEither[Unit] = put(path >> newView, commits)
 }

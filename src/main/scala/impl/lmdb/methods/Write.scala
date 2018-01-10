@@ -15,12 +15,18 @@ import Scalaz._
 
 /**
   * Created by Al on 29/12/2017.
+  *
+  * Implementation of write methods
   */
 
 
 trait Write { self: Methods =>
   import instance._
 
+  /**
+    * High-level insert method
+    * @param t - values to insert
+    */
   def insert[A, B](
                     t: TraversableOnce[CompletedRelation[A, B]]
                   )(
@@ -29,22 +35,30 @@ trait Write { self: Methods =>
     v => LMDBFutureE(doInsert(t, v)).asCFuture
   )
 
+  /**
+    * Runs an insert on a view to produce a view in real time (eg this thread/future)
+    * @param t - relations to insert
+    * @param v - view to insert to
+    * @return
+    */
   private def doInsert[A, B](t: TraversableOnce[CompletedRelation[A, B]], v: View)(
     implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription
   ): LMDBEither[View] = for {
+    // Check the view is valid
     _ <- instance.controlTables.availableViews.validateView(v)
     // - get a new commit and view id
     commit <- instance.controlTables.commitsCounter.getAndUpdate()
     newView <- instance.controlTables.viewsCounter.getAndUpdate()
 
     // - insert new set of commits and view as an entry to the views table
-
     commits <- instance.controlTables.viewsTable.lookupCommits(v)
     _ <- instance.controlTables.viewsTable.newChildView(newView, commits + commit)
 
+    // get new object Ids for find existing ones
     spec <- getObjIds(t, commits, commit)
     (relationsToInsert, reverseRelationsToInsert) = spec
 
+    // insert forwards relations
     _ <- EitherOps.sequence {
       relationsToInsert.flatMap {
         case (from, to) =>
@@ -54,6 +68,8 @@ trait Write { self: Methods =>
           }
       }
     }
+
+    // insert reverse relations
     _ <- EitherOps.sequence {
       reverseRelationsToInsert.flatMap {
         case (from, to) =>
@@ -64,6 +80,7 @@ trait Write { self: Methods =>
       }
     }
 
+    // finally, insert the new view into the available views table
     _ <- instance.controlTables.availableViews.insertNewView(newView)
 
   } yield newView
@@ -91,9 +108,13 @@ trait Write { self: Methods =>
     sd: SchemaDescription
   ): LMDBEither[(Map[ObjId, Map[RelationName, Set[ObjId]]], Map[ObjId, Map[RelationName, Set[ObjId]]])] =
     for {
+      // get hold of the tables to insert into
       aLookupTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
       bLookupTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
 
+      // build an index of A -> (RelationName -> Set[B])
+
+      // todo: Faster collections for running this index
       aMap <- t.toSeq.foldLeft(LMDBEither(Map[A, Map[RelationName, Set[B]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
           for {
@@ -105,6 +126,7 @@ trait Write { self: Methods =>
           } yield m + (a -> mset)
       }
 
+      // build equivalent B index
       bMap <- t.toSeq.foldLeft(LMDBEither(Map[B, Map[RelationName, Set[A]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
           for {
@@ -117,13 +139,23 @@ trait Write { self: Methods =>
       }
 
 
+      // find a lookup table of (ObjId -> A) (ObjId -> B)
       aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
       bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
 
+      // convert the two lookup maps
       aRes <- convertMap[A, B](aMap, aLookup, bLookup)
       bRes <- convertMap[B, A](bMap, bLookup, aLookup)
     } yield aRes -> bRes
 
+  /**
+    * Given a specification of which objects are linked to which, and a pair of lookup tables
+    * convert to a specification of [[ObjId]] s
+    * @param aMap - the map to convert
+    * @param aLookup - A type lookup
+    * @param bLookup - B type lookup
+    * @return
+    */
   private def convertMap[A, B](
                                 aMap: Map[A, Map[RelationName, Set[B]]],
                                 aLookup: Map[A, ObjId],

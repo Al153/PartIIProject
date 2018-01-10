@@ -1,9 +1,11 @@
 package impl.lmdb.errors
 
-import core.backend.common.{DBObject, ExtractError}
+import core.backend.common.ExtractError
 
 /**
   * Created by Al on 02/01/2018.
+  *
+  * Errors from extracting values from the LMDB
   */
 sealed trait LMDBExtractError extends LMDBError
 

@@ -12,14 +12,34 @@ import scalaz.Scalaz._
 
 /**
   * Created by Al on 29/12/2017.
+  *
+  * Storeable is a typeclass for objects that can be stored in the database
   */
 trait Storeable[A] {
+  /**
+    * Storeable objects need to be able to be converted to bytes to be stored
+    */
   def toBytes(a: A): Vector[Byte]
 
+  /**
+    * Storeable objects need to be extracted from a series of bytes
+    * @param bytes
+    * @return
+    */
   def fromBytes(bytes: Vector[Byte]): LMDBEither[A]
 }
 
 object Storeable {
+
+  // todo: should this use arrays underneath?
+  // todo: optimise everything
+  /**
+    * Extract a vector of bytes into a set of objects using an extractor method
+    * @param iterated - a method that picks out values from the start of byte stream and returns the rest
+    * @param in - stream to extract from
+    * @tparam A - type of objects exracted
+    * @return
+    */
   def extractWhileSet[A](iterated: Vector[Byte] => LMDBEither[(A, Vector[Byte])])
                         (in: Vector[Byte]): LMDBEither[Set[A]] = {
     var res: LMDBEither[mutable.Builder[A, Set[A]]] = Set.newBuilder[A].right
@@ -34,6 +54,13 @@ object Storeable {
     res.map(_.result())
   }
 
+  /**
+    * Extract a vector of bytes into a vector of objects using an extractor method
+    * @param iterated - a method that picks out values from the start of byte stream and returns the rest
+    * @param in - stream to extract from
+    * @tparam A - type of objects exracted
+    * @return
+    */
   def extractWhileVector[A](iterated: Vector[Byte] => LMDBEither[(A, Vector[Byte])])
                         (in: Vector[Byte]): LMDBEither[Vector[A]] = {
     var res: LMDBEither[mutable.Builder[A, Vector[A]]] = Vector.newBuilder[A].right
@@ -48,13 +75,18 @@ object Storeable {
     res.map(_.result())
   }
 
-
+  /**
+    * Storeable instances for common classes
+    */
   implicit object StoreableView extends Storeable[View] {
     override def toBytes(v: View): Vector[Byte] = StoreableLong.toBytes(v.id)
     override def fromBytes(bytes: Vector[Byte]): LMDBEither[View] = StoreableLong.fromBytes(bytes).map(View.apply)
   }
 
   implicit object StoreableString extends Storeable[String] {
+    /**
+      * String conversions are easy
+      */
     override def toBytes(s: String): Vector[Byte] = {
      s.getBytes.toVector
     }
@@ -63,6 +95,10 @@ object Storeable {
       new String(bytes.toArray).right
 
   }
+
+  /**
+    * A boolean is stored as either a 0xff or 0x00
+    */
 
   implicit object StoreableBoolean extends Storeable[Boolean] {
     override def toBytes(a: Boolean): Vector[Byte] =
@@ -74,6 +110,9 @@ object Storeable {
       else BooleanExtractError(bytes).left
   }
 
+  /**
+    * An int is always stored as 4 bytes in big-endian format
+    */
   implicit object StoreableInt extends Storeable[Int] {
     override def toBytes(a: Int): Vector[Byte] =
       Vector((a>>24).toByte, (a>>16).toByte, (a>>8).toByte, a.toByte)
@@ -84,6 +123,9 @@ object Storeable {
       })
   }
 
+  /**
+    * Doubles are stored in big endian format (8 bytes)
+    */
   implicit object StoreableDouble extends Storeable[Double] {
     override def toBytes(d: Double): Vector[Byte] = {
       val l = java.lang.Double.doubleToLongBits(d)
@@ -96,6 +138,10 @@ object Storeable {
       if (bytes.length == 8) ByteBuffer.wrap(bytes.toArray).getDouble.right
       else UnexpectedStreamLength(8, bytes).left
   }
+
+  /**
+    * Longs are also stored in big endian format
+    */
 
   implicit object StoreableLong extends Storeable[Long] {
     override def toBytes(a: Long): Vector[Byte] =
@@ -110,6 +156,11 @@ object Storeable {
       })
   }
 
+  /**
+    * Sets are stored as [length - object - length - object - ... object]
+    * With length as a 4 byte int
+    * @return
+    */
   implicit def StoreableSet[A](implicit sa: Storeable[A]) = new Storeable[Set[A]] {
     override def toBytes(s: Set[A]): Vector[Byte] = s.foldRight(Vector[Byte]()) {
       case (a, rest) =>
@@ -133,6 +184,9 @@ object Storeable {
     }
   }
 
+  /**
+    * A DBCell is stored as a flag-byte followed by the representation of a value
+    */
   implicit object StoreableDBCell extends Storeable[DBCell] {
     val intFlag: Byte = 0.toByte
     val stringFlag: Byte = 1.toByte
@@ -158,6 +212,11 @@ object Storeable {
       } else UnexpectedStreamLength(1, bytes).left
   }
 
+  /**
+    * A DBObject is stored as a vector of DBObjects, like a set
+    *
+    * [Length, Cell, Length, Cell, .., Cell]
+    */
   implicit object StoreableDBObject extends Storeable[DBObject] {
     override def toBytes(o: DBObject): Vector[Byte] = o.fields.foldRight(Vector[Byte]()) {
       case (a, rest) =>

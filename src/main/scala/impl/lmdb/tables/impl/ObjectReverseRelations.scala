@@ -7,6 +7,8 @@ import impl.lmdb.tables.interfaces.RelationTable
 
 /**
   * Created by Al on 28/12/2017.
+  *
+  * Table containing all incoming relations to objects, simply uses [[RelationTable]]'s code
   */
 class ObjectReverseRelations (implicit val instance: LMDBInstance) extends RelationTable {
   override val path: Key = "db" >> "incomingRelations"
