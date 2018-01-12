@@ -64,6 +64,6 @@ object BreadthFirstTraversal {
     */
 
   def allPaths[Node](start: Node, generator: Node => Set[Node]): Set[Vector[Node]] = {
-    breadthFirstTraversal(start, generator).collect{case (n, l) if n != start => println("Path = " + (n, l)); l}.toSet
+    breadthFirstTraversal(start, generator).collect{case (n, l) if n != start => l}.toSet
   }
 }

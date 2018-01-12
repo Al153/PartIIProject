@@ -35,7 +35,7 @@ case class CompletedSingleQuery(
   }
 
   private def getJoin(table: ObjectTable): String =
-      s"ON ${SQLDB.singleTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.rightId}"
+    s"${getTable(table)} JOIN ${SQLDB.mainQuery} ON ${SQLDB.singleTable}.${SQLColumnName.objId} = ${SQLDB.mainQuery}.${SQLColumnName.rightId}"
 
   private def getTable(table: ObjectTable): String = s"${table.name} AS ${SQLDB.singleTable}"
 }

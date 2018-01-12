@@ -22,7 +22,7 @@ package object queries {
     */
 
   def optionalAlias(q: Query): Compilation[Query] = q match {
-    case SelectWhere(_, _, _) | SelectTable(_, _) => for {
+    case SelectWhere(_, _, _) | SelectTable(_, _, _) => for {
       alias <- CompilationContext.newSymbol
     } yield Alias(alias, q)
     case Var(_) | Alias(_, _) => CompilationContext.point(q)

@@ -4,6 +4,7 @@ import core.backend.intermediate.unsafe._
 import core.user.schema.TableName
 import impl.sql.adt.CompilationContext.Compilation
 import impl.sql.adt.queries._
+import impl.sql.names.SQLColumnName
 
 /**
   * The result of rendering every exposes a left_id and right_id to allow composability
@@ -32,7 +33,7 @@ case class SelectWhere private (mappings: SelectMapping, where: Where, from: Que
 /**
   * SELECT id as left_id, id as right_id FROM [[tableName]] WHERE [[where]]
   */
-case class SelectTable private (tableName: VarName, where: WhereTable) extends Query
+case class SelectTable private (tableName: VarName, auxTable: VarName, where: WhereTable) extends Query
 
 /**
   * [[left]] INTERSECT [[right]]
@@ -83,7 +84,8 @@ object Query {
       case _ => s"(${render(sub)}) AS ${v.s}"
     }
 
-    case SelectTable(name, where) => s"SELECT ${SelectMapping.render(FromObject)} FROM $name ${WhereTable.render(where)}"
+    case SelectTable(name, auxTable, where) =>
+      s"SELECT ${SelectMapping.render(FromObject)} FROM ($name JOIN $auxTable ON $name.${SQLColumnName.objId} = $auxTable.${SQLColumnName.leftId}) ${WhereTable.render(where)}"
     case SelectWhere(mappings, where, from) => s"SELECT ${SelectMapping.render(mappings)} FROM ${render(from)} ${Where.render(where)}"
     case IntersectAll(left, right) => s"(${render(left)}) INTERSECT (${render(right)})"
     case UnionAll(left, right) => s"(${render(left)}) UNION ALL (${render(right)})"
@@ -344,12 +346,16 @@ object Query {
 
   /**
     * Find all values in a table that match a given findable
-    * @param findable
+    * @param findable - pattern to find
     * @return
     */
 
   // todo: needs to consult the auxTable
   private def doFind(findable: ErasedFindable): Compilation[Query] = for {
     name <- CompilationContext.getTableName(findable.tableName)
-  } yield SelectTable(name, Pattern(findable)) // returns SQL code to do a find of a findable
+    // needs to consult aux table to get values in the required view
+    aux <- CompilationContext.getAuxTableName(findable.tableName)
+    a <- CompilationContext.newSymbol
+    b <- CompilationContext.newSymbol
+  } yield SelectTable(name, aux, Pattern(findable)) // returns SQL code to do a find of a findable
 }

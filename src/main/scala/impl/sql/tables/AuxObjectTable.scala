@@ -58,7 +58,7 @@ class AuxObjectTable(owner: ObjectTable) extends SQLTable {
     * Query to get all values associated with the view being read from
     * @return
     */
-  def query: String = s"SELECT $objectId AS $leftId, $objectId AS $rightId FROM $name JOIN $viewVar ON $name.$commitId = $viewVar.$commitId"
+  def query: String = s"SELECT DISTINCT $objectId AS $leftId, $objectId AS $rightId FROM $name JOIN $viewVar ON $name.$commitId = $viewVar.$commitId"
 
 }
 

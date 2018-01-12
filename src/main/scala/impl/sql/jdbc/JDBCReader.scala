@@ -36,8 +36,8 @@ class JDBCReader(implicit instance: SQLInstance) {
   }
 
   /**
-    * Get object ids from a table
-    * @param query
+    * Get object ids from result of a query
+    * @param query - the query to run
     * @return
     */
 
@@ -410,7 +410,6 @@ class JDBCReader(implicit instance: SQLInstance) {
     * Run a query
     */
   private def getResultSet(q: String): ResultSet = {
-
     instance
       .connection
       .createStatement()
