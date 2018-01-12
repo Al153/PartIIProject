@@ -17,6 +17,11 @@ case class ErasedFindable(pattern: Vector[Option[DBCell]], tableName: TableName)
 
   override def toString: String = tableName.value + ":" + pattern.map(_.fold(" _ ")(_.toString).truncate(9)).mkString("|")
 
+  /**
+    * Check a DBObject matched the findable
+    * @param value
+    * @return
+    */
   def matches(value: DBObject): Boolean = pattern.zip(value.fields).forall {
     case (of, c) => of.fold(true)(_ == c)
   }

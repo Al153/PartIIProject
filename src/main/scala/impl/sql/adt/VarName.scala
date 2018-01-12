@@ -1,7 +1,7 @@
 package impl.sql.adt
 
 /**
-  * Compilation context
+  * Value class for variable aliases
   */
 
 case class VarName(s: String) extends AnyVal {

@@ -1,18 +1,17 @@
 package impl.sql.tables
 
 import core.backend.common.DBObject
-import core.user.dsl.E
 import core.user.schema.SchemaObject
-import impl.sql.errors.ColumnMismatchException
 import impl.sql.jdbc.Conversions._
 import impl.sql.names.{ObjectTableName, SQLColumnName}
 import impl.sql.schema.{SQLPrimaryRef, SQLSchema, SQLType}
 import impl.sql.types.ObjId
 import impl.sql.{SQLFuture, SQLInstance, _}
 
-import scalaz.Scalaz._
-import scalaz._
-
+/**
+  * Table looking up and extracting objects
+  * One exists for each [[SchemaObject]] in the owning [[SQLInstance]]'s Schema description
+  */
 class ObjectTable(
                    override val name: ObjectTableName,
                    override val instance: SQLInstance,
@@ -22,18 +21,19 @@ class ObjectTable(
   import ObjectTable._
   import instance.executionContext
 
+  // Each object table has an auxiliary table to associate each commit with its objects
   val auxTable: AuxObjectTable = new AuxObjectTable(this)
 
-  def getColumnName(i: Int): E \/ SQLColumnName =
-    if (i >= 0 &&  i < tableSchema.length)
-      SQLColumnName.column(i).right
-    else ColumnMismatchException(i, tableSchema.name, tableSchema.schemaComponents).left // todo: Create an error if too large
-  
-  // search for an appropriate object in the view, if there isn't, insert one to the new commit. return the ObjId
+
+  /**
+    * search for an appropriate object in the view, if there isn't,
+    * insert one to the new commit. return the ObjId
+    */
+
   def insertOrGetObject(
                          dBObject: DBObject
                        ): SQLFuture[ObjId] = SQLFutureE {
-    val temp = "insertOrGetTemp"
+    val temp = "insertOrGetTemp" // name for temp value
     val pairs = createComparisons(dBObject)
     val columnNames = getColumnNames(dBObject).mkString(", ")
     val values = getValues(dBObject).mkString(", ")
@@ -48,13 +48,18 @@ class ObjectTable(
     instance.reader.getObj(query)
   }
 
+  /**
+    *   Schema: ObjId, and appropriate type for each column.
+    *
+    */
   override def schema: SQLSchema = SQLSchema(
     Map(
       ObjectTable.objId -> SQLPrimaryRef
-    ) ++ SQLType.getRegularSchema(tableSchema.schemaComponents),
+    ) ++ SQLType.getObjectSchema(tableSchema.schemaComponents),
     uniqueRelation = true)
 }
 
 object ObjectTable {
+  // import useful values
   val objId: SQLColumnName = SQLColumnName.objId
 }

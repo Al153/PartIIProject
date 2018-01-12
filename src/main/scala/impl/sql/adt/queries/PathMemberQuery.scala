@@ -10,6 +10,8 @@ import impl.sql.types.ObjId
 
 /**
   * Created by Al on 23/11/2017.
+  *
+  * Query that picks out values which match the ObjIds on a path
   */
 case class PathMemberQuery(
                             ids: TraversableOnce[ObjId],
@@ -17,14 +19,14 @@ case class PathMemberQuery(
                             table: ObjectTable
                           )(implicit instance: SQLInstance) extends SingleQuery {
   /**
-    * Render a query which picks objects
-    *
-    * @param v
-    * @return
+    * Rendert the query
     */
   def render(v: View): String = extractMainQuery(sa.any.getUnsafe, table)
 
 
+  /**
+    * Construct the query
+    */
   private def extractMainQuery(
                                 prototype: ErasedFindable,
                                 table: ObjectTable
@@ -34,5 +36,9 @@ case class PathMemberQuery(
       s"WHERE $conditions"
   }
 
+  /**
+    * Big union of all the ids we're looking for
+    * @return
+    */
   private def conditions: String = ids.map(id => s"(${SQLDB.singleTable}.${SQLColumnName.objId} = $id)").mkString(" OR ")
 }

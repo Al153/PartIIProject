@@ -1,16 +1,12 @@
 package unit.suites.individual
 
-import core.user.interfaces._
 import core.user.dsl._
-
 import org.junit.Test
 import unit.Objects._
 import unit._
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scalaz.{-\/, \/-}
-
+import scalaz.Scalaz._
+import scalaz._
 /**
   * Created by Al on 27/12/2017.
   */
@@ -94,5 +90,37 @@ trait ViewSeparation { self: HasBackend =>
       _ <- assertEq(expected1.sorted, r1.sorted, "SeparateWrites Repetition View 1")
       _ <- assertEq(expected2.sorted, r2.sorted, "SeparateWrites View 2")
     } yield ()
+  }
+
+  /**
+    * Make sure that pattern lookups are unaffected by other views
+    */
+
+  @Test
+  def SeparatePatterns(): Unit = runTest { implicit instance =>
+    val expected = Set[Person]()
+
+    for {
+      initialView <- instance.getDefaultView
+
+      v1 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(gus, OwnedBy, Alice)
+        )
+      }
+
+      v2 <- writeToView(instance, initialView) {
+        insert( // no animals in this view
+          CompletedRelation(Bob, Knows, Fred)
+        )
+      }
+
+      r1 <- usingView(instance, v2) {
+        findDistinct(petSchema.pattern("Gus".some, None, None, None))
+      }
+
+      _ <- assertEq(expected, r1, "Separate Patterns")
+    } yield ()
+
   }
 }

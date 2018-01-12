@@ -359,6 +359,10 @@ class JDBCReader(implicit instance: SQLInstance) {
       result.map(_.result()).map(lookup => Path.fromVector(ids.map(lookup.apply)))
   }
 
+  /**
+    * Pick out A dbcell from the rs at a particular column index
+    */
+
   private def getDBCell(rs: ResultSet, component: SchemaComponent, index: Int, side: Side): SQLEither[DBCell] =
     SQLEither {
       component match {
@@ -369,33 +373,48 @@ class JDBCReader(implicit instance: SQLInstance) {
       }
     }
 
+  /**
+    * Get a Column specification from the result set
+    */
+
   private def getSQLColumn(rs: ResultSet): SQLEither[ColumnSpecification] =
     SafeEither {
-      SQLType.fromString(rs.getString("DATA_TYPE"))
+      SQLType.checkString(rs.getString("DATA_TYPE"))
         .map(t => ColumnSpecification(SQLColumnName.extractedSQLColumnName(rs.getString("COLUMN_NAME")), t))
     }
 
+  /**
+    * Get a ObjId from the result set
+    */
   private def getObjId(rs: ResultSet, side: Side): SQLEither[ObjId] =
     SQLEither {
       ObjId(rs.getLong(side.getId.s))
     }
 
-
+  /**
+    * Get a CommitId from the result set
+    */
   private def getCommitId(rs: ResultSet): SQLEither[Commit] =
     SQLEither {
       Commit(rs.getLong(SQLColumnName.commitId.s))
     }
 
+  // helper method
   private def pair[A, B](a: A, b: B): (A, B) = (a, b)
 
   private def getViewId(rs: ResultSet): SQLEither[View] = SQLEither {
     View(rs.getLong(SQLColumnName.viewId.s))
   }
 
+  /**
+    * Run a query
+    */
   private def getResultSet(q: String): ResultSet = {
-    println("Query = " + q)
-    val stmt = instance.connection.createStatement()
-    stmt.executeQuery(q)
+
+    instance
+      .connection
+      .createStatement()
+      .executeQuery(q)
   }
 
   /**

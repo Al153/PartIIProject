@@ -1,6 +1,5 @@
 package impl.sql.adt
 
-import com.sun.org.apache.bcel.internal.generic.Select
 import impl.sql.adt.CompilationContext.Compilation
 
 /**
@@ -12,10 +11,13 @@ package object queries {
     */
   def optionalBrackets(s: String): String = if (s.contains(" ")) s"($s)" else s
 
+  /**
+    * Wrap a query in an optional Select to ge around postgres synax
+    */
   def optionalSelect(s: String): String = if (s.contains(" ")) s"($s)" else s"(SELECT * FROM $s)"
 
   /**
-    * Adds an alias to a subquery if needed
+    * Adds an alias to a subquery if needed, used to get around bizarre PostgreSQL syntax ruless
 
     */
 

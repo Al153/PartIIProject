@@ -11,7 +11,14 @@ import core.user.schema.{SchemaDescription, SchemaObject, TableName}
   */
 abstract class RelationAttributes[A, B](implicit sa: SchemaObject[A], sb: SchemaObject[B])
   extends RelationalQuery[A, B]{
+  /**
+    * Names of tables used by the query
+    */
   def tableNames: (TableName, TableName) = (sa.name, sb.name)
+
+  /**
+    * Convert the RelationalAttributes into an ADT
+    */
   override def tree(implicit sd: SchemaDescription): FindPair[A, B] = Rel(this)
 }
 

@@ -11,6 +11,11 @@ import impl.sql.names.SQLColumnName
 import scalaz.Scalaz._
 import scalaz._
 
+/**
+  * Sealed trait hierarchy for defining the schema of a table
+  */
+
+// todo: separate case objects for ViewId, ColumnId
 sealed trait SQLType
 case object SQLString extends SQLType
 case object SQLInt extends SQLType
@@ -21,14 +26,17 @@ case object SQLPrimaryRef extends SQLType // unique reference
 case object SQLRef extends SQLType // generic reference
 
 object SQLType {
-  val MetaData = List(SQLColumnName.objId -> SQLPrimaryRef, SQLColumnName.commitId -> SQLRef)
-  def getRegularSchema(vc: Vector[SchemaComponent]): Map[SQLColumnName, SQLType] =
+  /**
+    * Converts an interface-side Schema informaion (ie that from a [[SchemaObject]] into sql side
+    * (ie can be written into a PostgreSQL database
+    */
+  def getObjectSchema(vc: Vector[SchemaComponent]): Map[SQLColumnName, SQLType] =
     vc.zipWithIndex.map{case (c, i) => get(i, c)}.toMap
 
-  def get(vc: Vector[SchemaComponent]): Map[SQLColumnName, SQLType] =
-    getRegularSchema(vc) ++ MetaData
-
-  def get(index: Int, component: SchemaComponent): (SQLColumnName, SQLType) =
+  /**
+    * Lookup the schemaComponent and give its SQL equivalent, plus column name
+    */
+  private def get(index: Int, component: SchemaComponent): (SQLColumnName, SQLType) =
     SQLColumnName.column(index) -> (component match {
       case IntCell =>  SQLInt
       case StringCell => SQLString
@@ -36,14 +44,23 @@ object SQLType {
       case DoubleCell => SQLDouble
     })
 
-  // gets one of several strings
-  def fromString(s: String): SQLEither[String] = {
+  /**
+    * Validate that a string is a possible type
+    * This is called on values extracted from the SQL DB
+    */
+
+  def checkString(s: String): SQLEither[String] = {
     val possible = Set("int", "bool", "real", "text", "bigint")
-    if (s.toLowerCase in possible) s.right
+    if (s.toLowerCase in possible) s.toLowerCase.right
     else SQLSchemaUnexpectedType(s).left
   }
 
-  def toTypeString(t: SQLType): String = t match { // todo: are these correct?
+  /**
+    * Renders an SQL type to the SQL schema strign it represents
+    * @param t
+    * @return
+    */
+  def toTypeString(t: SQLType): String = t match {
     case SQLInt => "INT NOT NULL"
     case SQLBool => "BOOLEAN NOT NULL"
     case SQLDouble => "DOUBLE PRECISION NOT NULL"
@@ -53,6 +70,9 @@ object SQLType {
     case SQLForeignRef(table) => s"BIGINT REFERENCES ${table.name}"
   }
 
+  /**
+    * Check that an extracted type string and expected type match
+    */
   def validateType(t: SQLType, toTest: String): SQLEither[Unit] = {
     val expected = t match {
       case SQLInt => "int"

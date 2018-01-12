@@ -13,42 +13,50 @@ import scalaz._
 
 /**
   * Created by Al on 10/12/2017.
-  *
-  *
-  * Model:
-  *
-  * Defaults table holds a single entry: default view
-  *
-  * Views registry: one column: all valid views
-  * Commits registry: One column: all valid commits
-  * Views Table: Maps Views -> commits
-  *
-  * Relation Table: (Commit_id, left_id, right_id)
-  * Object Tables: (obj_id, arbitrary columns)
+  * [[SQLTable]] Implementors contain a number of methods for interacting with the table's counterpart in the PostgreSQL
+  * DB
   */
 
-// Todo: need to keep track of which views an object is visible from
 trait SQLTable {
 
+  /**
+    * Pretty print the table name so that the table can be used in a
+    * substitution $string
+    */
   override def toString: String = name.toString
 
-  // Check table exists, and create if it doesn't exist
+  /**
+    * Check table exists, and create if it doesn't exist
+    *
+    * @param foundTables - tables that were found
+    */
   def validateOrCreate(foundTables: Set[SQLTableName]): SQLEither[Unit] =
     if (name in foundTables) validateTable()
     else create
 
 
+  /**
+    * Creates a new instance of the table
+    * @return
+    */
   protected def create: SQLEither[Unit] = {
     val q = this.schema.create(name)
-    println("Creating table \n" + q)
     instance.doWriteEither(q)
   }
 
+  /**
+    * Checks that the table's DB counterpart has the correct schema
+    * @return
+    */
   private def validateTable(): SQLEither[Unit] =  for {
     columns <- getColumns(name)
     _ <- validateColumns(columns, schema.components)
   } yield ()
 
+  /**
+    * Get the column schema from the SQL DB
+    * @return
+    */
   private def getColumns(name: SQLTableName): SQLEither[List[ColumnSpecification]] = {
     val query =
       s"""
@@ -58,8 +66,14 @@ trait SQLTable {
          |"""".stripMargin
 
     instance.reader.getColumns(query)
-  } // needs to extract column info from a table
+  }
 
+  /**
+    * Given a list of column specifications, make sure the table matches
+    * @param columns - columns found
+    * @param expected - expected columns
+    * @return
+    */
   private def validateColumns(columns: List[ColumnSpecification], expected: Map[SQLColumnName, SQLType]): SQLEither[Unit] = for {
     _ <- assertLength(columns, expected)
     _ <- EitherOps.sequence (for {
@@ -68,18 +82,34 @@ trait SQLTable {
     } yield eType.flatMap(checkColumn(column, _)))
   } yield ()
 
+  /**
+    * Assert there is the right number of extracted columns
+    */
   private def assertLength(specifications: List[ColumnSpecification], nameToType: Map[SQLColumnName, SQLType]): SQLEither[Unit] =
     if (specifications.length == nameToType.size) ().right else SQLSchemaLengthMismatch().left
 
 
   /**
-    * Check that the type is correct
+    * Check that the type of a column is correct
     */
   private def checkColumn(column: ColumnSpecification, expectedType: SQLType): SQLEither[Unit] =
     SQLType.validateType(expectedType, column.colType)
 
+  /**
+    * An SQL table should define a schema
+    * @return
+    */
   def schema: SQLSchema
+
+  /**
+    * An SQL table should define a name
+    */
   def name: SQLTableName
+
+  /**
+    * An SQL table should contain a back-reference to the instance that holds it
+    * @return
+    */
   def instance: SQLInstance
 }
 

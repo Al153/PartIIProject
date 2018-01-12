@@ -12,14 +12,21 @@ import scala.concurrent.ExecutionContext
 import scalaz._, Scalaz._
 
 /**
-  * To use postgreSQL
+  * PostgreSQL based DB implementation
   */
 
 object SQLDB extends DBBackend {
+  /**
+    * Open an SQLInstance
+    * @param address - Address to open
+    * @param schema - Schema to open with
+    * @return a [[SQLInstance]]
+    */
   override def open(
                      address: DatabaseAddress,
                      schema: SchemaDescription
                    )(implicit e: ExecutionContext): \/[E, DBInstance] = try {
+    // start a connection
     val conn = openConnection(address, schema)
     val instance = new SQLInstance(conn, schema)
     for {
@@ -30,7 +37,9 @@ object SQLDB extends DBBackend {
 
 
 
-  // Opens a database connection somehow
+  /**
+    * Open an SQL connection
+   */
 
   private def openConnection(
                               address: DatabaseAddress,
@@ -38,6 +47,10 @@ object SQLDB extends DBBackend {
                             )(implicit ec: ExecutionContext): Connection =
       address match {
         case DBDir(path, user, password) =>
+
+          /**
+            * Open an SQL instance at a given place
+            */
           val jdbcUrl = s"jdbc:postgresql://localhost/${path.toString}"
           val props = new Properties()
           props.setProperty("user", user)
@@ -45,6 +58,10 @@ object SQLDB extends DBBackend {
           props.setProperty("ssl", "false")
           DriverManager.getConnection(jdbcUrl, props)
         case Empty =>
+
+          /**
+            * Open default SQL instance
+            */
           val jdbcUrl = s"jdbc:postgresql://localhost/postgres"
           val props = new Properties()
           props.setProperty("user", "postgres")
@@ -53,6 +70,11 @@ object SQLDB extends DBBackend {
           DriverManager.getConnection(jdbcUrl, props)
     }
 
+  /**
+    * Global names to use when rendering queries
+    */
+
+    // todo: Move elsewhere?
 
     val leftmostTable = "left_table"
     val rightmostTable = "right_table"
@@ -61,47 +83,7 @@ object SQLDB extends DBBackend {
 
     val temporaryView = "temporary_views_table"
 
-  /**
-    * SQL Tables that should exist:
-    *
-    * ViewRegistry
-    *
-    *   ViewId: SQLPRimaryRef
-    *
-    * CommitRegistry
-    *
-    *   CommitId: SQLPrimaryRef
-    *
-    * ViewsTable
-    *
-    *   ViewId: SQLForeignRef(ViewRegistry),
-    *   CommitId: SQLForeignRef(CommitRegistry)
-    *
-    *
-    * For each object class:
-    *
-    * Object table
-    *   CommitId: SQLForeignRef(CommitRegistry)
-    *   ObjectId: SQLPrimaryRef
-    *   col_1: Translate(type1)
-    *   col_2: Translate(type2)
-    *   .
-    *   .
-    *   .
-    *   col_n: Translate(typen)
-    *
-    *
-    *
-    *
-    * For each relation:
-    *
-    * RelationTable
-    *   LeftId: SQLForeignRef(ObjectTableName)
-    *   CommitId: SQLForeignRef(ObjectTableName)
-    *   RightId: SQLForeignRef(ObjectTableName)
-    *
-    *
-    */
+
 
 
 }

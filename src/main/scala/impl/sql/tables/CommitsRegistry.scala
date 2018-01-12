@@ -11,11 +11,21 @@ import impl.sql.types.Commit
 
 import scalaz.Scalaz._
 
+/**
+  * The commits registry keeps track of all valid commits
+  * @param instance - backreference
+  */
 class CommitsRegistry(implicit val instance: SQLInstance) extends SQLTable {
   import CommitsRegistry._
   import instance.executionContext
 
+  /**
+    * Transactional get-new-commit
+    * Creates a new commit and returns the result
+    * @return
+    */
   def getNewcommitId: SQLFuture[Commit] = SQLFutureE {
+    // dummy column used to keep syntax correct
     val stmt = instance.connection.prepareStatement(s"INSERT INTO $name($dummyCol) VALUES (0)", Statement.RETURN_GENERATED_KEYS)
 
     val affectedRows = stmt.executeUpdate()
@@ -31,16 +41,27 @@ class CommitsRegistry(implicit val instance: SQLInstance) extends SQLTable {
     }
   }
 
+  /**
+    * Contains a commitId which updates serially, and a dummy column, so that we make non-empty writes when getting a new
+    * CommitId
+    * @return
+    */
   override def schema: SQLSchema = SQLSchema(
     Map(
       commitID -> SQLPrimaryRef,
       dummyCol -> SQLInt
     ), uniqueRelation = false
   )
+
+  /**
+    * Name is predefined
+    * @return
+    */
   override def name: SQLTableName = CommitsRegistry.name
 }
 
 object CommitsRegistry {
+  // import predefined global values
   val name = CommitsRegistryName
   val commitId: SQLColumnName = SQLColumnName.commitId
   val dummyCol: SQLColumnName = SQLColumnName.dummyColumn

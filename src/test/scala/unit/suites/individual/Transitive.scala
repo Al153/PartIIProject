@@ -1,14 +1,9 @@
 package unit.suites.individual
 
-import core.user.dsl.{Empty, _}
-
+import core.user.dsl._
 import org.junit.Test
 import unit.Objects._
 import unit.{Knows, Owns, Person, assertEqOp, description}
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scalaz.{-\/, \/-}
 
 trait Transitive { self: HasBackend =>
   /**

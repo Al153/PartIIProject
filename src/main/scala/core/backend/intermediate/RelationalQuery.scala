@@ -10,6 +10,8 @@ import scalaz._
 /**
   * Created by Al on 12/10/2017.
   */
+
+// todo: can this be factored out and replaced with syntax
 abstract class RelationalQuery[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B]) {
   def tree(implicit sd: SchemaDescription): FindPair[A, B]
 

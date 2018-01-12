@@ -1,19 +1,22 @@
 package impl.sql.tables
 
 import core.user.dsl.View
-import impl.sql.names.{PrecomputedView, SQLColumnName, SQLTableName, ViewsTableName}
+import impl.sql._
+import impl.sql.names.{SQLColumnName, SQLTableName, ViewsTableName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
 import impl.sql.types.Commit
-import impl.sql._
 
+/**
+  * Table keeps track of which views contain which commits
+  * @param instance - back reference to owning instance
+  */
 class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
   import ViewsTable._
   import instance.executionContext
 
-
-  def removeTempViewOp(temporaryViewName: PrecomputedView): SQLFuture[Unit] =
-    instance.doWrite(removeView(temporaryViewName))
-
+  /**
+    * Get commits associated with a view
+    */
   def getCommits(view: View): SQLFuture[Set[Commit]] = SQLFutureE {
     val query =
       s"""
@@ -22,6 +25,9 @@ class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
     instance.reader.getCommit(query)
   }
 
+  /**
+    * Inserts a new view with the relevant commits
+    */
   def insertNewView(view: View, commits: Set[Commit]):SQLFuture[Unit] =
     instance.writeBatch(
       commits.map(
@@ -31,6 +37,9 @@ class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
       )
     )
 
+  /**
+    * Schema is pairs of (view, commit)
+   */
   override def schema: SQLSchema = SQLSchema(
     Map(
       viewID -> SQLForeignRef(instance.viewsRegistry),
@@ -38,32 +47,51 @@ class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
     ), uniqueRelation = false
   )
 
+  /**
+    * Generic name
+    * @return
+    */
   override def name: SQLTableName = tableName
 }
 
 object ViewsTable {
+  /**
+    * Import useful values
+    */
   val tableName: ViewsTableName.type = ViewsTableName
   val viewID: SQLColumnName = SQLColumnName.viewId
   val commitID: SQLColumnName = SQLColumnName.commitId
 
-  private[ViewsTable] def definition(v: View): String =
-    s"WITH RECURSIVE $viewVar AS (${getViewIntermediate(v)})"
+  /**
+    * Syntactic sugar for wrapping a query in a view_cte expression
+    */
 
   def withView(v: View)(query: String): String =
     s"${definition(v)} ($query)"
-  
-  private def getViewIntermediate(v: View) =
-    s"SELECT ${SQLColumnName.commitId} FROM $tableName " +
-      s"WHERE ${SQLColumnName.viewId} = ${v.id}"
 
-  def removeView(view: PrecomputedView): String = {
-    s"DROP VIEW $view"
-  }
 
+  /**
+    * The definition of a view is a subquery which selects all relevant Commits
+    * to a view.
+    *
+    * This sets up a CTE for the commits.
+    * This can be joined with, for example, relation tables to limit the results to
+    * relations from a given view
+
+    */
+  private[ViewsTable] def definition(v: View): String =
+    s"WITH RECURSIVE $viewVar AS (SELECT ${SQLColumnName.commitId} FROM $tableName " +
+      s"WHERE ${SQLColumnName.viewId} = ${v.id})"
+
+  /**
+    * Syntax for views
+    */
   implicit class ViewSyntax(v: View) {
-    def name: String = viewVar
     def definition: String = ViewsTable.definition(v)
   }
 
+  /**
+    * Generic name the subexpression used as an alias for the view in question
+    */
   val viewVar: String = "VIEW_CTE"
 }

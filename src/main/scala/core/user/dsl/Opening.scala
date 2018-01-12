@@ -11,6 +11,15 @@ import scalaz.\/
   * A number of helper methods/syntax for manipulating instances
   */
 trait Opening {
+  /**
+    * Run an operation against a [[DBInstance]]'s default view, setting the new default view.
+    * Not really threadsafe (T1 runs a using then T2 runs a using before T1 writes its default, so T1's effects are lost)
+    *
+    * @param instance - instance to run on
+    * @param action - read/write operation
+    * @tparam A - type returned
+    * @return
+    */
   def using[A]
     (instance: DBInstance)
     (action: => Operation[E, A])
@@ -25,6 +34,14 @@ trait Opening {
   }
 
 
+  /**
+    * Runs a read operation against an instance, discarding any new views created (they are unreachable)
+    * @param instance - instance to run on
+    * @param v - view to use
+    * @param action - action
+    * @tparam A - type returned
+    * @return
+    */
   def usingView[A](instance: DBInstance, v: View)
                   (action: => Operation[E, A])
   : ConstrainedFuture[E, A] = {
@@ -35,7 +52,12 @@ trait Opening {
     } yield res
   }
 
-
+  /**
+    * Runs a write operation on a view, returning the new view created
+    * @param instance - instance to run on
+    * @param v - view to start with
+    * @param action - action to run
+    */
   def writeToView(instance: DBInstance, v: View)
                  (action: => Operation[E, Unit])
   : ConstrainedFuture[E, View] = {

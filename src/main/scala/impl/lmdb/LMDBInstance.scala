@@ -74,6 +74,13 @@ final class LMDBInstance(val env: Env, val schema: SchemaDescription)(implicit v
 
   /**
     * Control tables are the ones used to run the instance
+    *
+    * The general model of the LMDB instance is to store all relations in `relations` and `reverseRelations`
+    * To execute queries: the start points' [[ObjId]] s are looked up via the index tables in the relevant
+    * [[ObjectRetrievalTable]], the query is then executed on object ids to get a coollection of ids.
+    *
+    * The Ids are then looked up in thre retrieval tables to give the fully constructed results
+    *
     */
   private [lmdb] object controlTables {
     val availableViews = new AvailableViewsTable()

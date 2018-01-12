@@ -154,20 +154,4 @@ package object utils extends BigSetOps {
   implicit class StringOps(s: String) {
     def strip: String = s.replaceAll("[\\W]|_", "")
   }
-
-
-
-  object MonadOps {
-    def sequence[F[_], A, T[X] <: TraversableOnce[X]](ta: T[F[A]])
-                                                     (
-                                                       implicit M: Monad[F],
-                                                       cbf: CanBuildFrom[T[F[A]], A, T[A]]
-                                                     ): F[T[A]] =
-      ta.foldLeft(M.point(cbf(ta))) { // ignore the red, this actually compiles
-        (tr, ta) => for {
-          r <- tr
-          a <- ta
-        } yield r += a
-      }.map(_.result())
-  }
 }

@@ -13,8 +13,19 @@ import scalaz.\/
 
 // todo: Can this be optimised out?
 trait Storeable[T] {
+  /**
+    * @return the appropriate schema component that a [[T]] translates to
+    */
   def SchemaComponent: SchemaComponent
+
+  /**
+    * convert a [[T]] to a [[DBCell]]
+    */
   def toDBCell(t: T): DBCell
+
+  /**
+    * Try to convert a [[DBCell]] to a [[T]]
+    */
   def get(dBCell: DBCell): ExtractError \/ T
 }
 object Storeable {

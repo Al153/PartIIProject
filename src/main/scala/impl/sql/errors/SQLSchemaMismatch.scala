@@ -5,6 +5,9 @@ import impl.sql.schema.{ColumnSpecification, SQLType}
 
 /**
   * Created by Al on 11/12/2017.
+  *
+  * Sealed trait hierarchy of errors due to mismatchwed between the expected schema and the actual schema in
+  * the PostgreSQL DB
   */
 sealed trait SQLSchemaMismatch extends SQLError
 case class SQLSchemaLengthMismatch() extends SQLSchemaMismatch

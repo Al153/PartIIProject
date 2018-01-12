@@ -8,7 +8,11 @@ import impl.sql.names.SQLColumnName
 
 case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
 
-  // should be a query that finds all pairs
+  /**
+    * Query that finds related pairs of ObjectIds
+    * @param v - view to execute against
+    * @return
+    */
   def render(v: View): SQLEither[String] = {
     // render query to string
     Definitions.compute(Query.convertPair(p), v) {
