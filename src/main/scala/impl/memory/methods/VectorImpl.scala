@@ -18,9 +18,9 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
     * Find an A in the tree
     */
   def find[A](a: A, t: MemoryTree)
-             (implicit sa: SchemaObject[A], sd: SchemaDescription): MemoryEither[Set[MemoryObject]] =
+             (implicit sa: SchemaObject[A]): MemoryEither[Set[MemoryObject]] =
     for {
-      unsafeQuery <- Find(sa.findable(a)).getUnsafe.leftMap(MemoryMissingRelation)
+      unsafeQuery <- Find(sa.findable(a)).getUnsafe(instance.schema).leftMap(MemoryMissingRelation)
       res <- findSingleImpl(unsafeQuery, t)
     } yield res.toSet
 

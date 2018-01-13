@@ -1,14 +1,13 @@
 package impl.memory
 
-import core.user.interfaces.DBExecutor
+import core.backend.intermediate._
 import core.user.containers.{Operation, Path}
 import core.user.dsl.{CompletedRelation, E}
-import core.backend.intermediate._
+import core.user.interfaces.DBExecutor
 import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils._
 import impl.memory.errors.{MemoryExtractError, MemoryMissingRelation}
-
-import scalaz.Scalaz._
+import impl.memory.methods.Methods
 
 
 /**
@@ -16,7 +15,7 @@ import scalaz.Scalaz._
   *
   * Executor implementation
   */
-class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescription) extends DBExecutor {
+class InMemoryExecutor(val instance: MemoryInstance, schemaDescription: SchemaDescription) extends DBExecutor with Methods {
 
   /**
     * Implementation of findAll, uses methods implementation
@@ -25,8 +24,8 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     instance.readOp(
       t =>
         for {
-          unsafeQuery <- q.getUnsafe.leftMap(MemoryMissingRelation)
-          v <- methods.findSingleImpl(unsafeQuery, t)
+          unsafeQuery <- q.getUnsafe(sd).leftMap(MemoryMissingRelation)
+          v <- findSingleImpl(unsafeQuery, t)
           res <- EitherOps.sequence(v.map(o => sa.fromRow(o.value).leftMap(MemoryExtractError)))
         } yield res
     )
@@ -39,11 +38,11 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           // Setup
-          unsafeSingle <- Find(q.sa.any)(q.sa, sd).getUnsafe.leftMap(MemoryMissingRelation)
-          initial <- methods.findSingleImpl(unsafeSingle, t)
-          unsafeQuery <-  q.getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeSingle <- Find(q.sa.any).getUnsafe(sd).leftMap(MemoryMissingRelation)
+          initial <- findSingleImpl(unsafeSingle, t)
+          unsafeQuery <-  q.getUnsafe(sd).leftMap(MemoryMissingRelation)
           // find pairs of MemoryObjects
-          v <- methods.findPairsImpl(unsafeQuery, initial, t)
+          v <- findPairsImpl(unsafeQuery, initial, t)
 
           // Collect into pairs of (A, B)
           res <- EitherOps.sequence(
@@ -64,10 +63,10 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           // setup
-          unsafeQuery <- q.getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeQuery <- q.getUnsafe(sd).leftMap(MemoryMissingRelation)
 
           // find the MemoryObjects
-          v <- methods.findSingleSetImpl(unsafeQuery, t)
+          v <- findSingleSetImpl(unsafeQuery, t)
 
           // Extract results
           res <- EitherOps.sequence(v.map(o => sa.fromRow(o.value).leftMap(MemoryExtractError)))
@@ -83,12 +82,12 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       t =>
         for {
           // Setup
-          unsafeQuery <- Find(q.sa.any)(q.sa, sd).getUnsafe.leftMap(MemoryMissingRelation)
-          initial <- methods.findSingleSetImpl(unsafeQuery, t)
-          unsafeQuery <- q.getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeQuery <- Find(q.sa.any).getUnsafe(sd).leftMap(MemoryMissingRelation)
+          initial <- findSingleSetImpl(unsafeQuery, t)
+          unsafeQuery <- q.getUnsafe(sd).leftMap(MemoryMissingRelation)
 
           // find pairs of MemoryObjects
-          v <- methods.findPairsSetImpl(unsafeQuery, initial, t)
+          v <- findPairsSetImpl(unsafeQuery, initial, t)
 
           // extract results
           res <- EitherOps.sequence(
@@ -110,14 +109,14 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       tree =>
         for {
           // setup
-          initial <- methods.find(start, tree)
-          unsafeQuery <- relationalQuery.getUnsafe.leftMap(MemoryMissingRelation)
+          initial <- find(start, tree)
+          unsafeQuery <- relationalQuery.getUnsafe(sd).leftMap(MemoryMissingRelation)
 
           // get a vector of results
-          erasedRes <- methods.singleShortestsPathImpl(
+          erasedRes <- singleShortestsPathImpl(
             initial,
             sa.findable(end).getUnsafe,
-            o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree),
+            o => findPairsSetImpl(unsafeQuery, Set(o), tree),
             tree
           )
           // render to a path of As
@@ -136,11 +135,11 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
       tree =>
         for {
           // setup
-          initial <- methods.find(start, tree)
-          unsafeQuery <- relationalQuery.getUnsafe.leftMap(MemoryMissingRelation)
+          initial <- find(start, tree)
+          unsafeQuery <- relationalQuery.getUnsafe(sd).leftMap(MemoryMissingRelation)
 
           // get erased path
-          erasedRes <- methods.allShortestPathsImpl(initial, o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree))
+          erasedRes <- allShortestPathsImpl(initial, o => findPairsSetImpl(unsafeQuery, Set(o), tree))
 
           // render to result
           res <- EitherOps.sequence(erasedRes.map(_.toPath[A]))
@@ -167,11 +166,10 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
                 relationName =>
                   eTree.flatMap(
                     tree =>
-                      methods.write(tree, sa.name, sa.getDBObject(r.a), relationName, sb.name, sb.getDBObject(r.b))
+                      write(tree, sa.name, sa.getDBObject(r.a), relationName, sb.name, sb.getDBObject(r.b))
                   )
               }
           }
         }
     }
-
 }

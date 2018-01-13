@@ -38,7 +38,7 @@ trait FindAllPairs { self: Methods =>
     // Check the view is accessible
     _ <- instance.controlTables.availableViews.validateView(view)
     // Get the unsafe equivalent of the query
-    ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
+    ut <- t.getUnsafe(sd).leftMap(LMDBMissingRelation)
     // get the tables from which to extract values
     leftTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
     rightTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
@@ -63,7 +63,7 @@ trait FindAllPairs { self: Methods =>
     // Check the view is accessible
       _ <- instance.controlTables.availableViews.validateView(view)
       // Get the unsafe equivalent of the query
-      ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
+      ut <- t.getUnsafe(sd).leftMap(LMDBMissingRelation)
       // get the tables from which to extract values
       leftTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
       rightTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))

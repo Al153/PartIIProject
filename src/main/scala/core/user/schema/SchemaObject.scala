@@ -70,13 +70,13 @@ trait SchemaObject0[A] extends SchemaObject[A] {
     * Need to define how to convert an [[A]] into some storeable primitives
     */
 
-  def toTuple(a: A): DBTuple0[A]
+  def toTuple(a: A): SchemaObject[A] => DBTuple0[A]
 
   /**
     * Empty Findable that lookups up all values of the type
     */
 
-  final def any: Pattern[A] = Pattern0[A](name)
+  final def any: Pattern[A] = Pattern0[A](name, this)
 
 
   /**
@@ -87,7 +87,7 @@ trait SchemaObject0[A] extends SchemaObject[A] {
   /**
     * Convert an [[A]] into a [[Findable]]
     */
-  final override def findable(a: A): DBTuple[A] = toTuple(a)
+  final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
 
   /**
     * Extract an [[A]] from a DBObject
@@ -101,6 +101,11 @@ trait SchemaObject0[A] extends SchemaObject[A] {
     */
 
   final def pattern: Pattern[A] = any
+
+  /**
+    * Utility method for schema designers
+    */
+  final protected def buildDBTuple()(sa: SchemaObject[A]) = DBTuple0(sa.name, sa)
 
 }
 
@@ -120,13 +125,13 @@ abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaOb
   /**
     * Need to define how to convert an [[A]] into some storeable primitives
     */
-  def toTuple(a: A): DBTuple1[A, A1]
+  def toTuple(a: A): SchemaObject[A] => DBTuple1[A, A1]
 
   /**
     * Empty Findable that lookups up all values of the type
     */
 
-  final def any: Pattern[A] = Pattern1[A, A1](name, None)
+  final def any: Pattern[A] = Pattern1[A, A1](name, this, None)
 
 
   /**
@@ -137,7 +142,7 @@ abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaOb
   /**
     * Convert an [[A]] into a [[Findable]]
     */
-  final override def findable(a: A): DBTuple[A] = toTuple(a)
+  final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
 
   /**
     * Extract an [[A]] from a DBObject
@@ -152,7 +157,12 @@ abstract class SchemaObject1[A, A1](implicit s1: Storeable[A1]) extends SchemaOb
     * Defines how to make a findable with certain fields
     */
 
-  final def pattern(o1: Option[A1]): Pattern1[A, A1] = Pattern1[A, A1](name, o1)
+  final def pattern(o1: Option[A1]): Pattern1[A, A1] = Pattern1[A, A1](name, this, o1)
+
+  /**
+    * Utility method for schema designers
+    */
+  final protected def buildDBTuple(a1: A1)(sa: SchemaObject[A])  = DBTuple1(sa.name, sa, a1)
 
 }
 
@@ -170,13 +180,13 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
   /**
     * Need to define how to convert an [[A]] into some storeable primitives
     */
-  def toTuple(a: A): DBTuple2[A, A1, A2]
+  def toTuple(a: A): SchemaObject[A] =>  DBTuple2[A, A1, A2]
 
   /**
     * Empty Findable that lookups up all values of the type
     */
 
-  final def any: Pattern[A] = Pattern2[A, A1, A2](name, None, None)
+  final def any: Pattern[A] = Pattern2[A, A1, A2](name, this, None, None)
 
   /**
     * Get the schema components for objects of type [[A]] in order to generate Schema to store them
@@ -186,7 +196,7 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
   /**
     * Convert an [[A]] into a [[Findable]]
     */
-  final override def findable(a: A): DBTuple[A] = toTuple(a)
+  final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
 
 
   /**
@@ -205,7 +215,13 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
     * Defines how to make a findable with certain fields
     */
 
-  final def pattern(o1: Option[A1], o2: Option[A2]): Pattern2[A, A1, A2] = Pattern2[A, A1, A2](name, o1, o2)
+  final def pattern(o1: Option[A1], o2: Option[A2]): Pattern2[A, A1, A2] = Pattern2[A, A1, A2](name, this, o1, o2)
+
+  /**
+    * Utility method for schema designers
+    */
+  final protected def buildDBTuple(a1: A1, a2: A2)(sa: SchemaObject[A])  = DBTuple2(sa.name, sa, a1, a2)
+
 }
 
 abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Storeable[A2], s3: Storeable[A3]) extends SchemaObject[A] {
@@ -223,12 +239,12 @@ abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Stor
   /**
     * Need to define how to convert an [[A]] into some storeable primitives
     */
-  def toTuple(a: A): DBTuple3[A, A1, A2, A3]
+  def toTuple(a: A): SchemaObject[A] => DBTuple3[A, A1, A2, A3]
 
   /**
     * Empty Findable that lookups up all values of the type
     */
-  final def any: Pattern[A] = Pattern3[A, A1, A2, A3](name, None, None, None)
+  final def any: Pattern[A] = Pattern3[A, A1, A2, A3](name, this, None, None, None)
 
   /**
     * Get the schema components for objects of type [[A]] in order to generate Schema to store them
@@ -238,7 +254,7 @@ abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Stor
   /**
     * Convert an [[A]] into a [[Findable]]
     */
-  final override def findable(a: A): DBTuple[A] = toTuple(a)
+  final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
 
   /**
     * Extract an [[A]] from a DBObject
@@ -257,7 +273,14 @@ abstract class SchemaObject3[A, A1, A2, A3](implicit s1: Storeable[A1], s2: Stor
     * Defines how to make a findable with certain fields
     */
 
-  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3]): Pattern3[A, A1, A2, A3] = Pattern3[A, A1, A2, A3](name, o1, o2, o3)
+  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3]): Pattern3[A, A1, A2, A3] = Pattern3[A, A1, A2, A3](name, this, o1, o2, o3)
+
+  /**
+    * Utility method for schema designers
+    */
+
+  final protected def buildDBTuple(a1: A1, a2: A2, a3: A3)(sa: SchemaObject[A])  = DBTuple3(sa.name, sa, a1, a2, a3)
+
 }
 
 
@@ -276,12 +299,12 @@ abstract class SchemaObject4[A, A1, A2, A3, A4](implicit s1: Storeable[A1], s2: 
     * Need to define how to convert an [[A]] into some storeable primitives
     */
 
-  def toTuple(a: A): DBTuple4[A, A1, A2, A3, A4]
+  def toTuple(a: A): SchemaObject[A] => DBTuple4[A, A1, A2, A3, A4]
 
   /**
     * Empty Findable that lookups up all values of the type
     */
-  final def any: Pattern[A] = Pattern4[A, A1, A2, A3, A4](name, None, None, None, None)
+  final def any: Pattern[A] = Pattern4[A, A1, A2, A3, A4](name, this, None, None, None, None)
 
   /**
     * Get the schema components for objects of type [[A]] in order to generate Schema to store them
@@ -291,7 +314,7 @@ abstract class SchemaObject4[A, A1, A2, A3, A4](implicit s1: Storeable[A1], s2: 
   /**
     * Convert an [[A]] into a [[Findable]]
     */
-  final override def findable(a: A): DBTuple[A] = toTuple(a)
+  final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
 
   /**
     * Extract an [[A]] from a DBObject
@@ -312,5 +335,10 @@ abstract class SchemaObject4[A, A1, A2, A3, A4](implicit s1: Storeable[A1], s2: 
     * Defines how to make a findable with certain fields
     */
 
-  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3], o4: Option[A4]): Pattern4[A, A1, A2, A3, A4] = Pattern4[A, A1, A2, A3, A4](name, o1, o2, o3, o4)
+  final def pattern(o1: Option[A1], o2: Option[A2], o3: Option[A3], o4: Option[A4]): Pattern4[A, A1, A2, A3, A4] = Pattern4[A, A1, A2, A3, A4](name, this, o1, o2, o3, o4)
+
+  /**
+    * Utility method for schema designers
+    */
+  final protected def buildDBTuple(a1: A1, a2: A2, a3: A3, a4: A4)(sa: SchemaObject[A])  = DBTuple4(sa.name, sa, a1, a2, a3, a4)
 }

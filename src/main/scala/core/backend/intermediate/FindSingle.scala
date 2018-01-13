@@ -14,11 +14,11 @@ import scalaz._
   *  Typesafe construction of AST of queries to lookup single objects
   */
 
-sealed abstract class FindSingle[A](implicit val sa: SchemaObject[A], sd: SchemaDescription) extends FindSingleAble[A] {
+sealed abstract class FindSingle[A](implicit val sa: SchemaObject[A]) extends FindSingleAble[A] {
   /**
     * Convert to unsafe
     */
-  def getUnsafe: MissingRelation \/ UnsafeFindSingle
+  def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle
 
   /**
     * Get a FindSingle
@@ -30,26 +30,26 @@ sealed abstract class FindSingle[A](implicit val sa: SchemaObject[A], sd: Schema
 /**
   * Lookup a findable
   */
-case class Find[A](pattern: Findable[A])(implicit sa: SchemaObject[A], sd: SchemaDescription) extends FindSingle[A] {
-  override def getUnsafe: MissingRelation \/ UnsafeFindSingle = USFind(pattern.getUnsafe).right
+case class Find[A](pattern: Findable[A])(implicit sa: SchemaObject[A]) extends FindSingle[A] {
+  override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle = USFind(pattern.getUnsafe).right
 }
 
 /**
   * Narrow down a findSingle query
   */
-case class NarrowS[A](start: FindSingle[A], pattern: Findable[A])(implicit sa: SchemaObject[A], sd: SchemaDescription) extends FindSingle[A] {
-  override def getUnsafe: MissingRelation \/ UnsafeFindSingle = for {
-    usStart <- start.getUnsafe
+case class NarrowS[A](start: FindSingle[A], pattern: Findable[A])(implicit sa: SchemaObject[A]) extends FindSingle[A] {
+  override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle = for {
+    usStart <- start.getUnsafe(sd)
   } yield USNarrowS(usStart, pattern.getUnsafe)
 }
 
 /**
   * Find objects b: B, such that there exists a: A in the result of start that (a, b) is in the result of rels
   */
-case class From[A, B](start: FindSingle[A], rel: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription) extends FindSingle[B] {
-  override def getUnsafe: MissingRelation \/ UnsafeFindSingle = for {
-    unsafeRel <- rel.getUnsafe
-    unsafeStart <- start.getUnsafe
+case class From[A, B](start: FindSingle[A], rel: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindSingle[B] {
+  override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle = for {
+    unsafeRel <- rel.getUnsafe(sd)
+    unsafeStart <- start.getUnsafe(sd)
   } yield USFrom(unsafeStart, unsafeRel)
 }
 

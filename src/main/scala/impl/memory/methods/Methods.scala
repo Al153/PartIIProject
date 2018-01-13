@@ -1,9 +1,9 @@
-package impl.memory
+package impl.memory.methods
 
 /**
   * Methods object composed of several methods
   */
-package object methods
+trait Methods
   extends ExecutorMethods
     with SetImpl
     with VectorImpl

@@ -67,7 +67,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       v: View =>
         (for {
           // compile the query
-          query <- compilePairQuery(t, sd, v)
+          query <- compilePairQuery(t, v)
           // run the compiled SQL query
           res <- SQLFutureE(
             instance
@@ -121,7 +121,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
       v: View =>
         (for {
           // Compile query to SQL
-          query <- compilePairQuery(t, sd, v)
+          query <- compilePairQuery(t, v)
           // Run the query
           res <- SQLFutureE(
             instance
@@ -315,7 +315,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     SQLFutureE (
       for {
         // get unsafe
-        unsafe <- query.getUnsafe.leftMap(SQLMissingRelation)
+        unsafe <- query.getUnsafe(instance.schema).leftMap(SQLMissingRelation)
         // create a query object
         pathQuery = PathFindingQuery(unsafe)(instance)
         // render it
@@ -330,11 +330,11 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @tparam A - type of objects
     * @return
     */
-  private def compilePairQuery[A, B](query: FindPair[A, B], sd: SchemaDescription, v: View): SQLFuture[String] =
+  private def compilePairQuery[A, B](query: FindPair[A, B], v: View): SQLFuture[String] =
     SQLFutureE(
       for {
         // get unsafe
-        unsafe <- query.getUnsafe.leftMap(SQLMissingRelation)
+        unsafe <- query.getUnsafe(instance.schema).leftMap(SQLMissingRelation)
         // get left most table
         left <- instance.lookupTable (unsafe.leftMostTable)
         // get right most table
@@ -357,7 +357,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     SQLFutureER(
       for {
         // get erased query
-        unsafe <- query.getUnsafe.leftMap(SQLMissingRelation)
+        unsafe <- query.getUnsafe(sd).leftMap(SQLMissingRelation)
         // get the table to lookup from
         table <- instance.lookupTable(unsafe.table)
         // create a query object

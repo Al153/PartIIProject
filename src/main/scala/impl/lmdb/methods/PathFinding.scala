@@ -54,7 +54,7 @@ trait PathFinding { self: Methods =>
         extractorTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         // get an unsafe equivalent of the query
-        query <- relationalQuery.getUnsafe.leftMap(LMDBMissingRelation)
+        query <- relationalQuery.getUnsafe(sd).leftMap(LMDBMissingRelation)
 
         // set up the search step function
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
@@ -102,7 +102,7 @@ trait PathFinding { self: Methods =>
         extractor <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         // get the type erased version of the query
-        query <- relationalQuery.getUnsafe.leftMap(LMDBMissingRelation)
+        query <- relationalQuery.getUnsafe(sd).leftMap(LMDBMissingRelation)
 
         // set up search function
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}

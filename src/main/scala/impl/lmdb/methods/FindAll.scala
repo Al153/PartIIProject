@@ -30,7 +30,7 @@ trait FindAll { self: Methods =>
       // Check the view is valid
       _ <- instance.controlTables.availableViews.validateView(view)
       // to type erasure on the findSingle
-      ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
+      ut <- t.getUnsafe(sd).leftMap(LMDBMissingRelation)
       // get hold of the object table to retrieve results from
       objectTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
       // Get the commits to use
@@ -52,7 +52,7 @@ trait FindAll { self: Methods =>
     // Check the view is valid
       _ <- instance.controlTables.availableViews.validateView(view)
       // to type erasure on the findSingle
-      ut <- t.getUnsafe.leftMap(LMDBMissingRelation)
+      ut <- t.getUnsafe(sd).leftMap(LMDBMissingRelation)
       // get hold of the object table to retrieve results from
       objectTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
       // Get the commits to use
