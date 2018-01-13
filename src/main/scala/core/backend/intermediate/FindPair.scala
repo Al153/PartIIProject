@@ -1,12 +1,12 @@
 package core.backend.intermediate
 
 import core.backend.common.MissingRelation
-import core.user.dsl.{E, RelationAttributes}
 import core.backend.intermediate.unsafe.{UnsafeFindPair, _}
-import core.user.schema.{Findable, SchemaDescription, SchemaObject}
+import core.user.dsl.{FindPairAble, RelationAttributes}
+import core.user.schema.{SchemaDescription, SchemaObject}
 
 import scalaz.Scalaz._
-import scalaz.{\/, _}
+import scalaz.\/
 
 /**
   * Created by Al on 23/10/2017.
@@ -16,7 +16,7 @@ import scalaz.{\/, _}
   * This set of objects is typically used to construct the AST in a type safe manner, which is then converted to
   * is unsafe (type-erased) equivalent for execution
   */
-sealed abstract class FindPair[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B], sd: SchemaDescription) {
+sealed abstract class FindPair[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B], sd: SchemaDescription) extends FindPairAble[A, B] {
   /**
     * Reverse the relation
     */

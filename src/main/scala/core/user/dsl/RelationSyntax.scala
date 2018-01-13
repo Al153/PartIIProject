@@ -1,7 +1,9 @@
 package core.user.dsl
 
-import core.backend.intermediate.{Find, FindSingle, RelationalQuery}
-import core.user.schema.{Findable, SchemaDescription, SchemaObject}
+import core.backend.intermediate._
+import core.user.schema.{SchemaDescription, SchemaObject}
+
+import scala.language.implicitConversions
 
 /**
   * Created by Al on 11/10/2017.
@@ -9,73 +11,85 @@ import core.user.schema.{Findable, SchemaDescription, SchemaObject}
   * Syntax for Relations
   */
 trait RelationSyntax {
-
   /**
     * Relation syntax
     */
-  implicit class RelationalQuerySyntax[A, B](left: RelationalQuery[A, B])(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B]
+  implicit class FindPairSyntax[A, B](left: FindPairAble[A, B])(
+    implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription
   ) {
     /**
       * Chain with another relation, which has been reversed
       */
-    def --><--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  =
-      if (left == that) left.plusDistinct(sb.any, that.reverse)
-      else left.plus(sb.any, that.reverse)
+    def --><--[C](right: FindPairAble[C, B])(implicit sc: SchemaObject[C]): FindPair[A, C] =
+      if (left == right) Distinct(Chain(left.toFindPair, right.toFindPair.reverse)(sa, sb, sc, sd))(sa, sc, sd)
+      else Chain(left.toFindPair, right.toFindPair.reverse)(sa, sb, sc, sd)
 
     /**
       * Chain with another relation, provided the types match
       */
-    def -->-->[C](that: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C] =
-      left.plus(sb.any, that)
+    def -->-->[C](right: FindPairAble[B, C])(implicit sc: SchemaObject[C]): FindPair[A, C] =
+      Chain(left.toFindPair, right.toFindPair)(sa, sb, sc, sd)
 
     /**
       * Initiate chaining but with a findable in the middle
       */
-    def -->[C](r: Findable[B]) = HalfQuery(left, r)
+    def -->(r: FindSingleAble[B]): FindPairHalfQuery[A, B] = FindPairHalfQuery(left.toFindPair, r)(sa, sb, sd)
 
     /**
       * Initiate chaining but specifying the element to join on
       */
-    def -->[C](b: B) = HalfQuery(left, sb.findable(b))
+    def -->(b: B): FindPairHalfQuery[A, B] = FindPairHalfQuery(left.toFindPair, sb.findable(b))(sa, sb, sd)
 
 
     /**
       * Right filter the relation by a FindSingle
       */
 
-    def -->>(right: FindSingle[B]): RelationalQuery[A, B] = left.rightAnd(right)
-
-    /**
-      * Right filter the relation by a Findable
-      */
-
-    def -->>(right: Findable[B])(implicit sd: SchemaDescription): RelationalQuery[A, B] = left.rightAnd(Find(right))
+    def -->>(right: FindSingleAble[B]): FindPair[A, B] =
+      AndRight(left.toFindPair, right.toFindSingle)(sa, sb, sd)
 
     /**
       * Union a relation
       */
-    def |(that: RelationalQuery[A, B]): RelationalQuery[A, B] = left.union(that)
+    def |(that: FindPairAble[A, B]): FindPair[A, B] = Or(left.toFindPair, that.toFindPair)(sa, sb, sd)
 
     /**
       * Intersect a relation
       */
-    def &(that: RelationalQuery[A, B]): RelationalQuery[A, B] = left.intersection(that)
+    def &(that: FindPairAble[A, B]): FindPair[A, B] = And(left.toFindPair, that.toFindPair)(sa, sb, sd)
+
   }
 
-  /**
-    * A helper class for joining queries on a findable
-    */
-  case class HalfQuery[A, B](left: RelationalQuery[A, B], middle: Findable[B]) {
+  case class FindPairHalfQuery[A, B](left: FindPairAble[A, B], middle: FindSingleAble[B])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription) {
     /**
       * Chain the second query in a forwards direction
       */
-    def -->[C](that: RelationalQuery[B, C])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plus(middle,  that)
+    def -->[C](right: FindPairAble[B, C])(implicit sc: SchemaObject[C]): FindPair[A, C]  =
+      Distinct(Chain(AndRight(left.toFindPair, middle.toFindSingle), right.toFindPair)(sa, sb, sc, sd))(sa, sc, sd)
 
     /**
       * Chain the second query in a backwards direction
       */
-    def <--[C](that: RelationalQuery[C, B])(implicit sc: SchemaObject[C]): RelationalQuery[A, C]  = left.plusDistinct(middle, that.reverse)
+    def <--[C](right: FindPairAble[C, B])(implicit sc: SchemaObject[C]): FindPair[A, C]  =
+      Distinct(Chain(AndRight(left.toFindPair, middle.toFindSingle), right.toFindPair.reverse)(sa, sb, sc, sd))(sa, sc, sd)
+  }
+
+  implicit class SymmetricQueryOps[A](u: FindPairAble[A, A])(
+    implicit sa: SchemaObject[A], sd: SchemaDescription
+  ) {
+    def *(n: Int): FindPair[A, A] = Exactly(n, u.toFindPair)(sa, sd)
+
+    def * (r: Repetition): FindPair[A, A] = r match {
+      case BetweenRange(lo, hi) => Between(lo, hi, u.toFindPair)(sa, sd)
+      case UptoRange(n) => Upto(n, u.toFindPair)(sa, sd)
+      case AtleastRange(n) => Atleast(n, u.toFindPair)(sa, sd)
+    }
+
+    def ** : FindPair[A, A] = Atleast(0, u.toFindPair)(sa, sd)
+
+    def ++ : FindPair[A, A] = Atleast(1, u.toFindPair)(sa, sd)
+
+    def ? : FindPair[A, A] = Upto(1, u.toFindPair)(sa, sd)
   }
 
 

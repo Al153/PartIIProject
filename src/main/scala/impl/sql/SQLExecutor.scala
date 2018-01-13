@@ -1,10 +1,10 @@
 package impl.sql
 
 import core.backend.common.algorithms.BreadthFirstTraversal
-import core.user.interfaces.DBExecutor
+import core.backend.intermediate.{FindPair, FindSingle}
 import core.user.containers.{Operation, Path, ReadOperation, WriteOperation}
 import core.user.dsl.{CompletedRelation, E, View}
-import core.backend.intermediate.{FindPair, FindSingle, RelationalQuery}
+import core.user.interfaces.DBExecutor
 import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.{EitherOps, _}
 import impl.sql.adt.queries.{CompletedPairQuery, CompletedSingleQuery, PathFindingQuery}
@@ -142,7 +142,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
 
-  override def shortestPath[A](start: A, end: A, t: RelationalQuery[A, A])
+  override def shortestPath[A](start: A, end: A, t: FindPair[A, A])
                               (
                                 implicit sa: SchemaObject[A],
                                 sd: SchemaDescription
@@ -174,7 +174,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
           e <- cfEnd
 
           // compile the query to SQL
-          query <- compilePathQuery(t.tree(sd), sd, v)
+          query <- compilePathQuery(t, sd, v)
 
           // Find all pairs related by the relation
           pairs <- SQLFutureE(
@@ -208,7 +208,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
 
-  override def allShortestPaths[A](start: A, t: RelationalQuery[A, A])
+  override def allShortestPaths[A](start: A, t: FindPair[A, A])
                                   (
                                     implicit sa: SchemaObject[A],
                                     sd: SchemaDescription
@@ -228,7 +228,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
 
         for {
           // compile the query
-          query <- compilePathQuery(t.tree(sd), sd, v)
+          query <- compilePathQuery(t, sd, v)
 
           // get all the pairs related by the query
           pairs <- SQLFutureE(

@@ -2,6 +2,7 @@ package core.backend.intermediate
 
 import core.backend.common.MissingRelation
 import core.backend.intermediate.unsafe._
+import core.user.dsl.FindSingleAble
 import core.user.schema.{Findable, SchemaDescription, SchemaObject}
 
 import scalaz.Scalaz._
@@ -13,11 +14,17 @@ import scalaz._
   *  Typesafe construction of AST of queries to lookup single objects
   */
 
-sealed abstract class FindSingle[A](implicit val sa: SchemaObject[A], sd: SchemaDescription) {
+sealed abstract class FindSingle[A](implicit val sa: SchemaObject[A], sd: SchemaDescription) extends FindSingleAble[A] {
   /**
     * Convert to unsafe
     */
   def getUnsafe: MissingRelation \/ UnsafeFindSingle
+
+  /**
+    * Get a FindSingle
+    */
+
+  final override def toFindSingle: FindSingle[A] = this
 }
 
 /**

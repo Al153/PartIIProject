@@ -2,8 +2,10 @@ package core.user
 
 import core.backend.common.{DBCell, DBObject}
 import core.backend.intermediate.unsafe.ErasedFindable
-import core.backend.intermediate.{SchemaComponent, Storeable}
+import core.backend.intermediate.{Find, FindSingle, SchemaComponent, Storeable}
+import core.user.dsl.FindSingleAble
 
+import scala.language.implicitConversions
 import scalaz.Scalaz._
 
 /**
@@ -18,7 +20,7 @@ package object schema {
     * @tparam A - used to typecheck constructions using the findable
     */
 
-  sealed trait Findable[A] {
+  sealed trait Findable[A] extends FindSingleAble[A] {
     /**
       * The pattern that is used during lookup
       * @return
@@ -37,6 +39,12 @@ package object schema {
       */
     def getUnsafe = ErasedFindable(pattern, tableName)
     def isEmpty: Boolean = pattern.forall(_.isEmpty)
+
+    final override def toFindSingle: FindSingle[A] = Find(this)
+  }
+
+  object Findable {
+    implicit def toFindSingle[A](f: Findable[A])(implicit sa: SchemaObject[A], sd: SchemaDescription): FindSingle[A] = Find(f)
   }
 
   /**

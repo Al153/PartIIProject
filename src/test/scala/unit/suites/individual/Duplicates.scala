@@ -5,9 +5,6 @@ import org.junit.Test
 import unit.Objects.{Alice, Bob, Charlie, David}
 import unit.{Knows, assertEqOp, description}
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
 trait Duplicates { self: HasBackend =>
   /**
     * Check difference between findAll and findDistinct

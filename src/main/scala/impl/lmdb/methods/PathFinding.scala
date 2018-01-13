@@ -1,9 +1,9 @@
 package impl.lmdb.methods
 
 import core.backend.common.algorithms
+import core.backend.intermediate.FindPair
 import core.user.containers.{Operation, Path, ReadOperation}
 import core.user.dsl.{E, View}
-import core.backend.intermediate.RelationalQuery
 import core.user.schema.{SchemaDescription, SchemaObject}
 import core.utils.{EitherOps, _}
 import impl.lmdb._
@@ -17,8 +17,8 @@ import impl.lmdb.errors.{LMDBMissingRelation, LMDBMissingTable}
   */
 
 trait PathFinding { self: Methods =>
-  import instance._
 
+  import instance.executionContext
   /**
     *
     * @param start - node to start from
@@ -33,7 +33,7 @@ trait PathFinding { self: Methods =>
   def shortestPath[A](
                        start: A,
                        end: A,
-                       relationalQuery: RelationalQuery[A, A]
+                       relationalQuery: FindPair[A, A]
                      )(
     implicit sa: SchemaObject[A],
     sd: SchemaDescription
@@ -54,7 +54,7 @@ trait PathFinding { self: Methods =>
         extractorTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         // get an unsafe equivalent of the query
-        query <- relationalQuery.tree.getUnsafe.leftMap(LMDBMissingRelation)
+        query <- relationalQuery.getUnsafe.leftMap(LMDBMissingRelation)
 
         // set up the search step function
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
@@ -82,7 +82,7 @@ trait PathFinding { self: Methods =>
 
   def allShortestPaths[A](
                            start: A,
-                           relationalQuery: RelationalQuery[A, A]
+                           relationalQuery: FindPair[A, A]
                          )(
     implicit sa: SchemaObject[A],
     sd: SchemaDescription
@@ -102,7 +102,7 @@ trait PathFinding { self: Methods =>
         extractor <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         // get the type erased version of the query
-        query <- relationalQuery.tree.getUnsafe.leftMap(LMDBMissingRelation)
+        query <- relationalQuery.getUnsafe.leftMap(LMDBMissingRelation)
 
         // set up search function
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}

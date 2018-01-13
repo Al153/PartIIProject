@@ -6,7 +6,6 @@ package core.user
   * Package object providing a single import for lots of syntax and methods
   */
 package object dsl extends Commands
-  with NodeSyntax
   with RelationSyntax
   with Opening
   with RepetitionOps

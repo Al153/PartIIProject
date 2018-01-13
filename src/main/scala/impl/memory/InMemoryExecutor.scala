@@ -105,13 +105,13 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
   /**
     * Implementation of shortestPath, uses methods implementation
     */
-  override def shortestPath[A](start: A, end: A, relationalQuery: RelationalQuery[A, A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Option[Path[A]]] =
+  override def shortestPath[A](start: A, end: A, relationalQuery: FindPair[A, A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Option[Path[A]]] =
     instance.readOp {
       tree =>
         for {
           // setup
           initial <- methods.find(start, tree)
-          unsafeQuery <- relationalQuery.tree.getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeQuery <- relationalQuery.getUnsafe.leftMap(MemoryMissingRelation)
 
           // get a vector of results
           erasedRes <- methods.singleShortestsPathImpl(
@@ -131,13 +131,13 @@ class InMemoryExecutor(instance: MemoryInstance, schemaDescription: SchemaDescri
     * Implementation of allShortestPaths, uses methods implementation
     */
 
-  override def allShortestPaths[A](start: A, relationalQuery: RelationalQuery[A, A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Set[Path[A]]] =
+  override def allShortestPaths[A](start: A, relationalQuery: FindPair[A, A])(implicit sa: SchemaObject[A], sd: SchemaDescription): Operation[E, Set[Path[A]]] =
     instance.readOp {
       tree =>
         for {
           // setup
           initial <- methods.find(start, tree)
-          unsafeQuery <- relationalQuery.tree.getUnsafe.leftMap(MemoryMissingRelation)
+          unsafeQuery <- relationalQuery.getUnsafe.leftMap(MemoryMissingRelation)
 
           // get erased path
           erasedRes <- methods.allShortestPathsImpl(initial, o => methods.findPairsSetImpl(unsafeQuery, Set(o), tree))
