@@ -1,7 +1,8 @@
 package core.user.dsl
 
 import core.backend.intermediate._
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.user.schema.SchemaObject
+
 import scala.language.implicitConversions
 
 /**
@@ -16,13 +17,13 @@ trait FindableSyntax {
       * Chain this node into a Relational query - ie a UnaryQuery for objects linked by the relational query from
       * those that match this  node
       */
-    def >>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B], sd: SchemaDescription): From[A, B] =
+    def >>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): From[A, B] =
       From(u.toFindSingle, r.toFindPair)
 
     /**
       * Left-filter a relation by this findable
       */
-    def -->>[B, That](r: FindPairAble[A, B])(implicit sb: SchemaObject[B], sd: SchemaDescription): FindPair[A, B] =
+    def -->>[B, That](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
       AndLeft(r.toFindPair, u.toFindSingle)
   }
 
@@ -35,13 +36,13 @@ trait FindableSyntax {
       * Chain this node into a Relational query - ie a UnaryQuery for objects linked by the relational query from
       * those that match this  node
       */
-    def >>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B], sd: SchemaDescription): From[A, B] =
+    def >>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): From[A, B] =
       From(u.toFindSingle, r.toFindPair)
 
     /**
       * Left-filter a relation by this findable
       */
-    def -->>[B, That](r: FindPairAble[A, B])(implicit sb: SchemaObject[B], sd: SchemaDescription): FindPair[A, B] =
+    def -->>[B, That](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
       AndLeft(r.toFindPair, u.toFindSingle)
   }
 }

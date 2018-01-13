@@ -1,7 +1,8 @@
 package core.user.dsl
 
 import core.backend.intermediate._
-import core.user.schema.{Findable, SchemaDescription, SchemaObject, TableName}
+import core.user.schema.{SchemaObject, TableName}
+
 import scala.language.implicitConversions
 
 /**

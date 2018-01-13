@@ -22,7 +22,7 @@ import scalaz.Scalaz._
   * Instance implementation
   */
 class MemoryInstance(val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
-  override lazy val executor: DBExecutor = new InMemoryExecutor(this, schema)
+  override lazy val executor: DBExecutor = new InMemoryExecutor(this)
 
   /**
     * initial default tree

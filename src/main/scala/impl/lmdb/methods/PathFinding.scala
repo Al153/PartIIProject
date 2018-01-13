@@ -4,7 +4,7 @@ import core.backend.common.algorithms
 import core.backend.intermediate.FindPair
 import core.user.containers.{Operation, Path, ReadOperation}
 import core.user.dsl.{E, View}
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.user.schema.SchemaObject
 import core.utils.{EitherOps, _}
 import impl.lmdb._
 import impl.lmdb.access.ObjId
@@ -24,8 +24,7 @@ trait PathFinding { self: Methods =>
     * @param start - node to start from
     * @param end - target node
     * @param relationalQuery - query to execute over
-    * @param sa - evidence that A is something that should be stored in the database
-    * @param sd - schema description associated with the instance
+    * @param sa - evidence that A is something that should be stored in the databases
     * @tparam A - type of objects to extract
     * @return
     */
@@ -35,8 +34,7 @@ trait PathFinding { self: Methods =>
                        end: A,
                        relationalQuery: FindPair[A, A]
                      )(
-    implicit sa: SchemaObject[A],
-    sd: SchemaDescription
+    implicit sa: SchemaObject[A]
   ): Operation[E, Option[Path[A]]] = new ReadOperation ({
     view: View => LMDBFutureE(
       for {
@@ -54,7 +52,7 @@ trait PathFinding { self: Methods =>
         extractorTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         // get an unsafe equivalent of the query
-        query <- relationalQuery.getUnsafe(sd).leftMap(LMDBMissingRelation)
+        query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
         // set up the search step function
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
@@ -75,7 +73,6 @@ trait PathFinding { self: Methods =>
     * @param start - node to start from
     * @param relationalQuery - query to execute over
     * @param sa - evidence that A is something that should be stored in the database
-    * @param sd - schema description associated with the instance
     * @tparam A - type of objects to extract
     * @return
     */
@@ -84,8 +81,7 @@ trait PathFinding { self: Methods =>
                            start: A,
                            relationalQuery: FindPair[A, A]
                          )(
-    implicit sa: SchemaObject[A],
-    sd: SchemaDescription
+    implicit sa: SchemaObject[A]
   ): Operation[E, Set[Path[A]]] =  new ReadOperation ({
     view: View => LMDBFutureE(
       for {
@@ -102,7 +98,7 @@ trait PathFinding { self: Methods =>
         extractor <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
 
         // get the type erased version of the query
-        query <- relationalQuery.getUnsafe(sd).leftMap(LMDBMissingRelation)
+        query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
         // set up search function
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}

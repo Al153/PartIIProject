@@ -2,7 +2,7 @@ package impl.lmdb.methods
 
 import core.backend.common.algorithms.{FixedPointTraversal, Joins}
 import core.backend.intermediate.unsafe._
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.user.schema.SchemaObject
 import core.utils.EitherOps
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, ObjId}
@@ -55,8 +55,7 @@ trait VectorImpl { self: Methods =>
                            rightTable: ObjectRetrievalTable
                            )(
     implicit sa: SchemaObject[A],
-    sb: SchemaObject[B],
-    sd: SchemaDescription
+    sb: SchemaObject[B]
   ): LMDBEither[Vector[(A, B)]] = for {
   // starting values (all values in left table)
     initial <- leftTable.lookupVector(commits)

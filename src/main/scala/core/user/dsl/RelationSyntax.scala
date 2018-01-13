@@ -1,7 +1,7 @@
 package core.user.dsl
 
 import core.backend.intermediate._
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.user.schema.SchemaObject
 
 import scala.language.implicitConversions
 
@@ -15,7 +15,7 @@ trait RelationSyntax {
     * Relation syntax
     */
   implicit class FindPairSyntax[A, B](left: FindPairAble[A, B])(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]
   ) {
     /**
       * Chain with another relation, which has been reversed
@@ -74,9 +74,7 @@ trait RelationSyntax {
       Distinct(Chain(AndRight(left.toFindPair, middle.toFindSingle), right.toFindPair.reverse))
   }
 
-  implicit class SymmetricQueryOps[A](u: FindPairAble[A, A])(
-    implicit sa: SchemaObject[A], sd: SchemaDescription
-  ) {
+  implicit class SymmetricQueryOps[A](u: FindPairAble[A, A])(implicit sa: SchemaObject[A]) {
     def *(n: Int): FindPair[A, A] = Exactly(n, u.toFindPair)
 
     def * (r: Repetition): FindPair[A, A] = r match {

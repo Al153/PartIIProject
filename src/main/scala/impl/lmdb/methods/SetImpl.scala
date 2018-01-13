@@ -2,16 +2,15 @@ package impl.lmdb.methods
 
 import core.backend.common.algorithms.{FixedPointTraversal, Joins}
 import core.backend.intermediate.unsafe._
-import core.user.schema.{SchemaDescription, SchemaObject}
-import core.utils.EitherOps
+import core.user.schema.SchemaObject
+import core.utils.{EitherOps, _}
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, ObjId}
-import impl.lmdb.errors.{LMDBError, MissingIndex, LMDBMissingTable}
+import impl.lmdb.errors.{LMDBError, MissingIndex}
 import impl.lmdb.tables.impl.ObjectRetrievalTable
-import core.utils._
 
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 /**
   * Created by Al on 30/12/2017.
@@ -31,7 +30,7 @@ trait SetImpl { self: Methods =>
                      ut: UnsafeFindSingle,
                      commits: Set[Commit],
                      objectTable: ObjectRetrievalTable
-                   )(implicit sa: SchemaObject[A], sd: SchemaDescription): LMDBEither[Set[A]] = {
+                   )(implicit sa: SchemaObject[A]): LMDBEither[Set[A]] = {
     for {
       // find the object ids of the result
       ids <- findSingleSet(ut, commits)
@@ -54,8 +53,7 @@ trait SetImpl { self: Methods =>
                           rightTable: ObjectRetrievalTable
                         )(
     implicit sa: SchemaObject[A],
-    sb: SchemaObject[B],
-    sd: SchemaDescription
+    sb: SchemaObject[B]
   ): LMDBEither[Set[(A, B)]] = for {
     // starting values (all values in left table)
     initial <- leftTable.lookup(commits)

@@ -1,17 +1,13 @@
 package impl.lmdb.methods
 
+import core.backend.intermediate.RelationName
 import core.user.containers.{Operation, WriteOperation}
 import core.user.dsl.{CompletedRelation, E, View}
-import core.backend.intermediate.RelationName
-import core.user.schema.{SchemaDescription, SchemaObject}
-import core.utils.EitherOps
+import core.user.schema.SchemaObject
+import core.utils.{EitherOps, _}
 import impl.lmdb._
 import impl.lmdb.access.{Commit, ObjId}
-import core.utils._
 import impl.lmdb.errors.{LMDBError, LMDBMissingInsert, LMDBMissingRelation, LMDBMissingTable}
-
-import scalaz._
-import Scalaz._
 
 /**
   * Created by Al on 29/12/2017.
@@ -21,7 +17,7 @@ import Scalaz._
 
 
 trait Write { self: Methods =>
-  import instance._
+  import instance.executionContext
 
   /**
     * High-level insert method
@@ -30,7 +26,7 @@ trait Write { self: Methods =>
   def insert[A, B](
                     t: TraversableOnce[CompletedRelation[A, B]]
                   )(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]
   ): Operation[E, Unit] = new WriteOperation[E](
     v => LMDBFutureE(doInsert(t, v)).asCFuture
   )
@@ -42,7 +38,7 @@ trait Write { self: Methods =>
     * @return
     */
   private def doInsert[A, B](t: TraversableOnce[CompletedRelation[A, B]], v: View)(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]
   ): LMDBEither[View] = for {
     // Check the view is valid
     _ <- instance.controlTables.availableViews.validateView(v)
@@ -102,10 +98,7 @@ trait Write { self: Methods =>
                        t: TraversableOnce[CompletedRelation[A, B]],
                        commits: Set[Commit],
                        newCommit: Commit
-                     )(
-    implicit sa: SchemaObject[A],
-    sb: SchemaObject[B],
-    sd: SchemaDescription
+                     )(implicit sa: SchemaObject[A], sb: SchemaObject[B]
   ): LMDBEither[(Map[ObjId, Map[RelationName, Set[ObjId]]], Map[ObjId, Map[RelationName, Set[ObjId]]])] =
     for {
       // get hold of the tables to insert into
@@ -119,7 +112,7 @@ trait Write { self: Methods =>
         case (em, CompletedRelation(a, r, b)) =>
           for {
             m <- em
-            er <- sd.getRelation(r).leftMap(LMDBMissingRelation)
+            er <- instance.schema.getRelation(r).leftMap(LMDBMissingRelation)
             rname = er.name
             ma: Map[RelationName, Set[B]] = m.getOrElse(a, Map[RelationName, Set[B]]())
             mset = ma + (rname -> (ma.getOrElse(rname, Set[B]()) + b))
@@ -131,7 +124,7 @@ trait Write { self: Methods =>
         case (em, CompletedRelation(a, r, b)) =>
           for {
             m <- em
-            er <- sd.getRelation(r).leftMap(LMDBMissingRelation)
+            er <- instance.schema.getRelation(r).leftMap(LMDBMissingRelation)
             rname = er.name
             mb: Map[RelationName, Set[A]] = m.getOrElse(b, Map[RelationName, Set[A]]())
             mset = mb + (rname -> (mb.getOrElse(rname, Set[A]()) + a))

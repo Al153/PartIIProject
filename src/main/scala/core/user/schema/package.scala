@@ -44,10 +44,6 @@ package object schema {
     final override def toFindSingle: FindSingle[A] = Find(this)
   }
 
-  object Findable {
-    implicit def toFindSingle[A](f: Findable[A])(implicit sa: SchemaObject[A], sd: SchemaDescription): FindSingle[A] = Find(f)
-  }
-
   /**
     * A findable that is guaranteed to be complete
     * Hence it also provides a midway point for conversion to a DBObject

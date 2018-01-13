@@ -5,7 +5,7 @@ import core.backend.intermediate.{FindPair, FindSingle}
 import core.user.containers.{Operation, Path, ReadOperation, WriteOperation}
 import core.user.dsl.{CompletedRelation, E, View}
 import core.user.interfaces.DBExecutor
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.user.schema.SchemaObject
 import core.utils.{EitherOps, _}
 import impl.sql.adt.queries.{CompletedPairQuery, CompletedSingleQuery, PathFindingQuery}
 import impl.sql.errors.SQLMissingRelation
@@ -13,7 +13,7 @@ import impl.sql.types.ObjId
 
 /**
   * SQL implementation of DBExecutor
-  * @param instance
+  * @param instance - backreference to containing instance
   */
 
 class SQLExecutor(instance: SQLInstance) extends DBExecutor {
@@ -24,20 +24,18 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * Implement finding a vector (multiset) of individual values
     * @param t - the query
     * @param sa - Extractor for A
-    * @param sd - schema description
     * @tparam A - type of object to extract
     * @return
     */
   override def findAll[A](t: FindSingle[A])
                          (
-                           implicit sa: SchemaObject[A],
-                           sd: SchemaDescription
+                           implicit sa: SchemaObject[A]
                          ): Operation[E, Vector[A]] =
     new ReadOperation({
       v: View =>
         (for {
           // compile the query into SQL
-          query <- compileSingleQuery(t, sd, v)
+          query <- compileSingleQuery(t, v)
           // run the SQL
           res <- SQLFutureE(
             instance
@@ -51,7 +49,6 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * Implement finding a Vector (multiset) of related values
     * @param t - the query
     * @param sa - Extractor for A
-    * @param sd - schema description
     * @tparam A - type of object to extract
     * @tparam B - type of object to extract
     *
@@ -60,8 +57,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
   override def findAllPairs[A, B](t: FindPair[A, B])
                                  (
                                    implicit sa: SchemaObject[A],
-                                   sb: SchemaObject[B],
-                                   sd: SchemaDescription
+                                   sb: SchemaObject[B]
                                  ): Operation[E, Vector[(A, B)]] =
     new ReadOperation({
       v: View =>
@@ -81,20 +77,18 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * Implement finding a Set of individual values
     * @param t - the query
     * @param sa - Extractor for A
-    * @param sd - schema description
     * @tparam A - type of object to extract
     * @return
     */
   override def findDistinct[A](t: FindSingle[A])
                               (
-                                implicit sa: SchemaObject[A],
-                                sd: SchemaDescription
+                                implicit sa: SchemaObject[A]
                               ): Operation[E, Set[A]] =
     new ReadOperation({
       v: View => {
         for {
           // compile query
-          query <- compileSingleQuery(t, sd, v)
+          query <- compileSingleQuery(t, v)
           // run the SQL
           res <- SQLFutureE(
             instance
@@ -109,14 +103,14 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * Implement finding a Set of related values
     * @param t - the query
     * @param sa - Extractor for A
-    * @param sd - schema description
+
     * @tparam A - type of object to extract
     * @tparam B - type of object to extract
     *
     * @return
     */
   override def findDistinctPairs[A, B](t: FindPair[A, B])
-                                      (implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Set[(A, B)]] =
+                                      (implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
     new ReadOperation({
       v: View =>
         (for {
@@ -137,15 +131,13 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @param end - end node
     * @param t - relation with which to find shortest path over
     * @param sa - extractor for A objects
-    * @param sd
     * @tparam A - type of objects to extract
     * @return
     */
 
   override def shortestPath[A](start: A, end: A, t: FindPair[A, A])
                               (
-                                implicit sa: SchemaObject[A],
-                                sd: SchemaDescription
+                                implicit sa: SchemaObject[A]
                               ): Operation[E, Option[Path[A]]] =
     new ReadOperation({
       v: View => {
@@ -174,7 +166,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
           e <- cfEnd
 
           // compile the query to SQL
-          query <- compilePathQuery(t, sd, v)
+          query <- compilePathQuery(t, v)
 
           // Find all pairs related by the relation
           pairs <- SQLFutureE(
@@ -203,16 +195,12 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @param start - node to start from
     * @param t - relational query to use
     * @param sa - extractor
-    * @param sd - schema description
     * @tparam A - type to extract
     * @return
     */
 
   override def allShortestPaths[A](start: A, t: FindPair[A, A])
-                                  (
-                                    implicit sa: SchemaObject[A],
-                                    sd: SchemaDescription
-                                  ): Operation[E, Set[Path[A]]] =
+                                  (implicit sa: SchemaObject[A]): Operation[E, Set[Path[A]]] =
     new ReadOperation({
       v: View => {
         // Get the table to use
@@ -228,7 +216,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
 
         for {
           // compile the query
-          query <- compilePathQuery(t, sd, v)
+          query <- compilePathQuery(t, v)
 
           // get all the pairs related by the query
           pairs <- SQLFutureE(
@@ -256,13 +244,12 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @param t - objects to insert
     * @param sa - schema evidence
     * @param sb - schema evidence
-    * @param sd
     * @tparam A - type to insert
     * @tparam B - type to insert
     * @return
     */
   override def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B], sd: SchemaDescription): Operation[E, Unit] = {
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] = {
       new WriteOperation (
         view => {
           // set off non-dependent operations asynchronously
@@ -276,7 +263,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
               EitherOps.sequence(
                 t.map {
                   case CompletedRelation(a, r, b) =>
-                    sd.getRelation(r)
+                    instance.schema.getRelation(r)
                       .leftMap(SQLMissingRelation)
                       .flatMap(
                         r =>
@@ -311,7 +298,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @tparam A - type of objects
     * @return
     */
-  private def compilePathQuery[A](query: FindPair[A, A], schemaDescription: SchemaDescription, v: View): SQLFuture[String] =
+  private def compilePathQuery[A](query: FindPair[A, A], v: View): SQLFuture[String] =
     SQLFutureE (
       for {
         // get unsafe
@@ -353,15 +340,15 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @tparam A - type of objects
     * @return
     */
-  private def compileSingleQuery[A](query: FindSingle[A], sd: SchemaDescription, v: View): SQLFuture[String] =
+  private def compileSingleQuery[A](query: FindSingle[A], v: View): SQLFuture[String] =
     SQLFutureER(
       for {
         // get erased query
-        unsafe <- query.getUnsafe(sd).leftMap(SQLMissingRelation)
+        unsafe <- query.getUnsafe(instance.schema).leftMap(SQLMissingRelation)
         // get the table to lookup from
         table <- instance.lookupTable(unsafe.table)
         // create a query object
-        pairQuery = CompletedSingleQuery(unsafe, table, sd) (instance)
+        pairQuery = CompletedSingleQuery(unsafe, table) (instance)
         // render it
         stringQuery <- pairQuery.render(v)
       } yield stringQuery

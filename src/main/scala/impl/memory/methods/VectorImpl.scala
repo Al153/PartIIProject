@@ -2,7 +2,7 @@ package impl.memory.methods
 
 import core.backend.intermediate.Find
 import core.backend.intermediate.unsafe._
-import core.user.schema.{SchemaDescription, SchemaObject}
+import core.user.schema.SchemaObject
 import core.utils._
 import impl.memory.errors.{MemoryMissingRelation, MemoryMissingTableName}
 import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
