@@ -44,4 +44,8 @@ class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: Sch
     * Convert a commit and DBCell into a key
     */
   private def getKey(value: DBCell, commit: Commit): Key = path >> value >> commit
+
+  /** No initialisation needed
+   */
+  override def initialise(): LMDBEither[Unit] = LMDBEither(())
 }

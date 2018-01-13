@@ -25,7 +25,4 @@ class CommitsCounter(implicit val instance: LMDBInstance) extends MutableCounter
     * @return
     */
   override def next(a: Commit): Commit = a.increment
-
-  // run initialiser
-  initialise()
 }

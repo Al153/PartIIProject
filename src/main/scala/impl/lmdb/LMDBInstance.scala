@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext
   *
   * [[DBInstance]] implementation
   */
-final class LMDBInstance(val env: Env, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
+final class LMDBInstance(val env: Env, val schema: SchemaDescription, isNew: Boolean)(implicit val executionContext: ExecutionContext) extends DBInstance {
   // makes passing to other methods easier
   private [lmdb] implicit val instance: LMDBInstance = this
 
@@ -92,6 +92,18 @@ final class LMDBInstance(val env: Env, val schema: SchemaDescription)(implicit v
     val viewsTable = new ViewsTable()
     val objectCounter = new ObjectsCounter()
   }
+
+  def initialise(): LMDBEither[Unit] = if (isNew) for {
+    _ <- controlTables.availableViews.initialise()
+    _ <- controlTables.commitsCounter.initialise()
+    _ <- controlTables.defaultView.initialise()
+    _ <- controlTables.relations.initialise()
+    _ <- controlTables.reverseRelations.initialise()
+    _ <- controlTables.viewsCounter.initialise()
+    _ <- controlTables.viewsTable.initialise()
+    _ <- controlTables.objectCounter.initialise()
+    _ <- EitherOps.sequence(objects.map {case (_, table) => table.initialise()})
+  } yield () else LMDBEither(())
 
   /**
     * Lookup a pattern, helper method

@@ -33,8 +33,7 @@ abstract class MutableCounter[A](implicit store: Storeable[A]) extends LMDBTable
   protected def next(a: A): A
 
   /**
-    * initialise should be called by implementor's constructor
+    * initialise should be called if the database is a new one
     */
-  protected def initialise(): Unit = put(path, initialValue)
-
+  def initialise(): LMDBEither[Unit] = put(path, initialValue)
 }

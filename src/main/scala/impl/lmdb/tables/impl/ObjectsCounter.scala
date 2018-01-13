@@ -16,7 +16,6 @@ class ObjectsCounter(implicit val instance: LMDBInstance) extends MutableCounter
   override def path: Key = "db" >> "nextObject"
   override val initialValue = ObjId(0)
 
-  initialise()
 
 
   /**

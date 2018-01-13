@@ -25,10 +25,4 @@ class ViewsCounter(implicit val instance: LMDBInstance) extends MutableCounter[V
     * @return
     */
   override protected def next(a: View): View = View(a.id + 1)
-
-  initialise()
-
-
-
-
 }

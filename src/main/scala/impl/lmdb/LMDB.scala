@@ -2,14 +2,14 @@ package impl.lmdb
 
 import java.nio.file.Files
 
-import core.user.interfaces._
-import core.user.containers.ConstrainedFuture
 import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
+import core.user.interfaces._
 import core.user.schema.SchemaDescription
 import org.fusesource.lmdbjni.Env
 
 import scala.concurrent.ExecutionContext
-import scalaz._, Scalaz._
+import scalaz.Scalaz._
+import scalaz._
 
 
 /**
@@ -20,23 +20,29 @@ import scalaz._, Scalaz._
 object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {
-      val env = initEnvironment(address)
-      new LMDBInstance(env, schema).right
+      val (env, isNew) = initEnvironment(address)
+      val instance = new LMDBInstance(env, schema, isNew)
+      for {
+        _ <- instance.initialise()
+      } yield instance
     } catch {case e: Throwable => errors.recoverLMDBException(e).left}
 
-  private def initEnvironment(address: DatabaseAddress): Env = {
+  private def initEnvironment(address: DatabaseAddress): (Env, Boolean) = {
 
     address match {
       case Empty =>
         val dir = Files.createTempDirectory("GraphDB")
         dir.toFile.deleteOnExit()
-        new Env(dir.toFile.getPath)
+        (new Env(dir.toFile.getPath), true)
 
       case DBDir(dir, _, _) =>
         val directory = dir.toFile
-        if (!directory.exists()) directory.mkdirs()
+        val isNew = if (!directory.exists()) {
+          directory.mkdirs()
+          true
+        } else false
 
-        new Env(directory.getPath)
+        (new Env(directory.getPath), isNew)
     }
   }
 }

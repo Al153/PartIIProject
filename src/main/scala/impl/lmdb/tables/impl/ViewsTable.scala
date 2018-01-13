@@ -15,11 +15,14 @@ import impl.lmdb.access.Storeable._
   */
 // todo: move away from the Set[Commit], since we only ever append to the collection of commits or traverse it.
 //       so a list might be quicker
+// todO: These values are immutable so can be easily cached
 class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
   override def path: Key = "db" >> "views"
 
-  // initialise
-  newChildView(initialView, Set())
+  /**
+    * Initialisation consists of setting the initial view to contain the empty set of commits
+    */
+  override def initialise(): LMDBEither[Unit] = newChildView(initialView, Set())
 
   /**
     * Lokup commits associated with a view

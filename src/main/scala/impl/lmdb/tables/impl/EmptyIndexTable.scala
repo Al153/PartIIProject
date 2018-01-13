@@ -55,4 +55,10 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
     */
   // todo: do batching like change to [[ColumnIndexTable]]
   def insert(commit: Commit, objId: ObjId): LMDBEither[Unit] = transactionalAppendToSet(getPath(commit), objId)
+
+  /**
+    * Do nothing to initialise
+    * @return
+    */
+  override def initialise(): LMDBEither[Unit] = LMDBEither(())
 }

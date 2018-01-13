@@ -1,6 +1,6 @@
 package impl.lmdb.tables.interfaces
 
-import impl.lmdb.LMDBInstance
+import impl.lmdb.{LMDBEither, LMDBFuture, LMDBInstance}
 import impl.lmdb.access.Key
 
 /**
@@ -11,4 +11,5 @@ import impl.lmdb.access.Key
 trait LMDBTable {
   def path: Key
   implicit val instance: LMDBInstance
+  def initialise(): LMDBEither[Unit]
 }

@@ -18,7 +18,7 @@ class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
 
   override def path: Key =  "db" >> "default"
 
-  setDefault(initialView)
+  def initialise(): LMDBEither[Unit] = put(path, initialView)(StoreableView, instance)
 
   /**
     * Gets default view

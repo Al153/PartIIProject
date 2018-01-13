@@ -9,7 +9,7 @@ import impl.lmdb.access.Key._
 import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb.errors.{LMDBMissingTable, UnmarshallingError}
 import impl.lmdb.tables.interfaces.LMDBTable
-import impl.lmdb.{LMDBEither, LMDBInstance}
+import impl.lmdb.{LMDBEither, LMDBFuture, LMDBInstance}
 
 import scalaz.Scalaz._
 
@@ -130,4 +130,9 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   private def insertFields(fields: DBObject, objId: ObjId): LMDBEither[Unit] =
     lmdb.put(getKey(objId), fields)
 
+  /**
+    * Nothing to do to initialise
+    * @return
+    */
+  override def initialise(): LMDBEither[Unit] = LMDBEither(())
 }

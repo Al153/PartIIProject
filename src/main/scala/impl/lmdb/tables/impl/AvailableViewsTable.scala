@@ -22,8 +22,11 @@ class AvailableViewsTable(implicit val instance: LMDBInstance) extends LMDBTable
   // todo: have sub table containing a logical clock, allowing us to store an easily validated cache
   override def path: Key = "db" >> "views"
 
-  // run the initialiser
-  lmdb.put[Set[View]](path, Set(initialView))
+  /**
+    * To initialise, simply set the initial view
+    * @return
+    */
+  override def initialise(): LMDBEither[Unit] = lmdb.put[Set[View]](path, Set(initialView))
 
   /**
     * Get available views in DB

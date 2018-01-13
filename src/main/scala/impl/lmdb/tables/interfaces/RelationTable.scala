@@ -46,4 +46,9 @@ trait RelationTable extends LMDBTable {
   def insert(from: ObjId, commit: Commit, relationName: RelationName, to: Set[ObjId]): LMDBEither[Unit] =
       transactionalUnion(getKey(from, commit, relationName), to)
 
+  /**
+    * Do nothing to initialise
+    * @return
+    */
+  override def initialise(): LMDBEither[Unit] = LMDBEither(())
 }
