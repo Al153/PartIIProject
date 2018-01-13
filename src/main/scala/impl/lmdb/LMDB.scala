@@ -21,6 +21,7 @@ object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {
       val (env, isNew) = initEnvironment(address)
+      env.setMapSize(1024 * 1024 * 1024 * 1024 )
       val instance = new LMDBInstance(env, schema, isNew)
       for {
         _ <- instance.initialise()

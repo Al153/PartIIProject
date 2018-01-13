@@ -129,14 +129,12 @@ object Storeable {
   implicit object StoreableDouble extends Storeable[Double] {
     override def toBytes(d: Double): Vector[Byte] = {
       val l = java.lang.Double.doubleToLongBits(d)
-      val a = Array.fill(8)(0.toByte)
-      for (i <- 0 to 7) a(i) = ((l >> ((7 - i) * 8)) & 0xff).toByte
-      a.toVector
+      StoreableLong.toBytes(l)
     }
 
     override def fromBytes(bytes: Vector[Byte]): LMDBEither[Double] =
-      if (bytes.length == 8) ByteBuffer.wrap(bytes.toArray).getDouble.right
-      else UnexpectedStreamLength(8, bytes).left
+      for (l <- StoreableLong.fromBytes(bytes))
+        yield java.lang.Double.longBitsToDouble(l)
   }
 
   /**
@@ -144,16 +142,26 @@ object Storeable {
     */
 
   implicit object StoreableLong extends Storeable[Long] {
-    override def toBytes(a: Long): Vector[Byte] =
-      Vector(
-        (a>>56).toByte, (a>>48).toByte, (a>>40).toByte, (a>>32).toByte,
-        (a>>24).toByte, (a>>16).toByte, (a>> 8).toByte, a.toByte
-      )
+    override def toBytes(a: Long): Vector[Byte] = {
+      var l = a
+      val result = new Array[Byte](8)
+      var i = 7
+      while (i >= 0) {
+        result(i) = (l & 0xFF).toByte
+        l >>= 8
+        i -= 1
+      }
+      result.toVector
+    }
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Long] =
-      LMDBEither(bytes.foldLeft[Long](0) {
-        case (top, b) => (top << 8) + b
-      })
+    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Long] = {
+      var result = 0l
+      for (b <- bytes) {
+        result <<= 8
+        result |= (b & 0xFF)
+      }
+      result.right
+    }
   }
 
   /**

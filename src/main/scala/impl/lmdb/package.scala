@@ -112,13 +112,16 @@ package object lmdb {
     val tx: Transaction = instance.env.createWriteTransaction()
     // get the key
     val k = key.render
+    println("Key = " + key + " Rendered = " + k)
     // instantiate a result value, so there is something if it fails
     var res: LMDBEither[A] = NoResult.left
     try {
         res = for {
           bytes <- LMDBEither(instance.db.get(tx, k))
           a <- sa.fromBytes(safeRetrieve(bytes))
+          _ = println("a = " + a)
           res <- compute(a)
+          _ = println("res = " + res)
           _ <- LMDBEither(instance.db.put(tx, k, sa.toBytes(res).toArray))
         } yield a
         res
