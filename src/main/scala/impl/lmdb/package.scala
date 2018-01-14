@@ -110,6 +110,8 @@ package object lmdb {
 
     // get a new transaction
     val tx: Transaction = instance.env.createWriteTransaction()
+
+    println("tx = " + tx + " id = " + tx.getId)
     // get the key
     val k = key.render
     println("Key = " + key + " Rendered = " + k)

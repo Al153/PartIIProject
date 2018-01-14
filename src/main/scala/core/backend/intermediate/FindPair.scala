@@ -123,8 +123,8 @@ case class FindIdentity[A]()(implicit sa: SchemaObject[A]) extends FindPair[A, A
   * filter the result of the sub expression for those pairs which do not equal each other
   */
 
-case class Distinct[A, B](rel: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
-  override def reverse: FindPair[B, A] = Distinct(rel.reverse)
+case class Distinct[A](rel: FindPair[A, A])(implicit sa: SchemaObject[A]) extends FindPair[A, A] {
+  override def reverse: FindPair[A, A] = Distinct(rel.reverse)
   override def getUnsafe(sd: SchemaDescription): MissingRelation \/ USDistinct = for {r <- rel.getUnsafe(sd)} yield USDistinct(r)
 }
 
