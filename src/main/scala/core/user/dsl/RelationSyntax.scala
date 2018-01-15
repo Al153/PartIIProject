@@ -78,14 +78,14 @@ trait RelationSyntax {
     def *(n: Int): FindPair[A, A] = Exactly(n, u.toFindPair)
 
     def * (r: Repetition): FindPair[A, A] = r match {
-      case BetweenRange(lo, hi) => Between(lo, hi, u.toFindPair)(sa)
+      case BetweenRange(lo, hi) => Chain(Exactly(lo, u.toFindPair), Upto(hi - lo, u.toFindPair))
       case UptoRange(n) => Upto(n, u.toFindPair)(sa)
-      case AtleastRange(n) => Atleast(n, u.toFindPair)(sa)
+      case AtleastRange(n) => if (n == 0) FixedPoint(u.toFindPair) else Chain(Exactly(n, u.toFindPair), FixedPoint(u.toFindPair))
     }
 
-    def ** : FindPair[A, A] = Atleast(0, u.toFindPair)(sa)
+    def ** : FindPair[A, A] = FixedPoint(u.toFindPair)(sa)
 
-    def ++ : FindPair[A, A] = Atleast(1, u.toFindPair)(sa)
+    def ++ : FindPair[A, A] = Chain(u.toFindPair, FixedPoint(u.toFindPair))
 
     def ? : FindPair[A, A] = Upto(1, u.toFindPair)(sa)
   }

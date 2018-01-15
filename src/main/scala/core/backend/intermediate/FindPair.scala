@@ -123,8 +123,8 @@ case class FindIdentity[A]()(implicit sa: SchemaObject[A]) extends FindPair[A, A
   * filter the result of the sub expression for those pairs which do not equal each other
   */
 
-case class Distinct[A](rel: FindPair[A, A])(implicit sa: SchemaObject[A]) extends FindPair[A, A] {
-  override def reverse: FindPair[A, A] = Distinct(rel.reverse)
+case class Distinct[A, B](rel: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
+  override def reverse: FindPair[B, A] = Distinct(rel.reverse)
   override def getUnsafe(sd: SchemaDescription): MissingRelation \/ USDistinct = for {r <- rel.getUnsafe(sd)} yield USDistinct(r)
 }
 
@@ -151,23 +151,13 @@ case class Upto[A]( n: Int, rel: FindPair[A, A])(implicit sa: SchemaObject[A]) e
 }
 
 /**
-  * Find pairs that are related by at least n repetitions of the underlying subexpression
+  * Find pairs that are related by the transitive closure of the underlying subexpression
   */
-case class Atleast[A](n: Int, rel: FindPair[A, A])(implicit sa: SchemaObject[A]) extends FindPair[A, A] {
-  override def reverse: FindPair[A, A] = Atleast(n, rel.reverse)
+case class FixedPoint[A](rel: FindPair[A, A])(implicit sa: SchemaObject[A]) extends FindPair[A, A] {
+  override def reverse: FindPair[A, A] = FixedPoint(rel.reverse)
   override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindPair = for {
     r <- rel.getUnsafe(sd)
-  } yield USAtleast(n, r)
-}
-
-/**
-  * Find pairs that are related by a number of repetitions (between low and high) of the underlying subexpression
-  */
-case class Between[A](low: Int, high: Int, rel: FindPair[A, A])(implicit sa: SchemaObject[A]) extends FindPair[A, A] {
-  override def reverse: FindPair[A, A] = Between(low, high, rel.reverse)
-  override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindPair = for {
-    r <- rel.getUnsafe(sd)
-  } yield USBetween(low, high, r)
+  } yield USFixedPoint(r)
 }
 
 

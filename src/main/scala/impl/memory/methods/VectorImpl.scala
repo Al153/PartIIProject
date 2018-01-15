@@ -109,20 +109,14 @@ trait VectorImpl { self: ExecutorMethods with SetImpl with Joins with Repetition
             rres <- upTo(stepFunction, left.toSet, n)
           } yield rres.toVector
 
-      case USBetween(low, high, rel) =>
-        recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
+      case USFixedPoint(rel) =>
+        // find a fixed point
+        val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
+          left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+        for {
+          res <- fixedPoint(stepFunction, left.toSet.mapPair)
+        } yield res.toVector
 
-      case USAtleast(n, rel) =>
-        if (n > 0) {
-          recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
-        } else {
-          // otherwise find a fixed point
-          val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
-            left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
-          for {
-            res <- fixedPoint(stepFunction, left.toSet.mapPair)
-          } yield res.toVector
-        }
       case USExactly(n, rel) => if (n <= 0) {
         left.map(x => (x, x)).right
       } else {

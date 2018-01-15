@@ -10,7 +10,6 @@ import impl.lmdb.errors.{LMDBError, MissingIndex}
 import impl.lmdb.tables.impl.ObjectRetrievalTable
 
 import scalaz.Scalaz._
-import scalaz._
 
 /**
   * Created by Al on 30/12/2017.
@@ -190,18 +189,10 @@ trait SetImpl { self: Methods =>
 
         FixedPointTraversal.upTo[LMDBError, ObjId](stepFunction, from, n)
 
-
-      case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), from)
-
-      case USAtleast(n, rel) =>
-        if (n > 0) {
-          recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), from)
-        } else {
-          // otherwise find a fixed point
-          val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
-          FixedPointTraversal.fixedPoint(stepFunction, from.mapPair)
-        }
-
+      case USFixedPoint(rel) =>
+        // find a fixed point
+        val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
+        FixedPointTraversal.fixedPoint(stepFunction, from.mapPair)
 
       case USExactly(n, rel) => if (n <= 0) {
         from.map(x => (x, x)).right

@@ -130,18 +130,15 @@ object Query {
     } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> l1, b -> r1, OnLeft))
 
     // an atleast requires a fixed point (recursive) subexpression
-    case USAtleast(n , rel) => for {
+    case USFixedPoint(rel) => for {
       precomputed <- convertPair(rel) // precompute a view
       temporaryView <- CompilationContext.newSubexpression(precomputed) // get a name for it
-
-      preTraversal <- getExactly(temporaryView, n, rel.leftMostTable) // compute the traversal over n repetitions
-      preTraversalName <- CompilationContext.newSubexpression(preTraversal) // give it a name
-
+      n <- CompilationContext.getTableName(rel.leftMostTable)
       // compute as an atleast(0) using a fixed point
       rec <- CompilationContext.fixedPoint {
         recursiveCall =>
           Union(
-            SelectWhere(Simple, NoConstraint, Var(preTraversalName)), // basis case: pretraversal
+            SelectWhere(FromObject, NoConstraint, Var(n)),
             SelectWhere( // add values to it
               Joined(recursiveCall, temporaryView),
               NoConstraint,
@@ -150,25 +147,7 @@ object Query {
       }
     } yield SelectWhere(Simple, NoConstraint, Var(rec))
 
-      // A between is an exactly(low) chained with an upto(high - low)
-    case USBetween(low, high, rel) => for {
-      view <- convertPair(rel)
-      viewName <- CompilationContext.newSubexpression(view)
-      preTraversal <- getExactly(viewName, low, rel.leftMostTable)
-      preTraversalName <- CompilationContext.newSymbol
-      postTraversal <- getUpto(viewName, high-low, rel.leftMostTable)
-      postTraversalName <- CompilationContext.newSymbol
-    } yield SelectWhere(
-      Joined(preTraversalName, postTraversalName),
-      NoConstraint,
-      JoinRename(
-        preTraversalName -> preTraversal,
-        postTraversalName -> postTraversal,
-        Chained
-      )
-    )
-
-      // Chains are implemented using a join
+    // Chains are implemented using a join
     case USChain(left, right) => for {
       l <- convertPair(left)
       r <- convertPair(right)

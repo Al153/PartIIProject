@@ -207,18 +207,13 @@ trait VectorImpl { self: Methods =>
           rres <- FixedPointTraversal.upTo[LMDBError, ObjId](stepFunction, from.toSet, n)
         } yield rres.toVector
 
-      case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), from)
+      case USFixedPoint(rel) =>
+        // find a fixed point
+        val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => findPairSet(rel, commits, left).map(_.mapProj2)
+        for {
+          res <- FixedPointTraversal.fixedPoint(stepFunction, from.toSet.mapPair)
+        } yield res.toVector
 
-      case USAtleast(n, rel) =>
-        if (n > 0) {
-          recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), from)
-        } else {
-          // otherwise find a fixed point
-          val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => findPairSet(rel, commits, left).map(_.mapProj2)
-          for {
-            res <- FixedPointTraversal.fixedPoint(stepFunction, from.toSet.mapPair)
-          } yield res.toVector
-        }
       case USExactly(n, rel) => if (n <= 0) {
         from.map(x => (x, x)).right
       } else {

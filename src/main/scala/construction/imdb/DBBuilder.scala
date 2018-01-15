@@ -26,8 +26,8 @@ object DBBuilder {
     override def toString: String = e.toString
   }
 
-  def getNodes(): (Map[Int, JSONPerson], Map[Int, JSONMovie]) = {
-    val lines = Source.fromResource("imdb/nodes.json")
+  def getNodes(sourcePath: String): (Map[Int, JSONPerson], Map[Int, JSONMovie]) = {
+    val lines = Source.fromResource(s"$sourcePath/nodes.json")
     val allObjects = lines.mkString.parseJson
     val JsArray(objects) = allObjects
 
@@ -37,8 +37,8 @@ object DBBuilder {
     (people, movies)
   }
 
-  def getEdges(): (Set[JSONDirected], Set[JSONActed]) = {
-    val allObjects = Source.fromResource("imdb/edges.json").mkString.parseJson
+  def getEdges(sourcePath: String): (Set[JSONDirected], Set[JSONActed]) = {
+    val allObjects = Source.fromResource(s"$sourcePath/edges.json").mkString.parseJson
     val JsArray(objects) = allObjects
 
     val directed = objects.collect {case JsObject(d) if ("$label" in d) && (d("$label") == JsString("DIRECTED")) => JSONDirected(d)}.toSet
@@ -47,9 +47,9 @@ object DBBuilder {
   }
 
 
-  def buildDB(implicit instance: DBInstance): Operation[E, Unit] = {
-    val (actors, movies) = getNodes()
-    val (directed, acted) = getEdges()
+  def buildDB(sourcePath: String)(implicit instance: DBInstance): Operation[E, Unit] = {
+    val (actors, movies) = getNodes(sourcePath)
+    val (directed, acted) = getEdges(sourcePath)
 
     println("Actors Size = " + actors.size)
     println("Movies Size = " + movies.size)
@@ -59,7 +59,7 @@ object DBBuilder {
 
     for {
       _ <- insert(directed.map {case JSONDirected(_, from, to) => CompletedRelation(actors(from).toDBPerson, Directed, movies(to).toDBMovie)})
-      _ <- insert(acted.map {case JSONActed(_, from, to, _) => CompletedRelation(actors(from).toDBPerson, ActsIn, movies(to).toDBMovie)})
+      _ <- insert(acted.map {case JSONActed(_, from, to) => CompletedRelation(actors(from).toDBPerson, ActsIn, movies(to).toDBMovie)})
 
       _ <- insert(actors.collect {case (_, a @ JSONPerson(_, Some(birthday), _, _)) => CompletedRelation(a.toDBPerson, HasBirthday, Date(birthday))})
       _ <- insert(actors.collect {case (_, a @ JSONPerson(_, _, Some(place), _)) => CompletedRelation(a.toDBPerson, BornIn, Place(place))})
@@ -76,7 +76,7 @@ object DBBuilder {
         for {
           res <- using(instance) (
             for {
-              _ <- buildDB(instance)
+              _ <- buildDB(sourcePath = "imdb/small")(instance)
               _ = println("Built db")
               bacons <- find(personSchema.pattern("Kevin Bacon".some))
               _ = println("Got bacons")
@@ -89,62 +89,3 @@ object DBBuilder {
   }
 }
 
-case class JSONMovie(name: String, language: String, genre: Option[String], key: Int) {
-  def dBGenre: Option[Genre] = genre.map(Genre)
-  def toDBMovie: Movie = Movie(name, language)
-}
-
-object JSONMovie {
-  def apply(j: Map[String, JsValue]): JSONMovie = {
-    val JsString(name) = j("title")
-    val JsString(key) = j("_key")
-    val JsString(language) = j("language")
-    val genre = j.get("genre").flatMap{ case JsString(g) => Some(g) case _ => None}
-
-    JSONMovie(name, language, genre, key.toInt)
-  }
-}
-case class JSONPerson(name: String, birthday: Option[Long], birthplace: Option[String], key: Int) {
-  def toDBPerson: Person = {
-    Person(name)
-  }
-
-  def dBBirthplace: Option[Place] = birthplace.map(Place)
-  def dBBirthday: Option[Date] = birthday.map(Date)
-}
-
-object JSONPerson {
-  def apply(j: Map[String, JsValue]): JSONPerson = {
-    val JsString(name) = j("name")
-    val JsString(key) = j("_key")
-    val birthday = j.get("birthday").flatMap {case JsString(b) => Some(b.toLong) case _ => None}
-    val birthplace = j.get("birthplace").flatMap {case JsString(b) => Some(b) case _ => None}
-
-    JSONPerson(name, birthday, birthplace, key.toInt)
-  }
-}
-
-case class JSONDirected(key: Int, from: Int, to: Int)
-object JSONDirected {
-  def apply(m: Map[String, JsValue]): JSONDirected = {
-    val JsString(key) = m("_key")
-    val JsString(from) = m("_from")
-    val JsString(to) = m("_to")
-
-    JSONDirected(key.toInt, from.toInt, to.toInt)
-
-  }
-}
-
-case class JSONActed(key: Int, from: Int, to: Int, role: String)
-object JSONActed {
-  def apply(m: Map[String, JsValue]): JSONActed = {
-    val JsString(key) = m("_key")
-    val JsString(from) = m("_from")
-    val JsString(to) = m("_to")
-    val JsString(role) = m("name")
-
-    JSONActed(key.toInt, from.toInt, to.toInt, role)
-
-  }
-}

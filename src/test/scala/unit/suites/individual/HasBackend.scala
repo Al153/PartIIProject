@@ -18,7 +18,7 @@ trait HasBackend {
       .open(Empty, description)
       .fold(errorThrowable, i =>
         Await.result(
-          t(i).run , 2.seconds
+          t(i).run , 10.seconds
         ).fold(errorThrowable, identity)
     )
 }

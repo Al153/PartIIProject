@@ -89,18 +89,14 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
           left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
         upTo(stepFunction, left, n)
 
-      case USBetween(low, high, rel) => recurse(USChain(USExactly(low, rel), USUpto(high - low, rel)), left)
-      case USAtleast(n, rel) =>
-        if (n > 0) {
-          recurse(USChain(USExactly(n, rel), USAtleast(0, rel)), left)
-        } else {
-          // otherwise find a fixed point
-          val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
-            left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
-          for {
-            res <- fixedPoint(stepFunction, left.map(x => (x, x)))
-          } yield res
-        }
+      case USFixedPoint(rel) =>
+        // find a fixed point
+        val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
+          left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+        for {
+          res <- fixedPoint(stepFunction, left.map(x => (x, x)))
+        } yield res
+
       case USExactly(n, rel) => if (n <= 0) {
         left.map(x => (x, x)).right
       } else {

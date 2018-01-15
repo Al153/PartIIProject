@@ -26,14 +26,11 @@ case class USAndLeft private [intermediate] (l: UnsafeFindPair, r: UnsafeFindSin
   override def rightMostTable: TableName = l.rightMostTable
 }
 
-case class USAtleast private [intermediate] (n: Int, rel: UnsafeFindPair) extends UnsafeFindPair {
+case class USFixedPoint private [intermediate](rel: UnsafeFindPair) extends UnsafeFindPair {
   override def leftMostTable: TableName = rel.leftMostTable
   override def rightMostTable: TableName = rel.rightMostTable
 }
-case class USBetween private [intermediate] (low: Int, high: Int, rel: UnsafeFindPair) extends UnsafeFindPair {
-  override def leftMostTable: TableName = rel.leftMostTable
-  override def rightMostTable: TableName = rel.rightMostTable
-}
+
 case class USChain private [intermediate] (l: UnsafeFindPair, r: UnsafeFindPair) extends UnsafeFindPair {
   override def leftMostTable: TableName = l.leftMostTable
   override def rightMostTable: TableName = r.rightMostTable
