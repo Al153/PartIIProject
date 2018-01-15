@@ -1,7 +1,7 @@
 package impl.lmdb.tables.interfaces
 
-import impl.lmdb.{LMDBEither, LMDBFuture, LMDBInstance}
-import impl.lmdb.access.Key
+import impl.lmdb.{LMDBEither, LMDBInstance}
+import org.fusesource.lmdbjni.Database
 
 /**
   * Created by Al on 28/12/2017.
@@ -9,7 +9,9 @@ import impl.lmdb.access.Key
   * An LMDB table is a namespace inside the flat LMDB structure
   */
 trait LMDBTable {
-  def path: Key
+  def name: String
   implicit val instance: LMDBInstance
+  def db: Database
   def initialise(): LMDBEither[Unit]
+
 }

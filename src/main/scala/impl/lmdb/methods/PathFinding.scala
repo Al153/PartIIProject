@@ -1,6 +1,6 @@
 package impl.lmdb.methods
 
-import core.backend.common.algorithms
+import core.utils.algorithms
 import core.backend.intermediate.FindPair
 import core.user.containers.{Operation, Path, ReadOperation}
 import core.user.dsl.{E, View}
@@ -9,6 +9,7 @@ import core.utils.{EitherOps, _}
 import impl.lmdb._
 import impl.lmdb.access.ObjId
 import impl.lmdb.errors.{LMDBMissingRelation, LMDBMissingTable}
+import core.utils._
 
 /**
   * Created by Al on 29/12/2017.
@@ -55,7 +56,8 @@ trait PathFinding { self: Methods =>
         query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
         // set up the search step function
-        searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
+        // todo: use a custom findPairSet impl which only finds the rhs
+        searchStep = {o: ObjId => findPairSet(query, commits,  Set(o)).map(_.mapProj2)}
 
         // run a generic pathfinding algorithm
         optionalPath <- target.fold(LMDBEither[Option[Vector[ObjId]]](None)) {
@@ -101,7 +103,7 @@ trait PathFinding { self: Methods =>
         query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
         // set up search function
-        searchStep = {o: ObjId => findPairSet(query, commits,  Set(o))}
+        searchStep = {o: ObjId => findPairSet(query, commits,  Set(o)).map(_.mapProj2)}
 
         // find the paths
         paths <- algorithms.PathFinding.allShortestPathsImpl(initialSet, searchStep)

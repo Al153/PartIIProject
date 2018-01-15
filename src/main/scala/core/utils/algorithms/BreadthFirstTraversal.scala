@@ -1,4 +1,4 @@
-package core.backend.common.algorithms
+package core.utils.algorithms
 
 import scala.collection.immutable.Queue
 

@@ -1,6 +1,6 @@
 package impl.memory.methods
 
-import core.backend.common.algorithms.FixedPointTraversal
+import core.utils.algorithms.FixedPointTraversal
 import impl.memory.{MemoryEither, MemoryObject, RelatedPair}
 
 /**

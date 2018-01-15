@@ -7,6 +7,7 @@ import impl.lmdb.tables.interfaces.LMDBTable
 import impl.lmdb.{LMDBFuture, LMDBInstance}
 import impl.lmdb._
 import impl.lmdb.access.Storeable.StoreableView
+import org.fusesource.lmdbjni.Database
 
 /**
   * Created by Al on 28/12/2017.
@@ -14,20 +15,23 @@ import impl.lmdb.access.Storeable.StoreableView
   * Holds the default view of the table
   */
 class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
-  import instance._
+  import instance.executionContext
 
-  override def path: Key =  "db" >> "default"
+  override val db: Database = instance.env.openDatabase(name)
+  private val key = "default".key
 
-  def initialise(): LMDBEither[Unit] = put(path, initialView)(StoreableView, instance)
+  override def name: String =  "db:default"
+
+  def initialise(): LMDBEither[Unit] = put(key, initialView, db)(StoreableView)
 
   /**
     * Gets default view
     */
-  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](path)(StoreableView, instance))
+  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](db, key)(StoreableView))
 
   /**
     * Sets default view, non transactional
     */
-  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(path, v)(StoreableView, instance))
+  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(key, v, db)(StoreableView))
 
 }

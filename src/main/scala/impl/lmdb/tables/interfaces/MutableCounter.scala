@@ -1,21 +1,21 @@
 package impl.lmdb.tables.interfaces
 
-import impl.lmdb.LMDBEither
-import impl.lmdb.access.Storeable
-import impl.lmdb._
+import impl.lmdb.{LMDBEither, _}
+import impl.lmdb.access.{Key, Storeable}
 
 /**
   * Created by Al on 29/12/2017.
   *
   * A mutable counter is a transactional counter in the database for getting unique values for objects
   */
-abstract class MutableCounter[A](implicit store: Storeable[A]) extends LMDBTable {
+abstract class MutableCounter[A](key: Key)(implicit store: Storeable[A]) extends LMDBTable {
+
 
   /**
     * Transactional update
     * @return
     */
-  def getAndUpdate(): LMDBEither[A] = transactionalGetAndSet(path){
+  def getAndUpdate(): LMDBEither[A] = transactionalGetAndSet(key, db){
     a => LMDBEither(next(a))
   }
 
@@ -35,5 +35,5 @@ abstract class MutableCounter[A](implicit store: Storeable[A]) extends LMDBTable
   /**
     * initialise should be called if the database is a new one
     */
-  def initialise(): LMDBEither[Unit] = put(path, initialValue)
+  def initialise(): LMDBEither[Unit] = put(key, initialValue, db)
 }

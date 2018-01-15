@@ -116,7 +116,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
           erasedRes <- singleShortestsPathImpl(
             initial,
             sa.findable(end).getUnsafe,
-            o => findPairsSetImpl(unsafeQuery, Set(o), tree),
+            o => findPairsSetImpl(unsafeQuery, Set(o), tree).map(_.mapProj2),
             tree
           )
           // render to a path of As
@@ -139,7 +139,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
           unsafeQuery <- relationalQuery.getUnsafe(instance.schema).leftMap(MemoryMissingRelation)
 
           // get erased path
-          erasedRes <- allShortestPathsImpl(initial, o => findPairsSetImpl(unsafeQuery, Set(o), tree))
+          erasedRes <- allShortestPathsImpl(initial, o => findPairsSetImpl(unsafeQuery, Set(o), tree).map(_.mapProj2))
 
           // render to result
           res <- EitherOps.sequence(erasedRes.map(_.toPath[A]))

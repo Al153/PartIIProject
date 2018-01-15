@@ -9,6 +9,7 @@ import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb.tables.interfaces.LMDBTable
 import impl.lmdb.{LMDBEither, LMDBInstance}
 import impl.lmdb._
+import org.fusesource.lmdbjni.Database
 
 /**
   * Created by Al on 28/12/2017.
@@ -18,12 +19,14 @@ import impl.lmdb._
 
 // todo optimise inserts using transactions (ie store valeus to insert in memory, then insert at once at the end of the transaction
 class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: SchemaComponent)(implicit val instance: LMDBInstance) extends LMDBTable {
-  override def path: Key = tableName >> columnIndex
+  override val db: Database = instance.env.openDatabase(name)
+
+  override def name: String = s"db:$tableName:$columnIndex"
 
   /**
     * Lookup a single commit + DBCell
     */
-  private def lookup(value: DBCell, commit: Commit): LMDBEither[Set[ObjId]] = get(getKey(value, commit))
+  private def lookup(value: DBCell, commit: Commit): LMDBEither[Set[ObjId]] = get(db, getKey(value, commit))
 
   /**
     * Lookup a set of commits + DBCell
@@ -38,12 +41,12 @@ class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: Sch
     * @return
     */
   def insert(value: DBCell, commit: Commit, o: ObjId): LMDBEither[Unit] =
-    transactionalAppendToSet(getKey(value, commit), o)
+    transactionalAppendToSet(getKey(value, commit), o, db)
 
   /**
     * Convert a commit and DBCell into a key
     */
-  private def getKey(value: DBCell, commit: Commit): Key = path >> value >> commit
+  private def getKey(value: DBCell, commit: Commit): Key = value >> commit
 
   /** No initialisation needed
    */

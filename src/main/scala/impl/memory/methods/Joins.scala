@@ -1,6 +1,6 @@
 package impl.memory.methods
 
-import core.backend.common.algorithms
+import core.utils.algorithms
 import impl.memory.RelatedPair
 
 /**

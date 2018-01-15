@@ -1,6 +1,6 @@
 package impl.memory.methods
 
-import core.backend.common.algorithms
+import core.utils.algorithms
 import core.backend.intermediate.unsafe.ErasedFindable
 import core.utils._
 import impl.memory.errors.{MemoryError, MemoryMissingTableName}
@@ -14,13 +14,13 @@ trait PathFinding { self: ExecutorMethods =>
   /**
     * Run the generic allShortestPaths Function
     */
-  def allShortestPathsImpl(start: Set[MemoryObject], searchStep: MemoryObject => MemoryEither[Set[RelatedPair]]):  MemoryEither[Set[MemoryPath]] =
+  def allShortestPathsImpl(start: Set[MemoryObject], searchStep: MemoryObject => MemoryEither[Set[MemoryObject]]):  MemoryEither[Set[MemoryPath]] =
     algorithms.PathFinding.allShortestPathsImpl(start, searchStep).map(_.map(MemoryPath.apply))
 
   /**
     * Run the generic singleShortestPath Function
     */
-  def singleShortestsPathImpl(start: Set[MemoryObject], end: ErasedFindable, searchStep: MemoryObject => MemoryEither[Set[RelatedPair]], tree: MemoryTree): MemoryEither[Option[MemoryPath]] =
+  def singleShortestsPathImpl(start: Set[MemoryObject], end: ErasedFindable, searchStep: MemoryObject => MemoryEither[Set[MemoryObject]], tree: MemoryTree): MemoryEither[Option[MemoryPath]] =
     for {
       // get the possible end result
       possibleEnds <- tree.getOrError(end.tableName, MemoryMissingTableName(end.tableName)).flatMap(_.find(end).map(_.toSet))

@@ -7,9 +7,10 @@ import core.utils._
 import impl.lmdb
 import impl.lmdb.access.Key._
 import impl.lmdb.access.{Commit, Key, ObjId}
-import impl.lmdb.errors.{LMDBMissingTable, UnmarshallingError}
+import impl.lmdb.errors.UnmarshallingError
 import impl.lmdb.tables.interfaces.LMDBTable
-import impl.lmdb.{LMDBEither, LMDBFuture, LMDBInstance}
+import impl.lmdb.{LMDBEither, LMDBInstance}
+import org.fusesource.lmdbjni.Database
 
 import scalaz.Scalaz._
 
@@ -19,7 +20,8 @@ import scalaz.Scalaz._
   * A table for the lookup of objectId -> A, used to lookup values
   */
 class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInstance) extends LMDBTable {
-  override val path: Key = "db" >> "objects" >> sa.name
+  override val name: String = s"db:objects:${sa.name}"
+  override val db: Database = instance.env.openDatabase(name)
 
   /**
     * Index tables for this type
@@ -58,7 +60,7 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
     */
   def retrieve[A](a: ObjId)(implicit sa: SchemaObject[A]): LMDBEither[A] =
     for {
-      dbObject <- lmdb.get[DBObject](getKey(a))
+      dbObject <- lmdb.get[DBObject](db, getKey(a))
       a <- sa.fromRow(dbObject).leftMap(UnmarshallingError)
     } yield a
 
@@ -122,13 +124,13 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   /**
     * Convert and ObjId into a key
     */
-  private def getKey(objId: ObjId): Key = path >> objId
+  private def getKey(objId: ObjId): Key = objId.key
 
   /**
     * Inserts the fields of an object
     */
   private def insertFields(fields: DBObject, objId: ObjId): LMDBEither[Unit] =
-    lmdb.put(getKey(objId), fields)
+    lmdb.put(getKey(objId), fields, db)
 
   /**
     * Nothing to do to initialise

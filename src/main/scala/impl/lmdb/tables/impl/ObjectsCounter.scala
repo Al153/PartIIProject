@@ -2,8 +2,9 @@ package impl.lmdb.tables.impl
 
 import impl.lmdb.LMDBInstance
 import impl.lmdb.access.Key._
-import impl.lmdb.access.{Key, ObjId}
+import impl.lmdb.access.ObjId
 import impl.lmdb.tables.interfaces.MutableCounter
+import org.fusesource.lmdbjni.Database
 
 import scala.language.postfixOps
 
@@ -12,8 +13,9 @@ import scala.language.postfixOps
   *
   * Simple mutable counter for creating new ObjIds
   */
-class ObjectsCounter(implicit val instance: LMDBInstance) extends MutableCounter[ObjId] {
-  override def path: Key = "db" >> "nextObject"
+class ObjectsCounter(implicit val instance: LMDBInstance) extends MutableCounter[ObjId]("Objects".key) {
+  override def name: String = "db:nextObject"
+  override val db: Database = instance.env.openDatabase(name)
   override val initialValue = ObjId(0)
 
 

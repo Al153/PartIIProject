@@ -1,15 +1,18 @@
 package impl.sql
 
-import core.backend.common.algorithms.BreadthFirstTraversal
 import core.backend.intermediate.{FindPair, FindSingle}
 import core.user.containers.{Operation, Path, ReadOperation, WriteOperation}
 import core.user.dsl.{CompletedRelation, E, View}
 import core.user.interfaces.DBExecutor
 import core.user.schema.SchemaObject
+import core.utils.algorithms.PathFinding
 import core.utils.{EitherOps, _}
 import impl.sql.adt.queries.{CompletedPairQuery, CompletedSingleQuery, PathFindingQuery}
-import impl.sql.errors.SQLMissingRelation
+import impl.sql.errors.{SQLError, SQLMissingRelation}
 import impl.sql.types.ObjId
+
+import scalaz.Scalaz._
+import scalaz._
 
 /**
   * SQL implementation of DBExecutor
@@ -362,16 +365,14 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
   private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Option[Vector[ObjId]]] =
-    SQLFuture {
-      for {
-        s <- s
-        e <- e
-        // create an index
-        index = pairs.collectSets(identity)
-        // use a generic pathfinding algorithm
-        res <- BreadthFirstTraversal.breadthFirstSearch[ObjId](s, k => index.getOrElse(k, Set()), e)
-      } yield res
-    }
+    SQLFutureE(EitherOps.switch(for {
+      s <- s
+      e <- e
+      // create an index
+      index = pairs.collectSets(identity)
+      // use a generic pathfinding algorithm
+      r2 = PathFinding.singleShortestsPathImpl[SQLError, ObjId](Set(s), e, k => index.getOrElse(k, Set()).right)
+    } yield r2).map(_.flatten))
 
   /**
     * Get all paths over a subgraph
@@ -380,11 +381,11 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
   private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Set[Vector[ObjId]]] =
-    SQLFuture {
+    SQLFutureE {
       val index = pairs.collectSets(identity)
       s match {
-        case None => Set()
-        case Some(start) => BreadthFirstTraversal.allPaths(start, k => index.getOrElse(k, Set()))
+        case None => SQLEither(Set())
+        case Some(start) => PathFinding.allShortestPathsImpl(Set(start), k => index.getOrElse(k, Set()).right)
       }
   }
 }

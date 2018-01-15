@@ -87,15 +87,15 @@ class JDBCWriter(implicit instance: SQLInstance) {
     val relations = rels.collectSets {case (l, rel, r) => rel -> (l, r)}
 
     // get convert sets of pairs to a collection of relations
-    val queryStrings = relations.flatMap {
-      case (rel, pair) =>
-        pair.map {
-          case (l, r) =>
-            rel.insertRelation(l, r, commit)
-        }
-    }
+    val queryStrings = Vector.newBuilder[String]
+
+    for {
+      (rel, pairs) <- relations
+      (l, r) <- pairs
+    } queryStrings += rel.insertRelation(l, r, commit)
+
     // write the queries as a batch
-    instance.writeBatch(queryStrings)
+    instance.writeBatch(queryStrings.result())
   }
 
 
@@ -181,8 +181,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
       }
 
 
-      val toConsolidateRight = tuples.foldRight(Set[ObjId]())
-      {
+      val toConsolidateRight = tuples.foldRight(Set[ObjId]()) {
         case ((_, _, right), s) => s + right
       }
 

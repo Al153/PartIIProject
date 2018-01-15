@@ -4,6 +4,7 @@ import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, View}
 import impl.lmdb.access.{Key, Storeable}
 import impl.lmdb.errors.{LMDBError, _}
+import org.fusesource.lmdbjni.Database
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scalaz.Scalaz._
@@ -70,32 +71,36 @@ package object lmdb {
     * Convert a (possible null) array to a vector
     */
 
-  private def safeRetrieve(bytes: Array[Byte]): Vector[Byte]  = Option(bytes).fold(Vector[Byte]())(_.toVector)
+  private def safeRetrieve(bytes: Array[Byte]): Vector[Byte]  = Option(bytes).fold(Vector[Byte]()){
+    x =>
+      println("Vector = " + x.toVector)
+      x.toVector
+  }
 
   /**
     * Write a value to a key
     * @param key - key to use
     * @param a the value to write
     * @param sa - storer for type
-    * @param instance - instance to extract from
+    * @param db - db (table) to extract from
     * @tparam A - type to extract
     * @return
     */
-  def put[A](key: Key, a: A)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] = LMDBEither {
-    instance.db.put(key.render, sa.toBytes(a).toArray)
+  def put[A](key: Key, a: A, db: Database)(implicit sa: Storeable[A]): LMDBEither[Unit] = LMDBEither {
+    db.put(key.render, sa.toBytes(a).toArray)
   }
 
   /**
     * Get a value at a key
     * @param key - key to use
     * @param sa - extractor for type
-    * @param instance - instance to extract from
+    * @param db - Database(table) to extract from
     * @tparam A - type to extract
     * @return
     */
-  def get[A](key: Key)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] =
+  def get[A](db: Database, key: Key)(implicit sa: Storeable[A]): LMDBEither[A] =
     for {
-      b <- LMDBEither(instance.db.get(key.render))
+      b <- LMDBEither(db.get(key.render))
       r <- sa.fromBytes(safeRetrieve(b))
     } yield r
 
@@ -105,26 +110,27 @@ package object lmdb {
     * @param key - key at which to put
     * @param compute - computation to run
     */
-  def transactionalGetAndSet[A](key: Key)(compute: A => LMDBEither[A])(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] = {
+  def transactionalGetAndSet[A](key: Key, db: Database)(compute: A => LMDBEither[A])(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] = {
     import org.fusesource.lmdbjni.Transaction
 
     // get a new transaction
     val tx: Transaction = instance.env.createWriteTransaction()
 
-    //println("tx = " + tx + " id = " + tx.getId)
+    println("tx = " + tx + " id = " + tx.getId)
     // get the key
     val k = key.render
-   // println("Key = " + key + " Rendered = " + k)
+    println("Key = " + key + " Rendered = " + new String(k))
     // instantiate a result value, so there is something if it fails
     var res: LMDBEither[A] = NoResult.left
     try {
         res = for {
-          bytes <- LMDBEither(instance.db.get(tx, k))
+          bytes <- LMDBEither(db.get(tx, k))
+          _ = println("bytes = " + bytes)
           a <- sa.fromBytes(safeRetrieve(bytes))
-          //_ = println("a = " + a)
+          _ = println("a = " + a)
           res <- compute(a)
-          // _ = println("res = " + res)
-          _ <- LMDBEither(instance.db.put(tx, k, sa.toBytes(res).toArray))
+          _ = println("res = " + res)
+          _ <- LMDBEither(db.put(tx, k, sa.toBytes(res).toArray))
         } yield a
         res
 
@@ -132,22 +138,23 @@ package object lmdb {
       // Make sure you either commit or rollback to avoid resource leaks.
       if (res.isRight) tx.commit()
       else tx.abort()
+      tx.close()
     }
   }
 
   /**
     * Append a value to a set in the LMDB database at a key
     */
-  def transactionalAppendToSet[A](key: Key, a: A)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] =
-    transactionalGetAndSet[Set[A]](key){
+  def transactionalAppendToSet[A](key: Key, a: A, db: Database)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] =
+    transactionalGetAndSet[Set[A]](key, db){
       s => (s + a).right
     } map (_ => ())
 
   /**
     * Union a set of values to the existing one at a key
     */
-  def transactionalUnion[A](key: Key, as: Set[A])(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] =
-    transactionalGetAndSet[Set[A]](key) {
+  def transactionalUnion[A](key: Key, as: Set[A], db: Database)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] =
+    transactionalGetAndSet[Set[A]](key, db) {
       oldAs => LMDBEither(oldAs union as)
     }.map(_ => ())
 

@@ -1,19 +1,19 @@
 package impl.lmdb.tables.impl
 
 import core.user.dsl.View
-import impl.lmdb.LMDBInstance
-import impl.lmdb.access.Key
+import impl.lmdb.{LMDBInstance, _}
 import impl.lmdb.access.Key._
 import impl.lmdb.tables.interfaces.MutableCounter
-import impl.lmdb._
+import org.fusesource.lmdbjni.Database
 /**
   * Created by Al on 28/12/2017.
   *
   * Simple MutableCounter for creating new views
   */
 
-class ViewsCounter(implicit val instance: LMDBInstance) extends MutableCounter[View] {
-  override val path: Key = "db" >> "nextView"
+class ViewsCounter(implicit val instance: LMDBInstance) extends MutableCounter[View]("views".key) {
+  override def name: String = "db:nextView"
+  override val db: Database = instance.env.openDatabase(name)
   /**
     * Initial value is Succ(initialView) to avoid collisions (initialView is already in the table)
     */

@@ -1,4 +1,4 @@
-package core.backend.common.algorithms
+package core.utils.algorithms
 
 import core.utils._
 
@@ -23,7 +23,7 @@ object PathFinding {
     * @return shortest path to each reachable node
     */
 
-  def allShortestPathsImpl[E, A](start: Set[A], searchStep: A => E \/ Set[(A, A)]): E \/ Set[Vector[A]] = {
+  def allShortestPathsImpl[E, A](start: Set[A], searchStep: A => E \/ Set[A]): E \/ Set[Vector[A]] = {
     var fringe: Queue[Vector[A]] = toQueue(start.map(a => Vector[A](a)))
     var alreadyExplored: Set[A] = Set()
     var resBuilder:mutable.Builder[Vector[A], Set[Vector[A]]] = Set.newBuilder[Vector[A]]
@@ -48,12 +48,12 @@ object PathFinding {
   }
 
   // Step function, fringe => NewFringe, pickedPath, newlyFound
-  private def doStep[E, A](searchStep: A => E \/ Set[(A, A)], fringe: Queue[Vector[A]], alreadyExplored: Set[A]): E \/ (Queue[Vector[A]], Vector[A], Set[A]) =
+  private def doStep[E, A](searchStep: A => E \/ Set[A], fringe: Queue[Vector[A]], alreadyExplored: Set[A]): E \/ (Queue[Vector[A]], Vector[A], Set[A]) =
     if (fringe.nonEmpty) {
       val top = fringe.head // pop the top off of the fringe
       for {
         next <- searchStep(top.last)
-        newObjects = next.mapProj2.diff(alreadyExplored)
+        newObjects = next.diff(alreadyExplored)
         newFringe = fringe.tail ++ newObjects.diff(alreadyExplored).map(top :+ _) // todo: Probably slow
       } yield (newFringe, top, newObjects)
     } else {
@@ -71,7 +71,7 @@ object PathFinding {
     * @tparam A -  types of nodes
     * @return shortest path to the end
     */
-  def singleShortestsPathImpl[E, A](start: Set[A], end: A, searchStep: A => E \/ Set[(A, A)]): E \/ Option[Vector[A]] = {
+  def singleShortestsPathImpl[E, A](start: Set[A], end: A, searchStep: A => E \/ Set[A]): E \/ Option[Vector[A]] = {
     var fringe: Queue[Vector[A]] = toQueue(start.map(a => Vector[A](a)))
     var alreadyExplored: Set[A] = Set()
     var result: E \/ Option[Vector[A]] = None.right

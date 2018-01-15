@@ -6,6 +6,7 @@ import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb._
 import Key._
 import core.backend.intermediate.RelationName
+import org.fusesource.lmdbjni.Database
 
 /**
   * Created by Al on 29/12/2017.
@@ -19,7 +20,7 @@ trait RelationTable extends LMDBTable {
     * Generates lookup keys from the object, commit, and relation name
     */
   private def getKey(objId: ObjId, commit: Commit, relationName: RelationName): Key =
-    path >> objId >> commit >> relationName
+   objId >> commit >> relationName
 
   /**
     * Follow a relation from an object
@@ -32,7 +33,7 @@ trait RelationTable extends LMDBTable {
     EitherOps.sequence(
       commits.map {
         commit =>
-          get[Set[ObjId]](getKey(objId, commit, relation))
+          get[Set[ObjId]](db, getKey(objId, commit, relation))
       }
     ).map(_.flatten)
 
@@ -44,7 +45,7 @@ trait RelationTable extends LMDBTable {
     * @param to - set of destinations
    */
   def insert(from: ObjId, commit: Commit, relationName: RelationName, to: Set[ObjId]): LMDBEither[Unit] =
-      transactionalUnion(getKey(from, commit, relationName), to)
+      transactionalUnion(getKey(from, commit, relationName), to, db)
 
   /**
     * Do nothing to initialise

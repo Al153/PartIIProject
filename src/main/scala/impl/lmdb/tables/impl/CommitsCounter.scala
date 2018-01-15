@@ -1,9 +1,10 @@
 package impl.lmdb.tables.impl
 
 import impl.lmdb.LMDBInstance
+import impl.lmdb.access.Commit
 import impl.lmdb.access.Key._
-import impl.lmdb.access.{Commit, Key}
 import impl.lmdb.tables.interfaces.MutableCounter
+import org.fusesource.lmdbjni.Database
 
 import scala.language.postfixOps
 /**
@@ -11,8 +12,10 @@ import scala.language.postfixOps
   *
   * A mutable counter for giving commits unique IDs
   */
-class CommitsCounter(implicit val instance: LMDBInstance) extends MutableCounter[Commit] {
-  override val path: Key = "db" >> "nextCommit"
+class CommitsCounter(implicit val instance: LMDBInstance) extends MutableCounter[Commit]("Commits".key) {
+  override val name: String = "db:nextCommit"
+
+  override val db: Database = instance.env.openDatabase(name)
 
   /**
     * Initial commit is the zero commit

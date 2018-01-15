@@ -7,6 +7,7 @@ import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb.tables.interfaces.LMDBTable
 import impl.lmdb.{LMDBEither, LMDBInstance}
 import impl.lmdb._
+import org.fusesource.lmdbjni.Database
 
 /**
   * Created by Al on 28/12/2017.
@@ -16,19 +17,20 @@ import impl.lmdb._
   * Essentially stores a Map[Commit, Set[ObjId] ]
   */
 class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance) extends LMDBTable {
-  override val path: Key = "db" >> "emptyIndex" >> tableName
+  override val name: String = s"db:emptyIndex:$tableName"
+  override val db: Database = instance.env.openDatabase(name)
 
   /**
     * Append a commit to the path
     */
-  private def getPath(commit: Commit): Key = path >> commit
+  private def getKey(commit: Commit): Key = commit.key
 
   /**
     * Lookup a commit
     * @param commit - commit to lookup
     * @return
     */
-  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = get[Set[ObjId]](getPath(commit))
+  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = get[Set[ObjId]](db, getKey(commit))
 
   /**
     * Lookup a Set of commits
@@ -54,7 +56,7 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
     * Insert an object
     */
   // todo: do batching like change to [[ColumnIndexTable]]
-  def insert(commit: Commit, objId: ObjId): LMDBEither[Unit] = transactionalAppendToSet(getPath(commit), objId)
+  def insert(commit: Commit, objId: ObjId): LMDBEither[Unit] = transactionalAppendToSet(getKey(commit), objId, db)
 
   /**
     * Do nothing to initialise
