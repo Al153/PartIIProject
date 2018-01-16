@@ -131,4 +131,4 @@ def doMain(sourceFile, n, destinationFolderPath, lowDensity = False):
 
 if __name__ == "__main__":
 	# Usage: prep.py <dest> <n>
-	doMain(open("tmdb_5000_credits.csv"), int(sys.argv[2]), sys.argv[1])
+	doMain(open("tmdb_5000_credits.csv"), int(sys.argv[2]), sys.argv[1], len(sys.argv) > 3)
