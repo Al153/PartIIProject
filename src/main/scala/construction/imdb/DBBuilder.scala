@@ -69,14 +69,14 @@ object DBBuilder {
 
   def main(args: Array[String]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val instance = SQLDB.open(Empty, IMDBSchema.schemaDescription)
+    val instance = LMDB.open(Empty, IMDBSchema.schemaDescription)
 
     println(instance.fold(e => e,
       implicit instance => Await.result({
         for {
           res <- using(instance) (
             for {
-              _ <- buildDB(sourcePath = "imdb/tmdb_5000")(instance)
+              _ <- buildDB(sourcePath = "imdb/medium")(instance)
               _ = println("Built db")
               bacons <- find(personSchema.pattern("Kevin Bacon".some))
               _ = println("Got bacons")
