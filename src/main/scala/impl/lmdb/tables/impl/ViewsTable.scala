@@ -1,12 +1,15 @@
 package impl.lmdb.tables.impl
 
+import java.nio.ByteBuffer
+
 import core.user.dsl.View
 import impl.lmdb.access.Commit
 import impl.lmdb.access.Key._
 import impl.lmdb.access.Storeable._
 import impl.lmdb.tables.interfaces.LMDBTable
 import impl.lmdb.{LMDBEither, LMDBInstance, _}
-import org.fusesource.lmdbjni.Database
+import org.lmdbjava.Dbi
+import org.lmdbjava.DbiFlags._
 
 /**
   * Created by Al on 28/12/2017.
@@ -18,7 +21,7 @@ import org.fusesource.lmdbjni.Database
 // todO: These values are immutable so can be easily cached
 class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
   override def name: String = "db:views"
-  override val db: Database = instance.env.openDatabase(name)
+  override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
 
   /**
     * Initialisation consists of setting the initial view to contain the empty set of commits
@@ -30,10 +33,10 @@ class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
     * @param v
     * @return
     */
-  def lookupCommits(v: View): LMDBEither[Set[Commit]] = get(db, v.key)
+  def lookupCommits(v: View): LMDBEither[Set[Commit]] = get(v.key)
 
   /**
     * Insert a new child view  with its commits
     */
-  def newChildView(newView: View, commits: Set[Commit]): LMDBEither[Unit] = put(newView.key, commits, db)
+  def newChildView(newView: View, commits: Set[Commit]): LMDBEither[Unit] = put(newView.key, commits)
 }

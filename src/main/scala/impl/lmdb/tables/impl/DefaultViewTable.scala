@@ -1,13 +1,14 @@
 package impl.lmdb.tables.impl
 
+import java.nio.ByteBuffer
+
 import core.user.dsl.View
-import impl.lmdb.access.Key
 import impl.lmdb.access.Key._
-import impl.lmdb.tables.interfaces.LMDBTable
-import impl.lmdb.{LMDBFuture, LMDBInstance}
-import impl.lmdb._
 import impl.lmdb.access.Storeable.StoreableView
-import org.fusesource.lmdbjni.Database
+import impl.lmdb.tables.interfaces.LMDBTable
+import impl.lmdb.{LMDBFuture, LMDBInstance, _}
+import org.lmdbjava.Dbi
+import org.lmdbjava.DbiFlags._
 
 /**
   * Created by Al on 28/12/2017.
@@ -17,21 +18,25 @@ import org.fusesource.lmdbjni.Database
 class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
   import instance.executionContext
 
-  override val db: Database = instance.env.openDatabase(name)
+  override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
   private val key = "default".key
 
   override def name: String =  "db:default"
 
-  def initialise(): LMDBEither[Unit] = put(key, initialView, db)(StoreableView)
+  def initialise(): LMDBEither[Unit] = {
+    println("Putting initial view")
+    put(key, initialView)(StoreableView, instance)
+
+  }
 
   /**
     * Gets default view
     */
-  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](db, key)(StoreableView))
+  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](key)(instance, StoreableView))
 
   /**
     * Sets default view, non transactional
     */
-  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(key, v, db)(StoreableView))
+  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(key, v)(StoreableView, instance))
 
 }

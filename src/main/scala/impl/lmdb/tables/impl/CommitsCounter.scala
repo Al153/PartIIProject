@@ -1,10 +1,13 @@
 package impl.lmdb.tables.impl
 
+import java.nio.ByteBuffer
+
 import impl.lmdb.LMDBInstance
 import impl.lmdb.access.Commit
 import impl.lmdb.access.Key._
 import impl.lmdb.tables.interfaces.MutableCounter
-import org.fusesource.lmdbjni.Database
+import org.lmdbjava.Dbi
+import org.lmdbjava.DbiFlags._
 
 import scala.language.postfixOps
 /**
@@ -15,7 +18,7 @@ import scala.language.postfixOps
 class CommitsCounter(implicit val instance: LMDBInstance) extends MutableCounter[Commit]("Commits".key) {
   override val name: String = "db:nextCommit"
 
-  override val db: Database = instance.env.openDatabase(name)
+  override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
 
   /**
     * Initial commit is the zero commit

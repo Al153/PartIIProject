@@ -1,10 +1,14 @@
 package impl.lmdb.tables.impl
 
+import java.nio.ByteBuffer
+
 import core.user.dsl.View
-import impl.lmdb.{LMDBInstance, _}
 import impl.lmdb.access.Key._
 import impl.lmdb.tables.interfaces.MutableCounter
-import org.fusesource.lmdbjni.Database
+import impl.lmdb.{LMDBInstance, _}
+import org.lmdbjava.Dbi
+import org.lmdbjava.DbiFlags._
+
 /**
   * Created by Al on 28/12/2017.
   *
@@ -13,7 +17,7 @@ import org.fusesource.lmdbjni.Database
 
 class ViewsCounter(implicit val instance: LMDBInstance) extends MutableCounter[View]("views".key) {
   override def name: String = "db:nextView"
-  override val db: Database = instance.env.openDatabase(name)
+  override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
   /**
     * Initial value is Succ(initialView) to avoid collisions (initialView is already in the table)
     */

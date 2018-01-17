@@ -30,10 +30,14 @@ libraryDependencies ++= Seq(
 // LMBD
 scalacOptions += "-feature"
 
-libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni" % "0.4.6"
-libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-win64" % "0.4.6"
+// libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni" % "0.4.6"
+// libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-win64" % "0.4.6"
 // libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-osx64" % "0.4.6"
 // libraryDependencies += "org.deephacks.lmdbjni" % "lmdbjni-linux64" % "0.4.6"
 
 // for building the imdb database
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.3"
+
+// alternative LMDB library
+
+libraryDependencies += "org.lmdbjava" %	"lmdbjava"% "0.6.0"

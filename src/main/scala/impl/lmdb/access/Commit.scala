@@ -1,4 +1,6 @@
 package impl.lmdb.access
+import java.nio.ByteBuffer
+
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.Storeable.StoreableLong
 
@@ -23,7 +25,24 @@ object Commit {
     /**
       * Hijack [[impl.lmdb.access.Storeable.StoreableLong]]'s methods
       */
-    override def toBytes(c: Commit): Vector[Byte] = StoreableLong.toBytes(c.id)
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Commit] = StoreableLong.fromBytes(bytes).map(Commit.apply)
-  }
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: Commit): Int = 8 // length of a long
+
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: Commit, buf: ByteBuffer): Unit = buf.putLong(a.id)
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Commit] = StoreableLong.fromBuffer(buf).map(Commit.apply)
+}
 }

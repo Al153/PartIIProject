@@ -1,11 +1,13 @@
 package impl.lmdb
 
+import java.nio.ByteBuffer
 import java.nio.file.Files
 
 import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
 import core.user.interfaces._
+import org.lmdbjava.Env._
 import core.user.schema.SchemaDescription
-import org.fusesource.lmdbjni.Env
+import org.lmdbjava.Env
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
@@ -20,10 +22,7 @@ import scalaz._
 object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {
-      val env = new Env()
-      env.setMaxDbs(numberOfTables(schema))
-      env.setMapSize(1024 * 1024 * 1024 * 1024 )
-      val isNew = initEnvironment(env, address)
+      val (env, isNew) = initEnvironment(address, schema)
       println("number of tables  = " + numberOfTables(schema))
 
 
@@ -38,7 +37,7 @@ object LMDB extends DBBackend {
     * @param schema - schema to analyse
     * @return
     */
-  private def numberOfTables(schema: SchemaDescription): Long = {
+  private def numberOfTables(schema: SchemaDescription): Int = {
     val base = 8 // required no matter what: default, availableViews, Commits, object, view counter, relations, reverse relations
     val numberOfUserTables = schema.objects.size
     val numberOfIndices = schema.objects.foldLeft(0) {
@@ -48,14 +47,18 @@ object LMDB extends DBBackend {
     base + numberOfUserTables + numberOfIndices
   }
 
-  private def initEnvironment(env: Env, address: DatabaseAddress): Boolean = {
+  private def initEnvironment(address: DatabaseAddress, schema: SchemaDescription): (Env[ByteBuffer], Boolean) = {
+    val env = create()
+      .setMapSize(1024 * 1024 * 1024 * 1024)
+      .setMaxDbs(numberOfTables(schema))
+      .setMaxReaders(1024)
+
 
     address match {
       case Empty =>
         val dir = Files.createTempDirectory("GraphDB")
         dir.toFile.deleteOnExit()
-        env.open(dir.toFile.getPath)
-        true
+        (env.open(dir.toFile), true)
 
       case DBDir(dir, _, _) =>
         val directory = dir.toFile
@@ -63,8 +66,7 @@ object LMDB extends DBBackend {
           directory.mkdirs()
           true
         } else false
-        env.open(directory.getPath)
-        isNew
+        (env.open(directory), isNew)
     }
   }
 }

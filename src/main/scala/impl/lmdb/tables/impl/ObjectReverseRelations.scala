@@ -1,10 +1,11 @@
 package impl.lmdb.tables.impl
 
+import java.nio.ByteBuffer
+
 import impl.lmdb.LMDBInstance
-import impl.lmdb.access.Key
-import impl.lmdb.access.Key._
 import impl.lmdb.tables.interfaces.RelationTable
-import org.fusesource.lmdbjni.Database
+import org.lmdbjava.Dbi
+import org.lmdbjava.DbiFlags._
 
 /**
   * Created by Al on 28/12/2017.
@@ -13,5 +14,5 @@ import org.fusesource.lmdbjni.Database
   */
 class ObjectReverseRelations (implicit val instance: LMDBInstance) extends RelationTable {
   override def name: String = "db:incomingRelations"
-  override val db: Database = instance.env.openDatabase(name)
+  override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
 }

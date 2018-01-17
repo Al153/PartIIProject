@@ -1,5 +1,7 @@
 package impl.lmdb
 
+import java.nio.ByteBuffer
+
 import core.user.interfaces.{DBExecutor, DBInstance}
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, View}
@@ -10,7 +12,8 @@ import impl.lmdb.access.{Commit, ObjId}
 import scalaz._
 import Scalaz._
 import impl.lmdb.tables.impl._
-import org.fusesource.lmdbjni.{Database, Env}
+import org.lmdbjava.Env
+// import org.fusesource.lmdbjni.{Database, Env}
 import core.utils._
 import impl.lmdb.errors.LMDBMissingTable
 
@@ -21,12 +24,9 @@ import scala.concurrent.ExecutionContext
   *
   * [[DBInstance]] implementation
   */
-final class LMDBInstance(val env: Env, val schema: SchemaDescription, isNew: Boolean)(implicit val executionContext: ExecutionContext) extends DBInstance {
+final class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription, isNew: Boolean)(implicit val executionContext: ExecutionContext) extends DBInstance {
   // makes passing to other methods easier
   private [lmdb] implicit val instance: LMDBInstance = this
-
-  // underlying database connection
-  private [lmdb] val db: Database = env.openDatabase()
 
   /**
     * @return internal executor
@@ -54,7 +54,6 @@ final class LMDBInstance(val env: Env, val schema: SchemaDescription, isNew: Boo
     * Close DB and env
     */
   override def close(): Unit = {
-    db.close()
     env.close()
 
   }
@@ -95,6 +94,7 @@ final class LMDBInstance(val env: Env, val schema: SchemaDescription, isNew: Boo
 
   def initialise(): LMDBEither[Unit] = if (isNew) for {
     _ <- controlTables.availableViews.initialise()
+  _ = println("Initialising")
     _ <- controlTables.commitsCounter.initialise()
     _ <- controlTables.defaultView.initialise()
     _ <- controlTables.relations.initialise()

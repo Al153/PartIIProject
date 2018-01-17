@@ -1,10 +1,10 @@
 package impl.lmdb.access
 
+import java.nio.ByteBuffer
 import java.util.Base64
 
 import core.backend.intermediate.RelationName
 import core.user.schema.TableName
-import org.fusesource.lmdbjni.Constants._
 
 
 /**
@@ -35,7 +35,11 @@ case class Key private (components: Vector[KeyComponent]) {
   /**
     * render to a base64 key to look up in the LMDB store
     */
-  def render: Array[Byte] = bytes(components.map(_.toBase64).mkString(":"))
+  def render(buffer: ByteBuffer): Unit = {
+    val bytes = components.map(_.toBase64).mkString(":").getBytes
+    buffer.clear()
+    buffer.put(bytes).flip()
+  }
 }
 
 sealed trait KeyComponent {
@@ -92,7 +96,12 @@ object Key {
     /**
       * Hijack Storeable[A]'s toBytes method
       */
-    override def bytes(k: A): Array[Byte] = sa.toBytes(k).toArray
+    override def bytes(k: A): Array[Byte] = {
+      val buf = sa.toBuffer(k)
+      val arr = new Array[Byte](buf.remaining())
+      buf.get(arr)
+      arr
+    }
   }
 
 

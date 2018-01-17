@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import core.backend.common._
 import core.user.dsl.View
 import impl.lmdb.LMDBEither
-import impl.lmdb.errors.{BooleanExtractError, UnexpectedStreamLength, UnrecognisedDBHeader}
+import impl.lmdb.errors.{BooleanExtractError, UnrecognisedDBHeader}
 
 import scala.collection.mutable
 import scalaz.Scalaz._
@@ -17,16 +17,34 @@ import scalaz.Scalaz._
   */
 trait Storeable[A] {
   /**
+    * Expected length in buffer
+    * @return
+    */
+  def bufferLength(a: A): Int
+
+  /**
+    * Top level fn to be called to get a byte buffer
+    * @param a - object to write
+    * @return
+    */
+  final def toBuffer(a: A): ByteBuffer = {
+    val buf = ByteBuffer.allocateDirect(bufferLength(a))
+    writeToBuffer(a, buf)
+    buf.flip()
+    buf
+  }
+
+  /**
     * Storeable objects need to be able to be converted to bytes to be stored
     */
-  def toBytes(a: A): Vector[Byte]
+  def writeToBuffer(a: A, buf: ByteBuffer): Unit
 
   /**
     * Storeable objects need to be extracted from a series of bytes
-    * @param bytes
+    * @param buf - buffer to extract from
     * @return
     */
-  def fromBytes(bytes: Vector[Byte]): LMDBEither[A]
+  def fromBuffer(buf: ByteBuffer): LMDBEither[A]
 }
 
 object Storeable {
@@ -34,22 +52,21 @@ object Storeable {
   // todo: should this use arrays underneath?
   // todo: optimise everything
   /**
-    * Extract a vector of bytes into a set of objects using an extractor method
+    * Extract a buffer into a set of objects using an extractor method
     * @param iterated - a method that picks out values from the start of byte stream and returns the rest
     * @param in - stream to extract from
     * @tparam A - type of objects exracted
     * @return
     */
-  def extractWhileSet[A](iterated: Vector[Byte] => LMDBEither[(A, Vector[Byte])])
-                        (in: Vector[Byte]): LMDBEither[Set[A]] = {
+  def extractWhileSet[A](iterated: ByteBuffer => LMDBEither[A], in: ByteBuffer, length: Int): LMDBEither[Set[A]] = {
     var res: LMDBEither[mutable.Builder[A, Set[A]]] = Set.newBuilder[A].right
-    var arr = in
-    while (arr.nonEmpty && res.isRight) {
+    var i = 0
+    while (in.remaining() > 0 && res.isRight && i < length) {
+      i += 1
       res = for {
-        aAndRest <- iterated(arr)
-        (a, rest) = aAndRest
+        a <- iterated(in)
         as <- res
-      } yield {arr = rest; as.+=(a)}
+      } yield as.+=(a)
     }
     res.map(_.result())
   }
@@ -61,16 +78,15 @@ object Storeable {
     * @tparam A - type of objects exracted
     * @return
     */
-  def extractWhileVector[A](iterated: Vector[Byte] => LMDBEither[(A, Vector[Byte])])
-                        (in: Vector[Byte]): LMDBEither[Vector[A]] = {
+  def extractWhileVector[A](iterated: ByteBuffer => LMDBEither[A], in: ByteBuffer, length: Int): LMDBEither[Vector[A]] = {
     var res: LMDBEither[mutable.Builder[A, Vector[A]]] = Vector.newBuilder[A].right
-    var arr = in
-    while (arr.nonEmpty && res.isRight) {
+    var i = 0
+    while (in.remaining() > 0 && res.isRight && i < length) {
+      i += 1
       res = for {
-        aAndRest <- iterated(arr)
-        (a, rest) = aAndRest
+        a <- iterated(in)
         as <- res
-      } yield {arr = rest; as += a}
+      } yield as.+=(a)
     }
     res.map(_.result())
   }
@@ -79,21 +95,47 @@ object Storeable {
     * Storeable instances for common classes
     */
   implicit object StoreableView extends Storeable[View] {
-    override def toBytes(v: View): Vector[Byte] = StoreableLong.toBytes(v.id)
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[View] = StoreableLong.fromBytes(bytes).map(View.apply)
-  }
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[View] = StoreableLong.fromBuffer(buf).map(View.apply)
+
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: View): Int = 8 // length of a long
+
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: View, buf: ByteBuffer): Unit = StoreableLong.writeToBuffer(a.id, buf)
+}
 
   implicit object StoreableString extends Storeable[String] {
+    override def bufferLength(a: String): Int = 2 * a.length + 4 // a char is 2 bytes, plus 4 bytes for an int
     /**
       * String conversions are easy
       */
-    override def toBytes(s: String): Vector[Byte] = {
-     s.getBytes.toVector
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: String, buf: ByteBuffer): Unit = {
+      val bytes = a.getBytes()
+      buf.putInt(bytes.length)
+      buf.put(bytes)
     }
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[String] =
-      new String(bytes.toArray).right
-
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[String] = LMDBEither {
+      val length = buf.getInt
+      val bytes = new Array[Byte](length)
+      buf.get(bytes)
+      new String(bytes)
+    }
   }
 
   /**
@@ -101,96 +143,152 @@ object Storeable {
     */
 
   implicit object StoreableBoolean extends Storeable[Boolean] {
-    override def toBytes(a: Boolean): Vector[Byte] =
-      if (a) Vector(255.toByte) else Vector(0)
+    /**``
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: Boolean): Int = 1
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Boolean] =
-      if (bytes == Vector(255.toByte)) true.right
-      else if (bytes == Vector(0.toByte)) false.right
-      else BooleanExtractError(bytes).left
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+override def writeToBuffer(a: Boolean, buf: ByteBuffer): Unit =
+  if (a){
+    buf.put((-1).toByte)
+  } else {
+    buf.put(0.toByte)
   }
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Boolean] =
+      for  {
+        b <- LMDBEither(buf.get())
+        r <- if (b == -1) true.right
+        else if (b == 0) false.right
+        else BooleanExtractError(b).left
+      } yield r
+}
 
   /**
     * An int is always stored as 4 bytes in big-endian format
     */
   implicit object StoreableInt extends Storeable[Int] {
-    override def toBytes(a: Int): Vector[Byte] =
-      Vector((a>>24).toByte, (a>>16).toByte, (a>>8).toByte, a.toByte)
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: Int): Int = 4
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Int] =
-      LMDBEither(bytes.foldLeft[Int](0) {
-        case (top, b) => (top << 8) + b
-      })
-  }
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: Int, buf: ByteBuffer): Unit = buf.putInt(a)
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Int] = LMDBEither(buf.getInt())
+}
 
   /**
     * Doubles are stored in big endian format (8 bytes)
     */
   implicit object StoreableDouble extends Storeable[Double] {
-    override def toBytes(d: Double): Vector[Byte] = {
-      val l = java.lang.Double.doubleToLongBits(d)
-      StoreableLong.toBytes(l)
-    }
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: Double): Int = 8
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Double] =
-      for (l <- StoreableLong.fromBytes(bytes))
-        yield java.lang.Double.longBitsToDouble(l)
-  }
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: Double, buf: ByteBuffer): Unit = buf.putDouble(a)
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Double] = LMDBEither(buf.getDouble())
+}
 
   /**
     * Longs are also stored in big endian format
     */
 
   implicit object StoreableLong extends Storeable[Long] {
-    override def toBytes(a: Long): Vector[Byte] = {
-      var l = a
-      val result = new Array[Byte](8)
-      var i = 7
-      while (i >= 0) {
-        result(i) = (l & 0xFF).toByte
-        l >>= 8
-        i -= 1
-      }
-      result.toVector
-    }
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: Long): Int = 8
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Long] = {
-      var result = 0l
-      for (b <- bytes) {
-        result <<= 8
-        result |= (b & 0xFF)
-      }
-      result.right
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: Long, buf: ByteBuffer): Unit = buf.putLong(a)
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Long] = {
+      LMDBEither(buf.getLong())
     }
-  }
+}
 
   /**
-    * Sets are stored as [length - object - length - object - ... object]
+    * Sets are stored as [length - object - object - ... object]
     * With length as a 4 byte int
     * @return
     */
   implicit def StoreableSet[A](implicit sa: Storeable[A]) = new Storeable[Set[A]] {
-    override def toBytes(s: Set[A]): Vector[Byte] = s.foldRight(Vector[Byte]()) {
-      case (a, rest) =>
-        val bytes = sa.toBytes(a)
-        StoreableInt.toBytes(bytes.length) ++ bytes ++ rest
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: Set[A]): Int = 4 + a.foldLeft(0)(_ + sa.bufferLength(_)) // an int describing the length plus the actual length
+
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: Set[A], buf: ByteBuffer): Unit = {
+      buf.putInt(a.size)
+      for (a <- a) {
+        sa.writeToBuffer(a, buf)
+      }
     }
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[Set[A]] = {
-      def iterator(in: Vector[Byte]): LMDBEither[(A, Vector[Byte])] = for {
-          count <- StoreableInt.fromBytes(in.take(4))
-          tail = in.drop(4)
-          topAndTail <-
-            if (tail.length >= count) tail.splitAt(count).right
-            else UnexpectedStreamLength(count, tail).left
-
-          (top, tail) = topAndTail
-          a <- sa.fromBytes(top)
-        } yield (a, tail)
-
-      extractWhileSet(iterator)(bytes)
-    }
-  }
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Set[A]] =
+      if (buf.remaining() == 0) Set[A]().right
+      else for {
+        length <- LMDBEither(buf.getInt())
+        r <- extractWhileSet(sa.fromBuffer, buf, length)
+      } yield r
+}
 
   /**
     * A DBCell is stored as a flag-byte followed by the representation of a value
@@ -201,51 +299,80 @@ object Storeable {
     val doubleFlag: Byte = 2.toByte
     val booleanFlag: Byte = 3.toByte
 
-    override def toBytes(a: DBCell): Vector[Byte] = a match {
-      case DBInt(i) => intFlag +: StoreableInt.toBytes(i)
-      case DBString(s) => stringFlag +: StoreableString.toBytes(s)
-      case DBBool(b) => booleanFlag +: StoreableBoolean.toBytes(b)
-      case DBDouble(d) => doubleFlag +: StoreableDouble.toBytes(d)
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: DBCell): Int = 1 + (a match {
+      case DBInt(_) => 4
+      case DBString(s) => StoreableString.bufferLength(s)
+      case DBBool(_) => 1
+      case DBDouble(_) => 8
+    })
+
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: DBCell, buf: ByteBuffer): Unit = a match {
+      case DBInt(i) => buf.put(intFlag); StoreableInt.writeToBuffer(i, buf)
+      case DBString(s) =>  buf.put(stringFlag); StoreableString.writeToBuffer(s, buf)
+      case DBBool(b) =>  buf.put(booleanFlag); StoreableBoolean.writeToBuffer(b, buf)
+      case DBDouble(d) =>  buf.put(doubleFlag); StoreableDouble.writeToBuffer(d, buf)
 
     }
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[DBCell] =
-      if (bytes.nonEmpty) {
-        val header = bytes.head
-        val rest = bytes.tail
-        if (header == intFlag) StoreableInt.fromBytes(rest).map(DBInt)
-        else if (header == stringFlag) StoreableString.fromBytes(rest).map(DBString)
-        else if (header == doubleFlag) StoreableDouble.fromBytes(rest).map(DBDouble)
-        else if (header == booleanFlag) StoreableBoolean.fromBytes(rest).map(DBBool)
-        else UnrecognisedDBHeader(header).left
-      } else UnexpectedStreamLength(1, bytes).left
-  }
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[DBCell] =
+      for {
+        header <- LMDBEither(buf.get())
+        res <-
+          if (header == intFlag) StoreableInt.fromBuffer(buf).map(DBInt)
+          else if (header == stringFlag) StoreableString.fromBuffer(buf).map(DBString)
+          else if (header == doubleFlag) StoreableDouble.fromBuffer(buf).map(DBDouble)
+          else if (header == booleanFlag) StoreableBoolean.fromBuffer(buf).map(DBBool)
+          else UnrecognisedDBHeader(header).left
+    } yield res
+}
 
   /**
     * A DBObject is stored as a vector of DBObjects, like a set
     *
-    * [Length, Cell, Length, Cell, .., Cell]
+    * [Length, Cell, Cell, .., Cell]
     */
   implicit object StoreableDBObject extends Storeable[DBObject] {
-    override def toBytes(o: DBObject): Vector[Byte] = o.fields.foldRight(Vector[Byte]()) {
-      case (a, rest) =>
-        val bytes = StoreableDBCell.toBytes(a)
-        StoreableInt.toBytes(bytes.length) ++ bytes ++ rest
-    }
+    /**
+      * Expected length in buffer
+      * int length + each field
+      * @return
+      */
+    override def bufferLength(a: DBObject): Int = 4 + a.fields.foldLeft(0)(_ + StoreableDBCell.bufferLength(_))
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[DBObject] = {
-      def iterator(in: Vector[Byte]): LMDBEither[(DBCell, Vector[Byte])] = for {
-        count <- StoreableInt.fromBytes(in.take(4))
-        tail = in.drop(4)
-        topAndTail <-
-         if (tail.length >= count) tail.splitAt(count).right
-          else UnexpectedStreamLength(count, tail).left
-        (top, tail) = topAndTail
-        a <- StoreableDBCell.fromBytes(top)
-      } yield (a, tail)
-
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: DBObject, buf: ByteBuffer): Unit = {
+      buf.putInt(a.fields.size)
       for {
-        fields <- extractWhileVector(iterator)(bytes)
-      } yield DBObject(fields)
+        f <- a.fields
+      } StoreableDBCell.writeToBuffer(f, buf)
     }
-  }
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[DBObject] =
+      for {
+        length <- LMDBEither(buf.getInt())
+        r <- extractWhileVector(StoreableDBCell.fromBuffer, buf, length)
+    } yield DBObject(r)
+}
 }

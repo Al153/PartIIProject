@@ -15,7 +15,7 @@ import impl.lmdb.errors.{LMDBMissingRelation, LMDBMissingTable}
   */
 
 trait FindAll { self: Methods =>
-  import instance._
+  import instance.executionContext
 
   /**
     * Straight forward findSingle implementation

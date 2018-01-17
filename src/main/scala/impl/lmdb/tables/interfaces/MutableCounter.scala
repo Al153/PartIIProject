@@ -15,7 +15,7 @@ abstract class MutableCounter[A](key: Key)(implicit store: Storeable[A]) extends
     * Transactional update
     * @return
     */
-  def getAndUpdate(): LMDBEither[A] = transactionalGetAndSet(key, db){
+  def getAndUpdate(): LMDBEither[A] = transactionalGetAndSet(key){
     a => LMDBEither(next(a))
   }
 
@@ -35,5 +35,5 @@ abstract class MutableCounter[A](key: Key)(implicit store: Storeable[A]) extends
   /**
     * initialise should be called if the database is a new one
     */
-  def initialise(): LMDBEither[Unit] = put(key, initialValue, db)
+  def initialise(): LMDBEither[Unit] = put(key, initialValue)
 }

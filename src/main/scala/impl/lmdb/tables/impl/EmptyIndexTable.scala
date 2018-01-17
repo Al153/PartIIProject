@@ -1,13 +1,15 @@
 package impl.lmdb.tables.impl
 
+import java.nio.ByteBuffer
+
 import core.user.schema.TableName
 import core.utils.EitherOps
 import impl.lmdb.access.Key._
 import impl.lmdb.access.{Commit, Key, ObjId}
 import impl.lmdb.tables.interfaces.LMDBTable
-import impl.lmdb.{LMDBEither, LMDBInstance}
-import impl.lmdb._
-import org.fusesource.lmdbjni.Database
+import impl.lmdb.{LMDBEither, LMDBInstance, _}
+import org.lmdbjava.Dbi
+import org.lmdbjava.DbiFlags._
 
 /**
   * Created by Al on 28/12/2017.
@@ -18,7 +20,7 @@ import org.fusesource.lmdbjni.Database
   */
 class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance) extends LMDBTable {
   override val name: String = s"db:emptyIndex:$tableName"
-  override val db: Database = instance.env.openDatabase(name)
+  override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
 
   /**
     * Append a commit to the path
@@ -30,7 +32,7 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
     * @param commit - commit to lookup
     * @return
     */
-  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = get[Set[ObjId]](db, getKey(commit))
+  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = get[Set[ObjId]](getKey(commit))
 
   /**
     * Lookup a Set of commits
@@ -56,7 +58,7 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
     * Insert an object
     */
   // todo: do batching like change to [[ColumnIndexTable]]
-  def insert(commit: Commit, objId: ObjId): LMDBEither[Unit] = transactionalAppendToSet(getKey(commit), objId, db)
+  def insert(commit: Commit, objId: ObjId): LMDBEither[Unit] = transactionalAppendToSet(getKey(commit), objId)
 
   /**
     * Do nothing to initialise

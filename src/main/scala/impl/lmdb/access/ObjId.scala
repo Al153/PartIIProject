@@ -1,5 +1,7 @@
 package impl.lmdb.access
 
+import java.nio.ByteBuffer
+
 import impl.lmdb.LMDBEither
 import impl.lmdb.access.Storeable.StoreableLong
 
@@ -25,13 +27,31 @@ object ObjId {
     /**
       * Storeable methods hijack Storeable long
       */
-    override def toBytes(o: ObjId): Vector[Byte] = StoreableLong.toBytes(o.id)
 
-    override def fromBytes(bytes: Vector[Byte]): LMDBEither[ObjId] = StoreableLong.fromBytes(bytes).map(ObjId.apply)
 
     /**
       * Use a shorter value for keys
       */
     override def bytes(k: ObjId): Array[Byte] = BigInt(k.id).toByteArray
+
+    /**
+      * Expected length in buffer
+      *
+      * @return
+      */
+    override def bufferLength(a: ObjId): Int = 8
+
+    /**
+      * Storeable objects need to be able to be converted to bytes to be stored
+      */
+    override def writeToBuffer(a: ObjId, buf: ByteBuffer): Unit = StoreableLong.writeToBuffer(a.id, buf)
+
+    /**
+      * Storeable objects need to be extracted from a series of bytes
+      *
+      * @param buf - buffer to extract from
+      * @return
+      */
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[ObjId] = StoreableLong.fromBuffer(buf).map(ObjId.apply)
   }
 }
