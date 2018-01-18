@@ -111,7 +111,7 @@ object Storeable {
 }
 
   implicit object StoreableString extends Storeable[String] {
-    override def bufferLength(a: String): Int = 2 * a.length + 4 // a char is 2 bytes, plus 4 bytes for an int
+    override def bufferLength(a: String): Int = a.getBytes().length + 4 // a char is 2 bytes, plus 4 bytes for an int
     /**
       * String conversions are easy
       */
