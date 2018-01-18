@@ -23,8 +23,7 @@ object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {
       val (env, isNew) = initEnvironment(address, schema)
-      println("number of tables  = " + numberOfTables(schema))
-
+      Thread.sleep(2) // small sleep to allow LMDB to update its mapsize
 
       val instance = new LMDBInstance(env, schema, isNew)
       for {
@@ -49,9 +48,11 @@ object LMDB extends DBBackend {
 
   private def initEnvironment(address: DatabaseAddress, schema: SchemaDescription): (Env[ByteBuffer], Boolean) = {
     val env = create()
-      .setMapSize(1024 * 1024 * 1024 * 1024)
+      .setMapSize(1024l * 1024l * 1024l * 1024l)
       .setMaxDbs(numberOfTables(schema))
       .setMaxReaders(1024)
+
+
 
 
     address match {

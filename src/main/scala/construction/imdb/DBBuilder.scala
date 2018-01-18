@@ -76,7 +76,7 @@ object DBBuilder {
         for {
           res <- using(instance) (
             for {
-              _ <- buildDB(sourcePath = "imdb/small")(instance)
+              _ <- buildDB(sourcePath = "imdb/medium")(instance)
               _ = println("Built db")
               bacons <- find(personSchema.pattern("Kevin Bacon".some))
               _ = println("Got bacons")
