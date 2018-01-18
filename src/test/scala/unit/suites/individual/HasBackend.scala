@@ -15,10 +15,17 @@ trait HasBackend {
 
   def runTest(t: DBInstance => E ConstrainedFuture Unit): Unit =
     backend
-      .open(Empty, description)
-      .fold(errorThrowable, i =>
-        Await.result(
-          t(i).run , 10.seconds
-        ).fold(errorThrowable, identity)
-    )
+        .open(Empty, description)
+        .fold(errorThrowable, i =>
+          try {
+           val res = Await.result(
+              t(i).run , 10.seconds
+            ).fold(errorThrowable, identity)
+
+            res
+          } finally {
+            if (i != null) i.close()
+          }
+
+        )
 }

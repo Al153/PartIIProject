@@ -42,17 +42,26 @@ trait Write { self: Methods =>
   ): LMDBEither[View] = for {
     // Check the view is valid
     _ <- instance.controlTables.availableViews.validateView(v)
+    _ = println("Checked View")
     // - get a new commit and view id
     commit <- instance.controlTables.commitsCounter.getAndUpdate()
+
+    _ = println("got commit")
     newView <- instance.controlTables.viewsCounter.getAndUpdate()
+
+    _ = println("Got View")
 
     // - insert new set of commits and view as an entry to the views table
     commits <- instance.controlTables.viewsTable.lookupCommits(v)
     _ <- instance.controlTables.viewsTable.newChildView(newView, commits + commit)
 
+    _ = println("Set new commits")
+
     // get new object Ids for find existing ones
     spec <- getObjIds(t, commits, commit)
     (relationsToInsert, reverseRelationsToInsert) = spec
+
+    _ = println("Got spec")
 
     // insert forwards relations
     _ <- EitherOps.sequence {
@@ -65,6 +74,8 @@ trait Write { self: Methods =>
       }
     }
 
+    _ = println("Done forwards relations")
+
     // insert reverse relations
     _ <- EitherOps.sequence {
       reverseRelationsToInsert.flatMap {
@@ -75,6 +86,8 @@ trait Write { self: Methods =>
           }
       }
     }
+
+    _ = println("Done backwards relations")
 
     // finally, insert the new view into the available views table
     _ <- instance.controlTables.availableViews.insertNewView(newView)
@@ -119,6 +132,8 @@ trait Write { self: Methods =>
           } yield m + (a -> mset)
       }
 
+      _ = println("Built A index")
+
       // build equivalent B index
       bMap <- t.toSeq.foldLeft(LMDBEither(Map[B, Map[RelationName, Set[A]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
@@ -132,9 +147,13 @@ trait Write { self: Methods =>
       }
 
 
+      _ = println("Built B index")
+
       // find a lookup table of (ObjId -> A) (ObjId -> B)
       aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
       bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
+
+      _ = println("Got and created all")
 
       // convert the two lookup maps
       aRes <- convertMap[A, B](aMap, aLookup, bLookup)

@@ -22,13 +22,13 @@ import scalaz._
 object LMDB extends DBBackend {
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {
-      val (env, isNew) = initEnvironment(address, schema)
-      Thread.sleep(2) // small sleep to allow LMDB to update its mapsize
+     val instance = getInstance(address, schema)
+     Thread.sleep(2) // small sleep to allow LMDB to update its mapsize
+     println("Env map size = " + instance.env.info().mapSize)
 
-      val instance = new LMDBInstance(env, schema, isNew)
-      for {
-        _ <- instance.initialise()
-      } yield instance
+     for {
+       _ <- instance.initialise()
+     } yield instance
     } catch {case e: Throwable => errors.recoverLMDBException(e).left}
 
   /**
@@ -46,9 +46,10 @@ object LMDB extends DBBackend {
     base + numberOfUserTables + numberOfIndices
   }
 
-  private def initEnvironment(address: DatabaseAddress, schema: SchemaDescription): (Env[ByteBuffer], Boolean) = {
+  private def getInstance(address: DatabaseAddress, schema: SchemaDescription)(implicit ec: ExecutionContext): LMDBInstance = {
     val env = create()
-      .setMapSize(1024l * 1024l * 1024l * 1024l)
+      // max db size of 32 GB on windows (windows file size = map size
+      .setMapSize(32l * 1024l * 1024l * 1024l)
       .setMaxDbs(numberOfTables(schema))
       .setMaxReaders(1024)
 
@@ -59,15 +60,16 @@ object LMDB extends DBBackend {
       case Empty =>
         val dir = Files.createTempDirectory("GraphDB")
         dir.toFile.deleteOnExit()
-        (env.open(dir.toFile), true)
+        new TemporaryLMDBInstance(env.open(dir.toFile), schema, dir)
 
       case DBDir(dir, _, _) =>
         val directory = dir.toFile
-        val isNew = if (!directory.exists()) {
+        if (!directory.exists()) {
           directory.mkdirs()
-          true
-        } else false
-        (env.open(directory), isNew)
+          new NewLMDBInstance(env.open(directory), schema)
+        } else {
+          new ExistingLMDBInstance(env.open(directory), schema)
+        }
     }
   }
 }

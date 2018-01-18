@@ -1,6 +1,9 @@
 package impl.lmdb
 
+import java.io.{File, IOException}
 import java.nio.ByteBuffer
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
 import core.user.interfaces.{DBExecutor, DBInstance}
 import core.user.containers.ConstrainedFuture
@@ -24,7 +27,7 @@ import scala.concurrent.ExecutionContext
   *
   * [[DBInstance]] implementation
   */
-final class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription, isNew: Boolean)(implicit val executionContext: ExecutionContext) extends DBInstance {
+sealed abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
   // makes passing to other methods easier
   private [lmdb] implicit val instance: LMDBInstance = this
 
@@ -50,19 +53,11 @@ final class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription
     */
   override def getViews: ConstrainedFuture[E, Set[View]] = LMDBFutureE(controlTables.availableViews.availableViews()).asCFuture
 
-  /**
-    * Close DB and env
-    */
-  override def close(): Unit = {
-    env.close()
 
-  }
 
 
   /**
     * Helper method to validate view
-    * @param v
-    * @return
     */
   private[lmdb] def validateView(v: View): LMDBEither[Unit] = controlTables.availableViews.validateView(v)
 
@@ -92,9 +87,22 @@ final class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription
     val objectCounter = new ObjectsCounter()
   }
 
-  def initialise(): LMDBEither[Unit] = if (isNew) for {
+  def initialise(): LMDBEither[Unit]
+
+  /**
+    * Lookup a pattern, helper method
+    */
+  private [lmdb] def lookupPattern(p: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+    if (p.tableName in objects) objects(p.tableName).lookup(p, commits)
+    else LMDBMissingTable(p.tableName).left
+}
+
+/**
+  * A temporary instance wants to delete its containing folder on closure, and do a full init
+  */
+final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription, dir: Path)(implicit ec: ExecutionContext) extends LMDBInstance(e, schema) {
+  override def initialise(): LMDBEither[Unit] = for {
     _ <- controlTables.availableViews.initialise()
-  _ = println("Initialising")
     _ <- controlTables.commitsCounter.initialise()
     _ <- controlTables.defaultView.initialise()
     _ <- controlTables.relations.initialise()
@@ -103,14 +111,61 @@ final class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription
     _ <- controlTables.viewsTable.initialise()
     _ <- controlTables.objectCounter.initialise()
     _ <- EitherOps.sequence(objects.map {case (_, table) => table.initialise()})
-  } yield () else LMDBEither(())
+  } yield ()
+
 
   /**
-    * Lookup a pattern, helper method
+    * Close DB and env
     */
-  private [lmdb] def lookupPattern(p: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
-    if (p.tableName in objects) objects(p.tableName).lookup(p, commits)
-    else LMDBMissingTable(p.tableName).left
+  override def close(): Unit = {
+    env.close()
 
+    // recursively delete the database upon closure
 
+    Files.walkFileTree(dir, new SimpleFileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+        Files.delete(file)
+        FileVisitResult.CONTINUE
+      }
+      override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+        Files.delete(dir)
+        FileVisitResult.CONTINUE
+      }
+    })
+  }
+}
+
+ /**
+   * A persistent LMDBInstance for a new database, needs initialisation, shouldn't delete on exit
+   */
+ final class NewLMDBInstance(e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
+   println("New!")
+   override def initialise(): LMDBEither[Unit] = for {
+     _ <- controlTables.availableViews.initialise()
+     _ <- controlTables.commitsCounter.initialise()
+     _ <- controlTables.defaultView.initialise()
+     _ <- controlTables.relations.initialise()
+     _ <- controlTables.reverseRelations.initialise()
+     _ <- controlTables.viewsCounter.initialise()
+     _ <- controlTables.viewsTable.initialise()
+     _ <- controlTables.objectCounter.initialise()
+     _ <- EitherOps.sequence(objects.map {case (_, table) => table.initialise()})
+   } yield ()
+
+   /**
+     * Close the database
+     */
+   override def close(): Unit = env.close()
+ }
+
+/**
+  * LMDBInstance for existing database, no initialisation or closure needed
+  */
+final class ExistingLMDBInstance (e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
+  println("Existing!")
+  override def initialise(): LMDBEither[Unit] = ().right
+  /**
+    * Close the database
+    */
+  override def close(): Unit = env.close()
 }

@@ -1,5 +1,7 @@
 package construction.imdb
 
+import java.io.File
+
 import construction.imdb.IMDBSchema._
 import core.user.containers.{Operation, Path}
 import core.user.dsl._
@@ -8,6 +10,8 @@ import core.utils._
 import impl.lmdb.LMDB
 import impl.memory.MemoryDB
 import impl.sql.SQLDB
+
+import scala.io
 import spray.json._
 
 import scala.language.implicitConversions
@@ -69,14 +73,17 @@ object DBBuilder {
 
   def main(args: Array[String]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val instance = LMDB.open(Empty, IMDBSchema.schemaDescription)
+    val testName = "imdb/medium"
+    val instance = LMDB.open(DBDir(new File(s"/dev/part_2_db/$testName").toPath, "", ""), IMDBSchema.schemaDescription)
+    // val instance = SQLDB.open(Empty, IMDBSchema.schemaDescription)
+    // val instance = MemoryDB.open(Empty, IMDBSchema.schemaDescription)
 
     println(instance.fold(e => e,
       implicit instance => Await.result({
         for {
           res <- using(instance) (
             for {
-              _ <- buildDB(sourcePath = "imdb/large")(instance)
+              _ <- buildDB(sourcePath = testName)(instance)
               _ = println("Built db")
               bacons <- find(personSchema.pattern("Kevin Bacon".some))
               _ = println("Got bacons")
