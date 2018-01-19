@@ -1,16 +1,17 @@
-package impl.lmdb.methods
+package impl.lmdbfast.methods
 
+import core.utils.algorithms.{FixedPointTraversal, Joins}
 import core.backend.intermediate.unsafe._
 import core.user.schema.SchemaObject
-import core.utils.{EitherOps, _}
-import core.utils.algorithms.{FixedPointTraversal, Joins}
-import impl.lmdb.LMDBEither
-import impl.lmdb.access.{Commit, ObjId}
-import impl.lmdb.errors.{LMDBError, MissingIndex}
-import impl.lmdb.tables.impl.ObjectRetrievalTable
+import core.utils.EitherOps
+import impl.lmdbfast.LMDBEither
+import impl.lmdbfast.access.{Commit, ObjId}
+import impl.lmdbfast.errors.{LMDBError, MissingIndex, LMDBMissingTable}
+import impl.lmdbfast.tables.impl.ObjectRetrievalTable
+import core.utils._
 
-import scalaz.Scalaz._
 import scalaz._
+import Scalaz._
 
 /**
   * Created by Al on 30/12/2017.

@@ -73,8 +73,14 @@ object DBBuilder {
 
   def main(args: Array[String]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val testName = "imdb/tmdb_5000"
-    val instance = LMDB.open(DBDir(new File(s"/dev/part_2_db/$testName").toPath, "", ""), IMDBSchema.schemaDescription)
+    val testLocation = if (System.getProperty("os.name") == "Linux") {
+      "/home/at736/dev/part_2_db"
+    } else {
+      "/dev/part_2_db"
+    }
+    val testName = "imdb/smallest"
+    // val instance = LMDB.open(DBDir(new File(s"$testLocation/$testName").toPath, "", ""), IMDBSchema.schemaDescription)
+    val instance = LMDB.open(Empty, IMDBSchema.schemaDescription)
     // val instance = SQLDB.open(Empty, IMDBSchema.schemaDescription)
     // val instance = MemoryDB.open(Empty, IMDBSchema.schemaDescription)
 
