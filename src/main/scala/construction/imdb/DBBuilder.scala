@@ -73,7 +73,7 @@ object DBBuilder {
 
   def main(args: Array[String]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val testName = "imdb/medium"
+    val testName = "imdb/tmdb_5000"
     val instance = LMDB.open(DBDir(new File(s"/dev/part_2_db/$testName").toPath, "", ""), IMDBSchema.schemaDescription)
     // val instance = SQLDB.open(Empty, IMDBSchema.schemaDescription)
     // val instance = MemoryDB.open(Empty, IMDBSchema.schemaDescription)
@@ -91,7 +91,7 @@ object DBBuilder {
             } yield res.map{p => (p.length, p.end)}.toList.sortBy(_._1)
           )
         } yield res
-      }.run, 12000.seconds)
+      }.run, 120000.seconds)
     ))
   }
 }

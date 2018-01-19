@@ -20,6 +20,8 @@ import scalaz._
   */
 
 object LMDB extends DBBackend {
+  val mapSize: Long = 1024 * 1024 * 1024
+
   override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
     try {
      val instance = getInstance(address, schema)
@@ -49,7 +51,8 @@ object LMDB extends DBBackend {
   private def getInstance(address: DatabaseAddress, schema: SchemaDescription)(implicit ec: ExecutionContext): LMDBInstance = {
     val env = create()
       // max db size of 32 GB on windows (windows file size = map size
-      .setMapSize(32l * 1024l * 1024l * 1024l)
+        .setMapSize(mapSize)
+      // .setMapSize(32l * 1024l * 1024l * 1024l)
       .setMaxDbs(numberOfTables(schema))
       .setMaxReaders(1024)
 
