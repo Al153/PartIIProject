@@ -77,6 +77,7 @@ trait SetImpl { self: Methods =>
     for {
       // build up an index for left and right hand side - O(root(N)) size index
       // todo: merge indices if sa = sb?
+      // todo delegate and use a single transaction
       leftIndex <- EitherOps.sequence(leftIds.map {
         id => aTable.retrieve[A](id).map(id -> _)
       }).toMapE

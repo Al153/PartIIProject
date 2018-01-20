@@ -12,6 +12,7 @@ import impl.lmdbfast.tables.interfaces.LMDBTable
 import impl.lmdbfast.{LMDBEither, LMDBInstance, _}
 import org.lmdbjava.Dbi
 import org.lmdbjava.DbiFlags._
+import core.utils._
 
 /**
   * Created by Al on 28/12/2017.
@@ -34,9 +35,7 @@ class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: Sch
     * Lookup a set of commits + DBCell
     */
   def lookup(value: DBCell, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
-    EitherOps.sequence(commits.map(
-      commit => lookup(value, commit)
-    )).map(_.flatten)
+    getBatch[Set[ObjId], Set](commits.map(getKey(value, _))).map(_.flatten)
 
   /**
     * Insert an object into a commit

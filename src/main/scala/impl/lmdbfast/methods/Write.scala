@@ -60,8 +60,8 @@ trait Write { self: Methods =>
     // get new object Ids for find existing ones
     spec <- getObjIds(t, commits, commit)
     (relationsToInsert, reverseRelationsToInsert) = spec
-
-    _ = println("Got spec")
+    // todo: write only relations that do not need to be added
+      _ = println("Got spec")
 
     // insert forwards relations
     _ <- EitherOps.sequence {
@@ -150,8 +150,9 @@ trait Write { self: Methods =>
       _ = println("Built B index")
 
       // find a lookup table of (ObjId -> A) (ObjId -> B)
-      aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
-      bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
+      aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits + newCommit, newCommit)
+      bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits + newCommit, newCommit)
+
 
       _ = println("Got and created all")
 

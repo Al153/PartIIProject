@@ -7,7 +7,7 @@ import core.user.containers.{Operation, Path}
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.utils._
-import impl.lmdb.LMDB
+import impl.lmdbfast.LMDB
 import impl.memory.MemoryDB
 import impl.sql.SQLDB
 
@@ -79,8 +79,8 @@ object DBBuilder {
       "/dev/part_2_db"
     }
     val testName = "imdb/smallest"
-    // val instance = LMDB.open(DBDir(new File(s"$testLocation/$testName").toPath, "", ""), IMDBSchema.schemaDescription)
-    val instance = LMDB.open(Empty, IMDBSchema.schemaDescription)
+    val instance = LMDB.open(DBDir(new File(s"$testLocation/$testName").toPath, "", ""), IMDBSchema.schemaDescription)
+    // val instance = LMDB.open(Empty, IMDBSchema.schemaDescription)
     // val instance = SQLDB.open(Empty, IMDBSchema.schemaDescription)
     // val instance = MemoryDB.open(Empty, IMDBSchema.schemaDescription)
 

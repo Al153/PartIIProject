@@ -30,12 +30,7 @@ trait RelationTable extends LMDBTable {
     * @return a set of objects that are connected by the relation
     */
   def followRelation(objId: ObjId, commits: Set[Commit], relation: RelationName): LMDBEither[Set[ObjId]] =
-    EitherOps.sequence(
-      commits.map {
-        commit =>
-          get[Set[ObjId]](getKey(objId, commit, relation))
-      }
-    ).map(_.flatten)
+    getBatch[Set[ObjId], Set](commits.map(getKey(objId, _, relation))).map(_.flatten)
 
   /**
     * Insert a set of objects reachable in a commit

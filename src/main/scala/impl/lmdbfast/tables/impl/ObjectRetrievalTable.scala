@@ -71,13 +71,19 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
     * Given a Set of ObjIds, retrieve each ObjId
     */
   def retrieve[A](as: Set[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Set[A]] =
-    EitherOps.sequence(as.map(a => retrieve(a)(sa)))
+    for {
+      dbObjects <- getBatch[DBObject, Set](as.map(getKey))
+      rs <- EitherOps.sequence(dbObjects.map(sa.fromRow(_).leftMap(UnmarshallingError)))
+    } yield rs
 
   /**
     * Given a Vector of ObjIds, retrieve each ObjId
     */
   def retrieve[A](as: Vector[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Vector[A]] =
-    EitherOps.sequence(as.map(retrieve[A]))
+    for {
+      dbObjects <- getBatch[DBObject, Vector](as.map(getKey))
+      rs <- EitherOps.sequence(dbObjects.map(sa.fromRow(_).leftMap(UnmarshallingError)))
+    } yield rs
 
   /**
     * Get or create a collection of values.
@@ -94,7 +100,7 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   // todo: This can be done in bulk?
   private def getOrCreate[A](a: A, commits: Set[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[ObjId] =
     for {
-      lookupResult <- lookup(sa.findable(a).getUnsafe, commits + newCommit)
+      lookupResult <- lookup(sa.findable(a).getUnsafe, commits)
       res <- lookupResult.headOption.fold(insert(a, newCommit)){
         _.right
       }

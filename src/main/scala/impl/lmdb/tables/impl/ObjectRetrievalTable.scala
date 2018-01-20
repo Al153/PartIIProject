@@ -94,7 +94,7 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   // todo: This can be done in bulk?
   private def getOrCreate[A](a: A, commits: Set[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[ObjId] =
     for {
-      lookupResult <- lookup(sa.findable(a).getUnsafe, commits + newCommit)
+      lookupResult <- lookup(sa.findable(a).getUnsafe, commits)
       res <- lookupResult.headOption.fold(insert(a, newCommit)){
         _.right
       }

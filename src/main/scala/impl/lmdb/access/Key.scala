@@ -63,19 +63,11 @@ object Key {
   /**
     * Simple Keyable instance for string
     */
+  // todo: limit length of string key to 511 bytes (key length)
   implicit object KeyableString extends Keyable[String] {
     override def bytes(k: String): Array[Byte] = k.getBytes
   }
 
-  /**
-    * Simple Keyable instance for tableName
-    */
-  implicit object KeyableTableName extends Keyable[TableName] {
-    /**
-      * Hijacks KeyableString's method
-     */
-    override def bytes(k: TableName): Array[Byte] = KeyableString.bytes(k.value)
-  }
 
   /**
     * Simple Keyable instance for TableName

@@ -2,11 +2,18 @@ package impl.lmdbfast.tables.interfaces
 
 import java.nio.ByteBuffer
 
+import core.utils.EitherOps
+import impl.lmdb.errors.LMDBError
+import impl.lmdbfast.{LMDBEither, LMDBInstance}
+import impl.lmdbfast.access.{Key, Storeable}
 import impl.lmdbfast.access.{Key, Storeable}
 import impl.lmdbfast.errors.NoResult
 import impl.lmdbfast.{LMDBEither, LMDBInstance}
 import org.lmdbjava.Dbi
-import scalaz._, Scalaz._
+
+import scalaz._
+import Scalaz._
+import scala.collection.generic.CanBuildFrom
 /**
   * Created by Al on 28/12/2017.
   *
@@ -70,6 +77,34 @@ trait LMDBTable {
       })
       res <- sa.fromBuffer(safeExtract(buf))
     } yield res
+  }
+
+  /**
+    * Batch a set of transactions under one transaction
+    * @param keys - keys to read from
+    * @param instance - instance to execute against - todo: is this needed?
+    * @param sa - extractor for A
+    * @tparam A - objects exprected
+    * @return
+    */
+  def getBatch[A,  M[X] <: TraversableOnce[X]](keys: M[Key])(implicit instance: LMDBInstance, sa: Storeable[A], cbf: CanBuildFrom[M[Key], A, M[A]]): LMDBEither[M[A]] = {
+    val tx = instance.env.txnRead()
+    // catch any thrown exceptions
+    LMDBEither(try {
+      keys.foldLeft(LMDBEither(cbf(keys))) {
+          case (eBuilder, key) =>
+            KeyBuffer.withBuf { keyBuf =>
+              key.render(keyBuf) // ignore the red - this actually compiles
+              val buf = safeExtract(db.get(tx, keyBuf))
+              for {
+                a <- sa.fromBuffer(buf)
+                builder <- eBuilder
+              } yield builder += a
+            }
+        }
+      } finally {
+        if (tx != null) tx.close()
+      }).flatMap(_.map(_.result()))
   }
 
 

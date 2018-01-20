@@ -1,14 +1,14 @@
 package impl.lmdbfast.methods
 
 import core.backend.intermediate.unsafe._
-import core.utils.EitherOps
-import core.utils.algorithms.{SimpleFixedPointTraversal, Joins}
+import core.utils._
+import core.utils.algorithms.SimpleFixedPointTraversal
 import impl.lmdbfast.LMDBEither
 import impl.lmdbfast.access.{Commit, ObjId}
 import impl.lmdbfast.errors.LMDBError
-import impl.lmdbfast.methods.Methods
-import core.utils._
-import scalaz._, Scalaz._
+
+import scalaz.Scalaz._
+import scalaz._
 
 /**
   * Implementation of "right Only" chained parameters

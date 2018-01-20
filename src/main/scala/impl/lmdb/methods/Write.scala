@@ -150,8 +150,8 @@ trait Write { self: Methods =>
       _ = println("Built B index")
 
       // find a lookup table of (ObjId -> A) (ObjId -> B)
-      aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits, newCommit)
-      bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits, newCommit)
+      aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits + newCommit, newCommit)
+      bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits + newCommit, newCommit)
 
       _ = println("Got and created all")
 

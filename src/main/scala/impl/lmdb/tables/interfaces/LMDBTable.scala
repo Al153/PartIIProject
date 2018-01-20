@@ -2,11 +2,14 @@ package impl.lmdb.tables.interfaces
 
 import java.nio.ByteBuffer
 
+import core.utils.EitherOps
 import impl.lmdb.access.{Key, Storeable}
 import impl.lmdb.errors.NoResult
 import impl.lmdb.{LMDBEither, LMDBInstance}
 import org.lmdbjava.Dbi
-import scalaz._, Scalaz._
+
+import scalaz._
+import Scalaz._
 /**
   * Created by Al on 28/12/2017.
   *
@@ -55,6 +58,7 @@ trait LMDBTable {
     * @tparam A - type to extract
     * @return
     */
+
   def get[A](key: Key)(implicit instance: LMDBInstance, sa: Storeable[A]): LMDBEither[A] = {
     val tx = instance.env.txnRead()
 
@@ -71,8 +75,6 @@ trait LMDBTable {
       res <- sa.fromBuffer(safeExtract(buf))
     } yield res
   }
-
-
 
   /**
     * Gets and puts a new value according to a computation, does this transactionally

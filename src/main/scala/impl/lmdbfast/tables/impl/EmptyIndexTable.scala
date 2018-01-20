@@ -3,11 +3,10 @@ package impl.lmdbfast.tables.impl
 import java.nio.ByteBuffer
 
 import core.user.schema.TableName
-import core.utils.EitherOps
 import impl.lmdbfast.access.Key._
 import impl.lmdbfast.access.{Commit, Key, ObjId}
 import impl.lmdbfast.tables.interfaces.LMDBTable
-import impl.lmdbfast.{LMDBEither, LMDBInstance, _}
+import impl.lmdbfast.{LMDBEither, LMDBInstance}
 import org.lmdbjava.Dbi
 import org.lmdbjava.DbiFlags._
 
@@ -40,11 +39,9 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
     * @return
     */
   // todo: Set[Commit] => Array[Commit] for speed
-  def lookupSet(commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
-    for {
-      sets <- EitherOps.sequence(commits.map(lookup))
-    } yield sets.flatten
-  }
+  def lookupSet(commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+  getBatch[Set[ObjId], Set](commits.map(getKey)).map(_.flatten)
+
 
   /**
     * Lookup commits and return as a vector
