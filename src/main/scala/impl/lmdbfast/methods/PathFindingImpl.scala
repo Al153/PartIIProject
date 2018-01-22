@@ -5,7 +5,7 @@ import core.utils._
 import core.utils.algorithms.SimpleFixedPointTraversal
 import impl.lmdbfast.LMDBEither
 import impl.lmdbfast.access.{Commit, ObjId}
-import impl.lmdbfast.errors.LMDBError
+import impl.lmdbfast.errors.{LMDBError, MissingCachedQuery}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -17,9 +17,10 @@ trait PathFindingImpl { self: Methods =>
   protected def findFrom(
                           from: ObjId,
                           ut: UnsafeFindPair,
-                          commits: Set[Commit]
+                          commits: List[Commit],
+                          fsCache: Map[UnsafeFindSingle, Set[ObjId]]
                         ): LMDBEither[Set[ObjId]] = {
-    def recurse(ut: UnsafeFindPair, from: ObjId): LMDBEither[Set[ObjId]] = findFrom(from, ut, commits)
+    def recurse(ut: UnsafeFindPair, from: ObjId): LMDBEither[Set[ObjId]] = findFrom(from, ut, commits, fsCache)
 
     ut match {
       case USAnd(l, r)  => for {
@@ -28,7 +29,7 @@ trait PathFindingImpl { self: Methods =>
       } yield a intersect b
 
       case USAndLeft(l, r) => for {
-        rightRes <- findSingleSet(r, commits)
+        rightRes <- fsCache.getOrError(r, MissingCachedQuery(r))
         res <-
           // only need to check if appears in RHS
           if (rightRes.contains(from)) recurse(l, from)
@@ -38,8 +39,7 @@ trait PathFindingImpl { self: Methods =>
       case USAndRight(l, r) => for {
         res <- recurse(l, from)
 
-        // todo: Cache all FindSingles in the tree so this only needs to be calculated once
-        rightRes <- findSingleSet(r, commits)
+        rightRes <- fsCache.getOrError(r, MissingCachedQuery(r))
       } yield res.intersect(rightRes)
 
 

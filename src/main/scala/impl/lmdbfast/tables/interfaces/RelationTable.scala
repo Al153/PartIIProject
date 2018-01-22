@@ -1,11 +1,9 @@
 package impl.lmdbfast.tables.interfaces
 
-import core.utils.EitherOps
-import impl.lmdbfast.LMDBEither
-import impl.lmdbfast.access.{Commit, Key, ObjId}
-import impl.lmdbfast._
-import Key._
 import core.backend.intermediate.RelationName
+import impl.lmdbfast.LMDBEither
+import impl.lmdbfast.access.Key._
+import impl.lmdbfast.access.{Commit, Key, ObjId}
 
 
 /**
@@ -29,8 +27,8 @@ trait RelationTable extends LMDBTable {
     * @param relation - relation name to follow
     * @return a set of objects that are connected by the relation
     */
-  def followRelation(objId: ObjId, commits: Set[Commit], relation: RelationName): LMDBEither[Set[ObjId]] =
-    getBatch[Set[ObjId], Set](commits.map(getKey(objId, _, relation))).map(_.flatten)
+  def followRelation(objId: ObjId, commits: List[Commit], relation: RelationName): LMDBEither[Set[ObjId]] =
+    getBatch[Set[ObjId], List](commits.map(getKey(objId, _, relation))).map(_.toSet.flatten)
 
   /**
     * Insert a set of objects reachable in a commit

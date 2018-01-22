@@ -2,7 +2,7 @@ package impl.lmdbfast.tables.interfaces
 
 import java.nio.ByteBuffer
 
-import impl.lmdbfast.access.{Key, Storeable}
+import impl.lmdbfast.access.{Key, Storable}
 import impl.lmdbfast.errors.NoResult
 import impl.lmdbfast.{LMDBEither, LMDBInstance}
 import org.lmdbjava.Dbi
@@ -40,7 +40,7 @@ trait LMDBTable {
     * @tparam A - type to extract
     * @return
     */
-  def put[A](key: Key, a: A)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] = LMDBEither {
+  def put[A](key: Key, a: A)(implicit sa: Storable[A], instance: LMDBInstance): LMDBEither[Unit] = LMDBEither {
     KeyBuffer.withBuf{
       keyBuf =>
         key.render(keyBuf)
@@ -59,7 +59,7 @@ trait LMDBTable {
     * @tparam A - type to extract
     * @return
     */
-  def get[A](key: Key)(implicit instance: LMDBInstance, sa: Storeable[A]): LMDBEither[A] = {
+  def get[A](key: Key)(implicit instance: LMDBInstance, sa: Storable[A]): LMDBEither[A] = {
     val tx = instance.env.txnRead()
 
     for {
@@ -84,7 +84,7 @@ trait LMDBTable {
     * @tparam A - objects exprected
     * @return
     */
-  def getBatch[A,  M[X] <: TraversableOnce[X]](keys: M[Key])(implicit instance: LMDBInstance, sa: Storeable[A], cbf: CanBuildFrom[M[Key], A, M[A]]): LMDBEither[M[A]] = {
+  def getBatch[A,  M[X] <: TraversableOnce[X]](keys: M[Key])(implicit instance: LMDBInstance, sa: Storable[A], cbf: CanBuildFrom[M[Key], A, M[A]]): LMDBEither[M[A]] = {
     val tx = instance.env.txnRead()
     // catch any thrown exceptions
     LMDBEither(try {
@@ -111,7 +111,7 @@ trait LMDBTable {
     * @param key - key at which to put
     * @param compute - computation to run
     */
-  def transactionalGetAndSet[A](key: Key)(compute: A => LMDBEither[A])(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[A] = {
+  def transactionalGetAndSet[A](key: Key)(compute: A => LMDBEither[A])(implicit sa: Storable[A], instance: LMDBInstance): LMDBEither[A] = {
 
     // get a new transaction
     val tx = instance.env.txnWrite()
@@ -151,7 +151,7 @@ trait LMDBTable {
   /**
     * Append a value to a set in the LMDB database at a key
     */
-  def transactionalAppendToSet[A](key: Key, a: A)(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] =
+  def transactionalAppendToSet[A](key: Key, a: A)(implicit sa: Storable[A], instance: LMDBInstance): LMDBEither[Unit] =
     transactionalGetAndSet[Set[A]](key){
       s => (s + a).right
     } map (_ => ())
@@ -159,7 +159,7 @@ trait LMDBTable {
   /**
     * Union a set of values to the existing one at a key
     */
-  def transactionalUnion[A](key: Key, as: Set[A])(implicit sa: Storeable[A], instance: LMDBInstance): LMDBEither[Unit] =
+  def transactionalUnion[A](key: Key, as: Set[A])(implicit sa: Storable[A], instance: LMDBInstance): LMDBEither[Unit] =
     transactionalGetAndSet[Set[A]](key) {
       oldAs => LMDBEither(oldAs union as)
     }.map(_ => ())

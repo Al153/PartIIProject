@@ -27,20 +27,12 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
   private def getKey(commit: Commit): Key = commit.key
 
   /**
-    * Lookup a commit
-    * @param commit - commit to lookup
-    * @return
-    */
-  private def lookup(commit: Commit): LMDBEither[Set[ObjId]] = get[Set[ObjId]](getKey(commit))
-
-  /**
     * Lookup a Set of commits
     * @param commits - commits to lookup
     * @return
     */
-  // todo: Set[Commit] => Array[Commit] for speed
-  def lookupSet(commits: Set[Commit]): LMDBEither[Set[ObjId]] =
-  getBatch[Set[ObjId], Set](commits.map(getKey)).map(_.flatten)
+  def lookupSet(commits: List[Commit]): LMDBEither[Set[ObjId]] =
+    getBatch[Set[ObjId], List](commits.map(getKey)).map(_.toSet.flatten)
 
 
   /**
@@ -49,7 +41,7 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
     * @return
     */
   // todo: this could be implemented at a lower level
-  def lookupVector(commits: Set[Commit]): LMDBEither[Vector[ObjId]] = lookupSet(commits).map(_.toVector)
+  def lookupVector(commits: List[Commit]): LMDBEither[Vector[ObjId]] = lookupSet(commits).map(_.toVector)
 
   /**
     * Insert an object

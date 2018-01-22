@@ -13,6 +13,7 @@ trait Methods extends FindAll
   with PathFinding
   with VectorImpl
   with SetImpl
-  with PathFindingImpl {
+  with PathFindingImpl
+  with Optimisations {
     implicit val instance: LMDBInstance
 }

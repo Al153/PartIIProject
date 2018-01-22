@@ -3,7 +3,7 @@ package impl.lmdbfast.access
 import java.nio.ByteBuffer
 
 import impl.lmdbfast.LMDBEither
-import impl.lmdbfast.access.Storeable.StoreableLong
+import impl.lmdbfast.access.Storable.StorableLong
 
 /**
   * Created by Al on 28/12/2017.
@@ -23,7 +23,7 @@ object ObjId {
   /**
     * Object Ids should be able to be stored in the DB and also used as keys
     */
-  implicit object ObjIdKeyable extends Keyable[ObjId] with Storeable[ObjId] {
+  implicit object ObjIdKeyable extends Keyable[ObjId] with ConstantLengthStorable[ObjId] {
     /**
       * Storeable methods hijack Storeable long
       */
@@ -39,12 +39,12 @@ object ObjId {
       *
       * @return
       */
-    override def bufferLength(a: ObjId): Int = 8
+    override def length: Int = 8
 
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: ObjId, buf: ByteBuffer): Unit = StoreableLong.writeToBuffer(a.id, buf)
+    override def writeToBuffer(a: ObjId, buf: ByteBuffer): Unit = StorableLong.writeToBuffer(a.id, buf)
 
     /**
       * Storeable objects need to be extracted from a series of bytes
@@ -52,6 +52,6 @@ object ObjId {
       * @param buf - buffer to extract from
       * @return
       */
-    override def fromBuffer(buf: ByteBuffer): LMDBEither[ObjId] = StoreableLong.fromBuffer(buf).map(ObjId.apply)
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[ObjId] = StorableLong.fromBuffer(buf).map(ObjId.apply)
   }
 }

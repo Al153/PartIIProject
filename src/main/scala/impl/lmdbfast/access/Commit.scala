@@ -3,7 +3,7 @@ package impl.lmdbfast.access
 import java.nio.ByteBuffer
 
 import impl.lmdbfast.LMDBEither
-import impl.lmdbfast.access.Storeable.StoreableLong
+import impl.lmdbfast.access.Storable.StorableLong
 
 /**
   * Created by Al on 28/12/2017.
@@ -22,16 +22,16 @@ object Commit {
   /**
     * Storeable instance for Commits
     */
-  implicit object StoreableCommit extends Storeable[Commit]  {
+  implicit object StorableCommit extends ConstantLengthStorable[Commit]  {
     /**
-      * Hijack [[impl.lmdbfast.access.Storeable.StoreableLong]]'s methods
+      * Hijack [[impl.lmdbfast.access.Storable.StorableLong]]'s methods
       */
     /**
       * Expected length in buffer
       *
       * @return
       */
-    override def bufferLength(a: Commit): Int = 8 // length of a long
+    override def length: Int = 8 // length of a long
 
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
@@ -44,6 +44,6 @@ object Commit {
       * @param buf - buffer to extract from
       * @return
       */
-    override def fromBuffer(buf: ByteBuffer): LMDBEither[Commit] = StoreableLong.fromBuffer(buf).map(Commit.apply)
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[Commit] = StorableLong.fromBuffer(buf).map(Commit.apply)
 }
 }

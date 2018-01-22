@@ -27,7 +27,7 @@ trait SetImpl { self: Methods =>
     */
   def readSet[A](
                      ut: UnsafeFindSingle,
-                     commits: Set[Commit],
+                     commits: List[Commit],
                      objectTable: ObjectRetrievalTable
                    )(implicit sa: SchemaObject[A]): LMDBEither[Set[A]] = {
     for {
@@ -47,7 +47,7 @@ trait SetImpl { self: Methods =>
     */
   def readSetPairs[A, B](
                           ut: UnsafeFindPair,
-                          commits: Set[Commit],
+                          commits: List[Commit],
                           leftTable: ObjectRetrievalTable,
                           rightTable: ObjectRetrievalTable
                         )(
@@ -106,7 +106,7 @@ trait SetImpl { self: Methods =>
     * @param commits - Commits to search
     * @return
     */
-  def findSingleSet(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Set[ObjId]] = {
+  def findSingleSet(ut: UnsafeFindSingle, commits: List[Commit]): LMDBEither[Set[ObjId]] = {
     def recurse(t: UnsafeFindSingle) = findSingleSet(t, commits)
     ut match {
       case USFind(pattern) => instance.lookupPattern(pattern, commits)
@@ -132,7 +132,7 @@ trait SetImpl { self: Methods =>
     */
   protected def findPairSet(
                              ut: UnsafeFindPair,
-                             commits: Set[Commit],
+                             commits: List[Commit],
                              from: Set[ObjId]
                            ): LMDBEither[Set[(ObjId, ObjId)]] = {
     def recurse(ut: UnsafeFindPair, from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]] = findPairSet(ut, commits, from)

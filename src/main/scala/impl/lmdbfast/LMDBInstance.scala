@@ -1,21 +1,21 @@
 package impl.lmdbfast
 
-import java.io.{File, IOException}
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import core.user.interfaces.{DBExecutor, DBInstance}
+import core.backend.intermediate.unsafe.ErasedFindable
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, View}
-import core.backend.intermediate.unsafe.ErasedFindable
+import core.user.interfaces.{DBExecutor, DBInstance}
 import core.user.schema.{SchemaDescription, TableName}
 import impl.lmdbfast.access.{Commit, ObjId}
-
-import scalaz._
-import Scalaz._
 import impl.lmdbfast.tables.impl._
 import org.lmdbjava.Env
+
+import scalaz.Scalaz._
+import scalaz._
 // import org.fusesource.lmdbjni.{Database, Env}
 import core.utils._
 import impl.lmdbfast.errors.LMDBMissingTable
@@ -92,7 +92,7 @@ sealed abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaD
   /**
     * Lookup a pattern, helper method
     */
-  private [lmdbfast] def lookupPattern(p: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+  private [lmdbfast] def lookupPattern(p: ErasedFindable, commits: List[Commit]): LMDBEither[Set[ObjId]] =
     if (p.tableName in objects) objects(p.tableName).lookup(p, commits)
     else LMDBMissingTable(p.tableName).left
 }

@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 
 import core.user.dsl.View
 import impl.lmdbfast.access.Key._
-import impl.lmdbfast.access.Storeable.StoreableView
+import impl.lmdbfast.access.Storable.StorableView
 import impl.lmdbfast.tables.interfaces.LMDBTable
 import impl.lmdbfast.{LMDBFuture, LMDBInstance, _}
 import org.lmdbjava.Dbi
@@ -25,18 +25,18 @@ class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
 
   def initialise(): LMDBEither[Unit] = {
     println("Putting initial view")
-    put(key, initialView)(StoreableView, instance)
+    put(key, initialView)(StorableView, instance)
 
   }
 
   /**
     * Gets default view
     */
-  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](key)(instance, StoreableView))
+  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](key)(instance, StorableView))
 
   /**
     * Sets default view, non transactional
     */
-  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(key, v)(StoreableView, instance))
+  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(key, v)(StorableView, instance))
 
 }

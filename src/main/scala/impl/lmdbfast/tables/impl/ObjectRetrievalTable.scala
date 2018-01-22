@@ -41,7 +41,7 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   /**
     * Find all objects in the commit that match the findable
     */
-  def lookup(f: ErasedFindable, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
+  def lookup(f: ErasedFindable, commits: List[Commit]): LMDBEither[Set[ObjId]] =
     for {
       ifEmpty <- emptyIndex.lookupSet(commits)
       indexResults <- EitherOps.sequence(f.pattern.zipWithIndex.collect {case (Some(v), i) => indices(i).lookup(v, commits)})
@@ -51,12 +51,12 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   /**
     * Find all objects in the collection of commits
     */
-  def lookup(commits: Set[Commit]): LMDBEither[Set[ObjId]] = emptyIndex.lookupSet(commits)
+  def lookup(commits: List[Commit]): LMDBEither[Set[ObjId]] = emptyIndex.lookupSet(commits)
 
   /**
     * Find all objects in the collection of commits
     */
-  def lookupVector(commits: Set[Commit]): LMDBEither[Vector[ObjId]] = emptyIndex.lookupVector(commits)
+  def lookupVector(commits: List[Commit]): LMDBEither[Vector[ObjId]] = emptyIndex.lookupVector(commits)
 
   /**
     * Given an ObjIds, retrieve each ObjId
@@ -89,7 +89,7 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
     * Get or create a collection of values.
     * For each object in the collection, get its ObjId or insert it and return the resulting ObjId
     */
-  def getOrCreate[A](toCreate: Set[A], commits: Set[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[Map[A, ObjId]] =
+  def getOrCreate[A](toCreate: Set[A], commits: List[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[Map[A, ObjId]] =
     EitherOps.sequence(toCreate.map(a => getOrCreate(a, commits, newCommit).map(a -> _))).toMapE
 
 
@@ -98,7 +98,7 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
     * @return
     */
   // todo: This can be done in bulk?
-  private def getOrCreate[A](a: A, commits: Set[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[ObjId] =
+  private def getOrCreate[A](a: A, commits: List[Commit], newCommit: Commit)(implicit sa: SchemaObject[A]): LMDBEither[ObjId] =
     for {
       lookupResult <- lookup(sa.findable(a).getUnsafe, commits)
       res <- lookupResult.headOption.fold(insert(a, newCommit)){

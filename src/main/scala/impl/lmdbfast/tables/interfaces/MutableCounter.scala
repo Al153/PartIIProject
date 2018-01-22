@@ -1,14 +1,14 @@
 package impl.lmdbfast.tables.interfaces
 
 import impl.lmdbfast.{LMDBEither, _}
-import impl.lmdbfast.access.{Key, Storeable}
+import impl.lmdbfast.access.{Key, Storable}
 
 /**
   * Created by Al on 29/12/2017.
   *
   * A mutable counter is a transactional counter in the database for getting unique values for objects
   */
-abstract class MutableCounter[A](key: Key)(implicit store: Storeable[A]) extends LMDBTable {
+abstract class MutableCounter[A](key: Key)(implicit store: Storable[A]) extends LMDBTable {
 
 
   /**

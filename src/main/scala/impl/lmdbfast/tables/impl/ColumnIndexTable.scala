@@ -34,8 +34,8 @@ class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: Sch
   /**
     * Lookup a set of commits + DBCell
     */
-  def lookup(value: DBCell, commits: Set[Commit]): LMDBEither[Set[ObjId]] =
-    getBatch[Set[ObjId], Set](commits.map(getKey(value, _))).map(_.flatten)
+  def lookup(value: DBCell, commits: List[Commit]): LMDBEither[Set[ObjId]] =
+    getBatch[Set[ObjId], List](commits.map(getKey(value, _))).map(_.toSet.flatten)
 
   /**
     * Insert an object into a commit

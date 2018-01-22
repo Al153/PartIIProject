@@ -83,7 +83,7 @@ object Key {
     * Simple Keyable instance for anything that is Storeable
     */
 
-  implicit def KeyableFromStoreable[A](implicit sa: Storeable[A]) = new Keyable[A] {
+  implicit def KeyableFromStoreable[A](implicit sa: Storable[A]) = new Keyable[A] {
     /**
       * Hijack Storeable[A]'s toBytes method
       */

@@ -29,7 +29,7 @@ trait VectorImpl { self: Methods =>
     */
   def readVector[A](
                        ut: UnsafeFindSingle,
-                       commits: Set[Commit],
+                       commits: List[Commit],
                        objectTable: ObjectRetrievalTable
                      )(implicit extractor: SchemaObject[A]): LMDBEither[Vector[A]] =
     for {
@@ -50,7 +50,7 @@ trait VectorImpl { self: Methods =>
 
   def readVectorPairs[A, B](
                            ut: UnsafeFindPair,
-                           commits: Set[Commit],
+                           commits: List[Commit],
                            leftTable: ObjectRetrievalTable,
                            rightTable: ObjectRetrievalTable
                            )(
@@ -115,7 +115,7 @@ trait VectorImpl { self: Methods =>
     * @param commits - Commits to search
     * @return
     */
-  def findSingleVector(ut: UnsafeFindSingle, commits: Set[Commit]): LMDBEither[Vector[ObjId]] = {
+  def findSingleVector(ut: UnsafeFindSingle, commits: List[Commit]): LMDBEither[Vector[ObjId]] = {
     def recurse(t: UnsafeFindSingle) = findSingleVector(t, commits)
 
     ut match {
@@ -146,7 +146,7 @@ trait VectorImpl { self: Methods =>
 
   def findPairVector(
                       ut: UnsafeFindPair,
-                      commits: Set[Commit],
+                      commits: List[Commit],
                       from: Vector[ObjId]
                     ): LMDBEither[Vector[(ObjId, ObjId)]] = {
     def recurse(ut: UnsafeFindPair, from: Vector[ObjId]) = findPairVector(ut, commits, from)

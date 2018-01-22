@@ -53,7 +53,7 @@ trait Write { self: Methods =>
 
     // - insert new set of commits and view as an entry to the views table
     commits <- instance.controlTables.viewsTable.lookupCommits(v)
-    _ <- instance.controlTables.viewsTable.newChildView(newView, commits + commit)
+    _ <- instance.controlTables.viewsTable.newChildView(newView, commit :: commits)
 
     _ = println("Set new commits")
 
@@ -109,7 +109,7 @@ trait Write { self: Methods =>
     */
   private def getObjIds[A, B](
                        t: TraversableOnce[CompletedRelation[A, B]],
-                       commits: Set[Commit],
+                       commits: List[Commit],
                        newCommit: Commit
                      )(implicit sa: SchemaObject[A], sb: SchemaObject[B]
   ): LMDBEither[(Map[ObjId, Map[RelationName, Set[ObjId]]], Map[ObjId, Map[RelationName, Set[ObjId]]])] =
@@ -150,8 +150,8 @@ trait Write { self: Methods =>
       _ = println("Built B index")
 
       // find a lookup table of (ObjId -> A) (ObjId -> B)
-      aLookup <- aLookupTable.getOrCreate(aMap.keySet, commits + newCommit, newCommit)
-      bLookup <- bLookupTable.getOrCreate(bMap.keySet, commits + newCommit, newCommit)
+      aLookup <- aLookupTable.getOrCreate(aMap.keySet, newCommit :: commits, newCommit)
+      bLookup <- bLookupTable.getOrCreate(bMap.keySet, newCommit :: commits, newCommit)
 
 
       _ = println("Got and created all")
