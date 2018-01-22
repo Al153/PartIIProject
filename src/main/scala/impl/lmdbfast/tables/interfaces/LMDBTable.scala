@@ -2,18 +2,15 @@ package impl.lmdbfast.tables.interfaces
 
 import java.nio.ByteBuffer
 
-import core.utils.EitherOps
-import impl.lmdb.errors.LMDBError
-import impl.lmdbfast.{LMDBEither, LMDBInstance}
-import impl.lmdbfast.access.{Key, Storeable}
 import impl.lmdbfast.access.{Key, Storeable}
 import impl.lmdbfast.errors.NoResult
 import impl.lmdbfast.{LMDBEither, LMDBInstance}
 import org.lmdbjava.Dbi
 
-import scalaz._
-import Scalaz._
 import scala.collection.generic.CanBuildFrom
+import scala.language.higherKinds
+import scalaz.Scalaz._
+import scalaz._
 /**
   * Created by Al on 28/12/2017.
   *
