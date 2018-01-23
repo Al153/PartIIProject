@@ -1,7 +1,7 @@
 \documentclass[twoside,a4paper,11pt]{article}
 \usepackage[a4paper,includeheadfoot,margin=2.54cm]{geometry}
 \usepackage{breqn}
-
+\usepackage{stmaryrd}
 \newcommand{\db}[1]{{\bf [\![}#1{\bf ]\!]}}
 
 \begin{document}
@@ -19,7 +19,7 @@ FindPair queries
 \begin{dmath} P \rightarrow Rel(R) \mid RevRel(R) \mid Chain(P, P) \mid And(P, P) \mid AndRight(P, S) \mid AndLeft(P, S) \mid Or(P, P) \mid Distinct(P) \mid Id_A \mid Exactly(\mathit{n}, P) \mid Upto(\mathit{n}, P) \mid FixedPoint(P) \end{dmath}
 
 
-and FindSingle queries
+where $n$ denotes a natural number. FindSingle queries
 
 $$ S \rightarrow Find(F) \mid From(S, P) \mid Narrow(S, F)$$
 
@@ -69,9 +69,59 @@ $$ \Sigma \vdash P\colon (A, B)$$
 
 Which means "under the schema $\Sigma$, pair query $P$ returns a subset of $A \times B$".  The second is for single queries:
 
-$$ \Sigma \vdash S\colon A$$
+$$ \Sigma \vdash S \colon A $$
 
 Which means "under the schema $\Sigma$ single query returns a subset of $A$
+
+The rules of the first kind are as follows
+
+\[ \begin{array}{c}
+\displaystyle\mbox{(Rel)}\frac{\Sigma(r)\downarrow(A, B)}{\Sigma \vdash Rel(r) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(Rev)}\frac{\Sigma(r)\downarrow(B, A)}{\Sigma \vdash RevRel(r) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(Id)}\frac{\Sigma(A)\downarrow True}{\Sigma \vdash Id_A \colon (A, A)} \\[3ex]
+\displaystyle\mbox{(Chain)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash Q \colon (B, C)}{\Sigma \vdash Chain(P, Q) \colon (A, C)} \\[3ex]
+
+\displaystyle\mbox{(And)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash Q \colon (A, B)}{\Sigma \vdash And(P, Q) \colon (A, B)} \\[3ex]
+
+\displaystyle\mbox{(Or)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash Q \colon (A, B)}{\Sigma \vdash Or(P, Q) \colon (A, B)} \\[3ex]
+
+\displaystyle\mbox{(Distinct)}\frac{\Sigma\vdash P \colon (A, B)}{\Sigma \vdash Distinct(P) \colon (A, B)} \\[3ex]
+
+\displaystyle\mbox{(AndLeft)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash S \colon A}{\Sigma \vdash AndLeft(P, S) \colon (A, B)} \\[3ex]
+
+\displaystyle\mbox{(AndRight)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash S \colon B}{\Sigma \vdash AndRight(P, S) \colon (A, B)} \\[3ex]
+
+\displaystyle\mbox{(Exactly)}\frac{\Sigma\vdash P \colon (A, A)}{\Sigma \vdash Exactly(n, P) \colon (A, A)} \\[3ex]
+
+\displaystyle\mbox{(Upto)}\frac{\Sigma\vdash P \colon (A, A)}{\Sigma \vdash Upto(n, P) \colon (A, A)} \\[3ex]
+
+\displaystyle\mbox{(FixedPoint)}\frac{\Sigma\vdash P \colon (A, A)}{\Sigma \vdash FixedPoint(P) \colon (A, A)} \\[3ex]
+
+\end{array} \]
+
+
+The rules for types of Single queries are similar:
+
+\[ \begin{array}{c}
+\displaystyle\mbox{(Find)}\frac{\Sigma(f)\downarrow(A)}{\Sigma \vdash Find(f) \colon A} \\[3ex]
+\displaystyle\mbox{(From)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash S \colon A}{\Sigma \vdash From(S, P) \colon B} \\[3ex]
+\displaystyle\mbox{(Narrow)}\frac{\Sigma(f)\downarrow(A) \indent \Sigma \vdash S \colon A}{\Sigma \vdash Narrow(S, F) \colon A} \\[3ex]
+\end{array}
+\]
+
+
+\subsection{Operational Semantics}
+
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft p$ to mean "a is a valid result of query Q". This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $(a, b) \triangleleft_{(A, B), v} P$ for pair queries $P$ and $a \triangleleft_{A,v} S$ for single queries $S$.
+
+\[ \begin{array}{c}
+\end{array} \]
+
+
+
+\subsection{Denotational Semantics}
+
+$\llbracket and \rrbracket from the $
 
 \section{Inference-Based Program Analysis}
 This is a general technique in which an inference system specifies
