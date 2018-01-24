@@ -2,7 +2,15 @@
 \usepackage[a4paper,includeheadfoot,margin=2.54cm]{geometry}
 \usepackage{breqn}
 \usepackage{stmaryrd}
+\usepackage{amssymb}
+
 \newcommand{\db}[1]{{\bf [\![}#1{\bf ]\!]}}
+\newcommand{\deno}[1]{\db{#1}(v)}
+\newcommand{\setComp}[2]{\left\lbrace #1 \mid #2 \right\rbrace}
+\newcommand{\clos}[0]{closure(A, v)}
+\newcommand{\typeRule}[2]{\Sigma\vdash #1 \colon #2}
+\newcommand{\denoRule}[2]{#1 \in \deno{#2}}
+\newcommand{\opRule}[3]{#1 \triangleleft_{#2, v} #3}
 
 \begin{document}
 
@@ -21,7 +29,7 @@ FindPair queries
 
 where $n$ denotes a natural number. FindSingle queries
 
-$$ S \rightarrow Find(F) \mid From(S, P) \mid Narrow(S, F)$$
+$$ S \rightarrow Find(F) \mid From(S, P) \mid AndS(S, S') \mid OrS(S, S')$$
 
 Object Types
 
@@ -45,7 +53,7 @@ A schema $\Sigma$ is made up of three partial functions:
 
 $$\Sigma_{rel}\colon R \rightharpoonup \tau\times\tau $$ 
 $$\Sigma_{findable}\colon R \rightharpoonup \tau $$
-$$ \Sigma_{table}\colon \tau \rightharpoonup \{True, False\} $$ 
+$$\Sigma_{table}\colon \tau \rightharpoonup \{True, False\} $$ 
 
 Though, when it is obvious from the context, I shall use simply use $\Sigma(x)$ to signify application of either function.
  
@@ -76,26 +84,29 @@ Which means "under the schema $\Sigma$ single query returns a subset of $A$
 The rules of the first kind are as follows
 
 \[ \begin{array}{c}
-\displaystyle\mbox{(Rel)}\frac{\Sigma(r)\downarrow(A, B)}{\Sigma \vdash Rel(r) \colon (A, B)} \\[3ex]
-\displaystyle\mbox{(Rev)}\frac{\Sigma(r)\downarrow(B, A)}{\Sigma \vdash RevRel(r) \colon (A, B)} \\[3ex]
-\displaystyle\mbox{(Id)}\frac{\Sigma(A)\downarrow True}{\Sigma \vdash Id_A \colon (A, A)} \\[3ex]
-\displaystyle\mbox{(Chain)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash Q \colon (B, C)}{\Sigma \vdash Chain(P, Q) \colon (A, C)} \\[3ex]
+\displaystyle\mbox{(Rel)}\frac{\Sigma(r)\downarrow(A, B)}{\typeRule{Rel(r)}{(A, B)}} \\[3ex]
 
-\displaystyle\mbox{(And)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash Q \colon (A, B)}{\Sigma \vdash And(P, Q) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(Rev)}\frac{\Sigma(r)\downarrow(B, A)}{\typeRule{Rel(r)}{(A, B)}} \\[3ex]
 
-\displaystyle\mbox{(Or)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash Q \colon (A, B)}{\Sigma \vdash Or(P, Q) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(Id)}\frac{\Sigma(A)\downarrow True}{\typeRule{Id_A}{(A, A)}} \\[3ex]
 
-\displaystyle\mbox{(Distinct)}\frac{\Sigma\vdash P \colon (A, B)}{\Sigma \vdash Distinct(P) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(Chain)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{Q}{(B, C)}}{\typeRule{Chain(P, Q)}{(A, C)}} \\[3ex]
 
-\displaystyle\mbox{(AndLeft)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash S \colon A}{\Sigma \vdash AndLeft(P, S) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(And)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{Q}{(A, B)}}{\typeRule{And(P, Q)}{(A, B)}} \\[3ex]
 
-\displaystyle\mbox{(AndRight)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash S \colon B}{\Sigma \vdash AndRight(P, S) \colon (A, B)} \\[3ex]
+\displaystyle\mbox{(Or)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{Q}{(A, B)}}{\typeRule{Or(P, Q)}{(A, B)}} \\[3ex]
 
-\displaystyle\mbox{(Exactly)}\frac{\Sigma\vdash P \colon (A, A)}{\Sigma \vdash Exactly(n, P) \colon (A, A)} \\[3ex]
+\displaystyle\mbox{(Distinct)}\frac{\typeRule{P}{(A, B)}}{\typeRule{Distinct(P)}{(A, B)}} \\[3ex]
 
-\displaystyle\mbox{(Upto)}\frac{\Sigma\vdash P \colon (A, A)}{\Sigma \vdash Upto(n, P) \colon (A, A)} \\[3ex]
+\displaystyle\mbox{(AndLeft)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{S}{(A)}}{\typeRule{AndLeft(P,S)}{(A, B)}} \\[3ex]
 
-\displaystyle\mbox{(FixedPoint)}\frac{\Sigma\vdash P \colon (A, A)}{\Sigma \vdash FixedPoint(P) \colon (A, A)} \\[3ex]
+\displaystyle\mbox{(AndRight)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{S}{B}}{\Sigma \vdash \typeRule{AndRight(P, S)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(Exactly)}\frac{\typeRule{P}{(A, A)}}{\typeRule{Exactly(n, P)}{(A, A)}} \\[3ex]
+
+\displaystyle\mbox{(Upto)}\frac{\typeRule{P}{(A, A)}}{\typeRule{Upto(n, P)}{(A, A)}} \\[3ex]
+
+\displaystyle\mbox{(FixedPoint)}\frac{\typeRule{P}{(A, A)}}{\typeRule{FixedPoint(P)}{(A, A)}} \\[3ex]
 
 \end{array} \]
 
@@ -103,25 +114,163 @@ The rules of the first kind are as follows
 The rules for types of Single queries are similar:
 
 \[ \begin{array}{c}
-\displaystyle\mbox{(Find)}\frac{\Sigma(f)\downarrow(A)}{\Sigma \vdash Find(f) \colon A} \\[3ex]
-\displaystyle\mbox{(From)}\frac{\Sigma\vdash P \colon (A, B) \indent \Sigma\vdash S \colon A}{\Sigma \vdash From(S, P) \colon B} \\[3ex]
-\displaystyle\mbox{(Narrow)}\frac{\Sigma(f)\downarrow(A) \indent \Sigma \vdash S \colon A}{\Sigma \vdash Narrow(S, F) \colon A} \\[3ex]
+\displaystyle\mbox{(Find)}\frac{\Sigma(f)\downarrow(A)}{\typeRule{Find(f)}{A}} \\[3ex]
+
+\displaystyle\mbox{(From)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{S}{A}}{\typeRule{From(S, P)}{B}} \\[3ex]
+
+\displaystyle\mbox{(AndS)}\frac{  \typeRule{S}{A} \indent  \typeRule{S'}{A}}{\typeRule{AndS(S, S')}{A}} \\[3ex]
+
+\displaystyle\mbox{(OrS)}\frac{  \typeRule{S}{A} \indent  \typeRule{S'}{A}}{\typeRule{OrS(S, S')}{A}} \\[3ex]
 \end{array}
 \]
 
 
 \subsection{Operational Semantics}
 
-Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft p$ to mean "a is a valid result of query Q". This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $(a, b) \triangleleft_{(A, B), v} P$ for pair queries $P$ and $a \triangleleft_{A,v} S$ for single queries $S$.
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft p$ to mean "a is a valid result of query Q". This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
 
 \[ \begin{array}{c}
+\displaystyle\mbox{(Rel)}\frac{(a,b) \in v(R)}{\opRule{(a, b)}{(A, B)}{Rel(R)}} \\[3ex]
+
+\displaystyle\mbox{(Rev)}\frac{(b,a) \in v(R)}{\opRule{(a, b)}{(A, B)}{RevRel(R)}} \\[3ex]
+
+\displaystyle\mbox{(Id)}\frac{a \in v(A)}{\opRule{(a, a)} {(A, A)} {Id_A}} \\[3ex]
+
+\displaystyle\mbox{(Distinct)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent a \neq b}{\opRule{(a,b)}{(A, B)}{Distinct(P)}} \\[3ex]
+
+\displaystyle\mbox{(And)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent (\opRule{(a,b)}{(A, B)}{Q}}{\opRule{(a,b)}{(A, B)}{And(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(Or1)}\frac{\opRule{(a,b)}{(A, B)}{P}}{\opRule{(a,b)}{(A, B)}{Or(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(Or2)}\frac{\opRule{(a,b)}{(A, B)}{Q}}{\opRule{(a,b)}{(A, B)}{Or(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(Chain)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{(b,c)}{(B, C)}{Q}}{\opRule{(a,c)}{(A, C)}{Chain(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(AndLeft)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{a}{A}{S}}{\opRule{(a,b)}{(A, B)}{AndLeft(P, S)}} \\[3ex]
+
+\displaystyle\mbox{(AndRight)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{b}{
+B}{S}}{\opRule{(a,b)}{(A, B)}{AndRight(P, S)}} \\[3ex]
+
+\displaystyle\mbox{(Exactly_0)}\frac{\opRule{(a,b)}{(A, A)}{Id_A}}{\opRule{(a, b)}{(A, A)}{Exactly(0, P)}} \\[3ex]
+
+\displaystyle\mbox{(Exactly_{n+1})}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{Exactly(n, P)}}{\opRule{(a, c)}{(A, A)}{Exactly(n + 1, P)}} \\[3ex]
+
+\displaystyle\mbox{(Upto_0)}\frac{\opRule{(a,b)}{(A, A)}{Id_A}}{\opRule{(a, b)}{(A, A)}{Upto(0, P)}} \\[3ex]
+
+\displaystyle\mbox{(Upto_n)}\frac{\opRule{(a, b)}{(A, A)}{Upto(n, P)}}{\opRule{(a, b)}{(A, A)}{Upto(n + 1, P)}} \\[3ex]
+
+\displaystyle\mbox{(Upto_{n+1})}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{Upto(n, P)}}{\opRule{(a, c)}{(A, A)}{Upto(n + 1, P)}} \\[3ex]
+
+\displaystyle\mbox{(fix1)}\frac{\opRule{(a,b)}{(A, A)}{Id_A}}{\opRule{(a, b)}{(A, A)}{FixedPoint(P)}} \\[3ex]
+
+\displaystyle\mbox{(fix2)}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{FixedPoint(P)}}{\opRule{(a, b)}{(A, A)}{FixedPoint(P)}} \\[3ex]
+
+\end{array} \]
+
+And the FindSingle rules
+
+\[ \begin{array}{c}
+
+\displaystyle\mbox{(Find)}\frac{a \in v(A) \indent f(a)\downarrow True}{\opRule{a}{A}{Find(f)}} \\[3ex]
+
+\displaystyle\mbox{(From)}\frac{\opRule{a}{A}{S} \indent \opRule{(a,b)}{)(A, B)}{P}}{\opRule{b}{A}{From(S, P)}} \\[3ex]
+
+\displaystyle\mbox{(AndS)}\frac{\opRule{a}{A}{S} \indent \opRule{a}{A}{S'}}{\opRule{a}{A}{And(S, S')}} \\[3ex]
+
+\displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
+
+\displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S'}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
 \end{array} \]
 
 
 
 \subsection{Denotational Semantics}
 
-$\llbracket and \rrbracket from the $
+The operational semantics clearly demonstrate membership of a query, but don't give a means to efficiently generate the results of query. To this end, we introduce denotations $\llbracket P \rrbracket$ and $\llbracket S \rrbracket$ such that $$\Sigma \vdash P \colon (A, B) \Rightarrow\llbracket P \rrbracket \colon View_{\Sigma} \rightarrow \wp(A \times B)$$
+
+and $$\Sigma \vdash S \colon A \Rightarrow\llbracket S \rrbracket \colon View_{\Sigma} \rightarrow \wp(A)$$ Such denotations should be compositional and syntax directed, whilst still corresponding to the operational semantics.
+
+\[ \begin{array}{c}
+ \deno{Rel(r)} = v(r) \\[3ex]
+ \deno{RevRel(r)} = swap(v(r)) \\[3ex]
+ \deno{Id_A} = dup(v(a)) \\[3ex]
+ \deno{Chain(P, Q)} = join(\deno{P}, \deno{Q}) \\[3ex]
+ \deno{And(P, Q)} = \deno{P} \cap \deno{Q} \\[3ex]
+ \deno{Or(P, Q)} = \deno{P} \cup \deno{Q} \\[3ex]
+ \deno{AndLeft(P, S)} = filterLeft(\deno{P}, \deno{S}) \\[3ex]
+ \deno{AndRight(P, S)} = filterRight(\deno{P}, \deno{S}) \\[3ex]
+ \deno{Distinct(P)} = distinct(\deno{P}) \\[3ex]
+ 
+ \deno{Exactly(n, P)} = (\lambda pairs. join(\deno{P}, pairs))^n \deno{Id_A} \\[3ex]
+ \deno{Upto(n, P)} = (\lambda pairs. join(\deno{P}, pairs) \cup pairs)^n \deno{Id_A} \\[3ex]
+ \deno{FixedPoint(P)} = fix (\lambda pairs. join(\deno{P}, pairs) \cup pairs)  \mbox{ in the domain $\clos$}\\[3ex]
+\end{array} \]
+
+And similarly with single queries
+
+\[ \begin{array}{c}
+\deno{Find(f)} = \setComp{a \in v(A)}{f(a)\downarrow True} \mbox{ for $\Sigma(f) = A$} \\[3ex]
+
+\deno{From(S, P)} =  \setComp{b}{(a, b) \in \deno{P} \wedge a \in \deno{S}}   \\[3ex]
+
+\deno{AndS(S, S')} = \deno{S} \cap \deno{S'} \\[3ex]
+
+\deno{OrS(S, S')} = \deno{S} \cup \deno{S'} \\[3ex]
+
+\end{array}\]
+
+with the following definitions:
+$$ swap(s) = \setComp{(b,a)}{(a, b) \in s}$$
+$$ dup(s) = \setComp{(a,a)}{a \in s}$$
+$$ join(p, q) = \setComp{(a, c)}{ \exists b. (a, b) \in p \wedge (b, c) \in q}$$
+$$ distinct(s) = \setComp{(a, b) \in s} { a \neq b} $$
+$$ filterLeft(p, s) = \setComp{(a, b) \in p}{a \in s}$$
+$$ filterRight(p, s) = \setComp{(a, b) \in p}{b \in s}$$
+
+
+\subsection{The domain \clos}
+
+Todo: Serious tidying \\ \\
+
+For the subsequent proofs it is necessary to define the scott domain $\clos$ for some
+object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$
+
+Theorem: $\clos$ is a domain
+
+Firstly, by definition, $\forall x. x \in \clos \Rightarrow x \supseteq \deno{Id_A}$, so $\deno{Id_A}$ is the bottom element.
+
+Secondly for any chain $ x_1 \subseteq x_2 \subseteq x_3 \subseteq ...$, $x_i \in \clos$, there exists a value $\bigsqcup_n x_n \in \clos$ such that $\forall i. \bigsqcup_n x_n \supseteq x_i$ and $\forall y. (\forall i. x_i \subseteq y) \Rightarrow y \supseteq \bigsqcup_n x_n$
+
+proof:
+
+Take $\bigsqcup_n x_n = \bigcup_n x_n$. This is in $\clos$, since both $\bigcup_n x_n \supseteq \deno{Id_A}$ due to $\forall i. x_i \supseteq \deno{Id_A}$ by definition and $\bigcup_n x_n \subseteq A \times A$, by $$\forall a. (a \in \bigcup_n x_n \wedge \neg (a \in A \times A)) \Rightarrow (\exists i. a \in x_i \wedge \neg a \in A \times A ) \Rightarrow (\exists i. \neg x_i \subseteq A \times A)$$ yielding a contradiction if $\bigcup_n x_n \subseteq A \times A$ does not hold.
+
+We know $\forall i. \bigcup_n x_n \supseteq x_i$ by definition.
+
+For any $y$ such that $(\forall i.) y \supseteq x_i$ then $$\forall a. (\exists i. a \in x_i) \Rightarrow a \in y$$
+
+$$\forall a. \bigvee_n (a \in x_n) \Rightarrow a \in y$$
+
+$$\forall a. (a \in \bigcup_n x_n) \Rightarrow a \in y$$
+
+$$\bigcup_n x_n \subseteq yu$$
+$$ \square$$
+
+\subsection{Correspondence of operational and denotational semantics}
+
+In order to use the denotational semantics to construct an interpreter or compiler we need to prove they are equivalent to the operational semantics. Namely:
+
+
+$$
+\mbox{For any pair query $P$, schema $\Sigma$ and $View_{\Sigma}$ $v$: }
+\typeRule{P}{(A, B)}\Rightarrow \opRule{(a, b}{(A, B)}{P} \Leftrightarrow \denoRule{(a, b)}{P})
+$$
+
+$$
+\mbox{And for any single query $S$, schema $\Sigma$ and $View_{\Sigma}$ $v$: }
+\typeRule{S}{A}\Rightarrow \opRule{(a}{A}{S} \Leftrightarrow \denoRule{a}{S})
+$$
+
 
 \section{Inference-Based Program Analysis}
 This is a general technique in which an inference system specifies
