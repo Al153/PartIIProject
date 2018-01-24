@@ -6,7 +6,7 @@ import core.user.interfaces.DBInstance
 import core.user.schema.SchemaObject
 import org.junit.Test
 import unit.Objects._
-import unit.{Knows, Person, assertEqOp, description, _}
+import unit.{Knows, Person, assertEqOp, _}
 
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
@@ -37,7 +37,7 @@ trait Repetition { self: HasBackend =>
 
   @Test
   def simpleAtLeast(): Unit = runTest { implicit instance =>
-    val expectedPairs = Vector[(Person, Person)](
+    val expectedPairs = Set[(Person, Person)](
       Alice -> David,
       Alice -> Eve,
       Alice -> Fred,
@@ -72,16 +72,16 @@ trait Repetition { self: HasBackend =>
       for {
         _ <- setupPath
         res1 <- findPairs(Knows * (3 ++))
-        res2 <- findPairsDistinct(Knows * (3 ++ ))
-        _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Simple Atleast (all pairs)")
-        _ <- assertEqOp(expectedPairs.toSet, res2, "Simple Atleast (distinct)")
+        res2 <- findPairs(Knows * (3 ++ ))
+        _ <- assertEqOp(expectedPairs, res1, "Simple Atleast (all pairs)")
+        _ <- assertEqOp(expectedPairs, res2, "Simple Atleast (distinct)")
       } yield ()
     }
   }
 
   @Test
   def simpleExactly(): Unit = runTest { implicit instance =>
-    val expectedPairs = Vector[(Person, Person)](
+    val expectedPairs = Set[(Person, Person)](
       Alice -> Eve,
       Bob -> Fred,
       Charlie -> Georgie,
@@ -92,9 +92,9 @@ trait Repetition { self: HasBackend =>
       for {
         _ <- setupPath
         res1 <- findPairs(Knows * 4)
-        res2 <- findPairsDistinct(Knows * 4)
-        _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Exactly (all pairs)")
-        _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
+        res2 <- findPairs(Knows * 4)
+        _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
+        _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
       } yield ()
     }
   }
@@ -106,44 +106,44 @@ trait Repetition { self: HasBackend =>
 
   @Test
   def simpleFullTransitiveClosure(): Unit = runTest { implicit instance =>
-    val expected = Vector[Person](Alice, Bob, Charlie, David, Eve, Fred, Georgie, Hannah, Ian)
+    val expected = Set[Person](Alice, Bob, Charlie, David, Eve, Fred, Georgie, Hannah, Ian)
     using(instance) {
       for {
         _ <- setupPath
         res1 <- find(Alice >> Knows.**)
-        res2 <- findDistinct(Alice >> Knows.**)
-        _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
-        _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
+        res2 <- find(Alice >> Knows.**)
+        _ <- assertEqOp(expected, res1, "Exactly (all pairs)")
+        _ <- assertEqOp(expected, res2, "Exactly (distinct)")
       } yield ()
     }
   }
 
   @Test
   def simpleBetween(): Unit = runTest { implicit instance =>
-    val expected = Vector[Person](Alice, Bob, Charlie, David)
+    val expected = Set[Person](Alice, Bob, Charlie, David)
 
     using(instance) {
       for {
         _ <- setupPath
         res1 <- find(Alice >> Knows * (0 --> 3))
-        res2 <- findDistinct(Alice >> Knows * (0 --> 3))
-        _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
-        _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
+        res2 <- find(Alice >> Knows * (0 --> 3))
+        _ <- assertEqOp(expected, res1, "Exactly (all pairs)")
+        _ <- assertEqOp(expected, res2, "Exactly (distinct)")
       } yield ()
     }
   }
 
   @Test
   def simpleUpto(): Unit = runTest { implicit instance =>
-    val expected = Vector[Person](Alice, Bob)
+    val expected = Set[Person](Alice, Bob)
 
     using(instance) {
       for {
         _ <- setupPath
         res1 <- find(Alice >> Knows.?)
-        res2 <- findDistinct(Alice >> Knows.?)
-        _ <- assertEqOp(expected.toSet, res1.toSet, "Up to (all pairs)")
-        _ <- assertEqOp(expected.toSet, res2, "Up to (distinct)")
+        res2 <- find(Alice >> Knows.?)
+        _ <- assertEqOp(expected, res1, "Up to (all pairs)")
+        _ <- assertEqOp(expected, res2, "Up to (distinct)")
       } yield ()
     }
   }

@@ -221,15 +221,18 @@ object Query {
       rel1 <- optionalAlias(rel)
     } yield SelectWhere(Joined(a, b), NoConstraint, JoinRename(a -> start1, b -> rel1, Chained))
 
-    // use an OnRight to filter results of `start`
-    case USNarrowS(start, findable) => for {
-      a <- CompilationContext.newSymbol
-      b <- CompilationContext.newSymbol
-      start <- convertSingle(start)
-      start1 <- optionalAlias(start)
-      filter <- doFind(findable)
-      filter1 <- optionalAlias(filter)
-    } yield SelectWhere(SameSide(a), NoConstraint, JoinRename(a -> start1, b -> filter1, OnRight))
+    // Mirrors AndPair
+    case USAndS(l, r) => for {
+      left <- convertSingle(l)
+      right <- convertSingle(r)
+    } yield IntersectAll(left, right)
+
+
+    case USOrS(l, r) => for {
+      left <- convertSingle(l)
+      right <- convertSingle(r)
+    } yield UnionAll(left, right)
+
 
   }
 

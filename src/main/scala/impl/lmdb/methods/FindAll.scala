@@ -16,7 +16,7 @@ import impl.lmdb.errors.{LMDBMissingRelation, LMDBMissingTable}
 
 trait FindAll { self: Methods =>
   import instance.executionContext
-
+  /*
   /**
     * Straight forward findSingle implementation
     * @param t - query to lookup
@@ -37,6 +37,7 @@ trait FindAll { self: Methods =>
       // Interpret the ADT
       res <- readVector(ut, commits, objectTable)
     } yield res).asCFuture})
+    */
 
   /**
     * Straight forward findDisinct implementation
@@ -45,7 +46,7 @@ trait FindAll { self: Methods =>
     * @tparam A - Type of objects to return
     * @return - A Set of found objects
     */
-  def findDistinct[A](t: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Set[A]] =
+  def find[A](t: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Set[A]] =
     new ReadOperation({view: View => LMDBFutureE(for {
     // Check the view is valid
       _ <- instance.controlTables.availableViews.validateView(view)

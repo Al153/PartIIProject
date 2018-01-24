@@ -1,8 +1,10 @@
 package impl.memory.methods
 
+import core.backend.intermediate.Find
 import core.backend.intermediate.unsafe._
+import core.user.schema.SchemaObject
 import core.utils._
-import impl.memory.errors.MemoryMissingTableName
+import impl.memory.errors.{MemoryMissingRelation, MemoryMissingTableName}
 import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 
 import scalaz.Scalaz._
@@ -11,6 +13,16 @@ import scalaz.Scalaz._
   * Implements lookup queries for Set commands
   */
 trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
+  /**
+    * Find an A in the tree
+    */
+  def find[A](a: A, t: MemoryTree)
+             (implicit sa: SchemaObject[A]): MemoryEither[Set[MemoryObject]] =
+    for {
+      unsafeQuery <- Find(sa.findable(a)).getUnsafe(instance.schema).leftMap(MemoryMissingRelation)
+      res <- findSingleSetImpl(unsafeQuery, t)
+    } yield res
+
   /**
     * Implements findSingleSet, by recursing over the ADT
     * @param t - query
@@ -28,9 +40,15 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
         left <- recurse(start)
         res <- findPairsSetImpl(rel, left, tree).map(_.mapProj2)
       } yield res
-      case USNarrowS(start, pattern) => for {
-        broad <- recurse(start)
-      } yield broad.filter(matches(_, pattern))
+      case USAndS(left, right) => for {
+        r1 <- recurse(left)
+        r2 <- recurse(right)
+      } yield r1 intersect r2
+
+      case USOrS(left, right) => for {
+        r1 <- recurse(left)
+        r2 <- recurse(right)
+      } yield r1 union r2
     }
   }
   /**

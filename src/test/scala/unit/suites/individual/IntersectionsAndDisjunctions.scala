@@ -20,7 +20,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
 
   @Test
   def IntersectionsAndDisjunctions(): Unit = runTest { implicit instance =>
-    val expectedUnion = Vector(
+    val expectedUnion = Set(
       Alice -> Charlie,
       Alice -> Charlie,
       Alice -> Bob,
@@ -34,7 +34,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
       Fred -> Bob,
       Bob -> Fred
     )
-    val expectedIntersection = Vector(Alice -> Charlie)
+    val expectedIntersection = Set(Alice -> Charlie)
 
     using(instance) {
       for {
@@ -55,13 +55,13 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
 
         res4 <- findPairs(Knows | (Owns --><-- Owns))
         res3 <- findPairs(Knows & (Owns --><-- Owns))
-        res2 <- findPairsDistinct(Knows | (Owns --><-- Owns))
-        res1 <- findPairsDistinct((Owns --><-- Owns) & Knows)
+        res2 <- findPairs(Knows | (Owns --><-- Owns))
+        res1 <- findPairs((Owns --><-- Owns) & Knows)
 
-        _ <- assertEqOp(expectedUnion.sorted, res4.sorted, "union Failure (All)")
-        _ <- assertEqOp(expectedIntersection.sorted, res3.sorted, "intersection Failure (All)")
-        _ <- assertEqOp(expectedIntersection.toSet, res1, "Intersection failure (Distinct)")
-        _ <- assertEqOp(expectedUnion.toSet, res2, "Union failure, (Distinct)")
+        _ <- assertEqOp(expectedUnion, res4, "union Failure (All)")
+        _ <- assertEqOp(expectedIntersection, res3, "intersection Failure (All)")
+        _ <- assertEqOp(expectedIntersection, res1, "Intersection failure (Distinct)")
+        _ <- assertEqOp(expectedUnion, res2, "Union failure, (Distinct)")
       } yield ()
     }
   }
@@ -97,15 +97,14 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
   @Test
   def RightAnd(): Unit = runTest { implicit instance =>
 
-    val expected = Vector(Bob -> fido, Bob -> rover, Fred -> pippa, Hannah -> lucy)
+    val expected = Set(Bob -> fido, Bob -> rover, Fred -> pippa, Hannah -> lucy)
     using(instance) {
       for {
         _ <- setupPath
 
         knowsOwner <- findPairs((Knows --><-- OwnedBy) -->> petSchema.pattern(None, None, None, true.some) )
 
-
-        _ <- assertEqOp(expected.sorted, knowsOwner.sorted, "rightAnd")
+        _ <- assertEqOp(expected, knowsOwner, "rightAnd")
       } yield ()
     }
   }
@@ -113,7 +112,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
 
   @Test
   def LeftAnd(): Unit = runTest { implicit instance =>
-    val expected = Vector(fido -> Alice, rover -> Alice, buster -> David, pippa -> Georgie, nelson -> Hannah, lucy -> Ian, jasper -> Jane)
+    val expected = Set(fido -> Alice, rover -> Alice, buster -> David, pippa -> Georgie, nelson -> Hannah, lucy -> Ian, jasper -> Jane)
     using(instance) {
       for {
         _ <- setupPath
@@ -121,7 +120,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
         dogOwnership <- findPairs(petSchema.pattern(None, None, None, true.some) -->> OwnedBy)
 
 
-        _ <- assertEqOp(expected.sorted, dogOwnership.sorted, "LeftAnd")
+        _ <- assertEqOp(expected, dogOwnership, "LeftAnd")
       } yield ()
     }
   }

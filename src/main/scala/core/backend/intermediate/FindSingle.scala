@@ -37,10 +37,11 @@ case class Find[A](pattern: Findable[A])(implicit sa: SchemaObject[A]) extends F
 /**
   * Narrow down a findSingle query
   */
-case class NarrowS[A](start: FindSingle[A], pattern: Findable[A])(implicit sa: SchemaObject[A]) extends FindSingle[A] {
+case class AndS[A](left: FindSingle[A], right: FindSingle[A])(implicit sa: SchemaObject[A]) extends FindSingle[A] {
   override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle = for {
-    usStart <- start.getUnsafe(sd)
-  } yield USNarrowS(usStart, pattern.getUnsafe)
+    usLeft <- left.getUnsafe(sd)
+    usRight <- right.getUnsafe(sd)
+  } yield USAndS(usLeft, usRight)
 }
 
 /**
@@ -53,4 +54,12 @@ case class From[A, B](start: FindSingle[A], rel: FindPair[A, B])(implicit sa: Sc
   } yield USFrom(unsafeStart, unsafeRel)
 }
 
-
+/**
+  * Broaden a findSingle query
+  */
+case class OrS[A](left: FindSingle[A], right: FindSingle[A])(implicit sa: SchemaObject[A]) extends FindSingle[A] {
+  override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle = for {
+    usLeft <- left.getUnsafe(sd)
+    usRight <- right.getUnsafe(sd)
+  } yield USOrS(usLeft, usRight)
+}

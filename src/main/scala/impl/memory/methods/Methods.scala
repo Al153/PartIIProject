@@ -6,7 +6,6 @@ package impl.memory.methods
 trait Methods
   extends ExecutorMethods
     with SetImpl
-    with VectorImpl
     with Joins
     with Writes
     with PathFinding

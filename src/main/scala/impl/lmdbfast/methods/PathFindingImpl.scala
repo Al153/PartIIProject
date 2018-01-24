@@ -8,7 +8,6 @@ import impl.lmdbfast.access.{Commit, ObjId}
 import impl.lmdbfast.errors.{LMDBError, MissingCachedQuery}
 
 import scalaz.Scalaz._
-import scalaz._
 
 /**
   * Implementation of "right Only" chained parameters

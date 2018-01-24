@@ -16,49 +16,10 @@ import impl.memory.methods.Methods
   * Executor implementation
   */
 class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Methods {
-
-  /**
-    * Implementation of findAll, uses methods implementation
-    */
-  override def findAll[A](q: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Vector[A]] =
-    instance.readOp(
-      t =>
-        for {
-          unsafeQuery <- q.getUnsafe(instance.schema).leftMap(MemoryMissingRelation)
-          v <- findSingleImpl(unsafeQuery, t)
-          res <- EitherOps.sequence(v.map(o => sa.fromRow(o.value).leftMap(MemoryExtractError)))
-        } yield res
-    )
-
-  /**
-    * Implementation of findAllPairs, uses methods implementation
-    */
-  override def findAllPairs[A, B](q: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Vector[(A, B)]] =
-    instance.readOp {
-      t =>
-        for {
-          // Setup
-          unsafeSingle <- Find(q.sa.any).getUnsafe(instance.schema).leftMap(MemoryMissingRelation)
-          initial <- findSingleImpl(unsafeSingle, t)
-          unsafeQuery <-  q.getUnsafe(instance.schema).leftMap(MemoryMissingRelation)
-          // find pairs of MemoryObjects
-          v <- findPairsImpl(unsafeQuery, initial, t)
-
-          // Collect into pairs of (A, B)
-          res <- EitherOps.sequence(
-            v.map {
-              case (l, r) =>
-                for {
-                  a <- sa.fromRow(l.value).leftMap(MemoryExtractError)
-                  b <- sb.fromRow(r.value).leftMap(MemoryExtractError)
-                } yield (a, b)
-            })
-        } yield res
-    }
   /**
     * Implementation of findDistinct, uses methods implementation
     */
-  override def findDistinct[A](q: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Set[A]] =
+  override def find[A](q: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Set[A]] =
     instance.readOp(
       t =>
         for {
@@ -77,7 +38,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
     * Implementation of findDistinctPairs, uses methods implementation
     */
 
-  override def findDistinctPairs[A, B](q: FindPair[A, B])(implicit  sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
+  override def findPairs[A, B](q: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
     instance.readOp {
       t =>
         for {

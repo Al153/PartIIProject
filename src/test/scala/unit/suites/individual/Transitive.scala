@@ -12,7 +12,7 @@ trait Transitive { self: HasBackend =>
 
   @Test
   def SimpleTransitive(): Unit = runTest { implicit instance =>
-    val expectedPairs = Vector[(Person, Person)](Alice -> Charlie)
+    val expectedPairs = Set(Alice -> Charlie)
     using(instance) {
       for {
         _ <- insert(
@@ -21,9 +21,9 @@ trait Transitive { self: HasBackend =>
           CompletedRelation(Alice, Knows, David)
         )
         res1 <- findPairs(Knows -->--> Knows)
-        res2 <- findPairsDistinct(Knows -->--> Knows)
+        res2 <- findPairs(Knows -->--> Knows)
         _ <- assertEqOp(expectedPairs, res1, "Simple transitive failure (all)")
-        _ <- assertEqOp(expectedPairs.toSet, res2, "Simple transitive failure (distinct)")
+        _ <- assertEqOp(expectedPairs, res2, "Simple transitive failure (distinct)")
       } yield ()
     }
   }
@@ -34,7 +34,7 @@ trait Transitive { self: HasBackend =>
 
   @Test
   def ReverseTransitive(): Unit = runTest { implicit instance =>
-    val expectedPairs = Vector(Alice -> Charlie, Charlie -> Alice, Alice -> Bob, Bob -> Alice)
+    val expectedPairs = Set(Alice -> Charlie, Charlie -> Alice, Alice -> Bob, Bob -> Alice)
     using(instance) {
       for {
         _ <- insert(
@@ -47,9 +47,9 @@ trait Transitive { self: HasBackend =>
         )
 
         res1 <- findPairs(Owns --><-- Owns)
-        res2 <- findPairsDistinct(Owns --><-- Owns)
-        _ <- assertEqOp(expectedPairs.sorted, res1.sorted, "Reverse transitive failure (all)")
-        _ <- assertEqOp(expectedPairs.toSet, res2, "Reverse transitive failure (distinct)")
+        res2 <- findPairs(Owns --><-- Owns)
+        _ <- assertEqOp(expectedPairs, res1, "Reverse transitive failure (all)")
+        _ <- assertEqOp(expectedPairs, res2, "Reverse transitive failure (distinct)")
       } yield ()
     }
   }
@@ -61,8 +61,8 @@ trait Transitive { self: HasBackend =>
 
   @Test
   def RestrictedTransitive(): Unit = runTest { implicit instance =>
-    val expectedOwnsPairs = Vector(Bob -> Alice, Alice -> Bob) // this is the ordering produced by memory core.backend - may need to make ordering independent
-    val expectedKnowsPairs = Vector(Alice -> Bob)
+    val expectedOwnsPairs = Set(Bob -> Alice, Alice -> Bob) // this is the ordering produced by memory core.backend - may need to make ordering independent
+    val expectedKnowsPairs = Set(Alice -> Bob)
     using(instance) {
       for {
         _ <- insert(
@@ -83,13 +83,13 @@ trait Transitive { self: HasBackend =>
 
         res1 <- findPairs(Owns --> VW <-- Owns)
         res2 <- findPairs(Knows --> Charlie --> Knows)
-        res3 <- findPairsDistinct(Owns --> VW <-- Owns)
-        res4 <- findPairsDistinct(Knows --> Charlie --> Knows)
+        res3 <- findPairs(Owns --> VW <-- Owns)
+        res4 <- findPairs(Knows --> Charlie --> Knows)
 
-        _ <- assertEqOp(expectedOwnsPairs.sorted, res1.sorted, "Restricted reverse transitive failed")
-        _ <- assertEqOp(expectedKnowsPairs.sorted, res2.sorted, "Restricted transitive failed")
-        _ <- assertEqOp(expectedOwnsPairs.toSet, res3, "Restricted reverse transitive distinct failed")
-        _ <- assertEqOp(expectedKnowsPairs.toSet, res4, "Restricted transitive distinct  failed")
+        _ <- assertEqOp(expectedOwnsPairs, res1, "Restricted reverse transitive failed")
+        _ <- assertEqOp(expectedKnowsPairs, res2, "Restricted transitive failed")
+        _ <- assertEqOp(expectedOwnsPairs, res3, "Restricted reverse transitive distinct failed")
+        _ <- assertEqOp(expectedKnowsPairs, res4, "Restricted transitive distinct  failed")
         } yield ()
     }
   }

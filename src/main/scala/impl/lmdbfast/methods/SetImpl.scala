@@ -110,14 +110,21 @@ trait SetImpl { self: Methods =>
     def recurse(t: UnsafeFindSingle) = findSingleSet(t, commits)
     ut match {
       case USFind(pattern) => instance.lookupPattern(pattern, commits)
+
       case USFrom(start, rel) => for {
         left <- recurse(start)
         res <- findPairSet(rel, commits, left)
       } yield res.mapProj2
-      case USNarrowS(start, pattern) => for {
-        broad <- recurse(start)
-        filtered <- instance.lookupPattern(pattern, commits)
-      } yield broad.filter(_ in filtered)
+
+      case USAndS(left, right) => for {
+        r1 <- recurse(left)
+        r2 <- recurse(right)
+      } yield r1 intersect r2
+
+      case USOrS(left, right) => for {
+        r1 <- recurse(left)
+        r2 <- recurse(right)
+      } yield r1 union r2
     }
   }
   /**

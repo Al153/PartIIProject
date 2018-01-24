@@ -16,6 +16,10 @@ case class USFind private [intermediate] (pattern: ErasedFindable) extends Unsaf
 case class USFrom private [intermediate] (start: UnsafeFindSingle, rel: UnsafeFindPair) extends UnsafeFindSingle {
   override def table: TableName = rel.rightMostTable
 }
-case class USNarrowS private [intermediate] (start: UnsafeFindSingle, pattern: ErasedFindable) extends UnsafeFindSingle {
-  override def table: TableName = pattern.tableName
+case class USAndS private [intermediate](left: UnsafeFindSingle, right: UnsafeFindSingle) extends UnsafeFindSingle {
+  override def table: TableName = left.table
+}
+
+case class USOrS private[intermediate](left: UnsafeFindSingle, right: UnsafeFindSingle) extends UnsafeFindSingle {
+  override def table: TableName = left.table
 }

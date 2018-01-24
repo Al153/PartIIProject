@@ -10,31 +10,20 @@ import core.user.schema.SchemaObject
   *
   * Core operations a [[DBInstance]] should implement
   */
-// Todo: the sets should probably be an arbitary Collection, to allow the core.backend to implement lazy collections
+// Todo: the sets should probably be an arbitrary Collection, to allow the backend to implement lazy collections
 
 trait DBExecutor {
-  /**
-   * Find a multiset of all results that fit a particular query
-   */
-  def findAll[A](t: FindSingle[A])(implicit extractor: SchemaObject[A]): Operation[E, Vector[A]] // a multiset
-
-  /**
-   * Find a multiset of all pairs that match a relational query
-   */
-
-  def findAllPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Vector[(A, B)]] // a multiset
-
   /**
    * Find a set of distinct elements that match a query
    */
 
-  def findDistinct[A](t: FindSingle[A])(implicit extractor: SchemaObject[A]): Operation[E, Set[A]]
+  def find[A](t: FindSingle[A])(implicit extractor: SchemaObject[A]): Operation[E, Set[A]]
 
   /**
    * Find a set of distinct pairs that match a query
    */
 
-  def findDistinctPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]]
+  def findPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]]
 
   /**
    * given a pair of nodes and a relational query, try to find a path from start to end

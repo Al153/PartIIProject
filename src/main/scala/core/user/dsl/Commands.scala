@@ -11,27 +11,16 @@ import core.user.schema.SchemaObject
   */
 trait Commands {
   /**
-   * Find a multiset of all results that fit a particular query
-   */
-  def find[A](t: FindSingleAble[A])(implicit d: DBInstance, sa: SchemaObject[A]): Operation[E, Vector[A]] = d.executor.findAll(t.toFindSingle) // a multiset
-
-  /**
-   * Find all pair results
-   */
-
-  def findPairs[A, B](t: FindPairAble[A, B])(implicit d: DBInstance, sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Vector[(A, B)]] = d.executor.findAllPairs(t.toFindPair) // a multiset
-
-  /**
    * Find a set of distinct elements that match a query
    */
 
-  def findDistinct[A](t: FindSingleAble[A])(implicit d: DBInstance, sa: SchemaObject[A]): Operation[E, Set[A]] = d.executor.findDistinct(t.toFindSingle)
+  def find[A](t: FindSingleAble[A])(implicit d: DBInstance, sa: SchemaObject[A]): Operation[E, Set[A]] = d.executor.find(t.toFindSingle)
 
   /**
    * Find distinct pairs that are related by the findpair
    */
 
-  def findPairsDistinct[A, B](t: FindPairAble[A, B])(implicit d: DBInstance, sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] = d.executor.findDistinctPairs(t.toFindPair) // a multiset
+  def findPairs[A, B](t: FindPairAble[A, B])(implicit d: DBInstance, sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] = d.executor.findPairs(t.toFindPair) // a multiset
 
   /**
    * given a pair of nodes and a relational query, try to find a path from start to end

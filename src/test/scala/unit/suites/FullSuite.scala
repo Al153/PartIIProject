@@ -17,3 +17,4 @@ trait FullSuite extends HasBackend
   with ComplexPathFinding
   with ViewSeparation
   with Indexing
+  with FindSingleCases

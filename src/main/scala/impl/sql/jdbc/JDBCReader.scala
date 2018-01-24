@@ -135,49 +135,6 @@ class JDBCReader(implicit instance: SQLInstance) {
     result.map(_.result())
   }
 
-  /**
-    * Get all pairs of objects from result of executing a query
-    */
-
-  def getAllPairs[A, B](query: String)(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLEither[Vector[(A, B)]] = {
-
-    val rs = getResultSet(query)
-    val aComponents = sa.schemaComponents
-    val bComponents = sb.schemaComponents
-
-    var result = Vector.newBuilder[(A, B)].right[SQLError]
-    while (result.isRight && rs.next()) {
-      var aRow = Vector.newBuilder[DBCell].right[SQLError]
-      var bRow = Vector.newBuilder[DBCell].right[SQLError]
-
-      // Extract vectors from the rs
-      for ((component, i) <- aComponents.zipWithIndex) {
-        aRow = for {
-          cell <- getDBCell(rs, component, i, Left)
-          row <- aRow
-        } yield row += cell
-      }
-
-      for ((component, i) <- bComponents.zipWithIndex) {
-        bRow = for {
-          cell <- getDBCell(rs, component, i, Right)
-          row <- bRow
-        } yield row += cell
-      }
-
-      result = for {
-        aRes <- aRow
-        bRes <- bRow
-        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
-        b <- sb.fromRow(DBObject(bRes.result())).leftMap(SQLExtractError)
-        r <- result
-      } yield r += pair(a, b)
-
-    }
-
-    result.map(_.result())
-  }
 
   /**
     * Get a set of the distinct objects in the result of executing a query
@@ -220,37 +177,6 @@ class JDBCReader(implicit instance: SQLInstance) {
 
     }
 
-    result.map(_.result())
-  }
-
-  /**
-    * Get all right hand object from executing a query
-    */
-
-  def getAllSingles[A](query: String)(
-    implicit sa: SchemaObject[A]): SQLEither[Vector[A]] = {
-    val rs = getResultSet(query)
-    val aComponents = sa.schemaComponents
-
-    var result = Vector.newBuilder[A].right[SQLError]
-    while (result.isRight && rs.next() ) {
-      var aRow = Vector.newBuilder[DBCell].right[SQLError]
-
-      // Extract vectors from the rs
-      for ((component, i) <- aComponents.zipWithIndex) {
-        aRow = for {
-          cell <- getDBCell(rs, component, i, Single)
-          row <- aRow
-        } yield row += cell
-      }
-
-
-      result = for {
-        aRes <- aRow
-        a <- sa.fromRow(DBObject(aRes.result())).leftMap(SQLExtractError)
-        r <- result
-      } yield r += a
-    }
     result.map(_.result())
   }
 

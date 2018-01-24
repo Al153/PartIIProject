@@ -56,7 +56,7 @@ trait ComplexRepetition { self: HasBackend =>
       for {
         _ <- setupPath
         res1 <- findPairs(Knows * (3 ++) )
-        res2 <- findPairsDistinct(Knows * (3 ++))
+        res2 <- findPairs(Knows * (3 ++))
         _ <- assertEqOp(expectedPairs, res1.toSet, "Exactly (all pairs)")
         _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
       } yield ()
@@ -65,12 +65,12 @@ trait ComplexRepetition { self: HasBackend =>
 
   @Test
   def exactly(): Unit = runTest { implicit instance =>
-    val expectedPairs = Vector[(Person, Person)](Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian)
+    val expectedPairs = Set[(Person, Person)](Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian, Alice -> Ian)
     using(instance) {
       for {
         _ <- setupPath
         res1 <- findPairs(Knows * 4)
-        res2 <- findPairsDistinct(Knows * 4)
+        res2 <- findPairs(Knows * 4)
         _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
          _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
       } yield ()
@@ -89,7 +89,7 @@ trait ComplexRepetition { self: HasBackend =>
       for {
         _ <- setupPath
         res1 <- find(Alice >> Knows.**)
-        res2 <- findDistinct(Alice >> Knows.**)
+        res2 <- find(Alice >> Knows.**)
         _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
         _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
       } yield ()
@@ -103,7 +103,7 @@ trait ComplexRepetition { self: HasBackend =>
       for {
         _ <- setupPath
         res1 <- find(Alice >> Knows * (1 --> 3))
-        res2 <- findDistinct(Alice >> Knows * (1 --> 3))
+        res2 <- find(Alice >> Knows * (1 --> 3))
         _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
         _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
       } yield ()

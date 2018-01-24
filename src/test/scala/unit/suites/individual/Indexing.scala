@@ -47,11 +47,11 @@ trait Indexing { self: HasBackend =>
 
   @Test
   def SingleIndex(): Unit = runTest { implicit instance =>
-    val expectedDog = Vector(fido, rover, buster, pippa, nelson, lucy, jasper)
-    val expectedNotDog = Vector(polly, leo, gus, fin, tufty, tilly, luna)
-    val expectedFido = Vector(Alice)
-    val expectedAgeSix = Vector(tufty, luna)
-    val expectedHeightSix = Vector(tufty, tilly)
+    val expectedDog = Set(fido, rover, buster, pippa, nelson, lucy, jasper)
+    val expectedNotDog = Set(polly, leo, gus, fin, tufty, tilly, luna)
+    val expectedFido = Set(Alice)
+    val expectedAgeSix = Set(tufty, luna)
+    val expectedHeightSix = Set(tufty, tilly)
     using(instance) {
       for {
         _ <- setupPath
@@ -62,27 +62,25 @@ trait Indexing { self: HasBackend =>
         rAgeSix <- find(petSchema.pattern(None, 6.some, None, None))
         rHeightSix <- find(petSchema.pattern(None, None, 6.0.some, None))
 
-        _ <- assertEqOp(expectedDog.sorted, rDog.sorted, "Single Index, Dog")
-        _ <- assertEqOp(expectedNotDog.sorted, rNotDog.sorted, "Single Index, NotDog")
-        _ <- assertEqOp(expectedFido.sorted, rFido.sorted, "Single Index, Fido")
-        _ <- assertEqOp(expectedAgeSix.sorted, rAgeSix.sorted, "Single Index, AgeSix")
-        _ <- assertEqOp(expectedHeightSix.sorted, rHeightSix.sorted, "Single Index, HeightSix")
+        _ <- assertEqOp(expectedDog, rDog, "Single Index, Dog")
+        _ <- assertEqOp(expectedNotDog, rNotDog, "Single Index, NotDog")
+        _ <- assertEqOp(expectedFido, rFido, "Single Index, Fido")
+        _ <- assertEqOp(expectedAgeSix, rAgeSix, "Single Index, AgeSix")
+        _ <- assertEqOp(expectedHeightSix, rHeightSix, "Single Index, HeightSix")
       } yield ()
     }
   }
 
   @Test
   def MultiIndex(): Unit = runTest { implicit instance =>
-    val expected = Vector(pippa, jasper)
-
+    val expected = Set(pippa, jasper)
     using(instance) {
       for {
         _ <- setupPath
         r <- find(petSchema.pattern(None, 12.some, None, true.some))
-        _ <- assertEqOp(expected.sorted, r.sorted, "Single Index, Dog")
+        _ <- assertEqOp(expected, r, "Single Index, Dog")
       } yield ()
     }
-
   }
 
 

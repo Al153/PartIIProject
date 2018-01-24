@@ -23,8 +23,22 @@ trait FindableSyntax {
     /**
       * Left-filter a relation by this findable
       */
-    def -->>[B, That](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
+    def -->>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
       AndLeft(r.toFindPair, u.toFindSingle)
+
+    /**
+      * Intersection of two findSingles
+      * @param r - the other find single
+      * @param conv - proof of r being findSingle
+      */
+    def &[That](r: That)(implicit conv: That => FindSingleAble[A]): FindSingle[A] = AndS(u.toFindSingle, r.toFindSingle)
+    /**
+      * union of two findSingles
+      * @param r - the other find single
+      * @param conv - proof of r being findSingle
+      */
+    def |[That](r: That)(implicit conv: That => FindSingleAble[A]): FindSingle[A] = OrS(u.toFindSingle, r.toFindSingle)
+
   }
 
   implicit def toFindSingleAble[A](a: A)(implicit sa: SchemaObject[A]): FindSingleAble[A] = new FindSingleAble[A] {
@@ -42,7 +56,22 @@ trait FindableSyntax {
     /**
       * Left-filter a relation by this findable
       */
-    def -->>[B, That](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
+    def -->>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
       AndLeft(r.toFindPair, u.toFindSingle)
+
+    /**
+      * Intersection of two findSingles
+      * @param r - the other find single
+      * @param conv - proof of r being findSingle
+      */
+    def &[That](r: That)(implicit conv: That => FindSingleAble[A]): FindSingle[A] = AndS(u.toFindSingle, r.toFindSingle)
+
+    /**
+      * union of two findSingles
+      * @param r - the other find single
+      * @param conv - proof of r being findSingle
+      */
+    def |[That](r: That)(implicit conv: That => FindSingleAble[A]): FindSingle[A] = OrS(u.toFindSingle, r.toFindSingle)
+
   }
 }

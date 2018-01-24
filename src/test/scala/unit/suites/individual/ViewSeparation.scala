@@ -18,8 +18,8 @@ trait ViewSeparation { self: HasBackend =>
    */
   @Test
   def SeparateWrites: Unit = runTest { implicit instance =>
-    val expected1 = Vector[(Person, Person)]((Alice, Bob), (Charlie, David))
-    val expected2 = Vector[(Person, Person)]((Bob, Fred), (Fred, Charlie), (Fred, Georgie), (Hannah, Ian))
+    val expected1 = Set(Alice -> Bob, Charlie -> David)
+    val expected2 = Set(Bob -> Fred, Fred -> Charlie, Fred -> Georgie, Hannah -> Ian)
 
     for {
       initialView <- instance.getDefaultView
@@ -47,8 +47,8 @@ trait ViewSeparation { self: HasBackend =>
       r2 <- usingView(instance, v2) {
         findPairs(Knows)
       }
-      _ <- assertEq(expected1.sorted, r1.sorted, "SeparateWrites View 1")
-      _ <- assertEq(expected2.sorted, r2.sorted, "SeparateWrites View 2")
+      _ <- assertEq(expected1, r1, "SeparateWrites View 1")
+      _ <- assertEq(expected2, r2, "SeparateWrites View 2")
     } yield ()
   }
 
@@ -58,8 +58,8 @@ trait ViewSeparation { self: HasBackend =>
     */
   @Test
   def SeparateWritesPickAllObjects: Unit = runTest { implicit instance =>
-    val expected1 = Vector[(Person, Person)]((Alice, Alice), (Bob, Bob), (Charlie, Charlie), (David, David))
-    val expected2 = Vector[(Person, Person)]((Bob, Bob), (Fred, Fred), (Charlie, Charlie), (Georgie, Georgie), (Hannah, Hannah), (Ian, Ian))
+    val expected1 = Set((Alice, Alice), (Bob, Bob), (Charlie, Charlie), (David, David))
+    val expected2 = Set((Bob, Bob), (Fred, Fred), (Charlie, Charlie), (Georgie, Georgie), (Hannah, Hannah), (Ian, Ian))
 
     for {
       initialView <- instance.getDefaultView
@@ -87,8 +87,8 @@ trait ViewSeparation { self: HasBackend =>
       r2 <- usingView(instance, v2) {
         findPairs(Knows * 0)
       }
-      _ <- assertEq(expected1.sorted, r1.sorted, "SeparateWrites Repetition View 1")
-      _ <- assertEq(expected2.sorted, r2.sorted, "SeparateWrites View 2")
+      _ <- assertEq(expected1, r1, "SeparateWrites Repetition View 1")
+      _ <- assertEq(expected2, r2, "SeparateWrites View 2")
     } yield ()
   }
 
@@ -116,7 +116,7 @@ trait ViewSeparation { self: HasBackend =>
       }
 
       r1 <- usingView(instance, v2) {
-        findDistinct(petSchema.pattern("Gus".some, None, None, None))
+        find(petSchema.pattern("Gus".some, None, None, None))
       }
 
       _ <- assertEq(expected, r1, "Separate Patterns")

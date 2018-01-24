@@ -11,7 +11,6 @@ trait Methods extends FindAll
   with FindAllPairs
   with Write
   with PathFinding
-  with VectorImpl
   with SetImpl {
     implicit val instance: LMDBInstance
 }

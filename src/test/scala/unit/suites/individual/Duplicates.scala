@@ -13,10 +13,10 @@ trait Duplicates { self: HasBackend =>
   @Test
   def PairsVsDistinct(): Unit = runTest { implicit instance =>
     val expectedDistinctPairs = Set(Alice -> Charlie)
-    val expectedAllPairs = Vector(Alice -> Charlie, Alice -> Charlie)
+    val expectedAllPairs = Set(Alice -> Charlie, Alice -> Charlie)
 
     val expectedDistinctSingle = Set(Charlie)
-    val expectedAllSingle = Vector(Charlie, Charlie)
+    val expectedAllSingle = Set(Charlie, Charlie)
     using(instance) {
 
       for {
@@ -28,9 +28,9 @@ trait Duplicates { self: HasBackend =>
         )
 
         res1 <- findPairs(Knows -->--> Knows)
-        res2 <- findPairsDistinct(Knows -->--> Knows)
+        res2 <- findPairs(Knows -->--> Knows)
         res3 <- find(Alice >> (Knows -->--> Knows))
-        res4 <- findDistinct(Alice >> (Knows -->--> Knows))
+        res4 <- find(Alice >> (Knows -->--> Knows))
 
         _ <- assertEqOp(expectedAllPairs, res1, "All pairs failure")
         _ <- assertEqOp(expectedDistinctPairs, res2, "Distinct pairs failure")

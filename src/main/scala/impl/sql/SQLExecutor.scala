@@ -24,69 +24,16 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
   import instance.executionContext
 
   /**
-    * Implement finding a vector (multiset) of individual values
-    * @param t - the query
-    * @param sa - Extractor for A
-    * @tparam A - type of object to extract
-    * @return
-    */
-  override def findAll[A](t: FindSingle[A])
-                         (
-                           implicit sa: SchemaObject[A]
-                         ): Operation[E, Vector[A]] =
-    new ReadOperation({
-      v: View =>
-        (for {
-          // compile the query into SQL
-          query <- compileSingleQuery(t, v)
-          // run the SQL
-          res <- SQLFutureE(
-            instance
-              .reader
-              .getAllSingles[A](query)
-          )
-        } yield res).asCFuture
-    })
-
-  /**
-    * Implement finding a Vector (multiset) of related values
-    * @param t - the query
-    * @param sa - Extractor for A
-    * @tparam A - type of object to extract
-    * @tparam B - type of object to extract
-    *
-    * @return
-    */
-  override def findAllPairs[A, B](t: FindPair[A, B])
-                                 (
-                                   implicit sa: SchemaObject[A],
-                                   sb: SchemaObject[B]
-                                 ): Operation[E, Vector[(A, B)]] =
-    new ReadOperation({
-      v: View =>
-        (for {
-          // compile the query
-          query <- compilePairQuery(t, v)
-          // run the compiled SQL query
-          res <- SQLFutureE(
-            instance
-              .reader
-              .getAllPairs[A, B](query)
-          )
-        } yield res).asCFuture
-    })
-
-  /**
     * Implement finding a Set of individual values
     * @param t - the query
     * @param sa - Extractor for A
     * @tparam A - type of object to extract
     * @return
     */
-  override def findDistinct[A](t: FindSingle[A])
-                              (
-                                implicit sa: SchemaObject[A]
-                              ): Operation[E, Set[A]] =
+  override def find[A](t: FindSingle[A])
+                      (
+                        implicit sa: SchemaObject[A]
+                      ): Operation[E, Set[A]] =
     new ReadOperation({
       v: View => {
         for {
@@ -112,8 +59,8 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     *
     * @return
     */
-  override def findDistinctPairs[A, B](t: FindPair[A, B])
-                                      (implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
+  override def findPairs[A, B](t: FindPair[A, B])
+                              (implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
     new ReadOperation({
       v: View =>
         (for {
