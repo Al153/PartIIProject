@@ -413,52 +413,162 @@ case $P = Distinct(P')$
 case $P = Exactly(n, P')$
 $\\ \indent$We have by inversion of the (Exactly) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
-\begin{equation}\label{fDef}\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs))$}\end{equation}
+\begin{equation}
+\label{fDef}
+\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs))$}\end{equation}
 $$\mbox{then}$$
 \begin{equation} \label{case Exactly(n, P)}\denoRule{(a, b)}{P} \Leftrightarrow (a, b) \in  f^n \deno{Id_A}\end{equation}
 $$\mbox{hence it suffices to prove}$$
 \begin{equation}
 \label{exactly Deno} (a, b)\in f^n \deno{Id_A} \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}
 \end{equation}
-$$\mbox{We can prove the forwards implication using the induction hypothesis $H(n, P') = (a, b)\in f^n \deno{Id_A} \Rightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}$}$$
 
-Case $H(0, P'):$
+Case $Exactly(0, P'):$
 $$f^0\deno{Id_A} = \deno{Id_A}$$
 $$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
 \begin{equation}
 \begin{split}
 (a, b) \in f^0\deno{Id_A} & \Leftrightarrow \denoRule{(a,b)}{Id_A}\\
 & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Id_A}\\
-& \Rightarrow \opRule{(a, b)}{(A, A)}{Exactly(0, P')}
+& \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(0, P')}
 \end{split}
 \end{equation}
 
-Case $H(n+1, P')$, assuming $H(n, P')$:
+Case $Exactly(n+1, P')$, assuming $\phiRule{Exactly(n, P')}{A}{A}$:
 $$f^{n+1}\deno{Id_A} = f(f^n(\deno{Id_A}))$$
-$$\mbox{so by $H(n, P')$}$$
+$$\mbox{so by $\phiRule{Exactly(n, P')}{A}{A}$}$$
 \begin{equation}
 \begin{split}
 (a, b) \in f^{n+1}\deno{Id_A} & \Leftrightarrow \exists a'. \denoRule{(a,a')}{P'} \wedge (a', b) \in f^n(\deno{Id_A})\indent\mbox{by definition of $join$ and $f$}\\
 & \Leftrightarrow \opRule{(a, a')}{(A, A)}{P} \wedge \opRule{(a', b)}{(A, A)}{Exactly(n, p)}\\
-& \Rightarrow \opRule{(a, b)}{(A, A)}{Exactly(n+1, P')}\mbox{ by (Exactly n+1)}\\
+& \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n+1, P')}\mbox{ by (Exactly n+1)}\\
 \end{split}
 \end{equation}
-
-To prove the backwards relation, we can split the cases of (Exactly0) and (Exactly n+1), and invert them.
-
-Todo:
-\begin{equation}\label{exactlyReverse}
-\begin{split}
-	\opRule{(a, b)}{(A, A)}{Exactly(n, P')} & \Rightarrow ( n = 0\wedge \opRule{(a, b)}{(A, A)}{Id_A}) \vee (n = m + 1 \wedge \opRule{(a, b)}{}{Exactly(m, P')})
-\end{split}
-\end{equation}
-
 
 case $P = Upto(n, P')$
 $\\ \indent$We have by inversion of the (Upto) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
+\begin{equation}
+\label{fDef}
+\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs) \cup pairs)$}\end{equation}
+$$\mbox{then}$$
+
+\begin{equation}
+\deno{P} = f^n\deno{Id_A}\\
+\mbox{We now case split on n}
+\end{equation}
+
+Case $Upto(0, P')$
+
+\begin{equation}
+\begin{split}
+\denoRule{(a,b)}{Upto(0, P')} & \Leftrightarrow (a, b) \in f^0 \deno{Id_A} \\
+							  & \Leftrightarrow (a, b) \in \deno{Id_A}\\ 
+							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Id_A} \mbox{    by $\phiRule{Id_A}{A}{A}$}\\ 
+							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Upto(0, P')} \mbox{    by (Upto0)}\\ 
+\end{split}
+\end{equation}
+
+Case $Upto(n+1, P')$
+
+\begin{equation}
+\begin{split}
+\denoRule{(a,b)}{Upto(m + 1, P')} & \Leftrightarrow (a, b) \in f^{m+1} \deno{Id_A} \\
+							  & \Leftrightarrow (a, b) \in (join(\deno{P'}, f^{m} \deno{Id_A}) \cup f^{m} \deno{Id_A})\\ 
+							  & \Leftrightarrow (a, b) \in join(\deno{P'}, \deno{Upto(m, P)}) \vee (a, b) \in \deno{Upto(m, P')}\\ 
+							  & \Leftrightarrow (\exists a'.\denoRule{(a, a')}{P'} \wedge \denoRule{(a', b)}{Upto(m, P')}) \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
+							  & \Leftrightarrow (\exists a'.\opRule{(a, a')}{(A, A)}{P'} \wedge \opRule{(a', b)}{(A, A)}{Upto(m, P')}) \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
+							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Upto(m+1, P')}\mbox{   by (Upto n+1), (Upto n)}
+\end{split}
+\end{equation}
+
+
 case $P = FixedPoint(P')$
 $\\ \indent$We have by inversion of the (FixedPoint) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
+
+\begin{equation}
+\label{fDef}
+\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs) \cup pairs)$}\end{equation}
+$$\mbox{then}$$
+
+$$
+\deno{P} = fix(f) \mbox{   In the domain $\clos$}\\
+$$
+Lemma: f is continuous in the domain $\clos$ \\
+$\indent\indent$Firstly, f is monotonous\\
+$\indent\indent$Let $x \subseteq y$
+\begin{equation}
+\label{continuousLemma}
+\begin{split}
+(a, b) \in f(x) & \Rightarrow (a, b) \in x \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x)\\
+& \Rightarrow (a,b) \in y \vee(\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in y)\\
+& \Rightarrow (a, b) \in f(y)
+\end{split}
+\end{equation}
+$\indent\indent$ Hence $f(x) \subseteq f(y)$
+
+$\indent\indent$ Consider a chain $x1 \subseteq x2 \subseteq ... $ in $\clos$
+Since $\clos$ is a domain, the $lub$, $\bigcup_nx_n$ is also in $\clos$
+
+$$x_n \subseteq \bigcup_n x_n$$
+so 
+\begin{equation}
+\begin{split}
+	\forall m. f(x_n) & \subseteq f(\bigcup_n(x_n))\\
+	\therefore \bigcup_nf(x_n) & \subseteq f(\bigcup_n(x_n))
+\end{split}
+\end{equation}
+
+Going the other way,
+
+\begin{equation}
+(a, b) \in f(\bigcup_n(x_n)) \Rightarrow ((\exists n. (a,b) \in x_n ) \vee (\exists m, a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_m)
+\end{equation}
+
+let $n' = max(n, m) so x_n \subseteq x_{n'}  \wedge x_m \subseteq x_{n'}$
+
+\begin{equation}
+\exists n'. ((a,b) \in x_{n'} ) \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_{n'})
+\end{equation}
+
+$$\therefore\exists n'. (a, b) \in f(x_{n'})$$
+
+$$\therefore\exists n'. f(\bigcup_nx_n) \subseteq f(x_{n'}$$
+
+$$\therefore f(\bigcup_nx_n) \subseteq \bigcup_nf(x_{n'})$$
+
+So $f$ is Scott-continuous.
+
+Now, by Tarski's fixed point theorem
+
+$$\deno{FixedPoint(P')} = fix(f) = \bigsqcup_nf^n(\bot)$$
+
+
+Lemma: $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$
+
+By inversion of the operational rules (FixedPoint0), (FixedPoint n) and $\opRule{(a, b)}{(A, A)}{FixedPoint(P')}$, we get two cases.
+
+Case $\opRule{(a,b)}{A, A}{Id_A}$:\\
+$\indent\indent$ by $\phiRule{Id_A}{A}{A}, \denoRule{(a, b)}{Id_A} = \bot \\ $
+$\indent\indent$ so $n = 0$
+
+
+Case  $\indent\indent \opRule{(a, b)}{(A,A)}{P'} \wedge \opRule{(b, c)}{(A,A)}{FixedPoint(P')}\\ $
+$\indent\indent\indent\indent$(hence $\opRule{(a, c)}{(A, A)}{FixedPoint(P')}$)
+
+by $\phiRule{P'}{A}{A}, and \opRule{(b,c)}{(A,A)}{FixedPoint(P')}$
+
+$$\denoRule{(a, b)}{P'} \wedge \exists n. (b, c) \in f^n(\bot)$$
+
+Instantiating with $m = n$ gives
+$$\denoRule{(a, b)}{P'} \wedge (b, c) \in f^m(\bot)$$
+
+so $(a,c) \in f(f^m(\bot)) = f^{m+1}(\bot)$
+
+Hence $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)\\\\ $
+
+To go the other way, we need to prove $(a, b) \in \bigsqcup_nf^n(\bot) \Rightarrow \opRule{(a, b)}{(A, A)}{FixedPoint(P')}$
+
 
 
 \section{Inference-Based Program Analysis}
