@@ -1,8 +1,11 @@
+
 \documentclass[twoside,a4paper,11pt]{article}
+\usepackage{amsmath}
 \usepackage[a4paper,includeheadfoot,margin=2.54cm]{geometry}
 \usepackage{breqn}
 \usepackage{stmaryrd}
 \usepackage{amssymb}
+
 
 \newcommand{\db}[1]{{\bf [\![}#1{\bf ]\!]}}
 \newcommand{\deno}[1]{\db{#1}(v)}
@@ -11,6 +14,9 @@
 \newcommand{\typeRule}[2]{\Sigma\vdash #1 \colon #2}
 \newcommand{\denoRule}[2]{#1 \in \deno{#2}}
 \newcommand{\opRule}[3]{#1 \triangleleft_{#2, v} #3}
+
+\newcommand{\phiRule}[3]{\Phi(\Sigma, #1, #2, #3)}
+\newcommand{\psiRule}[2]{\Psi(\Sigma, #1, #2)}
 
 \begin{document}
 
@@ -130,9 +136,9 @@ The rules for types of Single queries are similar:
 Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft p$ to mean "a is a valid result of query Q". This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
 
 \[ \begin{array}{c}
-\displaystyle\mbox{(Rel)}\frac{(a,b) \in v(R)}{\opRule{(a, b)}{(A, B)}{Rel(R)}} \\[3ex]
+\displaystyle\mbox{(Rel)}\frac{(a,b) \in v(r)}{\opRule{(a, b)}{(A, B)}{Rel(r)}} \\[3ex]
 
-\displaystyle\mbox{(Rev)}\frac{(b,a) \in v(R)}{\opRule{(a, b)}{(A, B)}{RevRel(R)}} \\[3ex]
+\displaystyle\mbox{(Rev)}\frac{(b,a) \in v(r)}{\opRule{(a, b)}{(A, B)}{RevRel(r)}} \\[3ex]
 
 \displaystyle\mbox{(Id)}\frac{a \in v(A)}{\opRule{(a, a)} {(A, A)} {Id_A}} \\[3ex]
 
@@ -270,6 +276,189 @@ $$
 \mbox{And for any single query $S$, schema $\Sigma$ and $View_{\Sigma}$ $v$: }
 \typeRule{S}{A}\Rightarrow \opRule{(a}{A}{S} \Leftrightarrow \denoRule{a}{S})
 $$
+
+In order to prove these two propositions, we define two induction hypotheses
+
+
+
+$$
+\phiRule{P}{A}{B} \Leftrightarrow (\typeRule{P}{(A, B)} \Rightarrow \forall v \in View_{\Sigma}, (a, b) \in A \times B. \indent (\opRule{(a, b)}{(A, B)}{P}) \Leftrightarrow (\denoRule{(a, b)}{P}))
+$$
+
+$$
+\psiRule{S}{A} \Leftrightarrow (\typeRule{S}{A} \Rightarrow \forall v \in View_{\Sigma}, a \in A. \indent (\opRule{a}{A}{S}) \Leftrightarrow (\denoRule{a}{S}))
+$$
+
+Now we shall induct over the structures of $P$ and $S$ starting with the SingleQuery cases
+
+
+case $S = AndS(S', S'')$
+\begin{equation} \label{case AndS}
+\begin{split}
+\denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cap \deno{S''}) \\
+				& \Leftrightarrow (\denoRule{a}{S'} \wedge \denoRule{a}{S''}) \\
+				& \Leftrightarrow (\opRule{a}{A}{S'} \wedge \opRule{a}{A}{S''}) \mbox{ by $\psiRule{S'}{A}$, $\psiRule{S''}{A}$}\\
+				& \Leftrightarrow (\opRule{a}{A}{AndS(S', S'')} \mbox{ by inversion of (AndS)}
+\end{split}
+\end{equation}
+
+case $S = OrS(S', S'')$
+\begin{equation} \label{case OrS}
+\begin{split}
+\denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cup \deno{S''}) \\
+				& \Leftrightarrow (\denoRule{a}{S'} \vee \denoRule{a}{S''}) \\
+				& \Leftrightarrow (\opRule{a}{A}{S'} \vee \opRule{a}{A}{S''}) \mbox{ by $\psiRule{S'}{A}$, $\psiRule{S''}{A}$}\\
+				& \Leftrightarrow (\opRule{a}{A}{OrS(S', S'')} \mbox{ by inversion of (OrS)}
+\end{split}
+\end{equation}
+
+case $S = From(S', P)$
+\begin{equation} \label{case From}
+\begin{split}
+\denoRule{b}{S} & \Leftrightarrow \exists a \in A. \indent (\denoRule{a}{S'} \wedge \denoRule{(a, b)}{\deno{P}}) \\
+				& \Leftrightarrow \exists a \in A. \indent (\opRule{a}{A}{S'} \wedge \opRule{(a, b)}{(A, B)}{P}) \mbox{ by $\psiRule{S'}{A}$, $\phiRule{P}{A}{B}$}\\
+				& \Leftrightarrow \opRule{b}{B}{From(S', P)} \indent\mbox{ by inversion of (OrS)}
+\end{split}
+\end{equation}
+
+case $S = Find(f)$
+\begin{equation} \label{case Find}
+\begin{split}
+\denoRule{a}{S} & \Leftrightarrow a \in v(A) \wedge f(a) \downarrow True  \indent \mbox{ by inversion of the type rule (Find)}\\
+				& \Leftrightarrow \opRule{a}{A}{Find(f)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+Now, looking at the FindPair queries
+
+case $P = Rel(r)$
+\begin{equation} \label{case Rel}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in v(r)\\
+				& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Rel(r)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+case $P = RevRel(r)$
+\begin{equation} \label{case RevRel}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (b, a) \in v(r)\\
+				& \Leftrightarrow \opRule{(a, b)}{(A, B)}{RevRel(r)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+case $P = Id_A$
+\begin{equation} \label{case Id_A}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow a \in v(A) \wedge a = b\\
+				& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Id_A} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+case $P = Chain(P', Q)$
+$\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} \Leftrightarrow \exists B. \indent\typeRule{P'}{(A, B)} \wedge \typeRule{Q}{(B, C)}$
+
+\begin{equation} \label{case Chain(P', Q)}
+\begin{split}
+\denoRule{(a, c)}{P} & \Leftrightarrow (a, c) \in join(\deno{P'}, deno{Q})\\
+					& \Leftrightarrow \exists b \in B. \indent \denoRule{(a,b)}{P'} \wedge \denoRule{(b, c)}{Q}\\
+					&\Leftrightarrow \exists b \in B. \indent \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{(b, c)}{(B, C)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{B}{C}$} \\
+				& \Leftrightarrow \opRule{(a, c)}{(A, C)}{Chain(P', Q)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+case $P = And(P', Q)$
+\begin{equation} \label{case And(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cap deno{Q})\\
+					& \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{(a, b)}{Q}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{(a,b)}{(A, B)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{A}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{And(P', Q)} \mbox{ by inversion of (And)}\\
+\end{split}
+\end{equation}
+
+case $P = Or(P', Q)$
+\begin{equation} \label{case Or(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cup deno{Q})\\
+					& \Leftrightarrow \denoRule{(a, b)}{P'} \vee \denoRule{(a, b)}{Q}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \vee \opRule{(a,b)}{(A, B)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{A}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Or(P', Q)} \mbox{ by inversion of (Or1), (Or2)}\\\end{split}
+\end{equation}
+
+case $P = AndLeft(P', S)$
+\begin{equation} \label{case AndLeft(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{a}{S}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{a}{A}{S}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\psiRule{S}{A}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndLeft(P', S)} \mbox{ by inversion of (AndLeft)}\\\end{split}
+\end{equation}
+
+case $P = AndRight(P', S)$
+\begin{equation} \label{case AndRight(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{b}{S}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{b}{B}{S}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\psiRule{S}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndRight(P', S)} \mbox{ by inversion of (AndRight)}\\\end{split}
+\end{equation}
+
+case $P = Distinct(P')$
+\begin{equation} \label{case Distinct(P)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge a \neq b \\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge a \neq b\indent\mbox{by $\phiRule{P'}{A}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Distinct(P')} \mbox{ by inversion of (AndRight)}\\\end{split}
+\end{equation}
+
+case $P = Exactly(n, P')$
+$\\ \indent$We have by inversion of the (Exactly) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
+
+\begin{equation}\label{fDef}\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs))$}\end{equation}
+$$\mbox{then}$$
+\begin{equation} \label{case Exactly(n, P)}\denoRule{(a, b)}{P} \Leftrightarrow (a, b) \in  f^n \deno{Id_A}\end{equation}
+$$\mbox{hence it suffices to prove}$$
+\begin{equation}
+\label{exactly Deno} (a, b)\in f^n \deno{Id_A} \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}
+\end{equation}
+$$\mbox{We can prove the forwards implication using the induction hypothesis $H(n, P') = (a, b)\in f^n \deno{Id_A} \Rightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}$}$$
+
+Case $H(0, P'):$
+$$f^0\deno{Id_A} = \deno{Id_A}$$
+$$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
+\begin{equation}
+\begin{split}
+(a, b) \in f^0\deno{Id_A} & \Leftrightarrow \denoRule{(a,b)}{Id_A}\\
+& \Leftrightarrow \opRule{(a, b)}{(A, A)}{Id_A}\\
+& \Rightarrow \opRule{(a, b)}{(A, A)}{Exactly(0, P')}
+\end{split}
+\end{equation}
+
+Case $H(n+1, P')$, assuming $H(n, P')$:
+$$f^{n+1}\deno{Id_A} = f(f^n(\deno{Id_A}))$$
+$$\mbox{so by $H(n, P')$}$$
+\begin{equation}
+\begin{split}
+(a, b) \in f^{n+1}\deno{Id_A} & \Leftrightarrow \exists a'. \denoRule{(a,a')}{P'} \wedge (a', b) \in f^n(\deno{Id_A})\indent\mbox{by definition of $join$ and $f$}\\
+& \Leftrightarrow \opRule{(a, a')}{(A, A)}{P} \wedge \opRule{(a', b)}{(A, A)}{Exactly(n, p)}\\
+& \Rightarrow \opRule{(a, b)}{(A, A)}{Exactly(n+1, P')}\mbox{ by (Exactly n+1)}\\
+\end{split}
+\end{equation}
+
+To prove the backwards relation, we can split the cases of (Exactly0) and (Exactly n+1), and invert them.
+
+Todo:
+\begin{equation}\label{exactlyReverse}
+\begin{split}
+	\opRule{(a, b)}{(A, A)}{Exactly(n, P')} & \Rightarrow ( n = 0\wedge \opRule{(a, b)}{(A, A)}{Id_A}) \vee (n = m + 1 \wedge \opRule{(a, b)}{}{Exactly(m, P')})
+\end{split}
+\end{equation}
+
+
+case $P = Upto(n, P')$
+$\\ \indent$We have by inversion of the (Upto) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
+
+case $P = FixedPoint(P')$
+$\\ \indent$We have by inversion of the (FixedPoint) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 
 \section{Inference-Based Program Analysis}
