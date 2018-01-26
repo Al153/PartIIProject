@@ -76,7 +76,11 @@ case class AndRight[A, B](left: FindPair[A, B], right: FindSingle[B])(implicit s
 /**
   * Search for pairs of the left sub expression such that the left of the pair is in the result of the right subexpression
   */
-case class AndLeft[A, B](left: FindPair[A, B], right: FindSingle[A])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
+case class AndLeft[A, B](
+                          left: FindPair[A, B],
+                          right: FindSingle[A]
+                        )(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
+
   override def reverse: FindPair[B, A] = AndRight(left.reverse, right)
   override def getUnsafe(sd: SchemaDescription):  MissingRelation \/ UnsafeFindPair = for {
     l <- left.getUnsafe(sd)
@@ -100,7 +104,10 @@ case class Or[A, B](left: FindPair[A, B], right: FindPair[A, B])(implicit sa: Sc
   * search for pairs (a, c) such that there exists b, (a, b) is in the result of left, (b, c) is in the result of right
   */
 
-case class Chain[A, B, C](left: FindPair[A, B], right: FindPair[B, C])(implicit sa: SchemaObject[A], sb: SchemaObject[B], sc: SchemaObject[C]) extends FindPair[A, C] {
+case class Chain[A, B, C](
+                           left: FindPair[A, B],
+                           right: FindPair[B, C]
+                         )(implicit sa: SchemaObject[A], sb: SchemaObject[B], sc: SchemaObject[C]) extends FindPair[A, C] {
   override def reverse: FindPair[C, A] = Chain(right.reverse, left.reverse)
   override def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindPair = for {
     l <- left.getUnsafe(sd)

@@ -546,7 +546,11 @@ $$\deno{FixedPoint(P')} = fix(f) = \bigsqcup_nf^n(\bot)$$
 
 Lemma: $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$
 
+Firstly, in the forwards direction, $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)$
+
 By inversion of the operational rules (FixedPoint0), (FixedPoint n) and $\opRule{(a, b)}{(A, A)}{FixedPoint(P')}$, we get two cases.
+
+
 
 Case $\opRule{(a,b)}{A, A}{Id_A}$:\\
 $\indent\indent$ by $\phiRule{Id_A}{A}{A}, \denoRule{(a, b)}{Id_A} = \bot \\ $
@@ -569,6 +573,28 @@ Hence $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in
 
 To go the other way, we need to prove $(a, b) \in \bigsqcup_nf^n(\bot) \Rightarrow \opRule{(a, b)}{(A, A)}{FixedPoint(P')}$
 
+$(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either
+
+Case $(a, b) \in \bot$
+\begin{equation}
+\label{Case Bottom}
+\begin{split}
+& \therefore \denoRule{(a,b)}{Id_A}\\
+& \therefore \opRule{(a,b)}{(A, A)}{Id_A} \mbox{ By $\phiRule{Id_a}{A}{A}$}\\
+& \therefore \denoRule{(a,b)}{Id_A} \mbox{ By (Fix1)}
+\end{split}
+\end{equation}
+
+Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bot))$
+\begin{equation}
+\label{Case n+1}
+\begin{split}
+(\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in f^{n}(\bot)) & \vee (a, b) \in f^{n}(\bot) \wedge \neg ((a, b) \in f^n(\bot))\\
+&\therefore \exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in f^{n}(\bot)\\
+&\therefore \opRule{(a, a')}{(A, A)}{P'} \wedge \opRule{(a', b)}{(A, A)}{FixedPoint(P')}\\
+&\therefore \opRule{(a,b)}{(A,A)}{FixedPoint(P')}
+\end{split}
+\end{equation}
 
 
 \section{Inference-Based Program Analysis}
