@@ -1,4 +1,3 @@
-
 \documentclass[twoside,a4paper,11pt]{article}
 \usepackage{amsmath}
 \usepackage[a4paper,includeheadfoot,margin=2.54cm]{geometry}
@@ -23,25 +22,49 @@
 \section{Semantics}
 \subsection{Grammar and definitions}
 
-
-Todo: findable typing
-
 FindPair queries
 
 
 
-\begin{dmath} P \rightarrow Rel(R) \mid RevRel(R) \mid Chain(P, P) \mid And(P, P) \mid AndRight(P, S) \mid AndLeft(P, S) \mid Or(P, P) \mid Distinct(P) \mid Id_A \mid Exactly(\mathit{n}, P) \mid Upto(\mathit{n}, P) \mid FixedPoint(P) \end{dmath}
+\begin{equation}
+\label{PDefifinition}
+\begin{split}
+P  &\rightarrow Rel(R) \mbox{ Find pairs related by the relation R}\\
+&\mid RevRel(R) \mbox{ Find pairs related by the relation R in the reverse direction}\\
+&\mid Chain(P, P) \mbox{   Find pairs related by the first subquery followed by the second}\\
+&\mid And(P, P) \mbox{  Find pairs related by both of the sub-queries}\\
+&\mid AndRight(P, S) \mbox{  Find pairs related by P where the right value is a result of s}\\
+&\mid AndLeft(P, S) \mbox{  Find pairs related by P where the left value is a result of s}\\
+&\mid Or(P, P) \mbox{  Find pairs related by either of the sub-queries}\\
+&\mid Distinct(P) \mbox{  Find pairs related by P that are not symmetrical}\\
+&\mid Id_A \mbox{ Identity relation}\\
+&\mid Exactly(\mathit{n}, P) \mbox{  Find pairs related by n repetitions of P}\\
+&\mid Upto(\mathit{n}, P) \mbox{  Find pairs related by upto n repetitions of P}\\
+&\mid FixedPoint(P) \mbox{  Find the transitive closure of P}\\
+\end{split}
+\end{equation} 
 
 
-where $n$ denotes a natural number. FindSingle queries
+where $n$ denotes a natural number. These queries lookup a set of pairs of obejcts.\\FindSingle queries
+\begin{equation}
+\label{PDefifinition}
+\begin{split}
+S & \rightarrow Find(F) \mbox{ Find values that match the findable F}\\
+&\mid From(S, P) \mbox{ Find values that are reable from results of S via P}\\
+&\mid AndS(S, S') \mbox{ Find values that are results of both subqueries}\\
+& \mid OrS(S, S') \mbox{ Find values that are results of either subquery}
+\end{split}
+\end{equation} 
+Which lookup sets of single objects.\\
 
-$$ S \rightarrow Find(F) \mid From(S, P) \mid AndS(S, S') \mid OrS(S, S')$$
 
 Object Types
 
 $$ \tau \rightarrow A \mid B \mid C \mid .. $$
 
-Relations
+Which are the "real world" types stored in the database. These correspond to the user's scala classes.
+
+Named relations
 
 $$R \rightarrow r_1 \mid r_2 \mid .. $$
 
@@ -49,32 +72,38 @@ Findables
 
 $$F_A \rightarrow f_1 \mid f_2 \mid ... $$
 
-are defined as partial functions
+which are names for defined partial functions
 
 $$f \colon A \rightharpoonup \{True, False\} $$
 
-For some given object type A
+For some given object type A. (ie a findable is an index)
 
 A schema $\Sigma$ is made up of three partial functions:
 
 $$\Sigma_{rel}\colon R \rightharpoonup \tau\times\tau $$ 
-$$\Sigma_{findable}\colon R \rightharpoonup \tau $$
+$$\Sigma_{findable}\colon F \rightharpoonup \tau $$
 $$\Sigma_{table}\colon \tau \rightharpoonup \{True, False\} $$ 
 
-Though, when it is obvious from the context, I shall use simply use $\Sigma(x)$ to signify application of either function.
+Which, give the types of relations and findables, and validiate the existence of a type. When it is obvious from the context, I shall use simply use $\Sigma(x)$ to signify application of the appropriate function.
  
-A view $v \in V_\Sigma$, for a given schema represents the immutable state of a database.
+A view $v \in V_\Sigma$, for a given schema represents an immutable state of a database.
 
-It represents a pair of partial functions. Firstly the relation lookup function
+It represents a pair of partial functions. Firstly the named-relation lookup function
 
-$$v \in V_\Sigma \Rightarrow v_{rel}(r) \in \wp(s)\indent if\indent \Sigma(A)\downarrow s$$ if $\Sigma$ is defined at $r$. That is, if a relation r is in the schema, then $v(r)$ is a set of objects of object type $\Sigma(r)$. Here, and from this point onwards I am using $\wp(s)$ to represent the powerset of a set, and $f(x) \downarrow y$ to mean $f$ is defined at $x$ and $f(x)=y$
+\begin{equation}
+v \in V_\Sigma \Rightarrow v_{rel}(r) \in \wp(A \times B)\mbox{ if $\Sigma(r)\downarrow (A, B)$}
+\end{equation} 
+
+That is, if a relation r is in the schema, then $v(r)$ is a set of pairs of objects with object type $\Sigma(r)$. Here, and from this point onwards I am using $\wp(s)$ to represent the powerset of a set, and $f(x) \downarrow y$ to mean $f$ is defined at $x$ and $f(x)=y$
 
 
-The next function of a view is the table lookup function, it looks up a findable and returns
+The next function of a view is the type-lookup function, it looks up a findable and returns
 
-$$v \in V_\Sigma \Rightarrow v_{table}(A) \in \wp(A)\indent if\indent \Sigma(A)\downarrow True$$
+\begin{equation}
+v \in V_\Sigma \Rightarrow v_{table}(A) \in \wp(A)\indent \mbox{if $\Sigma(A)\downarrow True$}
+\end{equation} 
 
-That is, $v(A)$ is a set of object of type $A$ stored in the view, and $A$ is a member of the schema $\Sigma$. Again I shall overload these two functions where it is clear from the context which is to be used.
+That is, $v(A)$ is a set of objects of type $A$ stored in the view, and $A$ is a member of the schema $\Sigma$. Again I shall overload these two functions where it is clear from the context which is to be used.
 
 \subsection{typing}
 
@@ -236,44 +265,51 @@ $$ filterRight(p, s) = \setComp{(a, b) \in p}{b \in s}$$
 
 \subsection{The domain \clos}
 
-Todo: Serious tidying \\ \\
-
 For the subsequent proofs it is necessary to define the scott domain $\clos$ for some
-object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$
+object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ such that $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$. From this point on, I shall use $x \subseteq y$ to mean $y \sqsubseteq x$.
 
-Theorem: $\clos$ is a domain
+\hfill\begin{minipage}{\dimexpr\textwidth-1cm}
+\paragraph{Theorem: $\clos$ is a domain}
 
-Firstly, by definition, $\forall x. x \in \clos \Rightarrow x \supseteq \deno{Id_A}$, so $\deno{Id_A}$ is the bottom element.
+
+Firstly, by definition, $$\forall x. x \in \clos \Rightarrow x \supseteq \deno{Id_A}$$ hence $\deno{Id_A}$ is the bottom element.
 
 Secondly for any chain $ x_1 \subseteq x_2 \subseteq x_3 \subseteq ...$, $x_i \in \clos$, there exists a value $\bigsqcup_n x_n \in \clos$ such that $\forall i. \bigsqcup_n x_n \supseteq x_i$ and $\forall y. (\forall i. x_i \subseteq y) \Rightarrow y \supseteq \bigsqcup_n x_n$
 
-proof:
+\paragraph{proof:}
 
 Take $\bigsqcup_n x_n = \bigcup_n x_n$. This is in $\clos$, since both $\bigcup_n x_n \supseteq \deno{Id_A}$ due to $\forall i. x_i \supseteq \deno{Id_A}$ by definition and $\bigcup_n x_n \subseteq A \times A$, by $$\forall a. (a \in \bigcup_n x_n \wedge \neg (a \in A \times A)) \Rightarrow (\exists i. a \in x_i \wedge \neg a \in A \times A ) \Rightarrow (\exists i. \neg x_i \subseteq A \times A)$$ yielding a contradiction if $\bigcup_n x_n \subseteq A \times A$ does not hold.
+$\\ $
+We know $\forall i. \bigcup_n x_n \supseteq x_i$ by definition, so it is an upper bound. $\\ $
+To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \supseteq x_i$ 
 
-We know $\forall i. \bigcup_n x_n \supseteq x_i$ by definition.
+\begin{equation}
+\label{LeastUpperBound}
+\begin{split}
+\forall a. (\exists i. a \in x_i) & \Rightarrow a \in y \\
+\forall a. \bigvee_n (a \in x_n) & \Rightarrow a \in y \\
+\forall a. (a \in \bigcup_n x_n) & \Rightarrow a \in y \\
+\therefore \bigcup_n x_n & \subseteq y\\
+\square
+\end{split}
+\end{equation}
 
-For any $y$ such that $(\forall i.) y \supseteq x_i$ then $$\forall a. (\exists i. a \in x_i) \Rightarrow a \in y$$
+\xdef\tpd{0pt}
+\end{minipage}
 
-$$\forall a. \bigvee_n (a \in x_n) \Rightarrow a \in y$$
-
-$$\forall a. (a \in \bigcup_n x_n) \Rightarrow a \in y$$
-
-$$\bigcup_n x_n \subseteq yu$$
-$$ \square$$
+\prevdepth\tpd
 
 \subsection{Correspondence of operational and denotational semantics}
 
 In order to use the denotational semantics to construct an interpreter or compiler we need to prove they are equivalent to the operational semantics. Namely:
 
-
+For any pair query $P$, schema $\Sigma$ and $View_{\Sigma}$ $v$:
 $$
-\mbox{For any pair query $P$, schema $\Sigma$ and $View_{\Sigma}$ $v$: }
 \typeRule{P}{(A, B)}\Rightarrow \opRule{(a, b}{(A, B)}{P} \Leftrightarrow \denoRule{(a, b)}{P})
 $$
 
+And for any single query $S$, schema $\Sigma$ and $View_{\Sigma}$ $v$: 
 $$
-\mbox{And for any single query $S$, schema $\Sigma$ and $View_{\Sigma}$ $v$: }
 \typeRule{S}{A}\Rightarrow \opRule{(a}{A}{S} \Leftrightarrow \denoRule{a}{S})
 $$
 
@@ -282,17 +318,17 @@ In order to prove these two propositions, we define two induction hypotheses
 
 
 $$
-\phiRule{P}{A}{B} \Leftrightarrow (\typeRule{P}{(A, B)} \Rightarrow \forall v \in View_{\Sigma}, (a, b) \in A \times B. \indent (\opRule{(a, b)}{(A, B)}{P}) \Leftrightarrow (\denoRule{(a, b)}{P}))
+\phiRule{P}{A}{B} \Leftrightarrow (\typeRule{P}{(A, B)} \Rightarrow \forall v \in View_{\Sigma}, (a, b) \in A \times B. (\opRule{(a, b)}{(A, B)}{P}) \Leftrightarrow \denoRule{(a, b)}{P})))
 $$
 
 $$
-\psiRule{S}{A} \Leftrightarrow (\typeRule{S}{A} \Rightarrow \forall v \in View_{\Sigma}, a \in A. \indent (\opRule{a}{A}{S}) \Leftrightarrow (\denoRule{a}{S}))
+\psiRule{S}{A} \Leftrightarrow (\typeRule{S}{A} \Rightarrow \forall v \in View_{\Sigma}, a \in A. (\opRule{a}{A}{S}) \Leftrightarrow (\denoRule{a}{S}))
 $$
 
 Now we shall induct over the structures of $P$ and $S$ starting with the SingleQuery cases
 
 
-case $S = AndS(S', S'')$
+\paragraph{Case $S = AndS(S', S'')$}
 \begin{equation} \label{case AndS}
 \begin{split}
 \denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cap \deno{S''}) \\
@@ -302,7 +338,7 @@ case $S = AndS(S', S'')$
 \end{split}
 \end{equation}
 
-case $S = OrS(S', S'')$
+\paragraph{Case $S = OrS(S', S'')$}
 \begin{equation} \label{case OrS}
 \begin{split}
 \denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cup \deno{S''}) \\
@@ -312,7 +348,7 @@ case $S = OrS(S', S'')$
 \end{split}
 \end{equation}
 
-case $S = From(S', P)$
+\paragraph{Case $S = From(S', P)$}
 \begin{equation} \label{case From}
 \begin{split}
 \denoRule{b}{S} & \Leftrightarrow \exists a \in A. \indent (\denoRule{a}{S'} \wedge \denoRule{(a, b)}{\deno{P}}) \\
@@ -321,7 +357,7 @@ case $S = From(S', P)$
 \end{split}
 \end{equation}
 
-case $S = Find(f)$
+\paragraph{Case $S = Find(f)$}
 \begin{equation} \label{case Find}
 \begin{split}
 \denoRule{a}{S} & \Leftrightarrow a \in v(A) \wedge f(a) \downarrow True  \indent \mbox{ by inversion of the type rule (Find)}\\
@@ -331,7 +367,7 @@ case $S = Find(f)$
 
 Now, looking at the FindPair queries
 
-case $P = Rel(r)$
+\paragraph{Case $P = Rel(r)$}
 \begin{equation} \label{case Rel}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in v(r)\\
@@ -339,7 +375,7 @@ case $P = Rel(r)$
 \end{split}
 \end{equation}
 
-case $P = RevRel(r)$
+\paragraph{Case $P = RevRel(r)$}
 \begin{equation} \label{case RevRel}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (b, a) \in v(r)\\
@@ -347,7 +383,7 @@ case $P = RevRel(r)$
 \end{split}
 \end{equation}
 
-case $P = Id_A$
+\paragraph{Case $P = Id_A$}
 \begin{equation} \label{case Id_A}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow a \in v(A) \wedge a = b\\
@@ -355,7 +391,7 @@ case $P = Id_A$
 \end{split}
 \end{equation}
 
-case $P = Chain(P', Q)$
+\paragraph{Case $P = Chain(P', Q)$}
 $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} \Leftrightarrow \exists B. \indent\typeRule{P'}{(A, B)} \wedge \typeRule{Q}{(B, C)}$
 
 \begin{equation} \label{case Chain(P', Q)}
@@ -367,7 +403,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 \end{split}
 \end{equation}
 
-case $P = And(P', Q)$
+\paragraph{Case $P = And(P', Q)$}
 \begin{equation} \label{case And(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cap deno{Q})\\
@@ -377,7 +413,7 @@ case $P = And(P', Q)$
 \end{split}
 \end{equation}
 
-case $P = Or(P', Q)$
+\paragraph{Case $P = Or(P', Q)$}
 \begin{equation} \label{case Or(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cup deno{Q})\\
@@ -386,7 +422,7 @@ case $P = Or(P', Q)$
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Or(P', Q)} \mbox{ by inversion of (Or1), (Or2)}\\\end{split}
 \end{equation}
 
-case $P = AndLeft(P', S)$
+\paragraph{Case $P = AndLeft(P', S)$}
 \begin{equation} \label{case AndLeft(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{a}{S}\\
@@ -394,7 +430,7 @@ case $P = AndLeft(P', S)$
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndLeft(P', S)} \mbox{ by inversion of (AndLeft)}\\\end{split}
 \end{equation}
 
-case $P = AndRight(P', S)$
+\paragraph{Case $P = AndRight(P', S)$}
 \begin{equation} \label{case AndRight(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{b}{S}\\
@@ -402,7 +438,7 @@ case $P = AndRight(P', S)$
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndRight(P', S)} \mbox{ by inversion of (AndRight)}\\\end{split}
 \end{equation}
 
-case $P = Distinct(P')$
+\paragraph{Case $P = Distinct(P')$}
 \begin{equation} \label{case Distinct(P)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge a \neq b \\
@@ -410,7 +446,7 @@ case $P = Distinct(P')$
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Distinct(P')} \mbox{ by inversion of (AndRight)}\\\end{split}
 \end{equation}
 
-case $P = Exactly(n, P')$
+\paragraph{Case $P = Exactly(n, P')$}
 $\\ \indent$We have by inversion of the (Exactly) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 \begin{equation}
@@ -423,7 +459,7 @@ $$\mbox{hence it suffices to prove}$$
 \label{exactly Deno} (a, b)\in f^n \deno{Id_A} \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}
 \end{equation}
 
-Case $Exactly(0, P'):$
+\paragraph{Case $Exactly(0, P'):$}
 $$f^0\deno{Id_A} = \deno{Id_A}$$
 $$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
 \begin{equation}
@@ -434,7 +470,7 @@ $$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
 \end{split}
 \end{equation}
 
-Case $Exactly(n+1, P')$, assuming $\phiRule{Exactly(n, P')}{A}{A}$:
+\paragraph{Case $Exactly(n+1, P')$, assuming $\phiRule{Exactly(n, P')}{A}{A}$:}
 $$f^{n+1}\deno{Id_A} = f(f^n(\deno{Id_A}))$$
 $$\mbox{so by $\phiRule{Exactly(n, P')}{A}{A}$}$$
 \begin{equation}
@@ -445,7 +481,7 @@ $$\mbox{so by $\phiRule{Exactly(n, P')}{A}{A}$}$$
 \end{split}
 \end{equation}
 
-case $P = Upto(n, P')$
+\paragraph{Case $P = Upto(n, P')$}
 $\\ \indent$We have by inversion of the (Upto) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 \begin{equation}
@@ -458,7 +494,7 @@ $$\mbox{then}$$
 \mbox{We now case split on n}
 \end{equation}
 
-Case $Upto(0, P')$
+\paragraph{Case $Upto(0, P')$}
 
 \begin{equation}
 \begin{split}
@@ -469,7 +505,7 @@ Case $Upto(0, P')$
 \end{split}
 \end{equation}
 
-Case $Upto(n+1, P')$
+\paragraph{Case $Upto(n+1, P')$}
 
 \begin{equation}
 \begin{split}
@@ -483,60 +519,65 @@ Case $Upto(n+1, P')$
 \end{equation}
 
 
-case $P = FixedPoint(P')$
+\paragraph{case $P = FixedPoint(P')$}
 $\\ \indent$We have by inversion of the (FixedPoint) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 \begin{equation}
 \label{fDef}
 \mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs) \cup pairs)$}\end{equation}
 $$\mbox{then}$$
-
 $$
 \deno{P} = fix(f) \mbox{   In the domain $\clos$}\\
 $$
-Lemma: f is continuous in the domain $\clos$ \\
-$\indent\indent$Firstly, f is monotonous\\
-$\indent\indent$Let $x \subseteq y$
+\paragraph{Lemma:  f is continuous in the domain $\clos$}
+\setlength{\leftskip}{1cm}
+\paragraph{Firstly, f is monotonous.} $\\ $
+Let $x \subseteq y$
 \begin{equation}
 \label{continuousLemma}
 \begin{split}
 (a, b) \in f(x) & \Rightarrow (a, b) \in x \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x)\\
 & \Rightarrow (a,b) \in y \vee(\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in y)\\
-& \Rightarrow (a, b) \in f(y)
+& \Rightarrow (a, b) \in f(y)\\
+\therefore & f(x) \subseteq f(y)
 \end{split}
 \end{equation}
-$\indent\indent$ Hence $f(x) \subseteq f(y)$
+\setlength{\leftskip}{0pt}
 
+
+\setlength{\leftskip}{1cm}
+\paragraph{Secondly, $f$ preserves the $lub$s of chains.} $\\ $
 $\indent\indent$ Consider a chain $x1 \subseteq x2 \subseteq ... $ in $\clos$
 Since $\clos$ is a domain, the $lub$, $\bigcup_nx_n$ is also in $\clos$
 
-$$x_n \subseteq \bigcup_n x_n$$
-so 
+ 
 \begin{equation}
 \begin{split}
+	\forall m. x_m & \subseteq \bigcup_n x_n \\
 	\forall m. f(x_n) & \subseteq f(\bigcup_n(x_n))\\
 	\therefore \bigcup_nf(x_n) & \subseteq f(\bigcup_n(x_n))
 \end{split}
 \end{equation}
 
-Going the other way,
+To get the inverse relation,
 
 \begin{equation}
 (a, b) \in f(\bigcup_n(x_n)) \Rightarrow ((\exists n. (a,b) \in x_n ) \vee (\exists m, a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_m)
 \end{equation}
 
-let $n' = max(n, m) so x_n \subseteq x_{n'}  \wedge x_m \subseteq x_{n'}$
+let $n' = max(n, m)$ so $x_n \subseteq x_{n'}  \wedge x_m \subseteq x_{n'}$
 
 \begin{equation}
-\exists n'. ((a,b) \in x_{n'} ) \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_{n'})
+\begin{split}
+\exists n'. ((a,b) & \in x_{n'} ) \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_{n'})\\
+\therefore\exists n'. (a, b) &\in f(x_{n'})\\
+\therefore\exists n'. f(\bigcup_nx_n) &\subseteq f(x_{n'}\\
+\therefore f(\bigcup_nx_n) &\subseteq \bigcup_nf(x_{n'})\\
+\end{split}
 \end{equation}
 
-$$\therefore\exists n'. (a, b) \in f(x_{n'})$$
 
-$$\therefore\exists n'. f(\bigcup_nx_n) \subseteq f(x_{n'}$$
-
-$$\therefore f(\bigcup_nx_n) \subseteq \bigcup_nf(x_{n'})$$
-
+\setlength{\leftskip}{0pt}
 So $f$ is Scott-continuous.
 
 Now, by Tarski's fixed point theorem
@@ -544,7 +585,7 @@ Now, by Tarski's fixed point theorem
 $$\deno{FixedPoint(P')} = fix(f) = \bigsqcup_nf^n(\bot)$$
 
 
-Lemma: $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$
+\paragraph{Lemma $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$}
 
 Firstly, in the forwards direction, $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)$
 
@@ -552,13 +593,12 @@ By inversion of the operational rules (FixedPoint0), (FixedPoint n) and $\opRule
 
 
 
-Case $\opRule{(a,b)}{A, A}{Id_A}$:\\
-$\indent\indent$ by $\phiRule{Id_A}{A}{A}, \denoRule{(a, b)}{Id_A} = \bot \\ $
-$\indent\indent$ so $n = 0$
+\paragraph{Case $\opRule{(a,b)}{A, A}{Id_A}$:\\}
+by $\phiRule{Id_A}{A}{A}, \denoRule{(a, b)}{Id_A} = \bot$\\so $n = 0$
 
 
-Case  $\indent\indent \opRule{(a, b)}{(A,A)}{P'} \wedge \opRule{(b, c)}{(A,A)}{FixedPoint(P')}\\ $
-$\indent\indent\indent\indent$(hence $\opRule{(a, c)}{(A, A)}{FixedPoint(P')}$)
+\paragraph{Case $\opRule{(a, b)}{(A,A)}{P'} \wedge \opRule{(b, c)}{(A,A)}{FixedPoint(P')}\\ $}
+(hence $\opRule{(a, c)}{(A, A)}{FixedPoint(P')}$)
 
 by $\phiRule{P'}{A}{A}, and \opRule{(b,c)}{(A,A)}{FixedPoint(P')}$
 
@@ -570,12 +610,11 @@ $$\denoRule{(a, b)}{P'} \wedge (b, c) \in f^m(\bot)$$
 so $(a,c) \in f(f^m(\bot)) = f^{m+1}(\bot)$
 
 Hence $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)\\\\ $
-
 To go the other way, we need to prove $(a, b) \in \bigsqcup_nf^n(\bot) \Rightarrow \opRule{(a, b)}{(A, A)}{FixedPoint(P')}$
 
-$(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either
+$(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either:
 
-Case $(a, b) \in \bot$
+\paragraph{Case $(a, b) \in \bot$}
 \begin{equation}
 \label{Case Bottom}
 \begin{split}
@@ -585,7 +624,7 @@ Case $(a, b) \in \bot$
 \end{split}
 \end{equation}
 
-Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bot))$
+\paragraph{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bot))$}
 \begin{equation}
 \label{Case n+1}
 \begin{split}
@@ -596,88 +635,7 @@ Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bo
 \end{split}
 \end{equation}
 
+so we have $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot) \Leftrightarrow \denoRule{(a, b)}{FixedPoin(P')}$
 
-\section{Inference-Based Program Analysis}
-This is a general technique in which an inference system specifies
-judgements of the form
-$$ \Gamma \vdash e:\phi$$
-where $\phi$ is a program property and $\Gamma$ is a set of assumptions about
-free variables of $e$.
-One standard example (covered in more detail in the CST Part II `Types'
-course) is the ML type system.  Although the properties are here types
-and thus are not directly typical of program optimisation
-(the associated optimisation consists of removing types of values,
-evaluating in a typeless manner, and attaching the inferred type to the computed
-typeless result; non-typable programs are rejected) it is worth considering
-this as an archetype.
-For current purposes ML expressions $e$ can here be seen
-as the $\lambda$-calculus:
-\[ e ::= x \mid \lambda x.e \mid e_1 e_2 \]
-and (assuming $\alpha$ to range over type variables) types $t$ of the syntax
-\[ t ::= \alpha \mid \mathit{int} \mid t \rightarrow t'. \]
-Now let $\Gamma$ be a set of
-assumptions of the form $\{x_1:t_1, \ldots, x_n:t_n\}$
-which assume types $t_i$ for free variables $x_i$; and write $\Gamma[x:t]$
-for $\Gamma$ with any assumption about $x$ removed and with $x:t$ additionally
-assumed.
-We then have inference rules:
-\[ \begin{array}{c}
-\displaystyle\mbox{(VAR)}\frac{}{\Gamma[x:t] \vdash x:t} \\[3ex]
-\displaystyle\mbox{(LAM)}\frac{\Gamma[x:t] \vdash e:t'}
-                     {\Gamma \vdash \lambda x.e:t\rightarrow t'} \\[3ex]
-\displaystyle\mbox{(APP)}\frac{\Gamma \vdash e_1:t\rightarrow t'
-                  \hspace{2em} \Gamma \vdash e_2:t}
-                     {\Gamma \vdash e_1 e_2:t'}.
-\end{array} \]
-Safety: the type-safety of the ML inference system is clearly not part of
-this course, but its formulation clearly relates to that for other analyses.
-It is usually specified by the {\em soundness} condition:
-\[ (\{\} \vdash e:t) \Rightarrow (\db{e} \in \db{t}) \]
-where $\db{e}$ represents the result of evaluating $e$ (its denotation)
-and $\db{t}$ represents the set of values which have type $t$.
-Note that (because of $\{\}$) the safety statement only applies to closed
-programs (those with no free variables) but its inductive proof in general
-requires one to consider programs with free variables.
-
-The following gives a more program-analysis--related example;
-here properties have the form
-\[ \phi ::= \mathit{odd} \mid \mathit{even} \mid \phi \rightarrow \phi'. \]
-We would then have rules:
-\[ \begin{array}{c}
-\displaystyle\mbox{(VAR)}\frac{}{\Gamma[x:\phi] \vdash x:\phi} \\[3ex]
-\displaystyle\mbox{(LAM)}\frac{\Gamma[x:\phi] \vdash e:\phi'}
-                     {\Gamma \vdash \lambda x.e:\phi\rightarrow \phi'} \\[3ex]
-\displaystyle\mbox{(APP)}\frac{\Gamma \vdash e_1:\phi\rightarrow \phi'
-                  \hspace{2em} \Gamma \vdash e_2:\phi}
-                     {\Gamma \vdash e_1 e_2:\phi'}.
-\end{array} \]
-Under the assumptions
-\[ \Gamma = \{2:\mathit{even},~~~
-+:\mathit{even} \rightarrow \mathit{even} \rightarrow \mathit{even},~~~
-\times:\mathit{even} \rightarrow \mathit{odd} \rightarrow \mathit{even}
- \} \]
-we could then show
-\[ \Gamma \vdash \lambda x.\lambda y. 2\times x+y:
-    \mathit{odd} \rightarrow \mathit{even} \rightarrow \mathit{even}.
-\]
-but note that showing
-\[ \Gamma' \vdash \lambda x.\lambda y. 2\times x+3\times y:
-    \mathit{even} \rightarrow \mathit{even} \rightarrow \mathit{even}.
-\]
-would require $\Gamma'$ to have {\em two} assumptions for $\times$
-or a single assumption of a
-more elaborate property, involving conjunction, such as:
-\[
-\begin{array}{r@{}l@{}l}
-\times :~
-&  \mathit{even} \rightarrow \mathit{even} \rightarrow \mathit{even} &~\wedge\\
-&  \mathit{even} \rightarrow \mathit{odd} \rightarrow \mathit{even} &~\wedge\\
-&  \mathit{odd} \rightarrow \mathit{even} \rightarrow \mathit{even} &~\wedge\\
-&  \mathit{odd} \rightarrow \mathit{odd} \rightarrow \mathit{odd}.
-\end{array} \]
-\paragraph{Exercise:}
-Construct a system for {\em odd} and {\em even} which can show that
-\[ \Gamma \vdash (\lambda f.f(1)+f(2))(\lambda x.x) : \mathit{odd} \]
-for some $\Gamma$.
-
+$$\square$$
 \end{document}
