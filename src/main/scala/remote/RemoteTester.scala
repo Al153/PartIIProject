@@ -7,6 +7,7 @@ import core.user.schema.SchemaDescription
 import core.utils.EitherOps
 
 import scala.collection.generic.CanBuildFrom
+import scala.collection.immutable.HashMap
 
 /**
   * Created by Al on 28/01/2018.
@@ -42,9 +43,9 @@ class RemoteTester(spec: TestSpec) {
     }
   }
 
-  def runBatch[A](impl: DBInstance, test: DBInstance => Int =>  Operation[E, A], n: Int): Operation[E, Vector[A]] =
-    sequence(Vector.fill(n)(())) {
-      _ => test(impl)(n)
+  def runBatch[A](impl: DBInstance, test: DBInstance => Int =>  Operation[E, A], n: Int): Operation[E, Map[Int, A]] =
+    sequence(1 until n) {
+      test(impl)
     }
 
   def logError(e: E): Unit = {
@@ -52,18 +53,18 @@ class RemoteTester(spec: TestSpec) {
     logger.error(e.toString)
   }
 
-  def sequence[E, A, B, M[X] <: TraversableOnce[X]](
-                                                     in: M[A]
-                                                   )(
+  def sequence[A, B](
+                         in: TraversableOnce[A]
+                       )(
     f: A => Operation[E, B]
-  )(implicit cbf: CanBuildFrom[M[A], B, M[B]]): Operation[E, M[B]] =
-    in.foldLeft(Operation.point(cbf(in), CaughtError)){
+  ): Operation[E, Map[A, B]] =
+    in.foldLeft(Operation.point(Map.empty[A, B], CaughtError(_): E)){
       case (or, a) =>
         for {
           r <- or
           b <- f(a)
-        } yield r += b
-    }.map(_.result())
+        } yield r + (a -> b)
+    }
 
   def time[R](block: => R): R = {
     val t0 = System.nanoTime()
