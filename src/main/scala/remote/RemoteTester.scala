@@ -2,7 +2,7 @@ package remote
 
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, Empty}
-import core.user.interfaces.DBInstance
+import core.user.interfaces.{DBBackend, DBInstance}
 import core.user.schema.SchemaDescription
 import core.utils.EitherOps
 import org.slf4j.Logger
@@ -16,22 +16,26 @@ import scalaz._
   *
   * Class to run remote tests and time them
   */
-class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext) {
+class RemoteTester(
+                    referenceImplementation: DBBackend,
+                    testImplementations: Vector[(String, DBBackend)]
+                  )(implicit logger: Logger, ec: ExecutionContext) {
 
 
   def runTest[A](
+                  testSpec: TestSpec,
                   setup: DBInstance => ConstrainedFuture[E,Unit],
                   test: DBInstance => TestIndex =>  ConstrainedFuture[E, A],
                   schema: SchemaDescription
                 ): Unit = {
     val runningTests = (for {
-      ref <- spec.referenceImplementation.open(Empty, schema)
-      instances <- EitherOps.sequence(spec.testImplementations.map{case (name, instance) => instance.open(Empty, schema).map(name -> _)})
+      ref <- referenceImplementation.open(Empty, schema)
+      instances <- EitherOps.sequence(testImplementations.map{case (n, instance) => instance.open(Empty, schema).map(n -> _)})
     } yield (ref, instances)).fold(
       {e =>
         logger.info("Error thrown " + e)
         ConstrainedFuture.point(logError(e))(CaughtError.apply)},
-      {case (ref, i) => runBatches(setup, test, ref, i)}
+      {case (ref, i) => runBatches(testSpec, setup, test, ref, i)}
     )
     Await.result(runningTests.run, (60*60*24).seconds) match {
       case \/-(()) => logger.info("[Done]")
@@ -48,12 +52,12 @@ class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext
     _ = logger.info(s"[Setup][Done]: Instance = $name")
   } yield logger.info(s"[Setup][Done]: Instance = $name")
 
-  def runBatches[A](setup: DBInstance => ConstrainedFuture[E, Unit], test: DBInstance => TestIndex =>  ConstrainedFuture[E, A], reference: DBInstance, toTest: Vector[(String, DBInstance)]): ConstrainedFuture[E, Unit] = {
+  def runBatches[A](spec: TestSpec, setup: DBInstance => ConstrainedFuture[E, Unit], test: DBInstance => TestIndex =>  ConstrainedFuture[E, A], reference: DBInstance, toTest: Vector[(String, DBInstance)]): ConstrainedFuture[E, Unit] = {
     logger.info("Starting Setup")
     for {
       _ <- doSetup(setup, reference, "reference")
       _ = logger.info("[Starting reference batch]")
-      refValues <- runReferenceBatch(reference, test, spec.batchSize)
+      refValues <- runReferenceBatch(spec.testName, reference, test, spec.batchSize)
       _ = logger.info("[Done reference batch]")
       _ <- sequence(toTest) {
         case (name, instance) =>
@@ -61,7 +65,7 @@ class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext
           for {
             _ <- doSetup(setup, instance, name)
             _ = logger.info(s"[Done setup for $name] ")
-            _ <- runTestBatch(instance, name, test, refValues, spec.batchSize)
+            _ <- runTestBatch(spec.testName, instance, name, test, refValues, spec.batchSize)
             _ = logger.info(s"[Run test for $name] ")
 
           } yield ()
@@ -70,23 +74,25 @@ class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext
   }
 
   def runBatch[A](
+                   testName: TestName,
                    impl: DBInstance,
                    instanceName: String,
                    test: DBInstance => TestIndex =>  ConstrainedFuture[E, A],
                    n: TestIndex): ConstrainedFuture[E, Map[TestInstance, TimeResult[A]]] =
-    sequence(TestInstance(instanceName)(n)) {
+    sequence(TestInstance(testName, instanceName)(n)) {
       i =>
-        logger.info(s"Running test: $instanceName, $i" )
+        logger.info(s"Running $i" )
         timeConstrainedFuture(test(impl))(i)
     }
 
   def runReferenceBatch[A](
+                            testName: TestName,
                             impl: DBInstance,
                             test: DBInstance => TestIndex => ConstrainedFuture[E, A],
                             n: TestIndex
                           ): ConstrainedFuture[E, Map[TestIndex, A]] =
     for {
-      instanceToTimedResult <- runBatch(impl, "ReferenceInstance", test, n)
+      instanceToTimedResult <- runBatch(testName, impl, "ReferenceInstance", test, n)
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
       referenceResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
       _ = timeResults.values.map(logTimeResult(_, success = true))
@@ -96,19 +102,20 @@ class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext
 
   def logTimeResult[A](ta: TimeResult[A], success: Boolean): A = {
     if (success){
-      logger.info(s"[Result][Success][${ta.instance.testBackend}]:test = ${ta.instance.testIndex}: time = ${formatter.format(ta.ns)}")
+      logger.info(s"[Result][Success][${ta.instance.testBackend}]:${ta.instance}:time=${ns(ta.ns)}")
     } else {
-      logger.info(s"[Result][Failure][${ta.instance.testBackend}]:test = ${ta.instance.testIndex}: time = ${formatter.format(ta.ns)}")
+      logger.info(s"[Result][Failure][${ta.instance.testBackend}]:${ta.instance}:time=${ns(ta.ns)}")
     }
     ta.a
   }
 
   def logBatchResult[A](tas: BatchedTimedResults[A]): Map[TestInstance, A] = {
-    logger.info(s"[Result][Batch]: backend = ${tas.testName}: testcount = ${tas.length}: totalTime = ${formatter.format(tas.fullTime)}")
+    logger.info(s"[Result][Batch]:test=${tas.testName.name}:impl=${tas.backend}:testcount=${tas.length}:totalTime=${ns(tas.fullTime)}")
     tas.tas.map {r => r.instance -> r.a}.toMap
   }
 
   def runTestBatch[A](
+                       testName: TestName,
                        impl: DBInstance,
                        toTest: String,
                        test: DBInstance => TestIndex => ConstrainedFuture[E, A],
@@ -116,7 +123,7 @@ class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext
                        n: TestIndex
                      ): ConstrainedFuture[E, Unit] = {
     for {
-      instanceToTimedResult <- runBatch(impl, toTest, test, n)
+      instanceToTimedResult <- runBatch(testName, impl, toTest, test, n)
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
       testResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
       isSuccess = testResults == expectedResults

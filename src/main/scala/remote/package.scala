@@ -16,4 +16,6 @@ package object remote {
   def errorThrowable[A](e: E): A = throw new Throwable {
     override def toString: String = e.toString
   }
+
+  def ns(l: Long): String = formatter.format(l)+"ns"
 }

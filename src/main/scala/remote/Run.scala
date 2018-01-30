@@ -1,51 +1,100 @@
 package remote
-import TestIndex._
 import construction.imdb.DBBuilder
 import construction.imdb.IMDBSchema._
-import core.user.containers.ConstrainedFuture
+import core.user.containers.{ConstrainedFuture, Path}
 import core.user.dsl._
 import core.user.interfaces.{DBBackend, DBInstance}
-import impl.{lmdb, lmdbfast}
 import impl.memory.MemoryDB
+import impl.{lmdb, lmdbfast}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
-      new TestSpec {
-        override def batchSize: TestIndex = 5.tests
-
-        override def testImplementations: Vector[(String, DBBackend)] =
-          Vector(
-            "LMDB" -> lmdb.LMDB,
-            "LMDBFast" -> lmdbfast.LMDB
-          )
-
-        override def referenceImplementation: DBBackend = MemoryDB
-      }
+      MemoryDB,
+      Vector[(String, DBBackend)](
+        "LMDB" -> lmdb.LMDB,
+        "LMDBFast" -> lmdbfast.LMDB
+      )
     )
 
-    tester.runTest(
-      setup,
-      test,
-      schemaDescription
-    )
+    testExactly(tester)
+    pathFindingTest(tester)
   }
 
-  val KevinBacon = Person("Kevin Bacon")
+  def testExactly(tester: RemoteTester): Unit =
+    tester.runTest(
+      TestSpec("Exactly", 10),
+      exactlySetup,
+      exactlyTest,
+      schemaDescription
+    )
 
-  private def setup(instance: DBInstance): ConstrainedFuture[E, Unit] =
+  private val KevinBacon = Person("Kevin Bacon")
+
+  private def exactlySetup(instance: DBInstance): ConstrainedFuture[E, Unit] =
     using(instance){
       DBBuilder.buildDB("imdb/smallest")(instance)
     }
 
-  private def test(instance: DBInstance): TestIndex => ConstrainedFuture[E, Set[Person]] = {
+  private def exactlyTest(instance: DBInstance): TestIndex => ConstrainedFuture[E, Set[Person]] = {
     index =>
       implicit val inst = instance
       using(instance){
         find(KevinBacon >> ((ActsIn --><-- ActsIn) * index.i))
       }
+  }
+
+
+  private def pathFindingTest(tester: RemoteTester): Unit = {
+    def setup(instance: DBInstance): ConstrainedFuture[E, Unit] =
+      for {
+        v0 <- instance.getDefaultView
+        _ <- writeToView(instance, v0){
+          DBBuilder.buildDB("imdb/smallest")(instance)
+        }
+
+        _ <- writeToView(instance, v0){
+          DBBuilder.buildDB("imdb/small_sparse")(instance)
+        }
+
+        _ <- writeToView(instance, v0){
+          DBBuilder.buildDB("imdb/small")(instance)
+        }
+
+        _ <- writeToView(instance, v0){
+          DBBuilder.buildDB("imdb/medium_sparse")(instance)
+        }
+
+        _ <- writeToView(instance, v0){
+          DBBuilder.buildDB("imdb/medium")(instance)
+        }
+
+        _ <- writeToView(instance, v0){
+          DBBuilder.buildDB("imdb/large")(instance)
+        }
+      } yield ()
+
+
+    def test(instance: DBInstance): (TestIndex) => ConstrainedFuture[E, Set[Path[Person]]] = {
+      index: TestIndex =>
+        implicit val inst = instance
+        for {
+          views <- instance.getViews
+          v = views.toVector.apply(index.i)
+          r <- usingView(instance, v){
+            allShortestPaths(KevinBacon, (ActsIn --><-- ActsIn) * index.i)
+          }
+        } yield r
+    }
+
+    tester.runTest(
+      TestSpec("Pathfinding", 6),
+      setup,
+      test,
+      schemaDescription
+    )
   }
 
 }

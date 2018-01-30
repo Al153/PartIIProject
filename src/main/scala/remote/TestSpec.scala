@@ -1,9 +1,8 @@
 package remote
 
-import core.user.interfaces.DBBackend
+class TestSpec(val testName: TestName, val batchSize: TestIndex)
 
-trait TestSpec {
-  def batchSize: TestIndex
-  def referenceImplementation: DBBackend
-  def testImplementations: Vector[(String, DBBackend)]
+object TestSpec {
+  def apply(testName: String, batchSize: Int): TestSpec =
+    new TestSpec(TestName(testName), TestIndex(batchSize))
 }
