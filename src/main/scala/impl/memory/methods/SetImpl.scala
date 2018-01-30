@@ -4,6 +4,7 @@ import core.backend.intermediate.Find
 import core.backend.intermediate.unsafe._
 import core.user.schema.SchemaObject
 import core.utils._
+import core.utils.algorithms.FixedPointTraversal
 import impl.memory.errors.{MemoryMissingRelation, MemoryMissingTableName}
 import impl.memory.{MemoryEither, MemoryObject, MemoryTree, RelatedPair}
 
@@ -115,11 +116,11 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
           res <- fixedPoint(stepFunction, left.map(x => (x, x)))
         } yield res
 
-      case USExactly(n, rel) => if (n <= 0) {
-        left.map(x => (x, x)).right
-      } else {
-        recurse(USChain(rel, USExactly(n-1, rel)), left) // todo: this is probably quite slow
-      }
+      case USExactly(n, rel) =>
+        val stepFunction: MemoryObject => MemoryEither[Set[MemoryObject]] =
+          left => findPairsSetImpl(rel, Set(left), tree).map(_.mapProj2)
+        FixedPointTraversal.exactly(stepFunction, left, n)
+
     }
   }
 }

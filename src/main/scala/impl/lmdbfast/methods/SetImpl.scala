@@ -202,11 +202,13 @@ trait SetImpl { self: Methods =>
         val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
         FixedPointTraversal.fixedPoint(stepFunction, from.mapPair)
 
-      case USExactly(n, rel) => if (n <= 0) {
-        from.map(x => (x, x)).right
-      } else {
-        recurse(USChain(rel, USExactly(n-1, rel)), from) // todo: this is probably quite slow, use exponential chaining/caching?
-      }
+      case USExactly(n, rel) =>
+        for {
+          fsCache <- precomputeFindSingles(rel, commits)
+          stepFunction: (ObjId => LMDBEither[Set[ObjId]]) = {left: ObjId => findFrom(left, rel, commits, fsCache)}
+          r <- FixedPointTraversal.exactly(stepFunction, from, n)
+        }  yield  r
+
     }
   }
 }

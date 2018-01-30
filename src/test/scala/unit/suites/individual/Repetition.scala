@@ -111,9 +111,7 @@ trait Repetition { self: HasBackend =>
       for {
         _ <- setupPath
         res1 <- find(Alice >> Knows.**)
-        res2 <- find(Alice >> Knows.**)
-        _ <- assertEqOp(expected, res1, "Exactly (all pairs)")
-        _ <- assertEqOp(expected, res2, "Exactly (distinct)")
+        _ <- assertEqOp(expected, res1, "Transitive closure (distinct)")
       } yield ()
     }
   }
@@ -125,10 +123,8 @@ trait Repetition { self: HasBackend =>
     using(instance) {
       for {
         _ <- setupPath
-        res1 <- find(Alice >> Knows * (0 --> 3))
         res2 <- find(Alice >> Knows * (0 --> 3))
-        _ <- assertEqOp(expected, res1, "Exactly (all pairs)")
-        _ <- assertEqOp(expected, res2, "Exactly (distinct)")
+        _ <- assertEqOp(expected, res2, "between (distinct)")
       } yield ()
     }
   }

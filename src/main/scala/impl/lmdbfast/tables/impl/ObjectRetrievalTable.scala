@@ -104,7 +104,6 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
       res <- lookupResult.headOption.fold(insert(a, newCommit)){
         _.right
       }
-      _ = println("Done get or create: " + a)
     } yield res
 
   /**

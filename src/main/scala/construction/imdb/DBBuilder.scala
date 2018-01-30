@@ -26,11 +26,11 @@ import scalaz.Scalaz._
   */
 object DBBuilder {
 
-  def recover(e: Throwable): E = new E {
+  private def recover(e: Throwable): E = new E {
     override def toString: String = e.toString
   }
 
-  def getNodes(sourcePath: String): (Map[Int, JSONPerson], Map[Int, JSONMovie]) = {
+  private def getNodes(sourcePath: String): (Map[Int, JSONPerson], Map[Int, JSONMovie]) = {
     val lines = Source.fromResource(s"$sourcePath/nodes.json")
     val allObjects = lines.mkString.parseJson
     val JsArray(objects) = allObjects
@@ -41,7 +41,7 @@ object DBBuilder {
     (people, movies)
   }
 
-  def getEdges(sourcePath: String): (Set[JSONDirected], Set[JSONActed]) = {
+  private def getEdges(sourcePath: String): (Set[JSONDirected], Set[JSONActed]) = {
     val allObjects = Source.fromResource(s"$sourcePath/edges.json").mkString.parseJson
     val JsArray(objects) = allObjects
 

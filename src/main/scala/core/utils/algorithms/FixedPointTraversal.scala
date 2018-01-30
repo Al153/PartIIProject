@@ -3,7 +3,9 @@ package core.utils.algorithms
 
 import core.utils._
 
-import scalaz._, Scalaz._
+import scalaz.{\/, _}
+import Scalaz._
+import scala.collection.mutable
 
 /**
   * Created by Al on 30/12/2017.
@@ -103,6 +105,51 @@ object FixedPointTraversal {
       root <- initial
     } yield fromRoot(root)).flattenE
   }
+
+  /**
+    *
+    * @param searchStep - search step to repeat upto limit times
+    * @param initial - initial set to search from
+    * @param limit - number of repetitions allowed
+    * @tparam E - Errors that may be thrown
+    * @tparam A - Search node
+    * @return
+    */
+  def exactly[E, A](
+                     searchStep: A => E \/ Set[A],
+                     initial: Set[A],
+                     limit: Int
+                   ): E \/ Set[(A, A)] = {
+    val memoisedStep = new mutable.HashMap[A, Set[A]]()
+    val inMemo = mutable.Set[A]()
+    var acc: Map[A, Set[A]] = initial.collectSets(a => (a, a))
+    var okay: E \/ Unit = ().right
+    for (i <- 1 to limit) {
+      acc = acc.mapValues {
+        fringe =>
+          val unexplored = fringe.diff(inMemo)
+          val memoised = fringe intersect inMemo
+          val rhs = mutable.Set[A]()
+          for (a <- unexplored){
+            okay = for {
+              _ <- okay
+              res <- searchStep(a)
+              _ = rhs ++= res
+              _ = memoisedStep += (a -> res)
+            } yield ()
+          }
+
+          for (a <- memoised){
+            rhs ++= memoisedStep(a)
+          }
+
+          inMemo ++= unexplored
+
+          rhs.toSet
+      }
+    }
+    for (_ <- okay) yield acc.map {case (a, as) => as.map(a -> _)}.toSet.flatten
+ }
 
   private def doJoin[A](left: Set[(A, A)], right: Map[A, Set[A]]): Set[(A, A)] = {
     left.flatMap { case (from, middle) => right.getOrElse(middle, Set()).map((from, _))}

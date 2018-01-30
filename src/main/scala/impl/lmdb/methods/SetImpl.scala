@@ -8,6 +8,7 @@ import impl.lmdb.LMDBEither
 import impl.lmdb.access.{Commit, ObjId}
 import impl.lmdb.errors.{LMDBError, MissingIndex}
 import impl.lmdb.tables.impl.ObjectRetrievalTable
+import impl.memory.{MemoryEither, MemoryObject}
 
 import scalaz.Scalaz._
 
@@ -201,11 +202,10 @@ trait SetImpl { self: Methods =>
         val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
         FixedPointTraversal.fixedPoint(stepFunction, from.mapPair)
 
-      case USExactly(n, rel) => if (n <= 0) {
-        from.map(x => (x, x)).right
-      } else {
-        recurse(USChain(rel, USExactly(n-1, rel)), from) // todo: this is probably quite slow, use exponentiall chaining?
-      }
+      case USExactly(n, rel) =>
+        val stepFunction: ObjId => LMDBEither[Set[ObjId]] =
+          left => recurse(rel, Set(left)).map(_.mapProj2)
+        FixedPointTraversal.exactly(stepFunction, from, n)
     }
   }
 }

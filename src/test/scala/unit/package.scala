@@ -68,6 +68,12 @@ package object unit {
     override def compare(x: Pet, y: Pet): Int = os.compare(x.name, y.name)
   }
 
+  /**
+    * Returns \bot but has any type
+    * @param e - error to throw
+    * @tparam A - type to shoehorn to
+    * @return
+    */
   def errorThrowable[A](e: E): A = throw new Throwable {
     override def toString: String = e.toString
   }
