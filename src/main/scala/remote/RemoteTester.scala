@@ -96,15 +96,15 @@ class RemoteTester(spec: TestSpec)(implicit logger: Logger, ec: ExecutionContext
 
   def logTimeResult[A](ta: TimeResult[A], success: Boolean): A = {
     if (success){
-      logger.info(s"[Result][Success][${ta.instance.testBackend}]:test = ${ta.instance.testIndex}: time = ${ta.ns}")
+      logger.info(s"[Result][Success][${ta.instance.testBackend}]:test = ${ta.instance.testIndex}: time = ${formatter.format(ta.ns)}")
     } else {
-      logger.info(s"[Result][Failure][${ta.instance.testBackend}]:test = ${ta.instance.testIndex}: time = ${ta.ns}")
+      logger.info(s"[Result][Failure][${ta.instance.testBackend}]:test = ${ta.instance.testIndex}: time = ${formatter.format(ta.ns)}")
     }
     ta.a
   }
 
   def logBatchResult[A](tas: BatchedTimedResults[A]): Map[TestInstance, A] = {
-    logger.info(s"[Result][Batch]: backend = ${tas.testName}: testcount = ${tas.length}: totalTime = ${tas.fullTime}")
+    logger.info(s"[Result][Batch]: backend = ${tas.testName}: testcount = ${tas.length}: totalTime = ${formatter.format(tas.fullTime)}")
     tas.tas.map {r => r.instance -> r.a}.toMap
   }
 

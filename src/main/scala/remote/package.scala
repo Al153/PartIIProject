@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
   */
 package object remote {
   implicit val logger = LoggerFactory.getLogger(classOf[remote])
+  val formatter = java.text.NumberFormat.getIntegerInstance
   /**
     * Returns \bot but has any type
     * @param e - error to throw
