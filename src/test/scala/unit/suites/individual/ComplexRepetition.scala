@@ -102,9 +102,7 @@ trait ComplexRepetition { self: HasBackend =>
     using(instance) {
       for {
         _ <- setupPath
-        res1 <- find(Alice >> Knows * (1 --> 3))
         res2 <- find(Alice >> Knows * (1 --> 3))
-        _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
         _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
       } yield ()
     }

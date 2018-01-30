@@ -5,6 +5,6 @@ case class TestInstance(testName: TestName, testBackend: String, testIndex: Test
 }
 object TestInstance {
   import TestIndex._
-  def apply(name: TestName,testBackend: String)(topIndex: TestIndex): Seq[TestInstance] =
-    for (i <- 1 to topIndex) yield TestInstance(name, testBackend, i)
+  def apply(spec: TestSpec[_], testBackend: String): Seq[TestInstance] =
+    for (i <- 1 to spec.batchSize) yield TestInstance(spec.testName, testBackend, i)
 }

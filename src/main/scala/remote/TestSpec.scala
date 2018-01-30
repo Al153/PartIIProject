@@ -1,8 +1,16 @@
 package remote
 
-class TestSpec(val testName: TestName, val batchSize: TestIndex)
+import core.user.containers.ConstrainedFuture
+import core.user.dsl.E
+import core.user.interfaces.DBInstance
+import core.user.schema.SchemaDescription
 
-object TestSpec {
-  def apply(testName: String, batchSize: Int): TestSpec =
-    new TestSpec(TestName(testName), TestIndex(batchSize))
+import scala.concurrent.ExecutionContext
+
+trait TestSpec[A] {
+  def testName: TestName
+  def batchSize: TestIndex
+  def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit]
+  def test(d: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, A]
+  def schema: SchemaDescription
 }
