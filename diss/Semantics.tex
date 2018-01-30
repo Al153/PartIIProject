@@ -638,4 +638,23 @@ $(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either:
 so we have $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot) \Leftrightarrow \denoRule{(a, b)}{FixedPoin(P')}$
 
 $$\square$$
+
+\subsection{Write Semantics}
+We have fairly simple write semantics, we define the type of the $write$ function as mapping a view and a set of pairs related by a relation to a new view.
+
+\begin{equation}
+write \colon View_{\Sigma} \rightarrow \wp(A \times R \times B) \rightharpoonup View_{\Sigma} \mbox{For $A, B \in \tau$}
+\end{equation}
+
+We define $write$ as so:\\
+let $rs = \setComp{(a_i, r_i, b_i) \in (A \times R \times B)}{0 < i \leqslant n}$ for some $n$ being the size of the set.
+
+\begin{equation}
+\begin{split}
+write(v)(rs) = &v\left[A \mapsto v_{table}(A) \cup \setComp{a_i}{0 < i \leqslant n}\right]\\
+& \left[B \mapsto v_{table}(B) \cup \setComp{b_i}{0 < i \leqslant n}\right]\\
+& \left[r \mapsto v_{rel}(R) \cup \setComp{(a_i, b_i)}{0 < i \leqslant n}\right] 
+\end{split}
+\end{equation}
+
 \end{document}
