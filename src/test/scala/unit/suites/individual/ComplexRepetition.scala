@@ -57,7 +57,7 @@ trait ComplexRepetition { self: HasBackend =>
         _ <- setupPath
         res1 <- findPairs(Knows * (3 ++) )
         res2 <- findPairs(Knows * (3 ++))
-        _ <- assertEqOp(expectedPairs, res1.toSet, "Exactly (all pairs)")
+        _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
         _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
       } yield ()
     }
@@ -72,7 +72,7 @@ trait ComplexRepetition { self: HasBackend =>
         res1 <- findPairs(Knows * 4)
         res2 <- findPairs(Knows * 4)
         _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
-         _ <- assertEqOp(expectedPairs.toSet, res2, "Exactly (distinct)")
+         _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")
       } yield ()
     }
   }
@@ -90,7 +90,7 @@ trait ComplexRepetition { self: HasBackend =>
         _ <- setupPath
         res1 <- find(Alice >> Knows.**)
         res2 <- find(Alice >> Knows.**)
-        _ <- assertEqOp(expected.toSet, res1.toSet, "Exactly (all pairs)")
+        _ <- assertEqOp(expected.toSet, res1, "Exactly (all pairs)")
         _ <- assertEqOp(expected.toSet, res2, "Exactly (distinct)")
       } yield ()
     }

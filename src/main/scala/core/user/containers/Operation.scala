@@ -58,4 +58,5 @@ object Operation {
     * Standard point method
     */
   def point[E, A](a: A, recover: Throwable => E)(implicit ec: ExecutionContext): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(recover))
+
 }

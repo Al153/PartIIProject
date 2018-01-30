@@ -3,7 +3,7 @@ package unit.suites.individual
 import core.user.dsl._
 import org.junit.Test
 import unit.Objects._
-import unit.{Knows, Owns, Person, assertEqOp, description}
+import unit.{Knows, Owns, assertEqOp}
 
 trait Transitive { self: HasBackend =>
   /**
