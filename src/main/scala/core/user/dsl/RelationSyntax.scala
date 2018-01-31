@@ -58,6 +58,11 @@ trait RelationSyntax {
       */
     def &(that: FindPairAble[A, B]): FindPair[A, B] = And(left.toFindPair, that.toFindPair)(sa, sb)
 
+    /**
+      * Get reverse of a relation
+      */
+
+    def rev: FindPair[B, A] = left.toFindPair.reverse
   }
 
   case class FindPairHalfQuery[A, B](left: FindPairAble[A, B], middle: FindSingleAble[B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) {

@@ -54,7 +54,7 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]]{
       views <- instance.getViews
       v = views.toVector.apply(index.i)
       r <- usingView(instance, v){
-        allShortestPaths(KevinBacon, (ActsIn --><-- ActsIn) * index.i)
+        allShortestPaths(KevinBacon, ActsIn --><-- ActsIn)
       }
     } yield r
   }

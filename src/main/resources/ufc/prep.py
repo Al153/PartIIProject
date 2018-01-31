@@ -114,17 +114,17 @@ def getWeightReductions(fightersByWeight):
 	firstWithWeight = fightersByWeight[0]
 	fightersByWeight = fightersByWeight[1:]
 	for fighter in fightersByWeight:
-		if (fighter.weight > lastFighter.weight): # cycle has ended
-			relations.append(ShorterThan(lastFighter, fighter))
+		if fighter.weight > lastFighter.weight: # cycle has ended
+			relations.append(LighterThan(lastFighter, fighter))
 
 			if lastFighter != firstWithWeight: # if there was previously a cycle of more than one, link up to the start
-				relations.append(ShorterThan(lastFighter, firstWithWeight))
+				relations.append(LighterThan(lastFighter, firstWithWeight))
 
 			lastFighter = fighter
 			firstWithWeight = fighter
 
 		elif (fighter.weight == lastFighter.weight):
-			relations.append(ShorterThan(lastFighter, fighter))
+			relations.append(LighterThan(lastFighter, fighter))
 			lastFighter = fighter
 		else: raise Exception("Non-sorted weight")
 	return relations
@@ -133,8 +133,8 @@ def getWeightReductions(fightersByWeight):
 def multilineJson(jString):
 	return jString.replace("}, {", "},\n{")
 
-def getBeatRelations(fights, fighterRecords):
-	return [Beat(fighterRecords[fight.winner], fighterRecords[fight.loser]) for fight in fights]
+def getBeatRelations(fightsToCheck, fighterRecords):
+	return [Beat(fighterRecords[fight.winner], fighterRecords[fight.loser]) for fight in fightsToCheck]
 
 fights = getFights(open("ufc_wins.csv"))
 print "Fights = ", len(fights)

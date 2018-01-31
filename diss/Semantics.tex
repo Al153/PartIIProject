@@ -22,7 +22,7 @@
 \section{Semantics}
 \subsection{Grammar and definitions}
 
-FindPair queries
+\paragraph{FindPair queries}
 
 
 
@@ -45,7 +45,8 @@ P  &\rightarrow Rel(R) \mbox{ Find pairs related by the relation R}\\
 \end{equation} 
 
 
-where $n$ denotes a natural number. These queries lookup a set of pairs of obejcts.\\FindSingle queries
+where $n$ denotes a natural number. These queries lookup a set of pairs of obejcts.\\
+\paragraph{FindSingle queries}
 \begin{equation}
 \label{PDefifinition}
 \begin{split}
@@ -58,17 +59,17 @@ S & \rightarrow Find(F) \mbox{ Find values that match the findable F}\\
 Which lookup sets of single objects.\\
 
 
-Object Types
+\paragraph{Object Types}
 
 $$ \tau \rightarrow A \mid B \mid C \mid .. $$
 
-Which are the "real world" types stored in the database. These correspond to the user's scala classes.
+Which are the ``real world'' types stored in the database. These correspond to the user's scala classes.
 
-Named relations
+\paragraph{Named relations}
 
 $$R \rightarrow r_1 \mid r_2 \mid .. $$
 
-Findables
+\paragraph{Findables}
 
 $$F_A \rightarrow f_1 \mid f_2 \mid ... $$
 
@@ -78,7 +79,7 @@ $$f \colon A \rightharpoonup \{True, False\} $$
 
 For some given object type A. (ie a findable is an index)
 
-A schema $\Sigma$ is made up of three partial functions:
+\paragraph{A schema} $\Sigma$ is made up of three partial functions:
 
 $$\Sigma_{rel}\colon R \rightharpoonup \tau\times\tau $$ 
 $$\Sigma_{findable}\colon F \rightharpoonup \tau $$
@@ -86,7 +87,7 @@ $$\Sigma_{table}\colon \tau \rightharpoonup \{True, False\} $$
 
 Which, give the types of relations and findables, and validiate the existence of a type. When it is obvious from the context, I shall use simply use $\Sigma(x)$ to signify application of the appropriate function.
  
-A view $v \in V_\Sigma$, for a given schema represents an immutable state of a database.
+\paragraph{A view} $v \in V_\Sigma$, for a given schema represents an immutable state of a database.
 
 It represents a pair of partial functions. Firstly the named-relation lookup function
 
@@ -110,11 +111,11 @@ That is, $v(A)$ is a set of objects of type $A$ stored in the view, and $A$ is a
 Typing rules take two forms. Firstly typing of pair queries:
 $$ \Sigma \vdash P\colon (A, B)$$
 
-Which means "under the schema $\Sigma$, pair query $P$ returns a subset of $A \times B$".  The second is for single queries:
+Which means ``under the schema $\Sigma$, pair query $P$ returns a subset of $A \times B$''.  The second is for single queries:
 
 $$ \Sigma \vdash S \colon A $$
 
-Which means "under the schema $\Sigma$ single query returns a subset of $A$
+Which means ``under the schema $\Sigma$ single query returns a subset of $A$''
 
 The rules of the first kind are as follows
 
@@ -162,7 +163,7 @@ The rules for types of Single queries are similar:
 
 \subsection{Operational Semantics}
 
-Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft p$ to mean "a is a valid result of query Q". This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft p$ to mean``a is a valid result of query Q''. This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
 
 \[ \begin{array}{c}
 \displaystyle\mbox{(Rel)}\frac{(a,b) \in v(r)}{\opRule{(a, b)}{(A, B)}{Rel(r)}} \\[3ex]
@@ -173,7 +174,7 @@ Now we shall define a set of rules for determining if a pair of objects is a val
 
 \displaystyle\mbox{(Distinct)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent a \neq b}{\opRule{(a,b)}{(A, B)}{Distinct(P)}} \\[3ex]
 
-\displaystyle\mbox{(And)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent (\opRule{(a,b)}{(A, B)}{Q}}{\opRule{(a,b)}{(A, B)}{And(P, Q)}} \\[3ex]
+\displaystyle\mbox{(And)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{(a,b)}{(A, B)}{Q}}{\opRule{(a,b)}{(A, B)}{And(P, Q)}} \\[3ex]
 
 \displaystyle\mbox{(Or1)}\frac{\opRule{(a,b)}{(A, B)}{P}}{\opRule{(a,b)}{(A, B)}{Or(P, Q)}} \\[3ex]
 

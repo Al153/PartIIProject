@@ -2,7 +2,7 @@ package remote
 import core.user.interfaces.DBBackend
 import impl.memory.MemoryDB
 import impl.{lmdb, lmdbfast}
-import remote.tests.{ExactlyTest, PathFindingTest}
+import remote.tests.{ConjunctionsAndDisjunctions, ExactlyTest, PathFindingTest, RawLookup}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -16,6 +16,8 @@ object Run {
       )
     )
 
+    tester.runTest(RawLookup)
+    tester.runTest(ConjunctionsAndDisjunctions)
     tester.runTest(ExactlyTest)
     tester.runTest(PathFindingTest)
   }

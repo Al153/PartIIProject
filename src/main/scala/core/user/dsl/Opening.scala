@@ -33,6 +33,21 @@ trait Opening {
     } yield res
   }
 
+  /**
+    * Read a value without setting the default view
+    */
+  def readDefault[A]
+    (instance: DBInstance)
+    (action: => Operation[E, A])
+  : ConstrainedFuture[E, A] = {
+    import instance.executionContext
+    for {
+      view <- instance.getDefaultView
+      pair <- action.runView(view)
+      (res, _) = pair
+    } yield res
+  }
+
 
   /**
     * Runs a read operation against an instance, discarding any new views created (they are unreachable)
