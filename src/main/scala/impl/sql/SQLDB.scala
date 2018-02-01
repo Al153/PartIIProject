@@ -3,13 +3,13 @@ package impl.sql
 import java.sql.{Connection, DriverManager}
 import java.util.Properties
 
-import core.user.interfaces._
-import core.user.containers.ConstrainedFuture
 import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
+import core.user.interfaces._
 import core.user.schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
-import scalaz._, Scalaz._
+import scalaz.Scalaz._
+import scalaz._
 
 /**
   * PostgreSQL based DB implementation
