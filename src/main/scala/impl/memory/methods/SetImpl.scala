@@ -62,53 +62,72 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
     */
 
   def findPairsSetImpl(t: UnsafeFindPair, left: Set[MemoryObject], tree: MemoryTree): MemoryEither[Set[RelatedPair]] = {
+
     def recurse(t: UnsafeFindPair, left: Set[MemoryObject]) = findPairsSetImpl(t, left, tree)
     t match {
-      case USAnd(l, r) => for {
+      case USAnd(l, r) =>
+        //println("And")
+        for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
       } yield leftRes.intersect(rightRes)
 
 
-      case USAndRight(l, r) => for {
+      case USAndRight(l, r) =>
+        //println("AndR")
+        for {
         leftRes <- recurse(l, left)
         rightRes <- findSingleSetImpl(r, tree)
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
 
-      case USAndLeft(l, r) => for {
+      case USAndLeft(l, r) =>
+        //println("AndL")
+        for {
         leftRes <- recurse(l, left)
         rightRes <- findSingleSetImpl(r, tree)
       } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
 
 
-      case USOr(l, r) => for {
+      case USOr(l, r) =>
+        //println("Or")
+        for {
         leftRes <- recurse(l, left)
         rightRes <- recurse(r, left)
       } yield leftRes.union(rightRes)
 
-      case USChain(l, r) => for {
+      case USChain(l, r) =>
+        //println("chain")
+        for {
         lres <- recurse(l, left)
         rres <- recurse(r, lres.map(_._2))
       } yield joinSet(lres, rres)
 
-      case USDistinct(r) => for {
+      case USDistinct(r) =>
+        //println("Distinct")
+        for {
         rres <- recurse(r, left)
       } yield rres.filter{case (a, b) => a != b}
 
-      case USId(_) => left.map(x => (x, x)).right
+      case USId(_) =>
+        //println("Id")
+        left.map(x => (x, x)).right
 
       case USRel(rel) =>
+        //println("Rel")
         left.map(_.getRelatedMemoryObjects(rel, tree)).flattenE
 
       case USRevRel(rel) =>
+        //println("RevRel")
         left.map(_.getRevRelatedMemoryObjects(rel, tree)).flattenE
 
       case USUpto(n, rel) =>
+       // println("Upto")
         val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
           left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
         upTo(stepFunction, left, n)
 
       case USFixedPoint(rel) =>
+       // println("Fix")
         // find a fixed point
         val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
           left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
@@ -117,6 +136,7 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
         } yield res
 
       case USExactly(n, rel) =>
+       // println("Exactly")
         val stepFunction: MemoryObject => MemoryEither[Set[MemoryObject]] =
           left => findPairsSetImpl(rel, Set(left), tree).map(_.mapProj2)
         FixedPointTraversal.exactly(stepFunction, left, n)
