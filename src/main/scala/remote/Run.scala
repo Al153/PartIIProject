@@ -23,5 +23,6 @@ object Run {
     tester.runTest(ConjunctionsAndDisjunctions)
     tester.runTest(ExactlyTest)
     tester.runTest(PathFindingTest)
+    tester.runTest(RawLookup)
   }
 }
