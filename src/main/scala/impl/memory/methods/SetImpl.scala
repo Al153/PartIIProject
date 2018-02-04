@@ -122,8 +122,8 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
 
       case USUpto(n, rel) =>
        // println("Upto")
-        val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
-          left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
+        val stepFunction: MemoryObject => MemoryEither[Set[MemoryObject]] =
+          left => findPairsSetImpl(rel, Set(left), tree).map(_.mapProj2)
         upTo(stepFunction, left, n)
 
       case USFixedPoint(rel) =>

@@ -193,7 +193,7 @@ trait SetImpl { self: Methods =>
         }).map(_.flatten)
 
       case USUpto(n, rel) =>
-        val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
+        val stepFunction: ObjId => LMDBEither[Set[ObjId]] = left => recurse(rel, Set(left)).map(_.mapProj2)
 
         FixedPointTraversal.upTo[LMDBError, ObjId](stepFunction, from, n)
 

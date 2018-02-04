@@ -80,11 +80,12 @@ object FixedPointTraversal {
     */
 
   def upTo[E, A](
-                  searchStep: Set[A] => E \/ Set[A],
+                  searchStep: A => E \/ Set[A],
                   initial: Set[A],
                   limit: Int
                 ): E \/ Set[(A, A)] = {
     // do A depth first search up to a limit
+    /*
     def fromRoot(root: A): E \/ Set[(A, A)] = {
       var count = limit
       var fringe: Set[A] = Set(root)
@@ -104,6 +105,45 @@ object FixedPointTraversal {
     (for {
       root <- initial
     } yield fromRoot(root)).flattenE
+*/
+
+
+
+
+    val memoisedStep = new mutable.HashMap[A, Set[A]]()
+    val inMemo = mutable.Set[A]()
+    var acc: Map[A, Set[A]] = initial.collectSets(a => (a, a))
+    val res = mutable.Set[(A, A)]()
+    for (a <- initial){res += (a -> a)}
+
+    var okay: E \/ Unit = ().right
+    for (i <- 1 to limit) {
+      acc = acc.mapValues {
+        fringe =>
+          val unexplored = fringe.diff(inMemo)
+          val memoised = fringe intersect inMemo
+          val rhs = mutable.Set[A]()
+          for (a <- unexplored){
+            okay = for {
+              _ <- okay
+              found <- searchStep(a)
+              _ = rhs ++= found
+              _ = memoisedStep += (a -> found)
+            } yield ()
+          }
+
+          for (a <- memoised){
+            rhs ++= memoisedStep(a)
+          }
+
+          inMemo ++= unexplored
+
+          rhs.toSet
+      }
+
+      res ++= acc.map {case (a, as) => as.map(a -> _)}.toSet.flatten
+    }
+    for (_ <- okay) yield res.toSet
   }
 
   /**

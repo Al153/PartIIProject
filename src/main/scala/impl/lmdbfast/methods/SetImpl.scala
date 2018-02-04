@@ -195,9 +195,11 @@ trait SetImpl { self: Methods =>
         }).map(_.flatten)
 
       case USUpto(n, rel) =>
-        val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
-
-        FixedPointTraversal.upTo[LMDBError, ObjId](stepFunction, from, n)
+        for {
+          fsCache <- precomputeFindSingles(rel, commits)
+          stepFunction: (ObjId => LMDBEither[Set[ObjId]]) = { left: ObjId => findFrom(left, rel, commits, fsCache) }
+          r <- FixedPointTraversal.upTo[LMDBError, ObjId](stepFunction, from, n)
+        } yield r
 
       case USFixedPoint(rel) =>
         // find a fixed point

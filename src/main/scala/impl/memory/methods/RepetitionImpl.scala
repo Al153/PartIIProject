@@ -22,7 +22,7 @@ trait RepetitionImpl { self: ExecutorMethods with Joins =>
     */
 
   protected def upTo(
-                      searchStep: Set[MemoryObject] => MemoryEither[Set[MemoryObject]],
+                      searchStep: MemoryObject => MemoryEither[Set[MemoryObject]],
                       initial: Set[MemoryObject],
                       limit: Int):  MemoryEither[Set[RelatedPair]] = FixedPointTraversal.upTo(searchStep, initial, limit)
 
