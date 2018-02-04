@@ -41,6 +41,8 @@ object Joins {
     * @return
     */
 
+  // todo: mutable builder for speed?
+
   def joinSet[A, B, C](leftRes: Set[(A, B)], rightRes: Set[(B, C)]): Set[(A, C)] = {
     // build an index of all values to join, prevents overduplication
     val collectedLeft = leftRes.foldLeft(mutable.Map[B, Set[A]]()) {

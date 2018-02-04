@@ -113,8 +113,10 @@ trait SetImpl { self: Methods =>
 
       case USFrom(start, rel) => for {
         left <- recurse(start)
-        res <- findPairSet(rel, commits, left)
-      } yield res.mapProj2
+        fsCache <- precomputeFindSingles(rel, commits)
+        res <- left.map(l => findFrom(l, rel, commits, fsCache)).flattenE
+        // res <- findPairSet(rel, commits, left)
+      } yield res
 
       case USAndS(left, right) => for {
         r1 <- recurse(left)
