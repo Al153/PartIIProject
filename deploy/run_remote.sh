@@ -1,4 +1,4 @@
 #!/bin/sh
 
 sbt compile
-sbt run remote.Run
+sbt "runMain remote.Run"
