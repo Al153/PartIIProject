@@ -72,4 +72,44 @@ object SimpleFixedPointTraversal {
       }
       okay.map(_ => acc.toSet)
   }
+
+
+  /**
+    *
+    * @param searchStep - search step to repeat upto limit times
+    * @param initial - initial set to search from
+    * @param limit - number of repetitions allowed
+    * @tparam E - Errors that may be thrown
+    * @tparam A - Search node
+    * @return
+    */
+  def exactly[E, A](
+                     searchStep: A => E \/ Set[A],
+                     initial: A,
+                     limit: Int
+                   ): E \/ Set[A] = {
+    val memoisedStep = new mutable.HashMap[A, Set[A]]()
+    val inMemo = mutable.Set[A]()
+    var acc: Set[A] = Set(initial)
+    var okay: E \/ Unit = ().right
+    for (i <- 1 to limit) {
+      acc = acc.flatMap {
+        a =>
+          if (a in inMemo) {
+            memoisedStep(a)
+          } else {
+            val rhs = mutable.Set[A]()
+            okay = for {
+              _ <- okay
+              res <- searchStep(a)
+              _ = rhs ++= res
+              _ = memoisedStep += (a -> res)
+              _ = inMemo += a
+            } yield ()
+            rhs
+          }
+      }
+    }
+    for (_ <- okay) yield acc
+  }
 }

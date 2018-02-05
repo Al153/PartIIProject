@@ -2,7 +2,7 @@ package impl.lmdbfast.methods
 
 import core.backend.intermediate.unsafe._
 import core.utils._
-import core.utils.algorithms.{FixedPointTraversal, SimpleFixedPointTraversal}
+import core.utils.algorithms.SimpleFixedPointTraversal
 import impl.lmdbfast.LMDBEither
 import impl.lmdbfast.access.{Commit, ObjId}
 import impl.lmdbfast.errors.{LMDBError, MissingCachedQuery}
@@ -82,10 +82,7 @@ trait PathFindingImpl { self: Methods =>
 
       case USExactly(n, rel) =>
         val stepFunction: (ObjId => LMDBEither[Set[ObjId]]) = {left: ObjId => findFrom(left, rel, commits, fsCache)}
-        for {
-          r <- FixedPointTraversal.exactly(stepFunction, Set(from), n)
-        }  yield  r.mapProj2
-
+        SimpleFixedPointTraversal.exactly(stepFunction, from, n)
     }
   }
 
