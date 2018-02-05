@@ -84,32 +84,6 @@ object FixedPointTraversal {
                   initial: Set[A],
                   limit: Int
                 ): E \/ Set[(A, A)] = {
-    // do A depth first search up to a limit
-    /*
-    def fromRoot(root: A): E \/ Set[(A, A)] = {
-      var count = limit
-      var fringe: Set[A] = Set(root)
-      var acc: Set[A] = Set(root)
-      var okay: E \/ Unit = ().right
-      while (count > 0 && okay.isRight) {
-        count = count - 1
-        okay = for {
-          found <- searchStep(fringe)
-          _ = fringe = found.diff(acc) // all those that haven't yet been found
-          _ = acc = acc.union(fringe)
-        } yield ()
-      }
-      okay.map(_ => acc.map((root, _)))
-    }
-
-    (for {
-      root <- initial
-    } yield fromRoot(root)).flattenE
-*/
-
-
-
-
     val memoisedStep = new mutable.HashMap[A, Set[A]]()
     val inMemo = mutable.Set[A]()
     var acc: Map[A, Set[A]] = initial.collectSets(a => (a, a))
