@@ -5,10 +5,10 @@ import core.user.containers.ConstrainedFuture
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
-import remote.{TestIndex, TestName, TestSpec}
+import construction.imdb.{DBBuilder, IMDBSchema}
+import remote.util.{TestIndex, TestName, TestSpec}
 import TestIndex._
 import TestName._
-import construction.imdb.{DBBuilder, IMDBSchema}
 
 import scala.concurrent.ExecutionContext
 

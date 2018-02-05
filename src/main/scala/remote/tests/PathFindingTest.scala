@@ -6,10 +6,11 @@ import core.user.containers.{ConstrainedFuture, Path}
 import core.user.dsl.{E, allShortestPaths, usingView, writeToView}
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
-import remote.TestIndex._
-import remote.TestName._
-import remote.{TestIndex, TestName, TestSpec}
-
+import remote.util.{TestIndex, TestName, TestSpec}
+import remote.util.TestIndex._
+import remote.util.TestName._
+import TestIndex._
+import TestName._
 import scala.concurrent.ExecutionContext
 
 /**

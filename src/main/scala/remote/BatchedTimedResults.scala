@@ -1,5 +1,7 @@
 package remote
 
+import remote.util.{TestName, TimeResult}
+
 case class BatchedTimedResults[A](tas: Seq[TimeResult[A]]) {
   def testName: TestName = tas.headOption.fold(TestName("NoTests")){ta => ta.instance.testName}
   def backend: String = tas.headOption.fold("NoTests"){ ta => ta.instance.testBackend}

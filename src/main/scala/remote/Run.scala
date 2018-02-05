@@ -4,6 +4,7 @@ import impl.memory.MemoryDB
 import impl.sql.SQLDB
 import impl.{lmdb, lmdbfast}
 import remote.tests._
+import remote.util.RemoteTester
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

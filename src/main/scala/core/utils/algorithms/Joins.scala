@@ -45,10 +45,10 @@ object Joins {
 
   def joinSet[A, B, C](leftRes: Set[(A, B)], rightRes: Set[(B, C)]): Set[(A, C)] = {
     // build an index of all values to join, prevents overduplication
-    val collectedLeft = leftRes.foldLeft(mutable.Map[B, Set[A]]()) {
+    val collectedLeft = leftRes.foldLeft(mutable.Map[B, mutable.Builder[A, Set[A]]]()) {
       case (m, pair) =>
-        m + (pair._2 -> (m.getOrElse(pair._2, Set[A]()) ++ Set(pair._1)))
-    }
+        m + (pair._2 -> (m.getOrElse(pair._2, Set.newBuilder[A]) += pair._1))
+    }.mapValues(_.result())
 
     for {
       (middle, to) <- rightRes

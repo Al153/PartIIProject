@@ -1,11 +1,11 @@
-package remote
+package remote.util
 
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, Empty}
 import core.user.interfaces.{DBBackend, DBInstance}
-import core.user.schema.SchemaDescription
 import core.utils.EitherOps
 import org.slf4j.Logger
+import remote.{BatchedTimedResults, errorThrowable, ns}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}

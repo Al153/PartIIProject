@@ -1,4 +1,4 @@
-package remote
+package remote.util
 
 case class TestName(name: String) extends AnyVal
 object TestName {

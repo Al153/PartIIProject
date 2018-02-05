@@ -1,4 +1,4 @@
-package remote
+package remote.util
 
 case class TestInstance(testName: TestName, testBackend: String, testIndex: TestIndex) {
   override def toString: String = s"impl: $testBackend, test:${testName.name}, index:${testIndex.i}"

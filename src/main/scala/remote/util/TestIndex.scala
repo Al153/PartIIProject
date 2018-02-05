@@ -1,4 +1,4 @@
-package remote
+package remote.util
 
 case class TestIndex(i: Int) extends AnyVal
 object TestIndex {

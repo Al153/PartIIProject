@@ -4,12 +4,12 @@ import construction.ufc.UFCSchema.{Beat, LighterThan, Person, ShorterThan}
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.E
 import core.user.interfaces.DBInstance
-import core.user.schema.SchemaDescription
-import remote.{TestIndex, TestName, TestSpec}
-import TestName._
-import TestIndex._
 import core.user.dsl._
 import construction.ufc.{DBBuilder, UFCSchema}
+import remote.util.{TestIndex, TestName, TestSpec}
+import TestIndex._
+import TestName._
+import core.user.schema.SchemaDescription
 
 import scala.concurrent.ExecutionContext
 

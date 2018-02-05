@@ -6,9 +6,9 @@ import core.user.containers.ConstrainedFuture
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
-import remote.TestIndex._
-import remote.{TestIndex, TestName, TestSpec}
-import TestName._
+import remote.util.TestIndex._
+import remote.util.{TestIndex, TestSpec}
+import remote.util.TestName._
 
 import scala.concurrent.ExecutionContext
 

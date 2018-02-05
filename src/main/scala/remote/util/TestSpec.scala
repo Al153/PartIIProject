@@ -1,4 +1,4 @@
-package remote
+package remote.util
 
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.E
