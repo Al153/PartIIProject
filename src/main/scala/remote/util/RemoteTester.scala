@@ -35,7 +35,7 @@ class RemoteTester(
         ConstrainedFuture.point(logError(e))(CaughtError.apply)},
       {case (ref, i) => runBatches(testSpec, ref, i)}
     )
-    Await.result(runningTests.run, (60*60*24).seconds) match {
+    Await.result(runningTests.run, (60*60*24*365).seconds) match {
       case \/-(()) => logger.info("[Done]")
       case -\/(e) => errorThrowable(e)
     }
