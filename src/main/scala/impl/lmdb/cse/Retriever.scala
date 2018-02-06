@@ -290,7 +290,7 @@ object CachedRetriever {
     }
 }
 
-class QueryMemo(pairs: Map[UnsafeFindPair, RelationRetriever], singles: Map[UnsafeFindSingle, SingleRetriever]) {
+class QueryMemo(val pairs: Map[UnsafeFindPair, RelationRetriever], val singles: Map[UnsafeFindSingle, SingleRetriever]) {
   def get(q: UnsafeFindPair, fallback: => (QueryMemo, RelationRetriever)): (QueryMemo, RelationRetriever) =
     if (q in pairs) (this, pairs(q))
     else {

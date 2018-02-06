@@ -13,7 +13,7 @@ trait RepetitionImpl { self: ExecutorMethods with Joins =>
 
   protected def fixedPoint(
                             searchStep: Set[MemoryObject] => MemoryEither[Set[MemoryObject]],
-                            initial: Set[RelatedPair]
+                            initial: Set[MemoryObject]
                           ): MemoryEither[Set[RelatedPair]] =
     FixedPointTraversal.fixedPoint(searchStep, initial)
 

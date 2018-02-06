@@ -130,7 +130,7 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
         val stepFunction: Set[MemoryObject] => MemoryEither[Set[MemoryObject]] =
           left => findPairsSetImpl(rel, left, tree).map(_.mapProj2)
         for {
-          res <- fixedPoint(stepFunction, left.map(x => (x, x)))
+          res <- fixedPoint(stepFunction, left)
         } yield res
 
       case USExactly(n, rel) =>
