@@ -80,12 +80,10 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
         rightRes <- findSingleSetImpl(r, tree)
       } yield leftRes.filter{case (a, b) => rightRes.contains(b)}
 
-      case USAndLeft(l, r) =>
-        //println("AndL")
-        for {
-        leftRes <- recurse(l, left)
-        rightRes <- findSingleSetImpl(r, tree)
-      } yield leftRes.filter{case (a, b) => rightRes.contains(a)}
+      case USAndLeft(p, s) => for {
+        rightRes <- findSingleSetImpl(s, tree)
+        pairRes <- recurse(p, rightRes intersect left)
+      } yield pairRes
 
 
       case USOr(l, r) =>

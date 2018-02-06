@@ -22,7 +22,7 @@ object FixedPointTraversal {
     * @tparam A
     * @return
     */
-  def fixedPoint[E, A](searchStep: Set[A] => E \/ Set[A], initial: Set[(A, A)]): E \/ Set[(A, A)] = {
+  def fixedPoint[E, A](searchStep: Set[A] => E \/ Set[A], initial: Set[A]): E \/ Set[(A, A)] = {
     // Memo is threaded through by the combinator
     /**
       * Find all nodes reachable from the root
@@ -56,7 +56,7 @@ object FixedPointTraversal {
     }
 
     // get all pairs
-    val allPairs = initial.mapProj2.foldRight(Map[A, Set[A]]().right[E])(combinator)
+    val allPairs = initial.foldRight(Map[A, Set[A]]().right[E])(combinator)
 
     // joins onto the initial input
     for {
@@ -165,7 +165,7 @@ object FixedPointTraversal {
     for (_ <- okay) yield acc.map {case (a, as) => as.map(a -> _)}.toSet.flatten
  }
 
-  private def doJoin[A](left: Set[(A, A)], right: Map[A, Set[A]]): Set[(A, A)] = {
-    left.flatMap { case (from, middle) => right.getOrElse(middle, Set()).map((from, _))}
+  private def doJoin[A](left: Set[A], right: Map[A, Set[A]]): Set[(A, A)] = {
+    left.flatMap(from => right.getOrElse(from, Set()).map((from, _)))
   }
 }

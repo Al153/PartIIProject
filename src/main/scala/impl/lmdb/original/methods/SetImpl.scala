@@ -151,15 +151,15 @@ trait SetImpl { self: Methods =>
         b <- recurse(r, from)
       } yield a intersect b
 
-      case USAndRight(l, r) => for {
-        leftRes <- recurse(l, from)
-        rightRes <- findSingleSet(r, commits)
+      case USAndRight(p, s) => for {
+        leftRes <- recurse(p, from)
+        rightRes <- findSingleSet(s, commits)
       } yield leftRes.filter{case (_, b) => rightRes.contains(b)}
 
-      case USAndLeft(l, r) => for {
-        leftRes <- recurse(l, from)
-        rightRes <- findSingleSet(r, commits)
-      } yield leftRes.filter{case (a, _) => rightRes.contains(a)}
+      case USAndLeft(p, s) => for {
+        rightRes <- findSingleSet(s, commits)
+        pairRes <- recurse(p, rightRes intersect from)
+      } yield pairRes
 
 
       case USOr(l, r) => for {
@@ -202,7 +202,7 @@ trait SetImpl { self: Methods =>
       case USFixedPoint(rel) =>
         // find a fixed point
         val stepFunction: Set[ObjId] => LMDBEither[Set[ObjId]] = left => recurse(rel, left).map(_.mapProj2)
-        FixedPointTraversal.fixedPoint(stepFunction, from.mapPair)
+        FixedPointTraversal.fixedPoint(stepFunction, from)
 
       case USExactly(n, rel) =>
         val stepFunction: ObjId => LMDBEither[Set[ObjId]] =

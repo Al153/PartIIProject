@@ -14,6 +14,9 @@ import scalaz._, Scalaz._
 package object utils extends BigSetOps {
   implicit class SetOps[A](u: Set[A]) {
      def mapPair: Set[(A, A)] = u.map(x => (x, x))
+
+    def flatMapE[E, B](f: A => E \/ Set[B]): E \/ Set[B] =
+      u.map(f).flattenE
   }
 
   implicit class SetOps2[E, A](u: Set[E \/ Set[A]]) {
@@ -133,6 +136,13 @@ package object utils extends BigSetOps {
 
   implicit class EitherOps2[E, A, B](u:  E \/ TraversableOnce[(A, B)]) {
     def toMapE: E \/ Map[A, B] = u.map(_.toMap)
+  }
+
+  implicit class EitherOps3[E, A](u: E \/ Set[A]){
+    def flatMapS[B](f: A => E \/ Set[B]): E \/ Set[B] =
+      u.flatMap(_.flatMapE(f))
+
+    def mapS[B](f: A => B): E \/ Set[B] = u.map(_.map(f))
   }
 
   implicit class StringifyOps(u: Any) {
