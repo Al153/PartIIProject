@@ -12,7 +12,6 @@ trait Methods extends FindAll
   with Write
   with PathFinding
   with SetImpl
-  with PathFindingImpl
-  with Optimisations {
+  with RetrieverMethods {
     implicit val instance: LMDBInstance
 }

@@ -53,11 +53,8 @@ trait PathFinding { self: Methods =>
         // get an unsafe equivalent of the query
         query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
-        // cache find singles
-        fsCache <- precomputeFindSingles(query, commits)
-
         // set up the search step function
-        searchStep = findFrom(_: ObjId, query, commits, fsCache)
+        searchStep = getFrom(query, commits)
 
         // run a generic pathfinding algorithm
         optionalPath <- target.fold(LMDBEither[Option[Vector[ObjId]]](None)) {
@@ -102,11 +99,8 @@ trait PathFinding { self: Methods =>
         // get the type erased version of the query
         query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
-        // cache find singles
-        fsCache <- precomputeFindSingles(query, commits)
-
         // set up the search step function
-        searchStep = findFrom(_: ObjId, query, commits, fsCache)
+        searchStep = getFrom(query, commits)
 
         // find the paths
         paths <- algorithms.PathFinding.allShortestPathsImpl(initialSet, searchStep)

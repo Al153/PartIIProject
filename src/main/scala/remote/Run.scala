@@ -1,6 +1,6 @@
 package remote
 import core.user.interfaces.DBBackend
-import impl.lmdb.fast.LMDB
+import impl.lmdb._
 import impl.memory.MemoryDB
 import impl.sql.SQLDB
 import remote.tests._
@@ -12,11 +12,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
-      MemoryDB,
+      // MemoryDB,
+      SQLDB,
       Vector[(String, DBBackend)](
-        "SQL" -> SQLDB,
-        "LMDB" -> original.LMDB,
-        "LMDBFast" -> LMDB
+    //    "SQL" -> SQLDB,
+    //    "LMDB" -> original.LMDB,
+        "LMDBCSE" -> cse.LMDB,
+        "LMDBFast" -> fast.LMDB
       )
     )
 
