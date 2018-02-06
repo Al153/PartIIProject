@@ -1,10 +1,11 @@
 package remote
 import core.user.interfaces.DBBackend
+import impl.lmdb.fast.LMDB
 import impl.memory.MemoryDB
 import impl.sql.SQLDB
-import impl.{lmdb, lmdbfast}
 import remote.tests._
 import remote.util.RemoteTester
+import impl.lmdb.original
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -14,8 +15,8 @@ object Run {
       MemoryDB,
       Vector[(String, DBBackend)](
         "SQL" -> SQLDB,
-        "LMDB" -> lmdb.LMDB,
-        "LMDBFast" -> lmdbfast.LMDB
+        "LMDB" -> original.LMDB,
+        "LMDBFast" -> LMDB
       )
     )
 

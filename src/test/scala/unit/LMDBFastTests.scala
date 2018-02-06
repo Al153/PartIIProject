@@ -1,7 +1,7 @@
 package unit
 
 import core.user.interfaces.DBBackend
-import impl.lmdbfast.LMDB
+import impl.lmdb.fast.LMDB
 import unit.suites.FullSuite
 
 import scala.concurrent.ExecutionContext

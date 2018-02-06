@@ -7,7 +7,7 @@ import core.user.containers.Operation
 import core.user.dsl.{CompletedRelation, DBDir, E, insert, using}
 import core.user.interfaces.DBInstance
 import core.utils._
-import impl.lmdbfast.LMDB
+import impl.lmdb.fast.LMDB
 import spray.json.{JsArray, JsObject, JsString, _}
 
 import scala.concurrent.Await

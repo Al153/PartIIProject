@@ -7,7 +7,7 @@ import core.user.containers.{Operation, Path}
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.utils._
-import impl.lmdbfast.LMDB
+import impl.lmdb.fast.LMDB
 import impl.memory.MemoryDB
 import impl.sql.SQLDB
 

@@ -1,6 +1,6 @@
 package impl.memory.errors
 
-import impl.lmdb.errors.LMDBError
+import impl.lmdb.common.errors.LMDBError
 
 /**
   * Created by Al on 04/01/2018.
