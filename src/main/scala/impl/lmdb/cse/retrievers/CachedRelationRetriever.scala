@@ -28,8 +28,6 @@ class CachedRelationRetriever(
     }
     for {
       r1 <- newResults
-      _ = println("New results: " + r1)
-      _ = println("Old results: " + cachedResults)
     } yield r1 ++ cachedResults
   }
 

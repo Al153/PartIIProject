@@ -8,7 +8,6 @@ import core.utils._
 class QueryMemo(val pairs: Map[UnsafeFindPair, RelationRetriever], val singles: Map[UnsafeFindSingle, SingleRetriever]) {
   def get(q: UnsafeFindPair, fallback: => (QueryMemo, RelationRetriever)): (QueryMemo, RelationRetriever) =
     {
-      println("q = " + q)
       if (q in pairs) {
         println("Eliminated common subexpressions")
         (this, pairs(q))

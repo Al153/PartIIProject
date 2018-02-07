@@ -1,20 +1,12 @@
 package remote
-import core.backend.intermediate.FindSingle
-import core.user.containers.ConstrainedFuture
-import core.user.dsl.FindPairAble
-import core.user.interfaces.{DBBackend, DBInstance}
-import core.user.schema.SchemaObject
-import core.user.dsl._
+import core.user.interfaces.DBBackend
 import impl.lmdb._
-import impl.memory.MemoryDB
 import impl.sql.SQLDB
 import remote.tests._
 import remote.util.RemoteTester
-import impl.lmdb.original
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.higherKinds
-import scalaz.Monad
 
 object Run {
   def main(args: Array[String]): Unit = {
@@ -37,4 +29,9 @@ object Run {
     tester.runTest(PathFindingTest)
     tester.runTest(RawLookup)
   }
+
+  val a = new Array[Int](5)
+
+  a(3) = 2
+  println(a(3) )
 }
