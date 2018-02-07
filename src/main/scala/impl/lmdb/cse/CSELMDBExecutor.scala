@@ -1,7 +1,7 @@
 package impl.lmdb.cse
 
 import impl.lmdb.common.interfaces.{LMDBExecutor, LMDBInstance}
-import impl.lmdb.fast.methods.Methods
+import impl.lmdb.cse.methods.Methods
 
 /**
   * Created by Al on 12/12/2017.

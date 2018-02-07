@@ -12,6 +12,8 @@ class RevRelRetriever(r: ErasedRelationAttributes, commits: List[Commit])(implic
     objIds.flatMapE {
       leftObject => for {
         related <- instance.controlTables.reverseRelations.followRelation(leftObject, commits, r.name)
+        _ = println("Reverse rel left object = " + leftObject)
+        _ = println("Reverse rel = " + related)
       } yield related.map((leftObject, _))
     },
   objId => instance.controlTables.reverseRelations.followRelation(objId, commits, r.name)

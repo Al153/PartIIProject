@@ -15,10 +15,9 @@ class CachedRelationRetriever(
                              ) extends RelationRetriever {
 
   private val memo = new mutable.HashMap[ObjId, Set[ObjId]]()
-  private val inMemo = new mutable.HashSet[ObjId]()
   override def find(from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]] = {
-    val alreadyFound = from intersect inMemo
-    val needToBeFound = from diff inMemo
+    val alreadyFound = from intersect memo.keySet
+    val needToBeFound = from diff memo.keySet
     val newResults = lookup(needToBeFound)
     val cachedResults = alreadyFound.flatMap(o => memo(o).map(o -> _))
 
@@ -26,18 +25,19 @@ class CachedRelationRetriever(
       correctResults =>
         val resDict = correctResults.collectSets(identity)
         memo ++= resDict
-        inMemo ++= resDict.keySet
     }
     for {
       r1 <- newResults
+      _ = println("New results: " + r1)
+      _ = println("Old results: " + cachedResults)
     } yield r1 ++ cachedResults
   }
+
   override def findRight(from: ObjId): LMDBEither[Set[ObjId]] =
     if (from in memo) LMDBEither(memo(from))
     else {
       for {
         res <- simpleLookup(from)
-        _ = inMemo += from
         _ = memo += from -> res
       } yield res
     }

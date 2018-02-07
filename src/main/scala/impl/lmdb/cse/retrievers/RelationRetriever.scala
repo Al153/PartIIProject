@@ -23,7 +23,7 @@ trait RelationRetriever {
     objIds =>
       for {
         ls <- outer.find(objIds)
-        rs <- that.find(objIds)
+        rs <- that.find(ls.mapProj2)
       } yield Joins.joinSet(ls, rs),
     outer.findRight(_).flatMapS(that.findRight)
   )
@@ -55,6 +55,7 @@ trait RelationRetriever {
     objIds => for {
       rres <- outer.find(objIds)
     } yield rres.filter{case (a, b) => a != b},
+
     objId => for {
       res <- outer.findRight(objId)
     } yield res - objId

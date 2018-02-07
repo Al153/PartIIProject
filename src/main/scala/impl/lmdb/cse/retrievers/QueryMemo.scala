@@ -7,16 +7,27 @@ import core.utils._
   */
 class QueryMemo(val pairs: Map[UnsafeFindPair, RelationRetriever], val singles: Map[UnsafeFindSingle, SingleRetriever]) {
   def get(q: UnsafeFindPair, fallback: => (QueryMemo, RelationRetriever)): (QueryMemo, RelationRetriever) =
-    if (q in pairs) (this, pairs(q))
-    else {
-      val (resMemo, r) = fallback
-      val newMemo = new QueryMemo(this.pairs ++ resMemo.pairs + (q -> r), this.singles ++ resMemo.singles)
-      (newMemo, r)
+    {
+      println("q = " + q)
+      if (q in pairs) {
+        println("Eliminated common subexpressions")
+        (this, pairs(q))
+      }
+      else {
+        println("Creating new subexpression")
+        val (resMemo, r) = fallback
+        val newMemo = new QueryMemo(this.pairs ++ resMemo.pairs + (q -> r), this.singles ++ resMemo.singles)
+        (newMemo, r)
+      }
     }
 
   def get(q: UnsafeFindSingle, fallback: => (QueryMemo, SingleRetriever)): (QueryMemo, SingleRetriever) = {
-    if (q in singles) (this, singles(q))
+    if (q in singles) {
+      println("Eliminated subexpression")
+      (this, singles(q))
+    }
     else {
+      println("Creating new subexpression")
       val (resMemo, r) = fallback
       val newMemo = new QueryMemo(this.pairs ++ resMemo.pairs, this.singles ++ resMemo.singles + (q -> r))
       (newMemo, r)

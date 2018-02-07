@@ -397,7 +397,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 
 \begin{equation} \label{case Chain(P', Q)}
 \begin{split}
-\denoRule{(a, c)}{P} & \Leftrightarrow (a, c) \in join(\deno{P'}, deno{Q})\\
+\denoRule{(a, c)}{P} & \Leftrightarrow (a, c) \in join(\deno{P'}, \deno{Q})\\
 					& \Leftrightarrow \exists b \in B. \indent \denoRule{(a,b)}{P'} \wedge \denoRule{(b, c)}{Q}\\
 					&\Leftrightarrow \exists b \in B. \indent \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{(b, c)}{(B, C)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{B}{C}$} \\
 				& \Leftrightarrow \opRule{(a, c)}{(A, C)}{Chain(P', Q)} \mbox{ by definition}\\
@@ -407,7 +407,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 \paragraph{Case $P = And(P', Q)$}
 \begin{equation} \label{case And(P', Q)}
 \begin{split}
-\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cap deno{Q})\\
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cap \deno{Q})\\
 					& \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{(a, b)}{Q}\\
 					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{(a,b)}{(A, B)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{A}{B}$} \\
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{And(P', Q)} \mbox{ by inversion of (And)}\\
@@ -417,7 +417,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 \paragraph{Case $P = Or(P', Q)$}
 \begin{equation} \label{case Or(P', Q)}
 \begin{split}
-\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cup deno{Q})\\
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cup \deno{Q})\\
 					& \Leftrightarrow \denoRule{(a, b)}{P'} \vee \denoRule{(a, b)}{Q}\\
 					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \vee \opRule{(a,b)}{(A, B)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{A}{B}$} \\
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Or(P', Q)} \mbox{ by inversion of (Or1), (Or2)}\\\end{split}
