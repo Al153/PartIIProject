@@ -13,7 +13,7 @@ import scalaz.Scalaz._
 /**
   * Implements lookup queries for Set commands
   */
-trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
+trait SetImpl { self: ExecutorMethods with RepetitionImpl =>
   /**
     * Find an A in the tree
     */
@@ -98,7 +98,7 @@ trait SetImpl { self: ExecutorMethods with Joins with RepetitionImpl =>
         for {
         lres <- recurse(l, left)
         rres <- recurse(r, lres.map(_._2))
-      } yield joinSet(lres, rres)
+      } yield algorithms.Joins.joinSet(lres, rres)
 
       case USDistinct(r) =>
         //println("Distinct")

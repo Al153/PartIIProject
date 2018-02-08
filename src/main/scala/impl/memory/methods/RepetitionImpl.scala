@@ -6,7 +6,7 @@ import impl.memory.{MemoryEither, MemoryObject, RelatedPair}
 /**
   * Helper methods for dealing with queries with repetition. Just defer to generic equivalent functions
   */
-trait RepetitionImpl { self: ExecutorMethods with Joins =>
+trait RepetitionImpl { self: ExecutorMethods =>
   /**
     *   Find the fixed point of the search step function
     */

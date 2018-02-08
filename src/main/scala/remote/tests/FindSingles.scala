@@ -33,7 +33,7 @@ object FindSingles extends TestSpec[Set[(Person, Person)]] {
     {
       implicit val inst = d
       readDefault(inst) {
-        findPairs(((ActsIn -->> (KevinBacon >> ActsIn)) --><-- ActsIn).*(0 --> index.i))
+        findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> index.i))
       }
     }
 
