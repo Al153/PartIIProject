@@ -1,9 +1,15 @@
 package unit.suites.individual
 
+import core.user.containers.Operation
 import core.user.dsl._
+import core.user.interfaces.DBInstance
+import core.user.schema.SchemaObject
 import org.junit.Test
+import core.utils._
 import unit.Objects._
-import unit.{Knows, Owns, assertEqOp}
+import unit.{Knows, Owns, Person, assertEqOp}
+
+import scala.concurrent.ExecutionContext
 
 trait Transitive { self: HasBackend =>
   /**
@@ -93,4 +99,56 @@ trait Transitive { self: HasBackend =>
         } yield ()
     }
   }
+
+  /**
+    * Check that more complex transitive queries work (including those with lots of redundancy)
+    */
+
+  @Test
+  def RepeatedTransitive(): Unit = runTest { implicit instance =>
+    val expectedPairs = bigUnion(Seq(
+      Set(Charlie, Eve, Fred, Georgie, Hannah, Ian).map(Alice -> _),
+      Set(Hannah, Fred, Ian).map(Bob -> _),
+      Set(Charlie -> Ian),
+      Set(Fred, Hannah, Ian).map(David -> _),
+      Set(Georgie -> Ian),
+      Set(Eve -> Ian)
+    ))
+
+    using(instance) {
+      for {
+        _ <- setupPath
+        secondOrderKnows = (Knows -->--> Knows) | Knows
+        res1 <- findPairs(secondOrderKnows -->--> secondOrderKnows)
+        res2 <- findPairs(secondOrderKnows -->--> secondOrderKnows)
+        _ <- assertEqOp(expectedPairs, res1, s"Simple transitive failure (all), diff = ${res1.diff(expectedPairs)}")
+        _ <- assertEqOp(expectedPairs, res2, "Simple transitive failure (distinct)")
+      } yield ()
+    }
+  }
+
+  /**
+    *
+    * Set up a grid:
+    *
+    *  A -> B -> C
+    *  |    |    |
+    * \/   \/   \/
+    *  D -> E -> F
+    *  |    |    |
+    * \/   \/   \/
+    *  G -> H -> I
+    *
+    *
+    */
+
+  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] =
+    insert(
+      CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
+      CompletedRelation(Alice, Knows, David), CompletedRelation(David, Knows, Eve),
+      CompletedRelation(Bob, Knows, Eve), CompletedRelation(Eve, Knows, Fred),
+      CompletedRelation(Charlie, Knows, Fred), CompletedRelation(David, Knows, Georgie),
+      CompletedRelation(Georgie, Knows, Hannah), CompletedRelation(Eve, Knows, Hannah),
+      CompletedRelation(Hannah, Knows, Ian), CompletedRelation(Fred, Knows, Ian)
+    )
 }

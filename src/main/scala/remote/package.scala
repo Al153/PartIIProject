@@ -1,11 +1,11 @@
 import core.user.dsl.E
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 /**
   * Created by Al on 28/01/2018.
   */
 package object remote {
-  implicit val logger = LoggerFactory.getLogger(classOf[remote])
+  implicit val logger: Logger = LoggerFactory.getLogger(classOf[remote])
   val formatter = java.text.NumberFormat.getIntegerInstance
   /**
     * Returns \bot but has any type

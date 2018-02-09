@@ -1,6 +1,7 @@
 package impl.lmdb.cse.retrievers
 
 import impl.lmdb.common.LMDBEither
+import impl.lmdb.cse._
 import impl.lmdb.common.access.ObjId
 
 import scala.collection.mutable
@@ -20,6 +21,8 @@ class CachedRelationRetriever(
     val needToBeFound = from diff memo.keySet
     val newResults = lookup(needToBeFound)
     val cachedResults = alreadyFound.flatMap(o => memo(o).map(o -> _))
+
+    logger.info(s"Arg size: ${from.size}; memo'd ${alreadyFound.size}; eval-ing: ${needToBeFound.size}")
 
     newResults.foreach{
       correctResults =>
