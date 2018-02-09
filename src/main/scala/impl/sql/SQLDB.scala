@@ -33,7 +33,7 @@ object SQLDB extends DBBackend {
       _ <- if (address.isInstanceOf[Empty.type]) instance.freshen() else ().right
       _ <- instance.validateTables()
     } yield instance: DBInstance
-  } catch {case e: Throwable => errors.recoverSQLException(e).left}
+  } catch {case e: Throwable => errors.SQLRecovery.recover(e).left}
 
 
 

@@ -5,8 +5,14 @@ package core.user.dsl
   *
   * Error trait
   */
-trait E {
+trait E
 
+object E {
+  implicit object ERecovery extends HasRecovery[E] {
+    override def recover(t: Throwable): E = new E {
+      override def toString: String = "Caught exception: " + t.getMessage
+    }
+  }
 }
 
 

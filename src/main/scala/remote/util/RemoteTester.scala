@@ -2,6 +2,7 @@ package remote.util
 
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, Empty}
+import E._
 import core.user.interfaces.{DBBackend, DBInstance}
 import core.utils.EitherOps
 import org.slf4j.Logger
@@ -32,7 +33,7 @@ class RemoteTester(
     } yield (ref, instances)).fold(
       {e =>
         logger.info("Error thrown " + e)
-        ConstrainedFuture.point(logError(e))(CaughtError.apply)},
+        ConstrainedFuture.point(logError(e))},
       {case (ref, i) => runBatches(testSpec, ref, i)}
     )
     Await.result(runningTests.run, (60*60*24*365).seconds) match {
@@ -60,13 +61,12 @@ class RemoteTester(
       _ <- sequence(toTest) {
         case (name, instance) =>
           logger.info(s"[Starting test for $name] ")
-          for {
+          (for {
             _ <- doSetup(spec.setup, instance, name)
             _ = logger.info(s"[Done setup for $name] ")
             _ <- runTestBatch(spec, instance, name, refValues)
             _ = logger.info(s"[Run test for $name] ")
-
-          } yield ()
+          } yield ()).recover(_ => ())
       }
     } yield ()
   }
@@ -131,7 +131,7 @@ class RemoteTester(
   }
 
   private def sequence[A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[E, B]): ConstrainedFuture[E, Map[A, B]] =
-    in.foldLeft(ConstrainedFuture.point(Map.empty[A, B])(CaughtError(_): E)){
+    in.foldLeft(ConstrainedFuture.point(Map.empty[A, B])){
       case (or, a) =>
         for {
           r <- or
@@ -149,7 +149,6 @@ class RemoteTester(
 
 }
 
-case class CaughtError(e: Throwable) extends E
 
 
 

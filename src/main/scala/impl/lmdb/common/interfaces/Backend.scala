@@ -37,7 +37,7 @@ trait Backend extends DBBackend {
       for {
         _ <- instance.initialise()
       } yield instance
-    } catch {case e: Throwable => common.errors.recoverLMDBException(e).left}
+    } catch {case e: Throwable => common.errors.LMDBRecover.recover(e).left}
 
   /**
     * Counts number of tables needed

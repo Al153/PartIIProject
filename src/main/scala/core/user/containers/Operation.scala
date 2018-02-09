@@ -1,6 +1,6 @@
 package core.user.containers
 
-import core.user.dsl.View
+import core.user.dsl.{HasRecovery, View}
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.language.reflectiveCalls
@@ -49,14 +49,14 @@ object Operation {
   /**
    * Scalaz Monad instance for Operations
    */
-  implicit def OperationInterface[E](implicit ec: ExecutionContext, recover: Throwable => E) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
-    def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(recover))
+  implicit def OperationInterface[E](implicit ec: ExecutionContext, recover: Throwable => E, R: HasRecovery[E]) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
+    def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future))
     def bind[A, B](fa: Operation[E, A])(f: (A) => Operation[E, B]): Operation[E, B] = fa.flatMap(f)
   }
 
   /**
     * Standard point method
     */
-  def point[E, A](a: A, recover: Throwable => E)(implicit ec: ExecutionContext): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future)(recover))
+  def point[E, A](a: A, recover: Throwable => E)(implicit ec: ExecutionContext, R: HasRecovery[E]): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future))
 
 }

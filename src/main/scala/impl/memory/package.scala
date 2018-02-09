@@ -45,12 +45,12 @@ package object memory extends {
   type MemoryFuture[A] = ConstrainedFuture[MemoryError, A]
   type MemoryEither[A] = MemoryError \/ A
 
-  def MemoryFutureE[A](ea: MemoryEither[A])(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.either(ea)(errors.recoverMemoryException)
-  def MemoryFuture[A](a: => A)(implicit ec: ExecutionContext): MemoryFuture[A] =  ConstrainedFuture.point(a)(errors.recoverMemoryException)
-  def MemoryFutureI[A](a: => A)(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.future(Promise.successful(a.right).future)(errors.recoverMemoryException)
-  def MemoryFutureER[A](ea: MemoryEither[A])(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.future(Promise.successful(ea).future)(errors.recoverMemoryException)
-  def MemoryEither[A](a: => A): MemoryEither[A] = try { a.right} catch {case e: Throwable => errors.recoverMemoryException(e).left}
-  def SafeEither[A](ea: => MemoryEither[A]): MemoryEither[A] = try {ea} catch {case e: Throwable => errors.recoverMemoryException(e).left}
+  def MemoryFutureE[A](ea: MemoryEither[A])(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.either(ea)
+  def MemoryFuture[A](a: => A)(implicit ec: ExecutionContext): MemoryFuture[A] =  ConstrainedFuture.point(a)
+  def MemoryFutureI[A](a: => A)(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.future(Promise.successful(a.right).future)
+  def MemoryFutureER[A](ea: MemoryEither[A])(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.future(Promise.successful(ea).future)
+  def MemoryEither[A](a: => A): MemoryEither[A] = try { a.right} catch {case e: Throwable => errors.MemoryRecovery.recover(e).left}
+  def SafeEither[A](ea: => MemoryEither[A]): MemoryEither[A] = try {ea} catch {case e: Throwable => errors.MemoryRecovery.recover(e).left}
 
   def asE(s: MemoryError): E = s
   def asEither[A](sQLEither: MemoryEither[A]): E \/ A = sQLEither.leftMap(asE)

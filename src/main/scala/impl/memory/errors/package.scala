@@ -1,5 +1,7 @@
 package impl.memory
 
+import core.user.dsl.HasRecovery
+
 /**
   * Created by Al on 04/01/2018.
   *
@@ -10,5 +12,8 @@ package object errors {
     * Recovers exceptions
     * @return
     */
-  def recoverMemoryException(e: Throwable): MemoryError = CaughtMemoryException(e)
+
+  implicit object MemoryRecovery extends HasRecovery[MemoryError] {
+    override def recover(t: Throwable): MemoryError = CaughtMemoryException(t)
+  }
 }

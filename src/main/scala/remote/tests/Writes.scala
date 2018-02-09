@@ -19,11 +19,8 @@ object Writes extends TestSpec[Unit]{
 
   override def batchSize: TestIndex = 7.tests
 
-  override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] = ConstrainedFuture.point(()) {
-    e: Throwable => new E {
-      override def toString: String = e.getMessage
-    }
-  }
+  override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+    ConstrainedFuture.point(())
 
 
   override def test(d: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] = {

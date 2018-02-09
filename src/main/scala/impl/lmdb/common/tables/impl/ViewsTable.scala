@@ -18,7 +18,6 @@ import org.lmdbjava.DbiFlags._
   *
   * Relates views to commits
   */
-// todo: move away from the FixedPointTraversal, since we only ever append to the collection of commits or traverse it.
 //       so a list might be quicker
 // todo: These values are immutable so can be easily cached
 class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {

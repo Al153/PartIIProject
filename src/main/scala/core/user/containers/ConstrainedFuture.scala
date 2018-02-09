@@ -1,6 +1,6 @@
 package core.user.containers
 
-import core.user.dsl.View
+import core.user.dsl.HasRecovery
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
@@ -17,7 +17,7 @@ import scalaz._
   *
   *  This is a monad, so can be chained in a for comprehension
   */
-class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E, A])(implicit val ec: ExecutionContext) {
+class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E, A])(implicit val ec: ExecutionContext, R: HasRecovery[E]) {
   /**
     * Standard map method
     */
@@ -27,21 +27,29 @@ class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E
     */
   def flatMap[B](f: A => ConstrainedFuture[E, B]) = new ConstrainedFuture(underlying.flatMap(a => f(a).underlying))
 
+  // Magic recovery function
+  private def doRecovery(e: Throwable): E =
+    try {
+      R.recover(e)
+    } catch {
+      case e: Throwable => doRecovery(e)
+    }
+
   /**
     * @return the underlying Future[E \/ A]
     */
-  def run: Future[E \/ A] = underlying.run
+  def run: Future[E \/ A] = underlying.run.recover{case e => doRecovery(e).left}
 
   /**
     * Map on the left parameter
     */
 
-  def leftMap[E1](f: E => E1) = new ConstrainedFuture(underlying.leftMap(f))
+  def leftMap[E1](f: E => E1)(implicit R1: HasRecovery[E1]) = new ConstrainedFuture(underlying.leftMap(f))
 
   /**
-    * Recover an error: E
+    * Recover an error in a constrained future: E
     */
-  def recover[E1](f: E => ConstrainedFuture[E1, A]) = new ConstrainedFuture(
+  def recoverWith[E1](f: E => ConstrainedFuture[E1, A])(implicit R1: HasRecovery[E1]) = new ConstrainedFuture(
     EitherT(
       underlying.run.flatMap(
         ea => ea.fold(e => f(e).run, a => Promise.successful(a.right).future)
@@ -50,31 +58,41 @@ class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E
   )
 
   /**
-    * Chain sideeffecting functions
+    * Recover an error: E
     */
-  def andThen(pf: PartialFunction[E \/ A, Unit]): ConstrainedFuture[E, A] = new ConstrainedFuture(EitherT(underlying.run.andThen{case scala.util.Success(ea) => pf(ea)}))
+  def recover(f: E => A) = new ConstrainedFuture(
+    EitherT(
+      underlying.run.map(
+        ea => ea.recover{case e => f(e)}
+      )
+    )
+  )
+
+
+
+  /**
+    * Chain side effecting functions
+    */
+  def andThen(pf: PartialFunction[E \/ A, Unit]): ConstrainedFuture[E, A] =
+    new ConstrainedFuture(EitherT(underlying.run.andThen{case scala.util.Success(ea) => pf(ea)}))
 }
 
 object ConstrainedFuture {
   /**
     * Construct a [[ConstrainedFuture]] simply
    */
-    def point[E, A](a: => A)(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+    def point[E, A](a: => A)(implicit ec: ExecutionContext, R: HasRecovery[E]): ConstrainedFuture[E, A] = new ConstrainedFuture(
       EitherT(
-        Future {
-          try {
+        Future(
             a.right
-          } catch {
-            case e: Throwable => recover(e).left
-          }
-        }
+        )
       )
     )
 
   /**
     * Construct a [[ConstrainedFuture]] where we know there are no errors
     */
-  private def immediatePoint[E, A](a: A)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] =
+  private def immediatePoint[E, A](a: A)(implicit ec: ExecutionContext, R: HasRecovery[E]): ConstrainedFuture[E, A] =
     new ConstrainedFuture(
       EitherT(
         Promise.successful(a.right[E]).future
@@ -84,22 +102,19 @@ object ConstrainedFuture {
   /**
     * Construct a constrained future from an appropriate either
     */
-  def either[E, A](ea: => E \/ A)(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+  def either[E, A](ea: => E \/ A)(implicit ec: ExecutionContext, R: HasRecovery[E]): ConstrainedFuture[E, A] = new ConstrainedFuture(
     EitherT(
       Future {
-        try {ea} catch {case e: Throwable => recover(e).left}
+        ea
       }
     )
   )
   /**
     * Construct a constrained future from an appropriate future
     */
-  def future[E, A](fea: Future[E \/ A])(recover: Throwable => E)(implicit ec: ExecutionContext): ConstrainedFuture[E, A] = new ConstrainedFuture(
+  def future[E, A](fea: Future[E \/ A])(implicit ec: ExecutionContext, R: HasRecovery[E]): ConstrainedFuture[E, A] = new ConstrainedFuture(
     EitherT(
-      fea.recover {
-        case e: Throwable =>
-          \/.left[E, A](recover(e))
-      }
+      fea
     )
   )
 
@@ -109,7 +124,7 @@ object ConstrainedFuture {
     * @return A constrained future of a collection of As
     */
   def sequence[E, A, M[X] <: TraversableOnce[X]](in: M[E ConstrainedFuture A])
-      (implicit cbf: CanBuildFrom[M[E ConstrainedFuture A], A, M[A]], ec: ExecutionContext): E ConstrainedFuture M[A] =
+      (implicit cbf: CanBuildFrom[M[E ConstrainedFuture A], A, M[A]], ec: ExecutionContext, R: HasRecovery[E]): E ConstrainedFuture M[A] =
       in.foldLeft(immediatePoint[E, mutable.Builder[A, M[A]]](cbf(in))) { // ignore the red, this actually compiles
         (er, ea) => for {
           r <- er
@@ -121,7 +136,7 @@ object ConstrainedFuture {
     * Switch around an option of a constrained future
     * @return
     */
-  def switch[E, A](in: Option[E ConstrainedFuture A])(implicit ec: ExecutionContext): E ConstrainedFuture Option[A] =
+  def switch[E, A](in: Option[E ConstrainedFuture A])(implicit ec: ExecutionContext, R: HasRecovery[E]): E ConstrainedFuture Option[A] =
     in.fold(immediatePoint[E, Option[A]](Option.empty[A]))(ea => ea.map(_.some))
 }
 

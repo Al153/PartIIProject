@@ -47,17 +47,22 @@ package object unit {
   )
 
   def assertEqOp[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
-    _ => ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
-      case e: AssertionError => AssertionFailure(e, msg)
-      case e => UnknownError(e)
-    }
+    _ => ConstrainedFuture.point(
+      try{
+        Assert.assertEquals(expected, trial)
+      } catch {
+        case e: AssertionError => AssertionFailure(e, msg)
+        case e: Throwable => UnknownError(e)
+      })
   )
 
   def assertEq[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
-    ConstrainedFuture.point(Assert.assertEquals(expected, trial)) {
+    ConstrainedFuture.point(try{
+      Assert.assertEquals(expected, trial)
+    } catch {
       case e: AssertionError => AssertionFailure(e, msg)
-      case e => UnknownError(e)
-    }
+      case e: Throwable => UnknownError(e)
+    })
 
 
   implicit def PersonOrdering(implicit os: Ordering[String]) = new Ordering[Person] {

@@ -38,7 +38,7 @@ trait Commands {
    * add a collection of relations to the database, creating a new [[core.user.dsl.View]]
    */
 
-  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit d: DBInstance, sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] = d.executor.insert(t) // Todo: Ensure relational query is full. maybe use m-(r)->n syntax for solid querie
+  def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit d: DBInstance, sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] = d.executor.insert(t)
 
   /**
     * add a collection of relations to the database, creating a new [[core.user.dsl.View]]

@@ -23,21 +23,21 @@ package object sql {
   /**
     * Convenience constructors for SQLFuture and SQLEither
     */
-  def SQLFutureE[A](ea: SQLEither[A])(implicit ec: ExecutionContext): SQLFuture[A] = ConstrainedFuture.either(ea)(errors.recoverSQLException)
-  def SQLFuture[A](a: => A)(implicit ec: ExecutionContext): SQLFuture[A] =  ConstrainedFuture.point(a)(errors.recoverSQLException)
+  def SQLFutureE[A](ea: SQLEither[A])(implicit ec: ExecutionContext): SQLFuture[A] = ConstrainedFuture.either(ea)
+  def SQLFuture[A](a: => A)(implicit ec: ExecutionContext): SQLFuture[A] =  ConstrainedFuture.point(a)
 
   /**
     * Immediate constructors (do not delegate to another thread
     */
-  def SQLFutureI[A](a: => A)(implicit ec: ExecutionContext): SQLFuture[A] = ConstrainedFuture.future(Promise.successful(a.right).future)(errors.recoverSQLException)
-  def SQLFutureER[A](ea: SQLEither[A])(implicit ec: ExecutionContext): SQLFuture[A] = ConstrainedFuture.future(Promise.successful(ea).future)(errors.recoverSQLException)
+  def SQLFutureI[A](a: => A)(implicit ec: ExecutionContext): SQLFuture[A] = ConstrainedFuture.future(Promise.successful(a.right).future)
+  def SQLFutureER[A](ea: SQLEither[A])(implicit ec: ExecutionContext): SQLFuture[A] = ConstrainedFuture.future(Promise.successful(ea).future)
 
   /**
     *  Either constructors (safe)
     *
     */
-  def SQLEither[A](a: => A): SQLEither[A] = try { a.right} catch {case e: Throwable => errors.recoverSQLException(e).left}
-  def SafeEither[A](ea: => SQLEither[A]): SQLEither[A] = try {ea} catch {case e: Throwable => errors.recoverSQLException(e).left}
+  def SQLEither[A](a: => A): SQLEither[A] = try { a.right} catch {case e: Throwable => errors.SQLRecovery.recover(e).left}
+  def SafeEither[A](ea: => SQLEither[A]): SQLEither[A] = try {ea} catch {case e: Throwable => errors.SQLRecovery.recover(e).left}
 
   /**
     * Conversions to regular constrained futures and eithers

@@ -37,14 +37,6 @@ class EmptyIndexTable(tableName: TableName)(implicit val instance: LMDBInstance)
 
 
   /**
-    * Lookup commits and return as a vector
-    * @param commits - commits to lookup
-    * @return
-    */
-  // todo: this could be implemented at a lower level
-  def lookupVector(commits: List[Commit]): LMDBEither[Vector[ObjId]] = lookupSet(commits).map(_.toVector)
-
-  /**
     * Insert an object
     */
   // todo: do batching like change to [[ColumnIndexTable]]

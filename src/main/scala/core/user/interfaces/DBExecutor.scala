@@ -10,7 +10,6 @@ import core.user.schema.SchemaObject
   *
   * Core operations a [[DBInstance]] should implement
   */
-// Todo: the sets should probably be an arbitrary Collection, to allow the backend to implement lazy collections
 
 trait DBExecutor {
   /**
