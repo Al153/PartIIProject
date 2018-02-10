@@ -50,6 +50,7 @@ object Joins {
       s += c
     }
 
+    println("Joining: left size = " + leftRes.size + " right size = " + rightRes.size)
     for {
       (left, middle) <- leftRes
       right <- collectedRight.getOrElse(middle, Set[C]())
