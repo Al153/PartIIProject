@@ -17,8 +17,9 @@ object Run {
       Vector[(String, DBBackend)](
     //    "SQL" -> SQLDB,
     //    "LMDB" -> original.LMDB,
-        "SQL" -> SQLDB,
-        "LMDBFast" -> fast.LMDB
+        "LMDB Log Joins" -> logjoins.LMDB,
+        "LMDBFast" -> fast.LMDB,
+        "SQL" -> SQLDB
       )
     )
 
