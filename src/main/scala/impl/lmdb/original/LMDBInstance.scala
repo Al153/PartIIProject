@@ -71,7 +71,7 @@ final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription,
    * A persistent LMDBInstance for a new database, needs initialisation, shouldn't delete on exit
    */
  final class NewOriginalLMDBInstance(e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends OriginalLMDBInstance(e, s) {
-   println("New!")
+   logger.trace("New!")
    override def initialise(): LMDBEither[Unit] = for {
      _ <- controlTables.availableViews.initialise()
      _ <- controlTables.commitsCounter.initialise()
@@ -94,7 +94,7 @@ final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription,
   * LMDBInstance for existing database, no initialisation or closure needed
   */
 final class ExistingOriginalLMDBInstance (e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends OriginalLMDBInstance(e, s) {
-  println("Existing!")
+  logger.trace("Existing!")
   override def initialise(): LMDBEither[Unit] = ().right
   /**
     * Close the database

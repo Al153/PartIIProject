@@ -3,6 +3,7 @@ package core.user.interfaces
 import core.user.containers.ConstrainedFuture
 import core.user.dsl.{E, View}
 import core.user.schema.SchemaDescription
+import core.utils.Logged
 
 import scala.concurrent.ExecutionContext
 
@@ -11,7 +12,7 @@ import scala.concurrent.ExecutionContext
   *
   * An open Database connection
   */
-trait DBInstance {
+trait DBInstance extends Logged{
   /**
     * The bound [[ExecutionContext]]
     */

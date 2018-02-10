@@ -1,5 +1,6 @@
 package impl.lmdb.fast.methods
 
+import core.utils.Logged
 import impl.lmdb.common.interfaces.LMDBInstance
 
 /**
@@ -13,6 +14,7 @@ trait Methods extends FindAll
   with PathFinding
   with SetImpl
   with PathFindingImpl
-  with Optimisations {
+  with Optimisations
+  with Logged {
     implicit val instance: LMDBInstance
 }

@@ -96,7 +96,7 @@ final class ExistingLogInstance(
                                   e: Env[ByteBuffer],
                                   s: SchemaDescription
                                 )(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
-  println("Existing!")
+  logger.trace("Existing!")
   override lazy val executor: LMDBExecutor = new LogExecutor()
   override def initialise(): LMDBEither[Unit] = ().right
   /**

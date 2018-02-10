@@ -25,7 +25,7 @@ class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
   override def name: String =  "db:default"
 
   def initialise(): LMDBEither[Unit] = {
-    println("Putting initial view")
+    logger.trace("Putting initial view")
     put(key, initialView)(StorableView, instance)
 
   }

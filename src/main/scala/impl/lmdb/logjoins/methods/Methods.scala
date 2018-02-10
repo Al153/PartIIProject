@@ -1,5 +1,6 @@
 package impl.lmdb.logjoins.methods
 
+import core.utils.Logged
 import impl.lmdb.common.interfaces.LMDBInstance
 
 /**
@@ -12,6 +13,7 @@ trait Methods extends FindAll
   with Write
   with PathFinding
   with SetImpl
-  with RetrieverMethods {
+  with RetrieverMethods
+  with Logged {
     implicit val instance: LMDBInstance
 }

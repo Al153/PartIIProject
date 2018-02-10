@@ -100,7 +100,7 @@ final class ExistingCSELMDBInstance(
                                   e: Env[ByteBuffer],
                                   s: SchemaDescription
                                 )(implicit ec: ExecutionContext) extends CSELMDBInstance(e, s) {
-  println("Existing!")
+  logger.trace("Existing!")
   override def initialise(): LMDBEither[Unit] = ().right
   /**
     * Close the database

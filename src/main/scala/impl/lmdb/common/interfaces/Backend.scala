@@ -32,7 +32,7 @@ trait Backend extends DBBackend {
     try {
       val instance = getInstance(address, schema)
       Thread.sleep(2) // small sleep to allow LMDB to update its mapsize
-      println("Env map size = " + instance.env.info().mapSize)
+      logger.trace("Env map size = " + instance.env.info().mapSize)
 
       for {
         _ <- instance.initialise()

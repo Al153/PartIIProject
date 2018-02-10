@@ -14,7 +14,7 @@ import scalaz._
 
 
 
-trait RelationRetriever {
+trait RelationRetriever extends Logged {
   def find(from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]]
   def findRight(from: ObjId): LMDBEither[Set[ObjId]]
   private val outer = this

@@ -59,3 +59,4 @@ target/
 *.iml
 *.cache
 *.properties
+-src/**/*.properties

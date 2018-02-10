@@ -3,9 +3,7 @@ package impl.lmdb.logjoins.retrievers
 import core.utils._
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.ObjId
-import impl.lmdb.cse.logger
-import impl.lmdb.logjoins._
-import scalaz.Scalaz._
+
 
 import scala.collection.mutable
 
@@ -15,7 +13,7 @@ import scala.collection.mutable
 class CachedRelationRetriever(
                                lookup: Set[ObjId] =>  LMDBEither[Map[ObjId, Set[ObjId]]],
                                simpleLookup: ObjId => LMDBEither[Set[ObjId]]
-                             ) extends RelationRetriever {
+                             ) extends RelationRetriever with Logged {
 
   private val memo = new mutable.HashMap[ObjId, Set[ObjId]]()
   override def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]] = {

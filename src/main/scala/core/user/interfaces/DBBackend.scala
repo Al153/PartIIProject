@@ -3,6 +3,7 @@ package core.user.interfaces
 import core.user.containers.{ConstrainedFuture, Operation}
 import core.user.dsl.{DatabaseAddress, E, View}
 import core.user.schema.SchemaDescription
+import core.utils.Logged
 
 import scala.concurrent.ExecutionContext
 import scalaz.\/
@@ -12,7 +13,7 @@ import scalaz.\/
   *
   * A database connection can open an [[DBInstance]]
   */
-trait DBBackend {
+trait DBBackend extends Logged {
   /**
     * Open an Instance
     * @param address - Address to open

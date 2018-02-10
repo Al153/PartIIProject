@@ -2,6 +2,7 @@ package impl.lmdb.common.tables.interfaces
 
 import java.nio.ByteBuffer
 
+import core.utils.Logged
 import impl.lmdb.common.access.{Key, Storable}
 import impl.lmdb.common.errors.NoResult
 import impl.lmdb.common.LMDBEither
@@ -17,7 +18,7 @@ import scalaz._
   *
   * An LMDB table is a namespace inside the flat LMDB structure
   */
-trait LMDBTable {
+trait LMDBTable extends Logged {
   def name: String
   implicit val instance: LMDBInstance
   def db: Dbi[ByteBuffer]
