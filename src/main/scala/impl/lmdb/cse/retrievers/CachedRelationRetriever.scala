@@ -7,6 +7,7 @@ import impl.lmdb.common.access.ObjId
 import scala.collection.mutable
 import core.utils._
 
+
 /**
   * Created by Al on 06/02/2018.
   */
@@ -23,15 +24,17 @@ class CachedRelationRetriever(
     val cachedResults = alreadyFound.flatMap(o => memo(o).map(o -> _))
 
     logger.info(s"Arg size: ${from.size}; memo'd ${alreadyFound.size}; eval-ing: ${needToBeFound.size}")
-
-    newResults.foreach{
-      correctResults =>
-        val resDict = correctResults.collectSets(identity)
-        memo ++= resDict
+    if (needToBeFound.isEmpty) LMDBEither(cachedResults)
+    else {
+      newResults.foreach{
+        correctResults =>
+          val resDict = correctResults.collectSets(identity)
+          memo ++= resDict
+      }
+      for {
+        r1 <- newResults
+      } yield r1 ++ cachedResults
     }
-    for {
-      r1 <- newResults
-    } yield r1 ++ cachedResults
   }
 
   override def findRight(from: ObjId): LMDBEither[Set[ObjId]] =

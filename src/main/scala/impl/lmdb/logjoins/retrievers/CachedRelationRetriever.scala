@@ -3,7 +3,9 @@ package impl.lmdb.logjoins.retrievers
 import core.utils._
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.ObjId
+import impl.lmdb.cse.logger
 import impl.lmdb.logjoins._
+import scalaz.Scalaz._
 
 import scala.collection.mutable
 
@@ -11,27 +13,28 @@ import scala.collection.mutable
   * Created by Al on 06/02/2018.
   */
 class CachedRelationRetriever(
-                               lookup: Set[ObjId] => LMDBEither[Set[(ObjId, ObjId)]],
+                               lookup: Set[ObjId] =>  LMDBEither[Map[ObjId, Set[ObjId]]],
                                simpleLookup: ObjId => LMDBEither[Set[ObjId]]
                              ) extends RelationRetriever {
 
   private val memo = new mutable.HashMap[ObjId, Set[ObjId]]()
-  override def find(from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]] = {
+  override def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]] = {
     val alreadyFound = from intersect memo.keySet
     val needToBeFound = from diff memo.keySet
     val newResults = lookup(needToBeFound)
-    val cachedResults = alreadyFound.flatMap(o => memo(o).map(o -> _))
+    val cachedResults = memo.filterKeys(alreadyFound)
 
     logger.info(s"Arg size: ${from.size}; memo'd ${alreadyFound.size}; eval-ing: ${needToBeFound.size}")
-
-    newResults.foreach{
-      correctResults =>
-        val resDict = correctResults.collectSets(identity)
-        memo ++= resDict
+    if (needToBeFound.isEmpty) LMDBEither(cachedResults.toMap)
+    else {
+      newResults.foreach{
+        correctResults =>
+          memo ++= correctResults
+      }
+      for {
+        r1 <- newResults
+      } yield r1 ++ cachedResults
     }
-    for {
-      r1 <- newResults
-    } yield r1 ++ cachedResults
   }
 
   override def findRight(from: ObjId): LMDBEither[Set[ObjId]] =

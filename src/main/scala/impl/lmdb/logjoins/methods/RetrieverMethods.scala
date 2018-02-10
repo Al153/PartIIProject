@@ -3,6 +3,7 @@ package impl.lmdb.logjoins.methods
 import core.backend.intermediate.unsafe._
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.{Commit, ObjId}
+import impl.lmdb.logjoins._
 import impl.lmdb.logjoins.retrievers._
 
 import scalaz._
@@ -25,7 +26,7 @@ trait RetrieverMethods { self: Methods =>
     compileSingles(q, commits).run(emptyState)._2.find
 
   def getPairs(q: UnsafeFindPair, commits: List[Commit], from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]] =
-    compilePairs(q, commits).run(emptyState)._2.find(from)
+    compilePairs(q, commits).run(emptyState)._2.find(from).map(_.renderPairs)
 
   def getFrom(q: UnsafeFindPair, commits: List[Commit]): (ObjId) => LMDBEither[Set[ObjId]] =
     compilePairs(q, commits).run(emptyState)._2.findRight(_)

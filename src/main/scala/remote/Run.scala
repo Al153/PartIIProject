@@ -12,12 +12,12 @@ object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
       // MemoryDB,
-      cse.LMDB,
+      logjoins.LMDB,
       // SQLDB,
       Vector[(String, DBBackend)](
     //    "SQL" -> SQLDB,
     //    "LMDB" -> original.LMDB,
-        "LMDB Log Joins" -> logjoins.LMDB,
+        "LMDB Cse" -> cse.LMDB,
         "LMDBFast" -> fast.LMDB,
         "SQL" -> SQLDB
       )
@@ -31,5 +31,9 @@ object Run {
     tester.runTest(PathFindingTest)
     tester.runTest(RawLookup)
     tester.runTest(ExactlyTest)
+
+    // dodgy tests
+
+    // CSE/LMDB test for JoinSpeed (Massive joins)
   }
 }

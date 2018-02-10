@@ -1,24 +1,26 @@
 package impl.lmdb.logjoins.retrievers
 
 import core.utils._
-import core.utils.algorithms.{FixedPointTraversal, Joins, SimpleFixedPointTraversal}
+import core.utils.algorithms.{FixedPointTraversal, SimpleFixedPointTraversal}
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.ObjId
 import impl.lmdb.common.errors.LMDBError
-
+import impl.lmdb.logjoins._
 
 
 trait RelationRetriever {
-  def find(from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]]
+  def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]]
   def findRight(from: ObjId): LMDBEither[Set[ObjId]]
   private val outer = this
+
 
   def join(that: RelationRetriever): RelationRetriever = new CachedRelationRetriever(
     objIds =>
       for {
         ls <- outer.find(objIds)
-        rs <- that.find(ls.mapProj2)
-      } yield Joins.joinSet(ls, rs),
+        middles = bigUnion(ls.values)
+        rs <- that.find(middles)
+      } yield ls.mapValues(s => s.flatMap(rs.getOrElse(_, Set()))).prune,
     outer.findRight(_).flatMapS(that.findRight)
   )
   def leftAnd(that: SingleRetriever): RelationRetriever = new CachedRelationRetriever(
@@ -27,6 +29,7 @@ trait RelationRetriever {
         rightRes <- that.find
         pairRes <- outer.find(rightRes intersect objIds)
       } yield pairRes,
+
     objId =>
       that.find.flatMap(
         as =>
@@ -39,7 +42,7 @@ trait RelationRetriever {
     objIds => for {
       leftRes <- outer.find(objIds)
       rightRes <- that.find
-    } yield leftRes.filter{case (_, b) => rightRes.contains(b)},
+    } yield leftRes.mapValues{rightRes intersect _}.prune,
     objId => for {
       rs <- outer.findRight(objId)
       filter <- that.find
@@ -104,7 +107,9 @@ trait RelationRetriever {
     res
   }
   def fixedPoint: RelationRetriever = new CachedRelationRetriever(
-    objId => FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findRight), objId),
+    objId =>
+      FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findRight), objId)
+        .map(_.collectSets(identity)),
     SimpleFixedPointTraversal.fixedPoint(outer.findRight, _)
   )
 }

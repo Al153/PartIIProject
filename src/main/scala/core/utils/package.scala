@@ -34,7 +34,6 @@ package object utils extends BigSetOps {
       for {
         (k, b) <- applied
       } m += k -> (m.getOrElse(k, Set()) + b)
-
       m.toMap
     }
 
