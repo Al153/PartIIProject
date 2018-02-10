@@ -74,14 +74,35 @@ trait RelationRetriever {
       filter <- that.findRight(objId)
     } yield rs union filter
   )
-  def exactly(n: Int): RelationRetriever = new CachedRelationRetriever(
-    FixedPointTraversal.exactly(outer.findRight, _, n),
-    SimpleFixedPointTraversal.exactly(outer.findRight, _, n)
-  )
-  def upto(n: Int): RelationRetriever = new CachedRelationRetriever(
-    FixedPointTraversal.upTo(outer.findRight, _, n),
-    SimpleFixedPointTraversal.upTo(outer.findRight, _, n)
-  )
+  def exactly(n: Int): RelationRetriever = {
+      var i = n
+      var acc = this
+      var res: RelationRetriever = IdRetriever
+
+      while (i > 0) {
+        if ((i & 1) == 1) {
+          res = res join acc
+        }
+        i = i >> 1
+        acc = acc join acc
+      }
+      res
+    }
+
+  def upto(n: Int): RelationRetriever = {
+    var i = n
+    var acc = this
+    var res: RelationRetriever = IdRetriever
+
+    while (i > 0) {
+      if ((i & 1) == 1) {
+        res = res join acc
+      }
+      i = i >> 1
+      acc = (acc join acc) or acc
+    }
+    res
+  }
   def fixedPoint: RelationRetriever = new CachedRelationRetriever(
     objId => FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findRight), objId),
     SimpleFixedPointTraversal.fixedPoint(outer.findRight, _)

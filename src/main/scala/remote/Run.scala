@@ -22,17 +22,13 @@ object Run {
       )
     )
 
-    tester.runTest(ExactlyTest)
+
     tester.runTest(JoinSpeed)
     tester.runTest(FindSingles)
     tester.runTest(Writes)
     tester.runTest(ConjunctionsAndDisjunctions)
     tester.runTest(PathFindingTest)
     tester.runTest(RawLookup)
+    tester.runTest(ExactlyTest)
   }
-
-  val a = new Array[Int](5)
-
-  a(3) = 2
-  println(a(3) )
 }
