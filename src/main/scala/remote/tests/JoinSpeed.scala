@@ -21,9 +21,9 @@ object JoinSpeed extends TestSpec[Set[(Person, Person)]] {
 
   override def batchSize: TestIndex = 30.tests
 
-  override  def setup(instance: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup(instance: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(instance){
-      DBBuilder.buildDB("imdb/medium")(instance)
+      DBBuilder.buildDB("imdb/small")(instance)
     }
 
   override def test(d: DBInstance)(index: TestIndex)
