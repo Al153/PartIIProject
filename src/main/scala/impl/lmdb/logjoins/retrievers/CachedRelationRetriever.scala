@@ -22,9 +22,14 @@ class CachedRelationRetriever(
     val cachedResults = memo.filterKeys(alreadyFound)
 
     logger.info(s"Arg size: ${from.size}; memo'd ${alreadyFound.size}; eval-ing: ${needToBeFound.size}")
-    if (needToBeFound.isEmpty) LMDBEither(cachedResults.toMap)
+    if (needToBeFound.isEmpty) {
+      logger.info("Doing lookup")
+      LMDBEither(cachedResults.toMap)
+    }
     else {
+      logger.info("Doing lookup")
       val newResults = lookup(needToBeFound)
+      logger.info("Done lookup")
       newResults.foreach{
         correctResults =>
           memo ++= correctResults
