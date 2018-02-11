@@ -20,6 +20,7 @@ trait RelationRetriever {
         ls <- outer.find(objIds)
         middles = bigUnion(ls.values)
         rs <- that.find(middles)
+        _ = logger.trace("Joining: left_size = " + ls.size + " Rights = " + rs.size)
       } yield ls.mapValues(s => s.flatMap(rs.getOrElse(_, Set()))).prune,
     outer.findRight(_).flatMapS(that.findRight)
   )

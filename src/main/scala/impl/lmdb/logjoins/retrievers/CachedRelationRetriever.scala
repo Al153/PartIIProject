@@ -19,12 +19,12 @@ class CachedRelationRetriever(
   override def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]] = {
     val alreadyFound = from intersect memo.keySet
     val needToBeFound = from diff memo.keySet
-    val newResults = lookup(needToBeFound)
     val cachedResults = memo.filterKeys(alreadyFound)
 
     logger.info(s"Arg size: ${from.size}; memo'd ${alreadyFound.size}; eval-ing: ${needToBeFound.size}")
     if (needToBeFound.isEmpty) LMDBEither(cachedResults.toMap)
     else {
+      val newResults = lookup(needToBeFound)
       newResults.foreach{
         correctResults =>
           memo ++= correctResults
