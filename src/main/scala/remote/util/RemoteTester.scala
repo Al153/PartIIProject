@@ -85,42 +85,40 @@ class RemoteTester(
   private def runReferenceBatch[A](
                             spec: TestSpec[A],
                             impl: DBInstance
-                          ): ConstrainedFuture[E, Map[TestIndex, A]] =
+                          ): ConstrainedFuture[E, Map[TestIndex, Int]] =
     for {
       instanceToTimedResult <- runBatch(spec, impl, "ReferenceInstance")
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
       referenceResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
-      _ = timeResults.values.map(logTimeResult(_, success = true))
+      _ = timeResults.values.foreach(logTimeResult(_, success = true))
       _ = logBatchResult(BatchedTimedResults(instanceToTimedResult.values.toSeq))
-    } yield referenceResults
+    } yield referenceResults.mapValues(_.hashCode())
 
 
-  def logTimeResult[A](ta: TimeResult[A], success: Boolean): A = {
+  def logTimeResult[A](ta: TimeResult[A], success: Boolean): Unit = {
     if (success){
       logger.info(s"[Result][Success][${ta.instance.testBackend}]:${ta.instance}:time=${ns(ta.ns)}")
     } else {
       logger.info(s"[Result][Failure][${ta.instance.testBackend}]:${ta.instance}:time=${ns(ta.ns)}")
     }
-    ta.a
   }
 
-  private def logBatchResult[A](tas: BatchedTimedResults[A]): Map[TestInstance, A] = {
+  private def logBatchResult[A](tas: BatchedTimedResults[A]): Unit = {
     logger.info(s"[Result][Batch]:test=${tas.testName.name}:impl=${tas.backend}:testcount=${tas.length}:totalTime=${ns(tas.fullTime)}")
-    tas.tas.map {r => r.instance -> r.a}.toMap
   }
 
   private def runTestBatch[A](
                        spec: TestSpec[A],
                        impl: DBInstance,
                        toTest: String,
-                       expectedResults: Map[TestIndex, A]
+                       expectedResults: Map[TestIndex, Int]
                      ): ConstrainedFuture[E, Unit] = {
     for {
       instanceToTimedResult <- runBatch(spec, impl, toTest)
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
-      testResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
+      testResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a.hashCode()}
       isSuccess = testResults == expectedResults
-      _ = timeResults.values.map(logTimeResult(_, success = isSuccess))
+      _ = timeResults.values.foreach(logTimeResult(_, success = isSuccess))
       _ = logBatchResult(BatchedTimedResults(instanceToTimedResult.values.toSeq))
     } yield ()
   }
