@@ -75,7 +75,7 @@ class RemoteTester(
                    spec: TestSpec[A],
                    impl: DBInstance,
                    instanceName: String
-                 ): ConstrainedFuture[E, Map[TestInstance, TimeResult[A]]] =
+                 ): ConstrainedFuture[E, Map[TestInstance, TimeResult[Int]]] =
     sequence(TestInstance(spec, instanceName)) {
       i =>
         logger.info(s"Running $i" )
@@ -116,7 +116,7 @@ class RemoteTester(
     for {
       instanceToTimedResult <- runBatch(spec, impl, toTest)
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
-      testResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a.hashCode()}
+      testResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
       isSuccess = testResults == expectedResults
       _ = timeResults.values.foreach(logTimeResult(_, success = isSuccess))
       _ = logBatchResult(BatchedTimedResults(instanceToTimedResult.values.toSeq))
@@ -137,14 +137,13 @@ class RemoteTester(
         } yield r + (a -> b)
     }
 
-  private def timeConstrainedFuture[R](block: TestIndex => ConstrainedFuture[E, R])(testInstance: TestInstance): ConstrainedFuture[E, TimeResult[R]] = {
+  private def timeConstrainedFuture[R](block: TestIndex => ConstrainedFuture[E, R])(testInstance: TestInstance): ConstrainedFuture[E, TimeResult[Int]] = {
     val t0 = System.nanoTime()
     for {
       r <- block(testInstance.testIndex)
       t1 = System.nanoTime()
-    } yield TimeResult(testInstance, t1 - t0,  r)
+    } yield TimeResult(testInstance, t1 - t0,  r.hashCode())
   }
-
 }
 
 
