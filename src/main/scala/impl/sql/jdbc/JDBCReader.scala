@@ -7,6 +7,7 @@ import core.user.containers.Path
 import core.user.dsl.View
 import core.backend.intermediate._
 import core.user.schema._
+import core.utils.Logged
 import impl.sql._
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
@@ -22,7 +23,7 @@ import scalaz.Scalaz._
   * Contains code to read various objects from the results of queries to the SQL db.
   */
 
-class JDBCReader(implicit instance: SQLInstance) {
+class JDBCReader(implicit instance: SQLInstance) extends Logged {
 
   /**
     * get a single ObjectId
@@ -148,7 +149,11 @@ class JDBCReader(implicit instance: SQLInstance) {
     val bComponents = sb.schemaComponents
 
     var result = Set.newBuilder[(A, B)].right[SQLError]
+    println(rs.getFetchSize)
+    var count = 0
     while (result.isRight && rs.next()) {
+      count += 1
+      if ((count % 1000) == 0) logger.info("Result count = " + count)
       var aRow = Vector.newBuilder[DBCell].right[SQLError]
       var bRow = Vector.newBuilder[DBCell].right[SQLError]
 
