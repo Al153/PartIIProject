@@ -10,12 +10,16 @@ import core.utils._
 
 /**
   * Created by Al on 06/02/2018.
+  *
+  *  A RelationRetriever that caches its results to
+  *  enact common sub expression elimination and eliminate redundancy
   */
 class CachedRelationRetriever(
                                lookup: Set[ObjId] => LMDBEither[Set[(ObjId, ObjId)]],
                                simpleLookup: ObjId => LMDBEither[Set[ObjId]]
                              ) extends RelationRetriever {
 
+  // private mutable state to perform memo
   private val memo = new mutable.HashMap[ObjId, Set[ObjId]]()
   override def find(from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]] = {
     val alreadyFound = from intersect memo.keySet

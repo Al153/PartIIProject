@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits
 /**
   * Created by Al on 10/02/2018.
   */
-class LogJoinsTest extends FullSuite {
+class FastJoinsTest extends FullSuite {
   override val backend: DBBackend = LMDB
   implicit override val ec: ExecutionContext = Implicits.global
 }

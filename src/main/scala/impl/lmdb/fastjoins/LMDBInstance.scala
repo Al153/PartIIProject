@@ -26,7 +26,7 @@ import scalaz.Scalaz._
   * A temporary instance wants to delete its containing folder on closure, and do a full init
   */
 final class TemporaryLogInstance(e: Env[ByteBuffer], schema: SchemaDescription, dir: Path)(implicit ec: ExecutionContext) extends LMDBInstance(e, schema) {
-  override lazy val executor: LMDBExecutor = new LogExecutor()
+  override lazy val executor: LMDBExecutor = new FastJoinExecutor()
 
   override def initialise(): LMDBEither[Unit] = for {
     _ <- controlTables.availableViews.initialise()
@@ -70,7 +70,7 @@ final class NewLogInstance(
                              s: SchemaDescription
                            )(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
 
-  override lazy val executor: LMDBExecutor = new LogExecutor()
+  override lazy val executor: LMDBExecutor = new FastJoinExecutor()
   override def initialise(): LMDBEither[Unit] = for {
     _ <- controlTables.availableViews.initialise()
     _ <- controlTables.commitsCounter.initialise()
@@ -97,7 +97,7 @@ final class ExistingLogInstance(
                                   s: SchemaDescription
                                 )(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
   logger.trace("Existing!")
-  override lazy val executor: LMDBExecutor = new LogExecutor()
+  override lazy val executor: LMDBExecutor = new FastJoinExecutor()
   override def initialise(): LMDBEither[Unit] = ().right
   /**
     * Close the database

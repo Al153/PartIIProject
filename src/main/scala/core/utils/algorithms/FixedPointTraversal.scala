@@ -27,7 +27,7 @@ object FixedPointTraversal {
     /**
       * Find all nodes reachable from the root
       * @param root - starting root
-      * @param memo - the precomputed closure from nodes some nodes
+      * @param memo - the precomputed closure from some nodes
       * @return - nodes reachable by transitive closure of searchStep
       */
     def reachableFrom(root: A, memo: Map[A, Set[A]]): E \/ Set[A] = {
@@ -64,10 +64,9 @@ object FixedPointTraversal {
     } yield doJoin(initial, dict)
   }
 
-  /**
-    * Awkward, per-root implementation so we can reconstruct pairs afterwards. Otherwise would need a join
-    * How about memoizing the search step using a suitable cache?
-    */
+  private def doJoin[A](left: Set[A], right: Map[A, Set[A]]): Set[(A, A)] = {
+    left.flatMap(from => right.getOrElse(from, Set()).map((from, _)))
+  }
 
   /**
     *
@@ -165,7 +164,5 @@ object FixedPointTraversal {
     for (_ <- okay) yield acc.map {case (a, as) => as.map(a -> _)}.toSet.flatten
  }
 
-  private def doJoin[A](left: Set[A], right: Map[A, Set[A]]): Set[(A, A)] = {
-    left.flatMap(from => right.getOrElse(from, Set()).map((from, _)))
-  }
+
 }

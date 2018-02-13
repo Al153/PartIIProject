@@ -5,14 +5,13 @@ import java.nio.ByteBuffer
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import core.user.interfaces.{DBExecutor, DBInstance}
+import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
 import impl.lmdb.common._
 import impl.lmdb.common.interfaces.{LMDBExecutor, LMDBInstance}
 import org.lmdbjava.Env
 
 import scalaz.Scalaz._
-// import org.fusesource.lmdbjni.{Database, Env}
 import core.utils._
 
 import scala.concurrent.ExecutionContext
@@ -22,17 +21,12 @@ import scala.concurrent.ExecutionContext
   *
   * [[DBInstance]] implementation
   */
-sealed abstract class OriginalLMDBInstance(env: Env[ByteBuffer], schema: SchemaDescription)(implicit executionContext: ExecutionContext) extends LMDBInstance(env, schema) {
-  /**
-    * @return internal executor
-    */
-  override lazy val executor: LMDBExecutor = new OriginalLMDBExecutor()
-}
 
 /**
   * A temporary instance wants to delete its containing folder on closure, and do a full init
   */
-final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription, dir: Path)(implicit ec: ExecutionContext) extends OriginalLMDBInstance(e, schema) {
+final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription, dir: Path)(implicit ec: ExecutionContext) extends LMDBInstance(e, schema) {
+  override lazy val executor: LMDBExecutor = new OriginalLMDBExecutor()
   override def initialise(): LMDBEither[Unit] = for {
     _ <- controlTables.availableViews.initialise()
     _ <- controlTables.commitsCounter.initialise()
@@ -70,7 +64,8 @@ final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription,
  /**
    * A persistent LMDBInstance for a new database, needs initialisation, shouldn't delete on exit
    */
- final class NewOriginalLMDBInstance(e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends OriginalLMDBInstance(e, s) {
+ final class NewOriginalLMDBInstance(e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
+   override lazy val executor: LMDBExecutor = new OriginalLMDBExecutor()
    logger.trace("New!")
    override def initialise(): LMDBEither[Unit] = for {
      _ <- controlTables.availableViews.initialise()
@@ -93,7 +88,8 @@ final class TemporaryLMDBInstance(e: Env[ByteBuffer], schema: SchemaDescription,
 /**
   * LMDBInstance for existing database, no initialisation or closure needed
   */
-final class ExistingOriginalLMDBInstance (e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends OriginalLMDBInstance(e, s) {
+final class ExistingOriginalLMDBInstance (e: Env[ByteBuffer], s: SchemaDescription)(implicit ec: ExecutionContext) extends LMDBInstance(e, s) {
+  override lazy val executor: LMDBExecutor = new OriginalLMDBExecutor()
   logger.trace("Existing!")
   override def initialise(): LMDBEither[Unit] = ().right
   /**

@@ -9,4 +9,4 @@ import impl.lmdb.fastjoins.methods.Methods
   *  Executor implementation in the Methods trait
   */
 
-class LogExecutor(implicit val instance: LMDBInstance) extends LMDBExecutor with Methods
+class FastJoinExecutor(implicit val instance: LMDBInstance) extends LMDBExecutor with Methods

@@ -12,19 +12,24 @@ import Scalaz._
   */
 trait SingleRetriever {
   def find: LMDBEither[Set[ObjId]]
-  def into(that: RelationRetriever): SingleRetriever = new CachedSingleRetriever(
-    find.flatMapS(that.findRight)
-  )
-  def and(that: SingleRetriever): SingleRetriever = new CachedSingleRetriever(
-    for {
-      as <- find
-      bs <- that.find
-    } yield as intersect bs
-  )
-  def or(that: SingleRetriever): SingleRetriever = new CachedSingleRetriever(
-    for {
-      as <- find
-      bs <- that.find
-    } yield as union bs
-  )
+}
+
+object SingleRetriever {
+  implicit class SingleRetrieverOps(outer: SingleRetriever) {
+    def into(that: RelationRetriever): SingleRetriever = new CachedSingleRetriever(
+      outer.find.flatMapS(that.findRight)
+    )
+    def and(that: SingleRetriever): SingleRetriever = new CachedSingleRetriever(
+      for {
+        as <- outer.find
+        bs <- that.find
+      } yield as intersect bs
+    )
+    def or(that: SingleRetriever): SingleRetriever = new CachedSingleRetriever(
+      for {
+        as <- outer.find
+        bs <- that.find
+      } yield as union bs
+    )
+  }
 }

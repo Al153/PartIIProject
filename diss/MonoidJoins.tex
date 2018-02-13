@@ -1,0 +1,120 @@
+\documentclass[twoside,a4paper,11pt]{article}
+\usepackage{amsmath}
+\usepackage[a4paper,includeheadfoot,margin=2.54cm]{geometry}
+\usepackage{breqn}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+
+
+\newcommand{\db}[1]{{\bf [\![}#1{\bf ]\!]}}
+\newcommand{\deno}[1]{\db{#1}(v)}
+\newcommand{\setComp}[2]{\left\lbrace #1 \mid #2 \right\rbrace}
+\newcommand{\clos}[0]{closure(A, v)}
+\newcommand{\typeRule}[2]{\Sigma\vdash #1 \colon #2}
+\newcommand{\denoRule}[2]{#1 \in \deno{#2}}
+\newcommand{\opRule}[3]{#1 \triangleleft_{#2, v} #3}
+
+\newcommand{\phiRule}[3]{\Phi(\Sigma, #1, #2, #3)}
+\newcommand{\psiRule}[2]{\Psi(\Sigma, #1, #2)}
+\newcommand{\query}[0]{Query(v)}
+\newcommand{\queryT}[1]{Query_{#1}(v)}
+
+\begin{document}
+\section{Joins on $\query$ as a monoid}
+
+In order to justify some of our optimisations, we need to know certain properties of join denotation.
+
+Firstly, we want to define establish closure and associatiavity of the $join$ function defined in the denotational semantics.
+
+We want to define these for queryable subsets of a view $v \in View_{\Sigma}$
+\begin{equation}
+	Query(v) = \setComp{s}{\exists P, A, B. s = \deno{P} \wedge \typeRule{P}{A, B}}
+\end{equation}
+
+\subsection{Lemma: Join is closed on $\query$}
+Proof:
+For $s, t \in Query(v)$ there exists $P, Q, A, B, C, D$ such that $\typeRule{P}{A, B}$ and $\typeRule{Q}{C, D}$ hold and $s = \deno{P} \wedge t = \deno{Q}$
+
+\paragraph{Case $B \neq C$}
+	Then the join is empty, since no $b \in B = c \in C$, so 
+	\begin{equation}
+		join(\deno{P},\deno{Q}) = \emptyset = \deno{Distinct(Id_T)}
+	\end{equation}
+	For some type $T \in \Sigma$ (We know $\Sigma$ contains more than one type, due to the typing of $P$ and $Q$
+
+ 
+\paragraph{Case $B = C$}
+	Then the join is not empty.
+	By the correspondence of denotational and operational semantics, we have
+	\begin{equation}
+		join(\deno{P}, \deno{Q}) = \deno{Chain(P, Q)}
+	\end{equation}
+	
+	with the following typing
+	\begin{equation}
+	\typeRule{Chain(P, Q)}{A, D}
+	\end{equation}
+	 
+\subsection{Lemma: Join is associative on $\query$}
+Proof: For $r, s, t \in \query$ there exist queries $P, Q, R$ and object types $A, B, C, D, E, F$ such that $\typeRule{P}{A, B}$, $\typeRule{Q}{C, D}$, $\typeRule{R}{E, F}$ and  hold and $r = \deno{P} \wedge s = \deno{Q} \wedge t = \deno{R}$
+\\We want to prove that $join(r, join(s, t)) = join(join(r, s), t)$
+\paragraph{Case $B \neq C$}
+	Then 
+	\begin{equation}\label{Case B != C}
+	\begin{split}
+		join(r, join(s, t)) & = join(r, u) \mbox{ For some $u$, either $u = \emptyset$ or $u$ has a left type of $C$}\\
+							& = \emptyset \mbox{ hence equals the empty set}\\
+							& = join(\emptyset, t)\\
+							& = join(join(r, s), t) \\
+	\end{split}
+	\end{equation}
+	
+\paragraph{Case $D \neq E$}
+Then similarly
+	\begin{equation}\label{Case D != E}
+	\begin{split}
+		join(join(r, s), t) & = join(u, t) \mbox{ For some $u$, either $u = \emptyset$ or $u$ has a right type of $D$}\\
+							& = \emptyset \mbox{ hence equals the empty set}\\
+							& = join(r, \emptyset)\\
+							& = join(r, join(s, t)) \\
+	\end{split}
+	\end{equation}
+	
+\paragraph{Case $B = C$ and $D = E$}
+Then
+\begin{equation}\label{Well typed}
+\begin{split}
+(a, f) \in join(r, join(s, t)) & \Leftrightarrow (a, f) \in join(\deno{P}, join(\deno{Q},\deno{R}))\\
+							  & \Leftrightarrow \opRule{a,f}{A, F}{Chain(P, Chain(Q, R))} \mbox{ by deno-oper correspondence}\\
+							& \Leftrightarrow \exists b, d. \opRule{(a, b)}{A, B}{P} \wedge \opRule{(b,d)}{B,D}{Q} \wedge \opRule{(d,f)}{D,F}{Q}\\
+							& \Leftrightarrow \opRule{(a, f)}{A, F}{Chain(Chain(P, Q), R)}\\
+							& \Leftrightarrow \denoRule{(a, f)}{Chain(Chain(P, Q), R)}\\
+							& \Leftrightarrow (a, f) \in join(join(\deno{P}, \deno{Q}), \deno{R})\\
+							& \Leftrightarrow (a, f) \in join(join(r, s), t)\\							
+\end{split}
+\end{equation}
+
+Hence $\query$ is a monoid with $join$. However, it doesn't particularly stick to a nice typescheme.
+	
+\subsection{Joins on $\queryT{A}$ as a monoid}
+If we now take the more useful subset $\queryT{A}$ of $\query$
+
+\begin{equation}
+\queryT{A} = \setComp{s \subseteq A \times A}{\exists P. \typeRule{P}{A, A} \wedge s = \deno{P}}
+\end{equation}
+
+Trivially, from the above, $join$ over $\queryT{A}$ also forms a monoid.
+
+This enables several optimisations.
+
+Firstly, writing $p$ for $\deno{P}$ and with the binary representation of $n = \sum_i{b_i * 2^{i}}$
+\begin{equation}\label{ExactlyReordering}
+\begin{split}
+\deno{Exactly(n, P)} & = p^{n} \mbox{ In $\queryT{A}$}\\
+					& = \prod_i {p^{b_i * 2^i} }
+\end{split}
+\end{equation}
+
+Todo: join distributes over and and or
+
+\end{document}

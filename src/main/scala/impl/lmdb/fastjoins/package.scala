@@ -4,7 +4,7 @@ import impl.lmdb.common.access.ObjId
 import org.slf4j.{Logger, LoggerFactory}
 import core.utils._
 
-package object logjoins {
+package object fastjoins {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
 
