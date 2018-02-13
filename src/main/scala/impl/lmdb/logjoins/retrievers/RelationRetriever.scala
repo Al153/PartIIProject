@@ -96,7 +96,7 @@ trait RelationRetriever {
 
   def upto(n: Int): RelationRetriever = {
     var i = n
-    var acc = this
+    var acc = this or IdRetriever
     var res: RelationRetriever = IdRetriever
 
     while (i > 0) {
@@ -104,7 +104,7 @@ trait RelationRetriever {
         res = res join acc
       }
       i = i >> 1
-      acc = (acc join acc) or acc
+      acc = acc join acc
     }
     res
   }
