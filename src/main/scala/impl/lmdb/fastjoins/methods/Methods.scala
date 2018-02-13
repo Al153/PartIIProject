@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins.methods
+package impl.lmdb.fastjoins.methods
 
 import core.utils.Logged
 import impl.lmdb.common.interfaces.LMDBInstance

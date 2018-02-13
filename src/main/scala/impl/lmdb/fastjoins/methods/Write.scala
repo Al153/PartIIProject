@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins.methods
+package impl.lmdb.fastjoins.methods
 
 import core.backend.intermediate.RelationName
 import core.user.containers.{Operation, WriteOperation}

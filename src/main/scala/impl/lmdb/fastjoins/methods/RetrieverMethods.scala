@@ -1,10 +1,10 @@
-package impl.lmdb.logjoins.methods
+package impl.lmdb.fastjoins.methods
 
 import core.backend.intermediate.unsafe._
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.{Commit, ObjId}
-import impl.lmdb.logjoins._
-import impl.lmdb.logjoins.retrievers._
+import impl.lmdb.fastjoins._
+import impl.lmdb.fastjoins.retrievers._
 
 import scalaz._
 

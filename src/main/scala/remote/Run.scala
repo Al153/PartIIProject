@@ -12,7 +12,7 @@ object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
       // MemoryDB,
-      logjoins.LMDB,
+      fastjoins.LMDB,
       // SQLDB,
       Vector[(String, DBBackend)](
     //    "SQL" -> SQLDB,

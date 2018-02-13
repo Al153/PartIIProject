@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins.retrievers
+package impl.lmdb.fastjoins.retrievers
 
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.ObjId

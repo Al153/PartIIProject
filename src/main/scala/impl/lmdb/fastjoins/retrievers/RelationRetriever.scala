@@ -1,11 +1,11 @@
-package impl.lmdb.logjoins.retrievers
+package impl.lmdb.fastjoins.retrievers
 
 import core.utils._
 import core.utils.algorithms.{FixedPointTraversal, SimpleFixedPointTraversal}
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.ObjId
 import impl.lmdb.common.errors.LMDBError
-import impl.lmdb.logjoins._
+import impl.lmdb.fastjoins._
 
 
 trait RelationRetriever {

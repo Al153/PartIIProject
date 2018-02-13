@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins
+package impl.lmdb.fastjoins
 
 import java.io.IOException
 import java.nio.ByteBuffer

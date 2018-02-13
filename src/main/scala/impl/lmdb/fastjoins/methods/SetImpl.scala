@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins.methods
+package impl.lmdb.fastjoins.methods
 
 import core.backend.intermediate.unsafe._
 import core.user.schema.SchemaObject

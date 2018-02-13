@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins.retrievers
+package impl.lmdb.fastjoins.retrievers
 
 import core.backend.intermediate.unsafe._
 import impl.lmdb.common.access.Commit

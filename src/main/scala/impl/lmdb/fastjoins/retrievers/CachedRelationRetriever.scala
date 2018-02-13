@@ -1,4 +1,4 @@
-package impl.lmdb.logjoins.retrievers
+package impl.lmdb.fastjoins.retrievers
 
 import core.utils._
 import impl.lmdb.common.LMDBEither
