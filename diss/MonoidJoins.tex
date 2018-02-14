@@ -117,4 +117,44 @@ Firstly, writing $p$ for $\deno{P}$ and with the binary representation of $n = \
 
 Todo: join distributes over and and or
 
+\subsection{Joins distribute over Or}
+
+It is useful to know how $join$ interacts with other queries. Specifically we can do some re-writing if it is the case that join distributes over $Or$
+
+\begin{equation}
+\deno{Chain(P, Or(Q, R))} = \deno{Or(Chain(P,Q), Chain(P, R))}
+\end{equation}
+
+Firstly, we have by inversion of the type rules for $Chain$ and $Or$ that:
+\begin{equation}\label{typeEquality}
+\begin{split}
+	\typeRule{Chain(P, Or(Q, R))}{A, C} & \Leftrightarrow \typeRule{P}{A, B} \wedge \typeRule{Q, R}{B, C}\\
+									   & \Leftrightarrow \typeRule{Chain(P,Q)}{A, C} \wedge \typeRule{Chain(P, R)}{A, C}\\
+									   & \Leftrightarrow \typeRule{Or(Chain(P,Q), Chain(P, R))}{A, C}\\
+\end{split}
+\end{equation}
+
+\begin{equation}\label{denotationalEquality}
+\begin{split}
+\deno{Chain(P, Or(Q, R))} & = \setComp{(a, c)}{\exists b. \denoRule{(a, b)}{P} \wedge (b,c) \in (\deno{Q} \cup \deno{R}})\\
+						 & = \setComp{(a, c)}{\exists b. (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{Q}) \vee (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{R})}\\
+						 & = \deno{Chain(P, Q)} \cup \deno{Chain(P, R)}\\
+						 & = \deno{Or(Chain(P, Q), Chain(P, R))}
+\end{split}
+\end{equation}
+
+
+\subsection{$Upto(n, P)$ expressed as $Exactly(n, P')$}
+Thanks to the previous section, we can now rewrite the denotation of $upto$
+
+\begin{equation}
+\label{UptoToExactly}
+\begin{split}
+\deno{Upto(n, P)} & = (\lambda pairs. join(\deno{P}, pairs) \cup pairs)^n \deno{Id_A}\\
+				  & = (\lambda pairs. join(\deno{P} \cup \deno{Id_A}, pairs)^n \deno{Id_A} \mbox{ Since $Id_A$ is the identity of join}\\
+				  & = \deno{Exactly(n, Or(P, Id_A))}
+\end{split}
+\end{equation}
+
+This means that we can evaluate $Upto$ queries as $Exactly$ queries, and apply the binary-representation driven construction above to evaluate queries using fewer unique joins.
 \end{document}
