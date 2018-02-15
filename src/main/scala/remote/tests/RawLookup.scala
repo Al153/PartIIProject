@@ -23,12 +23,14 @@ object RawLookup extends TestSpec[Set[(Person, Movie)]] {
       DBBuilder.buildDB("imdb/medium")(d)
     }
 
+  //todo: SQL runs out of memory.
+
   override def test(d: DBInstance)
                    (index: TestIndex)
                    (implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Movie)]] = {
     implicit val instance = d
     val coactor = ActsIn --><-- ActsIn
-    val sameDirector = Directed.rev -->--> Directed
+    val sameDirector = Directed <----> Directed
     (index.i % 5) match {
       case 0 =>
         readDefault(d){

@@ -24,6 +24,10 @@ trait RelationSyntax {
       if (left == right) Distinct(Chain(left.toFindPair, right.toFindPair.reverse)(sa, sb, sc))(sa, sc)
       else Chain(left.toFindPair, right.toFindPair.reverse)(sa, sb, sc)
 
+    def <---->[C](right: FindPairAble[A, C])(implicit sc: SchemaObject[C]): FindPair[B, C] =
+      if (left == right) Distinct(Chain(left.toFindPair.reverse, right.toFindPair))
+      else Chain(left.toFindPair.reverse, right.toFindPair)
+
     /**
       * Chain with another relation, provided the types match
       */
