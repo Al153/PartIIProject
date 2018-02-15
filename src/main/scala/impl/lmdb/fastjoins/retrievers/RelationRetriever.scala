@@ -54,7 +54,7 @@ object RelationRetriever {
     def distinct: RelationRetriever = new CachedRelationRetriever(
       objIds => for {
         rres <- outer.find(objIds)
-      } yield rres.filter{case (a, b) => a != b},
+      } yield rres.map{case (key, set) => key -> (set - key) }.prune,
 
       objId => for {
         res <- outer.findRight(objId)

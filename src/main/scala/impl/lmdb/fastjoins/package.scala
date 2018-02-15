@@ -16,7 +16,10 @@ package object fastjoins {
       val res = Map.newBuilder[ObjId, Set[ObjId]]
       for (key <- keys) {
         if ((key in m) && (key in n)) {
-          res += (key -> (m(key) intersect n(key)))
+          val value = m(key) intersect n(key)
+          if (value.nonEmpty) {
+            res += (key -> value)
+          }
         }
       }
 

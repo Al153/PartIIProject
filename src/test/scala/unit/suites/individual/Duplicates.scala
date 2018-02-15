@@ -7,16 +7,14 @@ import unit.{Knows, assertEqOp, description}
 
 trait Duplicates { self: HasBackend =>
   /**
-    * Check difference between findAll and findDistinct
+    * Check the number of paths is always 0 or 1 (redundant with the usage of sets)
   */
 
   @Test
-  def PairsVsDistinct(): Unit = runTest { implicit instance =>
+  def Pairs(): Unit = runTest { implicit instance =>
     val expectedDistinctPairs = Set(Alice -> Charlie)
-    val expectedAllPairs = Set(Alice -> Charlie, Alice -> Charlie)
 
     val expectedDistinctSingle = Set(Charlie)
-    val expectedAllSingle = Set(Charlie, Charlie)
     using(instance) {
 
       for {
@@ -28,14 +26,34 @@ trait Duplicates { self: HasBackend =>
         )
 
         res1 <- findPairs(Knows -->--> Knows)
-        res2 <- findPairs(Knows -->--> Knows)
         res3 <- find(Alice >> (Knows -->--> Knows))
-        res4 <- find(Alice >> (Knows -->--> Knows))
 
-        _ <- assertEqOp(expectedAllPairs, res1, "All pairs failure")
-        _ <- assertEqOp(expectedDistinctPairs, res2, "Distinct pairs failure")
-        _ <- assertEqOp(expectedAllSingle, res3, "All single pairs failure")
-        _ <- assertEqOp(expectedDistinctSingle, res4, "Distinct single failure")
+        _ <- assertEqOp(expectedDistinctPairs, res1, "Distinct pairs failure")
+        _ <- assertEqOp(expectedDistinctSingle, res3, "Distinct single failure")
+      } yield ()
+    }
+  }
+
+
+  @Test
+  def Distinct(): Unit = runTest { implicit instance =>
+    val expectedDistinctPairs = Set(Alice -> Charlie)
+    val expectedDistinctSingle = Set(Charlie)
+    using(instance) {
+
+      for {
+        _ <- insert(
+          CompletedRelation(Alice, Knows, Bob), // there are two routes from Alice to Charlie
+          CompletedRelation(Bob, Knows, Alice),
+          CompletedRelation(Alice, Knows, David),
+          CompletedRelation(David, Knows, Charlie)
+        )
+
+        res1 <- findPairs((Knows -->--> Knows).distinct)
+        res3 <- find(Alice >> (Knows -->--> Knows).distinct)
+
+        _ <- assertEqOp(expectedDistinctPairs, res1, "Distinct pairs failure")
+        _ <- assertEqOp(expectedDistinctSingle, res3, "Distinct single failure")
       } yield ()
     }
   }

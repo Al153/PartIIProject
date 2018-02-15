@@ -63,6 +63,12 @@ trait RelationSyntax {
       */
 
     def rev: FindPair[B, A] = left.toFindPair.reverse
+
+    /**
+      * Get distinct results only
+      * @return
+      */
+    def distinct: FindPair[A, B] = Distinct(left.toFindPair)
   }
 
   case class FindPairHalfQuery[A, B](left: FindPairAble[A, B], middle: FindSingleAble[B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) {

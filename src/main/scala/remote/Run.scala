@@ -35,5 +35,6 @@ object Run {
     // dodgy tests
 
     // CSE/LMDB test for JoinSpeed (Massive joins)
+    // todo: fix pathfinding
   }
 }
