@@ -149,11 +149,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     val bComponents = sb.schemaComponents
 
     var result = Set.newBuilder[(A, B)].right[SQLError]
-    println(rs.getFetchSize)
-    var count = 0
     while (result.isRight && rs.next()) {
-      count += 1
-      if ((count % 1000) == 0) logger.info("Result count = " + count)
       var aRow = Vector.newBuilder[DBCell].right[SQLError]
       var bRow = Vector.newBuilder[DBCell].right[SQLError]
 
