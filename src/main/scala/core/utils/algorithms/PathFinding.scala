@@ -54,7 +54,7 @@ object PathFinding {
       for {
         next <- searchStep(top.last)
         newObjects = next.diff(alreadyExplored)
-        newFringe = fringe.tail ++ newObjects.diff(alreadyExplored).map(top :+ _) // todo: Probably slow
+        newFringe = fringe.tail ++ newObjects.diff(alreadyExplored).map(top :+ _)
       } yield (newFringe, top, newObjects)
     } else {
       (fringe, Vector(), alreadyExplored).right

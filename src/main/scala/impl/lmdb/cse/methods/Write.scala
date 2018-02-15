@@ -60,7 +60,6 @@ trait Write { self: Methods with Logged =>
     // get new object Ids for find existing ones
     spec <- getObjIds(t, commits, commit)
     (relationsToInsert, reverseRelationsToInsert) = spec
-    // todo: write only relations that do not need to be added
       _ = logger.trace("Got spec")
 
     // insert forwards relations

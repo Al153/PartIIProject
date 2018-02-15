@@ -332,7 +332,6 @@ object Query {
     * @return
     */
 
-  // todo: needs to consult the auxTable
   private def doFind(findable: ErasedFindable): Compilation[Query] = for {
     name <- CompilationContext.getTableName(findable.tableName)
     // needs to consult aux table to get values in the required view

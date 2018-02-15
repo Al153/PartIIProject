@@ -120,7 +120,6 @@ trait Write { self: Methods =>
 
       // build an index of A -> (RelationName -> Set[B])
 
-      // todo: Faster collections for running this index
       aMap <- t.toSeq.foldLeft(LMDBEither(Map[A, Map[RelationName, Set[B]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
           for {

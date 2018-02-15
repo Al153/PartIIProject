@@ -11,7 +11,6 @@ import scalaz.\/
   * Typeclass for objects that can be converted to/from DBCells
   */
 
-// todo: Can this be optimised out?
 trait Storeable[T] {
   /**
     * @return the appropriate schema component that a [[T]] translates to

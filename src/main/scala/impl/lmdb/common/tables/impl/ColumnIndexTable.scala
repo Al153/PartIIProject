@@ -19,7 +19,7 @@ import org.lmdbjava.DbiFlags._
   * table used to index into the DB for a given object type
   */
 
-// todo optimise inserts using transactions (ie store valeus to insert in memory, then insert at once at the end of the transaction
+// todo optimise inserts using transactions (ie store values to insert in memory, then insert at once at the end of the transaction
 class ColumnIndexTable(tableName: TableName, columnIndex: Int, expectedType: SchemaComponent)(implicit val instance: LMDBInstance) extends LMDBTable {
   override val db: Dbi[ByteBuffer] = instance.env.openDbi(name, MDB_CREATE)
 

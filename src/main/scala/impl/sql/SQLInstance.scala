@@ -67,9 +67,10 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
 
 
   // sanitised relationNames, each is unique
-  // todo: this is an ugly piece of type algebra, an EitherT would be nicer here
   private val relationLookup: SQLEither[Map[ErasedRelationAttributes, RelationTable]] =
-    schema.erasedRelations.foldLeft(SQLEither(SQLTableName.point(Map[ErasedRelationAttributes, RelationTable]()))) {
+    schema
+      .erasedRelations
+      .foldLeft(SQLEither(SQLTableName.point(Map[ErasedRelationAttributes, RelationTable]()))) {
       case (ecm, er) =>
         for {
           cm <- ecm

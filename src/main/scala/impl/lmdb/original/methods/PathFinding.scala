@@ -58,7 +58,6 @@ trait PathFinding { self: Methods =>
         query <- relationalQuery.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
 
         // set up the search step function
-        // todo: use a custom findPairSet impl which only finds the rhs
         searchStep = {o: ObjId => findPairSet(query, commits,  Set(o)).map(_.mapProj2)}
 
         // run a generic pathfinding algorithm

@@ -60,7 +60,6 @@ trait Write { self: Methods =>
     // get new object Ids for find existing ones
     spec <- getObjIds(t, commits, commit)
     (relationsToInsert, reverseRelationsToInsert) = spec
-    // todo: write only relations that do not need to be added
       _ = logger.trace("Got spec")
 
     // insert forwards relations
@@ -119,8 +118,6 @@ trait Write { self: Methods =>
       bLookupTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
 
       // build an index of A -> (RelationName -> Set[B])
-
-      // todo: Faster collections for running this index
       aMap <- t.toSeq.foldLeft(LMDBEither(Map[A, Map[RelationName, Set[B]]]())) {
         case (em, CompletedRelation(a, r, b)) =>
           for {
