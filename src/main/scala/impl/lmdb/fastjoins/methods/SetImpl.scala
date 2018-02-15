@@ -71,6 +71,7 @@ trait SetImpl { self: Methods =>
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
   ): LMDBEither[Set[(A, B)]] = {
+    logger.info("Extracting size: " + in.size)
     val leftIds = in.mapProj1
     val rightIds = in.mapProj2
 
