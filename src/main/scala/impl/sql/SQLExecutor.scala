@@ -85,10 +85,9 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
 
-  override def shortestPath[A](start: A, end: A, t: FindPair[A, A])
-                              (
-                                implicit sa: SchemaObject[A]
-                              ): Operation[E, Option[Path[A]]] =
+  override def shortestPath[A](start: A, end: A, t: FindPair[A, A])(
+    implicit sa: SchemaObject[A]
+  ): Operation[E, Option[Path[A]]] =
     new ReadOperation({
       v: View => {
         // find the table which we want to traverse
@@ -118,17 +117,14 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
           // compile the query to SQL
           query <- compilePathQuery(t, v)
 
-          // Find all pairs related by the relation
-          pairs <- SQLFutureE(
-            instance
-              .reader
-              .getRelationPairs(query))
+          // get the lookup function
+          lookupFn = query.map(instance.reader.getObjIds)
 
-
+          // get the table
           table <- cfTable
 
           // find the path
-          path <- findPath(s, e, pairs)
+          path <- findPath(s, e, lookupFn)
 
 
           // populate the path if it exists
@@ -169,18 +165,16 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
           query <- compilePathQuery(t, v)
 
           // get all the pairs related by the query
-          pairs <- SQLFutureE(
-            instance
-              .reader
-              .getRelationPairs(query))
+          // get the lookup function
+          lookupFn = query.map(instance.reader.getObjIds)
 
-
-          s <- cfStart
+          // get the table
           table <- cfTable
 
-          // run the path finding algorithm
-          paths <- allPaths(s, pairs)
+          s <- cfStart
 
+          // find the path
+          paths <- allPaths(s, lookupFn)
           // populate each path
           populatedPaths <- SQLFutureE(EitherOps.sequence(
               paths.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
@@ -248,7 +242,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @tparam A - type of objects
     * @return
     */
-  private def compilePathQuery[A](query: FindPair[A, A], v: View): SQLFuture[String] =
+  private def compilePathQuery[A](query: FindPair[A, A], v: View): SQLFuture[ObjId => String] =
     SQLFutureE (
       for {
         // get unsafe
@@ -256,7 +250,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
         // create a query object
         pathQuery = PathFindingQuery(unsafe)(instance)
         // render it
-        stringQuery <- pathQuery.render(v)
+        stringQuery <- pathQuery.getRight(v)
       } yield stringQuery
     )
 
@@ -308,31 +302,31 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * Path find across the given pairs
     * @param s start
     * @param e end
-    * @param pairs pairs which give the subgraph to search
+    * @param f subgraph generation function
     * @return
     */
-  private def findPath(s: Option[ObjId], e: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Option[Vector[ObjId]]] =
-    SQLFutureE(EitherOps.switch(for {
-      s <- s
-      e <- e
-      // create an index
-      index = pairs.collectSets(identity)
-      // use a generic pathfinding algorithm
-      r2 = PathFinding.singleShortestsPathImpl[SQLError, ObjId](Set(s), e, k => index.getOrElse(k, Set()).right)
-    } yield r2).map(_.flatten))
+  private def findPath(s: Option[ObjId], e: Option[ObjId], f: ObjId => SQLEither[Set[ObjId]]): SQLFuture[Option[Vector[ObjId]]] =
+    SQLFutureE(
+      (s, e) match {
+        case (None, _) | (_, None) => None.right
+        case (Some(start), Some(end)) =>
+          for {
+            r2 <- PathFinding.singleShortestsPathImpl[SQLError, ObjId](Set(start), end, f)
+          } yield r2
+      })
+
 
   /**
     * Get all paths over a subgraph
     * @param s - starting node
-    * @param pairs - subgraph
+    * @param f - subgraph traversal function
     * @return
     */
-  private def allPaths(s: Option[ObjId], pairs: Set[(ObjId, ObjId)]): SQLFuture[Set[Vector[ObjId]]] =
+  private def allPaths(s: Option[ObjId], f: ObjId => SQLEither[Set[ObjId]]): SQLFuture[Set[Vector[ObjId]]] =
     SQLFutureE {
-      val index = pairs.collectSets(identity)
       s match {
         case None => SQLEither(Set())
-        case Some(start) => PathFinding.allShortestPathsImpl(Set(start), k => index.getOrElse(k, Set()).right)
+        case Some(start) => PathFinding.allShortestPathsImpl(Set(start), f)
       }
   }
 }

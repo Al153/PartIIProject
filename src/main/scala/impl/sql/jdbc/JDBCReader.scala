@@ -43,6 +43,8 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     */
 
   def getObjIds(query: String): SQLEither[Set[ObjId]] = {
+    println("Query = " + query)
+
     val rs = getResultSet(query)
     var result = Set.newBuilder[ObjId].right[SQLError]
     while (result.isRight && rs.next()) {

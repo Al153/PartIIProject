@@ -27,10 +27,18 @@ object Definitions {
                compilation: Compilation[Query],
                view: View
            )(outer: String)(implicit instance: SQLInstance): SQLEither[String] = {
+        getDefinitions(compilation, view).map(_+ " (" + outer + ")")
+    }
+
+    /**
+      *
+      */
+
+    def getDefinitions(compilation: Compilation[Query], view: View)(implicit instance: SQLInstance): SQLEither[String] = {
       val (context, mainQuery) = compilation.run(Query.emptyContext)
       for {
         defs <- context.getDefs(instance)
-      // get all the definitions of relations etc
+        // get all the definitions of relations etc
         (tableDefs, auxDefs, relationDefs) = defs
         commonSubExpressions = context.commonSubExpressions
 
@@ -58,9 +66,8 @@ object Definitions {
         }
 
         mainQueryPair = SQLDB.mainQuery + " AS " + optionalSelect(Query.render(mainQuery))
-      } yield    (List(view.definition) ++ relations ++ tables ++ auxTables ++ subexpressions ++ List(mainQueryPair)).mkString(", ") + " (" + outer + ")"
+      } yield   (List(view.definition) ++ relations ++ tables ++ auxTables ++ subexpressions ++ List(mainQueryPair)).mkString(", ")
     }
-
 
   /**
     * Picks out related pairs that are visible in a view
