@@ -37,7 +37,7 @@ abstract class Path[A] {
     */
   override def toString: String = getSteps.toString()
 
-  override def equals(obj: scala.Any): Boolean = obj.match {
+  override def equals(obj: scala.Any): Boolean = obj match {
     case p: Path[_] => p.getSteps == getSteps
     case _ => false
   }
