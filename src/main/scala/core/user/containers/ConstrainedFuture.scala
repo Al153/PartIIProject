@@ -2,6 +2,7 @@ package core.user.containers
 
 import core.user.dsl.HasRecovery
 
+import scala.annotation.tailrec
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -28,6 +29,7 @@ class ConstrainedFuture[E, A] private (private val underlying: EitherT[Future, E
   def flatMap[B](f: A => ConstrainedFuture[E, B]) = new ConstrainedFuture(underlying.flatMap(a => f(a).underlying))
 
   // Magic recovery function
+  @tailrec
   private def doRecovery(e: Throwable): E =
     try {
       R.recover(e)

@@ -157,4 +157,25 @@ Thanks to the previous section, we can now rewrite the denotation of $upto$
 \end{equation}
 
 This means that we can evaluate $Upto$ queries as $Exactly$ queries, and apply the binary-representation driven construction above to evaluate queries using fewer unique joins.
+
+
+\subsection{Joins do not distribute over And}
+
+Consider the schema containing object types $A$, $B$, $C$ and relations $R_1 \colon A,B$, $R_2 \colon B,C$,  and $R_3 \colon B,C$ and a view $v$ in this schema, with relations $R_1 \mapsto \lbrace(a, b1), (a, b2)\rbrace$, $R_2 \mapsto \lbrace(b1, c)\rbrace$, and $R_3 \mapsto \lbrace(b2, c)\rbrace$.
+
+Clearly 
+\begin{equation}
+\denoRule{(a,c)}{And(Chain(R_1, R_2), Chain(R_1, R_3))}
+\end{equation}
+
+But 
+\begin{equation}
+ \deno{And(R_2, R_3)} = \emptyset
+\end{equation}
+
+So
+\begin{equation}
+ \deno{Chain(And(R_2, R_3))} = \emptyset
+\end{equation}
+
 \end{document}

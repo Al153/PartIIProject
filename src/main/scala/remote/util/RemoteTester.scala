@@ -6,7 +6,7 @@ import E._
 import core.user.interfaces.{DBBackend, DBInstance}
 import core.utils.EitherOps
 import org.slf4j.Logger
-import remote.{BatchedTimedResults, errorThrowable, ns}
+import remote.{errorThrowable, ns}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}

@@ -6,17 +6,17 @@ import core.user.containers.{ConstrainedFuture, Path}
 import core.user.dsl.{E, allShortestPaths, usingView, writeToView}
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
-import remote.util.{TestIndex, TestName, TestSpec}
+import core.utils.Logged
 import remote.util.TestIndex._
 import remote.util.TestName._
-import TestIndex._
-import TestName._
+import remote.util.{TestIndex, TestName, TestSpec}
+
 import scala.concurrent.ExecutionContext
 
 /**
   * Created by Al on 30/01/2018.
   */
-object PathFindingTest extends TestSpec[Set[Path[Person]]]{
+object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
   override def testName: TestName = "Pathfinding".test
 
   override def batchSize: TestIndex = 6.tests
@@ -24,36 +24,49 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]]{
   override def setup(instance: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     for {
       v0 <- instance.getDefaultView
-      _ <- writeToView(instance, v0){
+      v1 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/smallest")(instance)
       }
 
-      _ <- writeToView(instance, v0){
+      _ = logger.info("Smallest view: " + v1)
+
+      v2 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/small_sparse")(instance)
       }
 
-      _ <- writeToView(instance, v0){
+      _ = logger.info("Small_sparse view: " + v2)
+
+      v3 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/small")(instance)
       }
 
-      _ <- writeToView(instance, v0){
+      _ = logger.info("small view: " + v3)
+
+      v4 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/medium_sparse")(instance)
       }
 
-      _ <- writeToView(instance, v0){
+      _ = logger.info("medium_sparse view: " + v4)
+
+      v5 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/medium")(instance)
       }
 
-      _ <- writeToView(instance, v0){
+      _ = logger.info("medium view: " + v5)
+
+      v6 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/large")(instance)
       }
+
+      _ = logger.info("large view: " + v6)
+
     } yield ()
 
   override def test(instance: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[Path[Person]]] = {
     implicit val inst = instance
     for {
       views <- instance.getViews
-      v = views.toVector.apply(index.i)
+      v = views.toVector.sortBy(_.id).apply(index.i)
       r <- usingView(instance, v){
         allShortestPaths(KevinBacon, ActsIn --><-- ActsIn)
       }
@@ -61,10 +74,4 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]]{
   }
 
   override def schema: SchemaDescription = schemaDescription
-
-
-
-
-
-
 }

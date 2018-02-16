@@ -30,13 +30,25 @@ abstract class Path[A] {
     */
   def end: A = getSteps.last._2
 
+  /**
+    * Override string and equality methods - we're only interested in the extensional
+    * equality of getSteps method
+    * @return
+    */
   override def toString: String = getSteps.toString()
+
+  override def equals(obj: scala.Any): Boolean = obj.match {
+    case p: Path[_] => p.getSteps == getSteps
+    case _ => false
+  }
+
+  override def hashCode(): Int = getSteps.hashCode()
 }
 
 /**
   * A basic path impl
-  * @param steps
-  * @tparam A
+  * @param steps - vector of steps
+  * @tparam A - type contained
   */
 // todo: should verify steps is at least 1 long
 final class PathImpl[A](steps: Vector[(A, A)])extends Path[A]() {
