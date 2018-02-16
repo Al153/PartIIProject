@@ -77,7 +77,7 @@ trait RetrieverMethods { self: Methods =>
 
       case USChain(l, r) => for {
         lres <- compilePairs(l, commits)
-        rres <- compilePairs(r, commits) // reduce double joining
+        rres <- compilePairs(r, commits)
       } yield lres join rres
 
       case USDistinct(r) => for {
