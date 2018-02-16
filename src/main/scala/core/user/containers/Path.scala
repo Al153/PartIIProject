@@ -29,6 +29,8 @@ abstract class Path[A] {
     * @return
     */
   def end: A = getSteps.last._2
+
+  override def toString: String = getSteps.toString()
 }
 
 /**
