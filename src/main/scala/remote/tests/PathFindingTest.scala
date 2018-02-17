@@ -72,7 +72,7 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
       }
       lengths = r.map(_.length)
       _ = logger.info("Number of paths found = " + r.size)
-      _ = logger.info("Average Length of paths found = " + lengths.sum/r.size)
+      _ = if (r.nonEmpty) logger.info("Average Length of paths found = " + lengths.sum/r.size)
       _ = logger.info("longest path = " + lengths.max)
       _ = logger.info("shortest path = " + lengths.min)
     } yield r
