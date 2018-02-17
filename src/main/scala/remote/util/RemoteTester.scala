@@ -142,7 +142,6 @@ class RemoteTester(
     for {
       r <- block(testInstance.testIndex)
       t1 = System.nanoTime()
-      _ = logger.info("Value = " + r)
     } yield TimeResult(testInstance, t1 - t0,  r.hashCode())
   }
 }

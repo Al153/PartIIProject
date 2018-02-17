@@ -32,5 +32,5 @@ object ExactlyTest extends TestSpec[Set[Person]] {
       }
   }
 
-  override def batchSize: TestIndex = 10.tests
+  override def batchSize: TestIndex = 5.tests
 }
