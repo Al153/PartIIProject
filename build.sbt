@@ -15,10 +15,10 @@ libraryDependencies += "commons-lang" % "commons-lang" % "2.5"
 libraryDependencies += "org.postgresql" % "postgresql" % "42.1.4"
 
 // Scala test
-libraryDependencies ++= Seq(
-  "org.scalactic" %% "scalactic" % "3.0.1",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-)
+//libraryDependencies ++= Seq(
+//  "org.scalactic" %% "scalactic" % "3.0.1",
+//  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+//)
 
 // Junit
 libraryDependencies ++= Seq(
@@ -31,13 +31,8 @@ libraryDependencies ++= Seq(
 scalacOptions += "-feature"
 libraryDependencies += "org.lmdbjava" %	"lmdbjava"% "0.6.0"
 
-
-
-
 // for building the imdb database
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.3"
-
-
 
 // Logging
 libraryDependencies ++= Seq(

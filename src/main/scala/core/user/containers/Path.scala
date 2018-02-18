@@ -53,6 +53,15 @@ abstract class Path[A] {
 // todo: should verify steps is at least 1 long
 final class PathImpl[A](steps: Vector[(A, A)])extends Path[A]() {
   override def getSteps: Vector[(A, A)] = steps
+
+  override def toString: String = getSteps.toString()
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case p: Path[_] => p.getSteps == getSteps
+    case _ => false
+  }
+
+  override def hashCode(): Int = getSteps.hashCode()
 }
 
 object Path {
@@ -78,6 +87,15 @@ object Path {
     */
   def fromVector[A](v: Vector[A]): Path[A] = new Path[A] {
     override val getSteps: Vector[(A, A)] = v.dropRight(1).zip(v.drop(1))
+
+    override def toString: String = getSteps.toString()
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case p: Path[_] => p.getSteps == getSteps
+      case _ => false
+    }
+
+    override def hashCode(): Int = getSteps.hashCode()
   }
 }
 

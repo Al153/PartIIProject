@@ -24,12 +24,12 @@ object Run {
     )
 
     tester.runTest(PathFindingTest)
-    tester.runTest(ExactlyTest)
     tester.runTest(JoinSpeed)
     tester.runTest(FindSingles)
     tester.runTest(Writes)
     tester.runTest(ConjunctionsAndDisjunctions)
     tester.runTest(RawLookup)
+    tester.runTest(ExactlyTest)
 
 
     // dodgy tests
