@@ -23,7 +23,7 @@ object RawLookup extends TestSpec[Set[(Person, Movie)]] {
       DBBuilder.buildDB("imdb/medium_sparse")(d)
     }
 
-  //todo: SQL runs out of memory.
+  //todo: SQL runs out of memory on medium and large
 
   override def test(d: DBInstance)
                    (index: TestIndex)
