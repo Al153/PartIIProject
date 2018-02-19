@@ -20,7 +20,7 @@ object RawLookup extends TestSpec[Set[(Person, Movie)]] {
 
   override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(d){
-      DBBuilder.buildDB("imdb/medium")(d)
+      DBBuilder.buildDB("imdb/medium_sparse")(d)
     }
 
   //todo: SQL runs out of memory.
