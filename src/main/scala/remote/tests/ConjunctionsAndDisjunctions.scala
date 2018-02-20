@@ -38,4 +38,6 @@ object ConjunctionsAndDisjunctions extends TestSpec[Set[(Person, Person)]] {
   }
 
   override def schema: SchemaDescription = UFCSchema.schema
+
+  override def ignoreBackends: Set[String] = Set()
 }

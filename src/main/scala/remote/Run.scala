@@ -17,18 +17,20 @@ object Run {
       Vector[(String, DBBackend)](
     //    "SQL" -> SQLDB,
     //    "LMDB" -> original.LMDB,
-        "LMDB Cse" -> cse.LMDB,
-        "LMDBFast" -> fast.LMDB,
-        "SQL" -> SQLDB
+        lmdbcse -> cse.LMDB,
+        lmdbfast -> fast.LMDB,
+        postgres -> SQLDB
       )
     )
 
+    tester.runTest(RawLookup)
     tester.runTest(PathFindingTest)
     tester.runTest(JoinSpeed)
     tester.runTest(FindSingles)
     tester.runTest(Writes)
     tester.runTest(ConjunctionsAndDisjunctions)
-    tester.runTest(RawLookup)
+    tester.runTest(RawLookupLarge)
+    tester.runTest(FindSinglesLarge)
     tester.runTest(ExactlyTest)
 
 

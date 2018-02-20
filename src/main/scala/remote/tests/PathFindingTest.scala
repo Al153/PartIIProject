@@ -71,15 +71,9 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
         allShortestPaths(KevinBacon, ActsIn --><-- ActsIn)
       }
       lengths = r.map(_.length: Long)
-      _ = logger.info("Number of paths found = " + r.size)
-      _ = if (r.nonEmpty) {
-        logger.info("Average Length of paths found = " + lengths.sum/r.size)
-        logger.info("longest path = " + lengths.max)
-        logger.info("shortest path = " + lengths.min)
-      }
-
     } yield r
   }
 
   override def schema: SchemaDescription = schemaDescription
+  override def ignoreBackends: Set[String] = Set()
 }

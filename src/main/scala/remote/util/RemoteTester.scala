@@ -38,7 +38,7 @@ class RemoteTester(
     )
     Await.result(runningTests.run, (60*60*24*365).seconds) match {
       case \/-(()) => logger.info("[Done]")
-      case -\/(e) => errorThrowable(e)
+      case -\/(e) => logger.info("[Error]" + e.toString)
     }
   }
 
@@ -58,7 +58,7 @@ class RemoteTester(
       _ = logger.info("[Starting reference batch]")
       refValues <- runReferenceBatch(spec, reference)
       _ = logger.info("[Done reference batch]")
-      _ <- sequence(toTest) {
+      _ <- sequence(spec.getTestable(toTest)) {
         case (name, instance) =>
           logger.info(s"[Starting test for $name] ")
           (for {

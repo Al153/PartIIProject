@@ -1,29 +1,31 @@
 package remote.tests
 
 import construction.imdb.IMDBSchema._
+import construction.imdb.{DBBuilder, IMDBSchema}
 import core.user.containers.ConstrainedFuture
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
-import construction.imdb.{DBBuilder, IMDBSchema}
+import remote.util.TestIndex._
+import remote.util.TestName._
 import remote.util.{TestIndex, TestName, TestSpec}
-import TestIndex._
-import TestName._
+import remote._
 
 import scala.concurrent.ExecutionContext
 
+/**
+  * Copy of raw lookup performance, skips SQL because SQL runs out of memory
+  */
 
-object RawLookup extends TestSpec[Set[(Person, Movie)]] {
-  override def testName: TestName = "RawLookupPerformance".test
+object RawLookupLarge extends TestSpec[Set[(Person, Movie)]] {
+  override def testName: TestName = "RawLookupPerformanceLarge".test
 
   override def batchSize: TestIndex = 10.tests // todo: increase for long tests
 
   override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(d){
-      DBBuilder.buildDB("imdb/medium_sparse")(d)
+      DBBuilder.buildDB("imdb/large")(d)
     }
-
-  //todo: SQL runs out of memory on medium and large
 
   override def test(d: DBInstance)
                    (index: TestIndex)
@@ -56,5 +58,5 @@ object RawLookup extends TestSpec[Set[(Person, Movie)]] {
   }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(postgres)
 }
