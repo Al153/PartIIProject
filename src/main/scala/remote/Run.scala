@@ -23,14 +23,14 @@ object Run {
       )
     )
 
+    tester.runTest(RawLookupLarge)
+    tester.runTest(FindSinglesLarge)
     tester.runTest(RawLookup)
     tester.runTest(PathFindingTest)
     tester.runTest(JoinSpeed)
     tester.runTest(FindSingles)
     tester.runTest(Writes)
     tester.runTest(ConjunctionsAndDisjunctions)
-    tester.runTest(RawLookupLarge)
-    tester.runTest(FindSinglesLarge)
     tester.runTest(ExactlyTest)
 
 

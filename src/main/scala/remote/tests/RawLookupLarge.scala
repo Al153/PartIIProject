@@ -24,7 +24,7 @@ object RawLookupLarge extends TestSpec[Set[(Person, Movie)]] {
 
   override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(d){
-      DBBuilder.buildDB("imdb/large")(d)
+      DBBuilder.buildDB("imdb/medium")(d)
     }
 
   override def test(d: DBInstance)
