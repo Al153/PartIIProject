@@ -9,6 +9,7 @@ import core.user.schema.SchemaDescription
 import remote.util.TestIndex._
 import remote.util.{TestIndex, TestSpec}
 import remote.util.TestName._
+import remote._
 
 import scala.concurrent.ExecutionContext
 
@@ -33,5 +34,5 @@ object ExactlyTest extends TestSpec[Set[Person]] {
   }
 
   override def batchSize: TestIndex = 5.tests
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

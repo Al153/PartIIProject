@@ -43,5 +43,5 @@ object FindSinglesLarge extends TestSpec[Set[(Person, Person)]] {
     }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
-  override def ignoreBackends: Set[String] = Set(lmdbfast, lmdbcse)
+  override def ignoreBackends: Set[String] = Set(lmdbfast, lmdbcse, lmdbOriginal)
 }

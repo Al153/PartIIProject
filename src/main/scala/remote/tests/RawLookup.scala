@@ -9,6 +9,7 @@ import construction.imdb.{DBBuilder, IMDBSchema}
 import remote.util.{TestIndex, TestName, TestSpec}
 import TestIndex._
 import TestName._
+import remote._
 
 import scala.concurrent.ExecutionContext
 
@@ -56,5 +57,5 @@ object RawLookup extends TestSpec[Set[(Person, Movie)]] {
   }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }
