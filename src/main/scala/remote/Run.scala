@@ -25,8 +25,8 @@ object Run {
       )
     )
 
-    tester.runTest(ExactlyTest)
     tester.runTest(ExactlySparse)
+
     tester.runTest(RawLookupLarge)
     tester.runTest(FindSinglesLarge)
     tester.runTest(RawLookup)
@@ -35,6 +35,7 @@ object Run {
     tester.runTest(FindSingles)
     tester.runTest(Writes)
     tester.runTest(ConjunctionsAndDisjunctions)
+    tester.runTest(ExactlyTest)
 
 
 

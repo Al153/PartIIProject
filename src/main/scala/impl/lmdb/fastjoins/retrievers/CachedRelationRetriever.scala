@@ -14,6 +14,8 @@ class CachedRelationRetriever(
                                lookup: Set[ObjId] =>  LMDBEither[Map[ObjId, Set[ObjId]]],
                                simpleLookup: ObjId => LMDBEither[Set[ObjId]]
                              ) extends RelationRetriever with Logged {
+  private var memoHit: Int = 0
+  private var memoMiss: Int = 0
 
   private val memo = new mutable.HashMap[ObjId, Set[ObjId]]()
   override def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]] = {
@@ -41,11 +43,22 @@ class CachedRelationRetriever(
   }
 
   override def findRight(from: ObjId): LMDBEither[Set[ObjId]] =
-    if (from in memo) LMDBEither(memo(from))
-    else {
-      for {
-        res <- simpleLookup(from)
-        _ = memo += from -> res
-      } yield res
-    }
+      if (from in memo){
+        memoHit += 1
+        if (memoHit % 1000 == 0) {
+          logger.info("Memo hits: " + memoHit)
+        }
+        LMDBEither(memo(from))
+      }
+      else {
+        memoMiss += 1
+        if (memoMiss % 1000 == 0) {
+          logger.info("Memo misses: " + memoMiss)
+        }
+        for {
+          res <- simpleLookup(from)
+          _ = memo += from -> res
+        } yield res
+      }
+
 }
