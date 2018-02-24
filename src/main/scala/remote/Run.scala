@@ -26,6 +26,7 @@ object Run {
     )
 
     tester.runTest(ExactlyTest)
+    tester.runTest(ExactlySparse)
     tester.runTest(RawLookupLarge)
     tester.runTest(FindSinglesLarge)
     tester.runTest(RawLookup)

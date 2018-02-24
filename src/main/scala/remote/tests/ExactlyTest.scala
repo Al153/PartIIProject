@@ -23,15 +23,18 @@ object ExactlyTest extends TestSpec[Set[Person]] {
   override def schema: SchemaDescription = schemaDescription
   override  def setup(instance: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(instance){
-      DBBuilder.buildDB("imdb/smallest")(instance)
+      DBBuilder.buildDB("imdb/small")(instance)
     }
 
-  override def test(instance: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[Person]] = {
+  override def test(instance: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[Person]] =
+  for { res <- {
       implicit val inst = instance
       using(instance){
         find(KevinBacon >> ((ActsIn --><-- ActsIn) * index.i))
       }
   }
+    _ = logger.info("Length of exactlies = " + res.size)
+  } yield res
 
   override def batchSize: TestIndex = 5.tests
   override def ignoreBackends: Set[String] = Set(lmdbOriginal)
