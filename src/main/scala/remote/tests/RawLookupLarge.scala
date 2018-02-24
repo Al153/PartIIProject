@@ -58,5 +58,5 @@ object RawLookupLarge extends TestSpec[Set[(Person, Movie)]] {
   }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
-  override def ignoreBackends: Set[String] = Set(postgres)
+  override def ignoreBackends: Set[String] = Set(postgres, lmdbOriginal)
 }

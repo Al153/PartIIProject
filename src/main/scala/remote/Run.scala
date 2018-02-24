@@ -19,6 +19,8 @@ object Run {
     //    "LMDB" -> original.LMDB,
         lmdbcse -> cse.LMDB,
         lmdbfast -> fast.LMDB,
+        lmdbOriginal -> original.LMDB,
+
         postgres -> SQLDB
       )
     )

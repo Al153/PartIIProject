@@ -22,4 +22,5 @@ package object remote {
   val lmdbcse = "LMDB Cse"
   val lmdbfast = "LMDBFast"
   val postgres = "SQL"
+  val lmdbOriginal = "original"
 }

@@ -10,6 +10,7 @@ import core.utils.Logged
 import remote.util.TestIndex._
 import remote.util.TestName._
 import remote.util.{TestIndex, TestName, TestSpec}
+import remote._
 
 import scala.concurrent.ExecutionContext
 
@@ -75,5 +76,5 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
   }
 
   override def schema: SchemaDescription = schemaDescription
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

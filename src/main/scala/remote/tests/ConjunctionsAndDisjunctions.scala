@@ -10,6 +10,7 @@ import remote.util.{TestIndex, TestName, TestSpec}
 import TestIndex._
 import TestName._
 import core.user.schema.SchemaDescription
+import remote._
 
 import scala.concurrent.ExecutionContext
 
@@ -39,5 +40,5 @@ object ConjunctionsAndDisjunctions extends TestSpec[Set[(Person, Person)]] {
 
   override def schema: SchemaDescription = UFCSchema.schema
 
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

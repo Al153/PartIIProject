@@ -43,5 +43,5 @@ object Writes extends TestSpec[Unit]{
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
 
   // these have the same write implementations as lmdb fastjoins, so can ignore
-  override def ignoreBackends: Set[String] = Set(lmdbcse, lmdbfast)
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal, lmdbcse, lmdbfast)
 }
