@@ -37,6 +37,12 @@ case object NoConstraint extends Where with WhereTable
   */
 case class Limit(limit: VarName, n: Int) extends Where
 
+/**
+  * Where an alias is not equal to zero
+  */
+
+case class LimitZero(limit: VarName) extends Where
+
 object Where {
   /**
     * Render by case matching
@@ -45,6 +51,7 @@ object Where {
     case NoConstraint => ""
     case Distinct => s"WHERE $leftId != $rightId"
     case Limit(lim, n) => s"WHERE $lim < $n"
+    case LimitZero(lim) => s"WHERE $lim > 0"
   }
 }
 

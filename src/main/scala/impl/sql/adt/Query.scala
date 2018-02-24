@@ -167,7 +167,7 @@ object Query {
     case USExactly(n, rel) => for {
       view <- convertPair(rel)
       viewName <- CompilationContext.newSubexpression(view)
-      body <- getExactly(viewName, n, rel.leftMostTable)
+      body <- getExactly(viewName, n, rel.leftMostTable, rel.leftMostTable)
     } yield body
 
       // id, select all values from an object
@@ -243,8 +243,20 @@ object Query {
     * @param emptyTable - table to extract all from in the case n = 0
     * @return
     */
-  private def getExactly(precomputed: VarName, n: Int, emptyTable: TableName): Compilation[Query] = {
+  private def getExactly(precomputed: VarName, n: Int, emptyTable: TableName, emptyRelationTable: TableName): Compilation[Query] = {
     // idea: inspired by binary multiplication
+    def generateJoins(n: Int, x: Query, acc: Query): Compilation[Query] =
+      if (n <= 0) CompilationContext.point(acc)
+      else
+        for {
+          a <- CompilationContext.newSymbol
+          b <- CompilationContext.newSymbol
+        } yield SelectWhere(
+          Joined(a, b),
+          NoConstraint,
+          JoinRename(a -> x, b -> acc, Chained)
+        )
+
     def joinBySquares(n: Int, x: Query, emptyQuery: Query): Compilation[Query] =
       if (n <= 0) CompilationContext.point(emptyQuery)
       else if (n <= 1) CompilationContext.point(x)
@@ -287,9 +299,8 @@ object Query {
 
     for {
       e <- allFrom(emptyTable)
-      res <- joinBySquares(n, Var(precomputed), e)
+      res <- generateJoins(n, Var(precomputed), e)
     } yield res
-
   }
 
   /**
