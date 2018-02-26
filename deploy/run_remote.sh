@@ -3,6 +3,7 @@
 git pull origin master
 SHA="$(git show -s --format=%H| cut -c1-8)"
 tmpDir="/local/scratch-2/at736"
+export SBT_OPTS="-Xmx32G -XX:MaxPermSize=2G"
 
 
 echo ${SHA} > ${tmpDir}/lastSha.log
