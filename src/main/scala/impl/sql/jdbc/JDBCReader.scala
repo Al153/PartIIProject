@@ -9,6 +9,8 @@ import core.backend.intermediate._
 import core.user.schema._
 import core.utils.Logged
 import impl.sql._
+import impl.sql.adt.Definitions
+import impl.sql.adt.Query.logger
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
 import impl.sql.jdbc.Conversions._
@@ -337,6 +339,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     * Run a query
     */
   private def getResultSet(q: String): ResultSet = {
+    logger.info("Read query =  " + q)
     instance
       .connection
       .createStatement()

@@ -56,7 +56,7 @@ case class CompilationContext(
     }
 
   /**
-    * Lookup or get a new alias for an auxialiary table
+    * Lookup or get a new alias for an auxialliary table
     */
   def getAuxTable(name: TableName): (CompilationContext, VarName) =
     if (name in requiredAuxTables) (this, requiredAuxTables(name))

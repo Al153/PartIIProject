@@ -1,7 +1,10 @@
 package impl.sql.adt
 
 import core.backend.intermediate.unsafe._
+import core.user.dsl.View
 import core.user.schema.TableName
+import core.utils.Logged
+import impl.sql.SQLInstance
 import impl.sql.adt.CompilationContext.Compilation
 import impl.sql.adt.queries._
 import impl.sql.names.SQLColumnName
@@ -59,7 +62,7 @@ case class JoinRename private (leftMapping: (VarName, Query), rightMapping: (Var
   */
 case class JoinSimple private (left: VarName, right: VarName, on: JoinMapping) extends Query // $left join $right on Mapping
 
-object Query {
+object Query extends Logged {
   /**
     * Default [[CompilationContext]]
     */
@@ -257,47 +260,6 @@ object Query {
             JoinRename(a -> x, b -> acc, Chained)
           ))
         } yield r
-
-    def joinBySquares(n: Int, x: Query, emptyQuery: Query): Compilation[Query] =
-      if (n <= 0) CompilationContext.point(emptyQuery)
-      else if (n <= 1) CompilationContext.point(x)
-      else if (n % 2 == 0)
-        for {
-          a <- CompilationContext.newSymbol
-          b <- CompilationContext.newSymbol
-          doubled <- joinBySquares(
-            n/2,
-            SelectWhere(
-              Joined(a, b),
-              NoConstraint,
-              JoinRename(
-                a -> x,
-                b -> x,
-                Chained
-              )
-            ), emptyQuery
-          )
-        } yield doubled
-      else
-        for {
-          a <- CompilationContext.newSymbol
-          b <- CompilationContext.newSymbol
-          doubled <- joinBySquares(
-            (n-1)/2,
-            SelectWhere(
-              Joined(a, b),
-              NoConstraint,
-              JoinRename(
-                a -> x,
-                b -> x,
-                Chained
-              )
-            ), emptyQuery
-          )
-          l <- CompilationContext.newSymbol
-          r <- CompilationContext.newSymbol
-        } yield SelectWhere(Joined(l, r), NoConstraint, JoinRename(l -> x, r -> doubled, Chained))
-
     for {
       e <- allFrom(emptyTable)
       res <- generateJoins(n, Var(precomputed), e)
