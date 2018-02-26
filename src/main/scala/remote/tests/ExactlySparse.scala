@@ -29,7 +29,7 @@ object ExactlySparse extends TestSpec[Set[Person]] {
     for { res <- {
       implicit val inst = instance
       using(instance){
-        find(KevinBacon >> ((ActsIn --><-- ActsIn) * index.i))
+        find(KevinBacon >> (((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * index.i))
       }
     }
           _ = logger.info("Length of exactlies = " + res.size)

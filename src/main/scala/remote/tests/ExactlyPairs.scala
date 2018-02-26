@@ -25,7 +25,7 @@ object ExactlyPairs extends TestSpec[Set[(Person, Person)]] {
     for { res <- {
       implicit val inst = instance
       using(instance){
-        findPairs((ActsIn --><-- ActsIn) * index.i)
+        findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * index.i)
       }
     }
           _ = logger.info("Length of exactlies = " + res.size)

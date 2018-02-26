@@ -30,7 +30,7 @@ object ExactlyTest extends TestSpec[Set[Person]] {
   for { res <- {
       implicit val inst = instance
       using(instance){
-        find(KevinBacon >> ((ActsIn --><-- ActsIn) * index.i))
+        find(TomHanks >> (((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * index.i))
       }
   }
     _ = logger.info("Length of exactlies = " + res.size)

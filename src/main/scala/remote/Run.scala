@@ -30,6 +30,7 @@ object Run {
     tester.runTest(Disjunctions)
     tester.runTest(ExactlySparse)
     tester.runTest(PathFindingTest)
+    tester.runTest(ExactlyPairs)
 
     tester.runTest(RawLookupLarge)
     tester.runTest(UptoSparse)
