@@ -23,7 +23,7 @@ trait FindableSyntax {
     /**
       * Left-filter a relation by this findable
       */
-    def -->>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
+    def ->>-[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
       AndLeft(r.toFindPair, u.toFindSingle)
 
     /**
@@ -56,7 +56,7 @@ trait FindableSyntax {
     /**
       * Left-filter a relation by this findable
       */
-    def -->>[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
+    def ->>-[B](r: FindPairAble[A, B])(implicit sb: SchemaObject[B]): FindPair[A, B] =
       AndLeft(r.toFindPair, u.toFindSingle)
 
     /**

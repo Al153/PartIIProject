@@ -8,5 +8,7 @@ import construction.imdb.IMDBSchema.Person
 package object tests {
 
   val KevinBacon = Person("Kevin Bacon")
+  val TomHanks = Person("Tom Hanks")
+  val TomCruise = Person("Tom Cruise")
 
 }

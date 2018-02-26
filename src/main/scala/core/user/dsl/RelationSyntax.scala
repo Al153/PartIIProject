@@ -49,7 +49,7 @@ trait RelationSyntax {
       * Right filter the relation by a FindSingle
       */
 
-    def -->>(right: FindSingleAble[B]): FindPair[A, B] =
+    def ->>-(right: FindSingleAble[B]): FindPair[A, B] =
       AndRight(left.toFindPair, right.toFindSingle)(sa, sb)
 
     /**

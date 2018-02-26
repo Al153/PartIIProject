@@ -102,7 +102,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
       for {
         _ <- setupPath
 
-        knowsOwner <- findPairs((Knows --><-- OwnedBy) -->> petSchema.pattern(None, None, None, true.some) )
+        knowsOwner <- findPairs((Knows --><-- OwnedBy) ->>- petSchema.pattern(None, None, None, true.some) )
 
         _ <- assertEqOp(expected, knowsOwner, "rightAnd")
       } yield ()
@@ -117,7 +117,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
       for {
         _ <- setupPath
 
-        dogOwnership <- findPairs(petSchema.pattern(None, None, None, true.some) -->> OwnedBy)
+        dogOwnership <- findPairs(petSchema.pattern(None, None, None, true.some) ->>- OwnedBy)
 
 
         _ <- assertEqOp(expected, dogOwnership, "LeftAnd")
