@@ -26,11 +26,11 @@ object Run {
     )
 
     tester.runTest(ExactlySparse)
+    tester.runTest(PathFindingTest)
 
     tester.runTest(RawLookupLarge)
     tester.runTest(FindSinglesLarge)
     tester.runTest(RawLookup)
-    tester.runTest(PathFindingTest)
     tester.runTest(JoinSpeed)
     tester.runTest(FindSingles)
     tester.runTest(Writes)

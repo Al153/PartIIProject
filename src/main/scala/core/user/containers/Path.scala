@@ -81,21 +81,10 @@ object Path {
 
   /**
     * Create a path from a vector of objects
-    * @param v
-    * @tparam A
+    * @param v - vector of values in order
+    * @tparam A - type to put in path
     * @return
     */
-  def fromVector[A](v: Vector[A]): Path[A] = new Path[A] {
-    override val getSteps: Vector[(A, A)] = v.dropRight(1).zip(v.drop(1))
-
-    override def toString: String = getSteps.toString()
-
-    override def equals(obj: scala.Any): Boolean = obj match {
-      case p: Path[_] => p.getSteps == getSteps
-      case _ => false
-    }
-
-    override def hashCode(): Int = getSteps.hashCode()
-  }
+  def fromVector[A](v: Vector[A]): Path[A] = new PathImpl[A](v.dropRight(1).zip(v.drop(1)))
 }
 
