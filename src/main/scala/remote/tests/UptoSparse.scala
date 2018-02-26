@@ -6,19 +6,24 @@ import core.user.containers.ConstrainedFuture
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
+import remote.util.TestIndex._
+import remote.util.TestName._
 import remote.util.{TestIndex, TestName, TestSpec}
-import TestIndex._
-import TestName._
+import remote._
+
 import scala.concurrent.ExecutionContext
 
 
 /**
   * Created by Al on 02/02/2018.
+  *
+  * Larger verson of FindSingles. Only test postgres and FastJoins impl, since they are the fast ones
+  * Repeats tests for better reliability
   */
-object FindSingles extends TestSpec[Set[(Person, Person)]] {
-  override def testName: TestName = "FindSingles".test
+object UptoSparse extends TestSpec[Set[(Person, Person)]] {
+  override def testName: TestName = "UptoLarge".test
 
-  override def batchSize: TestIndex = 10.tests
+  override def batchSize: TestIndex = 100.tests
 
   override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] = {
     implicit val inst: DBInstance = d
@@ -33,10 +38,10 @@ object FindSingles extends TestSpec[Set[(Person, Person)]] {
     {
       implicit val inst = d
       readDefault(inst) {
-        findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> index.i))
+        findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> (index.i % 10)))
       }
     }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbfast, lmdbcse, lmdbOriginal)
 }

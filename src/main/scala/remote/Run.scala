@@ -25,16 +25,17 @@ object Run {
       )
     )
 
+    tester.runTest(ExactlyPairs)
     tester.runTest(ExactlySparse)
     tester.runTest(PathFindingTest)
 
     tester.runTest(RawLookupLarge)
-    tester.runTest(FindSinglesLarge)
+    tester.runTest(UptoSparse)
     tester.runTest(RawLookup)
     tester.runTest(JoinSpeed)
-    tester.runTest(FindSingles)
+    tester.runTest(UptoTest)
     tester.runTest(Writes)
-    tester.runTest(ConjunctionsAndDisjunctions)
+    tester.runTest(SparseTransitiveClosure)
     tester.runTest(ExactlyTest)
 
 

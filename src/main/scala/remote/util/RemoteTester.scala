@@ -128,14 +128,19 @@ class RemoteTester(
     logger.error(e.toString)
   }
 
-  private def sequence[A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[E, B]): ConstrainedFuture[E, Map[A, B]] =
+  private def sequence[A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[E, B]): ConstrainedFuture[E, Map[A, B]]
+  = {
+    var ok = true
     in.foldLeft(ConstrainedFuture.point(Map.empty[A, B])){
       case (or, a) =>
         for {
           r <- or
-          b <- f(a)
-        } yield r + (a -> b)
+          _ = ok = true
+          m <- f(a).map(b => r + (a -> b)).recover{e => logError(e); r}
+        } yield m
     }
+  }
+
 
   private def timeConstrainedFuture[R](block: TestIndex => ConstrainedFuture[E, R])(testInstance: TestInstance): ConstrainedFuture[E, TimeResult[Int]] = {
     val t0 = System.nanoTime()

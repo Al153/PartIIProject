@@ -14,8 +14,8 @@ import remote._
 
 import scala.concurrent.ExecutionContext
 
-object ConjunctionsAndDisjunctions extends TestSpec[Set[(Person, Person)]] {
-  override def testName: TestName = "ConjunctionsAndDisjunctions".test
+object SparseTransitiveClosure extends TestSpec[Set[(Person, Person)]] {
+  override def testName: TestName = "SparseTransitiveClosure".test
 
   override def batchSize: TestIndex = 10.tests
 
