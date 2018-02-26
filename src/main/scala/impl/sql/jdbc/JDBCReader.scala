@@ -340,7 +340,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     */
   private def getResultSet(q: String): ResultSet = {
     // log non - write queries
-    if(!q.startsWith("WITH insertOrGetTemp")) logger.info("Read query =  " + q)
+    if(!q.contains("WITH insertOrGetTemp")) logger.info("Read query =  " + q)
     instance
       .connection
       .createStatement()
