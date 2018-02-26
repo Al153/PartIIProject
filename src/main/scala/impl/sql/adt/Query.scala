@@ -251,11 +251,12 @@ object Query {
         for {
           a <- CompilationContext.newSymbol
           b <- CompilationContext.newSymbol
-        } yield SelectWhere(
-          Joined(a, b),
-          NoConstraint,
-          JoinRename(a -> x, b -> acc, Chained)
-        )
+          r <- generateJoins(n-1, x, SelectWhere(
+            Joined(a, b),
+            NoConstraint,
+            JoinRename(a -> x, b -> acc, Chained)
+          ))
+        } yield r
 
     def joinBySquares(n: Int, x: Query, emptyQuery: Query): Compilation[Query] =
       if (n <= 0) CompilationContext.point(emptyQuery)
