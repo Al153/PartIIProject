@@ -25,7 +25,6 @@ object Run {
       )
     )
 
-    tester.runTest(ExactlyPairs)
     tester.runTest(ExactlySparse)
     tester.runTest(PathFindingTest)
 
