@@ -7,6 +7,7 @@ import core.user.containers.{Operation, Path}
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.utils._
+import impl.lmdb.common.errors.LMDBError
 import impl.lmdb.fast.LMDB
 import impl.memory.MemoryDB
 import impl.sql.SQLDB
@@ -51,7 +52,7 @@ object DBBuilder {
   }
 
 
-  def buildDB[E1 <: E](sourcePath: String)(implicit instance: DBInstance[E1]): Operation[E, Unit] = {
+  def buildDB[E1 <: E](sourcePath: String)(implicit instance: DBInstance[E1]): Operation[E1, Unit] = {
     val (actors, movies) = getNodes(sourcePath)
     val (directed, acted) = getEdges(sourcePath)
 
@@ -61,14 +62,14 @@ object DBBuilder {
     println("directed Size = " + directed.size)
     println("acted Size = " + acted.size)
 
-    (for {
+    for {
       _ <- insert(directed.map {case JSONDirected(_, from, to) => CompletedRelation(actors(from).toDBPerson, Directed, movies(to).toDBMovie)})
       _ <- insert(acted.map {case JSONActed(_, from, to) => CompletedRelation(actors(from).toDBPerson, ActsIn, movies(to).toDBMovie)})
 
       _ <- insert(actors.collect {case (_, a @ JSONPerson(_, Some(birthday), _, _)) => CompletedRelation(a.toDBPerson, HasBirthday, Date(birthday))})
       _ <- insert(actors.collect {case (_, a @ JSONPerson(_, _, Some(place), _)) => CompletedRelation(a.toDBPerson, BornIn, Place(place))})
       _ <- insert(movies.collect {case (_, m @ JSONMovie(_, _, Some(genre), _)) => CompletedRelation(m.toDBMovie, HasGenre, Genre(genre))})
-    } yield ()).leftMap(e => e: E)
+    } yield ()
   }
 
   def main(args: Array[String]): Unit = {
@@ -91,9 +92,9 @@ object DBBuilder {
             for {
               _ <- buildDB(sourcePath = testName)(instance)
               _ = println("Built db")
-              bacons <- find(personSchema.pattern("Kevin Bacon".some)).leftMap(e => e: E)
+              bacons <- find(personSchema.pattern("Kevin Bacon".some))
               _ = println("Got bacons")
-              res <- bacons.headOption.fold(Operation.point[E, Set[Path[Person]]](Set(), recover))(kb => allShortestPaths(kb, ActsIn --><-- ActsIn).leftMap(e => e: E))
+              res <- bacons.headOption.fold(Operation.point[LMDBError, Set[Path[Person]]](Set()))(kb => allShortestPaths(kb, ActsIn --><-- ActsIn))
             } yield res.map{p => (p.length, p.end)}.toList.sortBy(_._1)
           )
         } yield res

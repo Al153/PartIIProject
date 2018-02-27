@@ -60,7 +60,7 @@ object DBBuilder {
     }
   }
 
-  def buildDB[E1 <: E](sourcePath: String)(implicit instance: DBInstance[E1]): Operation[E, Unit] = {
+  def buildDB[E1 <: E](sourcePath: String)(implicit instance: DBInstance[E1]): Operation[E1, Unit] = {
 
     def getEdges(sourcePath: String): (Set[JSShorter], Set[JSLighter], Set[JSBeat]) = {
       val allObjects = Source.fromResource(s"$sourcePath/edges.json").mkString.parseJson
@@ -78,12 +78,11 @@ object DBBuilder {
     println("Lighter Size = " + lighter.size)
     println("Beat Size = " + beat.size)
 
-
-    (for {
+    for {
       _ <- insert(shorter.collect {case JSShorter(a, b) => CompletedRelation(a.toDBPerson, ShorterThan, b.toDBPerson)})
       _ <- insert(lighter.collect {case JSLighter(a, b) => CompletedRelation(a.toDBPerson, LighterThan, b.toDBPerson)})
       _ <- insert(beat.collect {case JSBeat(a, b) => CompletedRelation(a.toDBPerson, Beat, b.toDBPerson)})
-    } yield ()).eraseError
+    } yield ()
   }
 
   def main(args: Array[String]): Unit = {

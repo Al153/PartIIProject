@@ -3,7 +3,7 @@ package remote.tests
 import construction.imdb.DBBuilder
 import construction.imdb.IMDBSchema.{ActsIn, Person, schemaDescription}
 import core.user.containers.{ConstrainedFuture, Path}
-import core.user.dsl.{E, allShortestPaths, usingView, writeToView}
+import core.user.dsl.{E, HasRecovery, allShortestPaths, usingView, writeToView}
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
 import core.utils.Logged
@@ -22,9 +22,9 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
 
   override def batchSize: TestIndex = 6.tests
 
-  override def setup(instance: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     for {
-      v0 <- instance.getDefaultView.leftMap(e => e: E)
+      v0 <- instance.getDefaultView
       v1 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/smallest")(instance)
       }
@@ -63,10 +63,10 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
 
     } yield ()
 
-  override def test(instance: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[Path[Person]]] = {
+  override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[Path[Person]]] = {
     implicit val inst = instance
     for {
-      views <- instance.getViews.eraseError
+      views <- instance.getViews
       v = views.toVector.sortBy(_.id).apply(index.i)
       r <- usingView(instance, v){
         allShortestPaths(KevinBacon, ActsIn --><-- ActsIn)

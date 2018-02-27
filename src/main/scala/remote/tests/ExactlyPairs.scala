@@ -16,19 +16,20 @@ import scala.concurrent.ExecutionContext
 object ExactlyPairs extends TestSpec[Set[(Person, Person)]] {
   override def testName = "ExactlyPairs".test
   override def schema: SchemaDescription = schemaDescription
-  override  def setup(instance: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override  def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE],ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(instance){
       DBBuilder.buildDB("imdb/smallest")(instance)
     }
 
-  override def test(instance: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] =
-    for { res <- {
-      implicit val inst = instance
-      using(instance){
-        findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * index.i)
+  override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE],ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] =
+    for {
+      res <- {
+        implicit val inst = instance
+        using(instance){
+          findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * index.i)
+        }
       }
-    }
-          _ = logger.info("Length of exactlies = " + res.size)
+      _ = logger.info("Length of exactlies = " + res.size)
     } yield res
 
   override def batchSize: TestIndex = 5.tests

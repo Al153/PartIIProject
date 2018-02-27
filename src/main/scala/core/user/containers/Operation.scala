@@ -61,7 +61,7 @@ object Operation {
   /**
    * Scalaz Monad instance for Operations
    */
-  implicit def OperationInterface[E](implicit ec: ExecutionContext, recover: Throwable => E, R: HasRecovery[E]) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
+  implicit def OperationInterface[E](implicit ec: ExecutionContext, R: HasRecovery[E]) = new Monad[({ type λ[A] = Operation[E, A] })#λ] {
     def point[A](a: => A): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future))
     def bind[A, B](fa: Operation[E, A])(f: (A) => Operation[E, B]): Operation[E, B] = fa.flatMap(f)
   }
@@ -69,10 +69,15 @@ object Operation {
   /**
     * Standard point method
     */
-  def point[E, A](a: A, recover: Throwable => E)(implicit ec: ExecutionContext, R: HasRecovery[E]): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future))
+  def point[E, A](a: A)(implicit ec: ExecutionContext, R: HasRecovery[E]): Operation[E, A] = new Operation[E, A] (v => ConstrainedFuture.future(Promise[E \/ (A, View)].success((a, v).right).future))
 
 
   implicit class OperationOps[E <: core.user.dsl.E, A](u: Operation[E, A]) {
     def eraseError: Operation[core.user.dsl.E, A] = u.leftMap(e => e: E)
   }
+
+  def switch[E, A](ooea: Option[Operation[E, A]])(implicit ec: ExecutionContext, hasRecovery: HasRecovery[E]): Operation[E, Option[A]] =
+    ooea.fold(OperationInterface.point[Option[A]](None)){
+      _.map(Some(_))
+    }
 }

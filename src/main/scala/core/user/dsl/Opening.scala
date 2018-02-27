@@ -1,10 +1,7 @@
 package core.user.dsl
 
-import core.user.interfaces.DBInstance
 import core.user.containers.{ConstrainedFuture, Operation}
-
-import scala.concurrent.ExecutionContext
-import scalaz.\/
+import core.user.interfaces.DBInstance
 /**
   * Created by Al on 17/10/2017.
   *
@@ -20,30 +17,28 @@ trait Opening {
     * @tparam A - type returned
     * @return
     */
-  def using[A]
-    (instance: DBInstance[_ <: E])
-    (action: => Operation[_ <: E, A])
-  : ConstrainedFuture[E, A] = {
-    import instance.executionContext
+  def using[E1 <: E, A]
+    (instance: DBInstance[E1])
+    (action: => Operation[E1, A])
+  : ConstrainedFuture[E1, A] = {
     for {
-      view <- instance.getDefaultView.eraseError
-      pair <- action.runView(view).eraseError
+      view <- instance.getDefaultView
+      pair <- action.runView(view)
       (res, newView) = pair
-      _ <- instance.setDefaultView(newView).eraseError
+      _ <- instance.setDefaultView(newView)
     } yield res
   }
 
   /**
     * Read a value without setting the default view
     */
-  def readDefault[A]
-    (instance: DBInstance[_ <: E])
-    (action: => Operation[_ <: E, A])
-  : ConstrainedFuture[E, A] = {
-    import instance.executionContext
+  def readDefault[E1 <: E, A]
+    (instance: DBInstance[E1])
+    (action: => Operation[E1, A])
+  : ConstrainedFuture[E1, A] = {
     for {
-      view <- instance.getDefaultView.eraseError
-      pair <- action.runView(view).eraseError
+      view <- instance.getDefaultView
+      pair <- action.runView(view)
       (res, _) = pair
     } yield res
   }
@@ -58,12 +53,11 @@ trait Opening {
     * @return
     */
   // todo: is instance param needed?
-  def usingView[A](instance: DBInstance[_ <: E], v: View)
-                  (action: => Operation[_ <: E, A])
-  : ConstrainedFuture[E, A] = {
-    import instance._
+  def usingView[E1 <: E, A](instance: DBInstance[E1], v: View)
+                  (action: => Operation[E1, A])
+  : ConstrainedFuture[E1, A] = {
     for {
-      pair <- action.runView(v).eraseError
+      pair <- action.runView(v)
       (res, _) = pair
     } yield res
   }
@@ -74,14 +68,12 @@ trait Opening {
     * @param v - view to start with
     * @param action - action to run
     */
-  def writeToView(instance: DBInstance[_ <: E], v: View)
-                 (action: => Operation[_ <: E, Unit])
-  : ConstrainedFuture[E, View] = {
-    import instance._
+  def writeToView[E1 <: E](instance: DBInstance[E1], v: View)
+                 (action: => Operation[E1, Unit])
+  : ConstrainedFuture[E1, View] = {
     for {
-      pair <- action.runView(v).eraseError
+      pair <- action.runView(v)
       (_, newView) = pair
     } yield newView
   }
-
 }

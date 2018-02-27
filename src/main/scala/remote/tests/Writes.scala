@@ -20,12 +20,12 @@ object Writes extends TestSpec[Unit]{
 
   override def batchSize: TestIndex = 7.tests
 
-  override def setup(d: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
-    ConstrainedFuture.point(())
+  override def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
+    ConstrainedFuture.point[ThisE, Unit](())
 
 
-  override def test(d: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] = {
-    implicit val inst: DBInstance[_ <: E] = d
+  override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] = {
+    implicit val inst: DBInstance[ThisE] = d
     readDefault(d){
       index.i match {
         case 1 => DBBuilder.buildDB("imdb/smallest")

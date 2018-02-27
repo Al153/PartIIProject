@@ -3,7 +3,7 @@ package remote.tests
 import construction.imdb.IMDBSchema.{ActsIn, Person}
 import construction.imdb.{DBBuilder, IMDBSchema}
 import core.user.containers.ConstrainedFuture
-import core.user.dsl.{E, findPairs, readDefault, using}
+import core.user.dsl.{E, HasRecovery, findPairs, readDefault, using}
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
 import remote.util.TestIndex._
@@ -22,14 +22,12 @@ object JoinSpeed extends TestSpec[Set[(Person, Person)]] {
 
   override def batchSize: TestIndex = 30.tests
 
-  override def setup(instance: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(instance){
       DBBuilder.buildDB("imdb/medium_sparse")(instance)
     }
 
-  override def test(d: DBInstance[_ <: E])(index: TestIndex)
-                   (implicit ec: ExecutionContext)
-  : ConstrainedFuture[E, Set[(Person, Person)]] = {
+  override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] = {
     implicit val inst = d
     readDefault(d) {
       (index.i % 2) match {

@@ -22,8 +22,8 @@ object UptoTest extends TestSpec[Set[(Person, Person)]] {
 
   override def batchSize: TestIndex = 10.tests
 
-  override def setup(d: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] = {
-    implicit val inst: DBInstance[_ <: E] = d
+  override def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] = {
+    implicit val inst: DBInstance[ThisE] = d
 
     using(d){
       DBBuilder.buildDB("imdb/large")
@@ -31,7 +31,7 @@ object UptoTest extends TestSpec[Set[(Person, Person)]] {
   }
 
 
-  override def test(d: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] =
+  override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] =
     {
       implicit val inst = d
       readDefault(inst) {

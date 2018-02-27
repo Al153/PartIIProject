@@ -19,16 +19,17 @@ object RawLookup extends TestSpec[Set[(Person, Movie)]] {
 
   override def batchSize: TestIndex = 10.tests // todo: increase for long tests
 
-  override def setup(d: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(d){
       DBBuilder.buildDB("imdb/medium_sparse")(d)
     }
 
   //todo: SQL runs out of memory on medium and large
 
-  override def test(d: DBInstance[_ <: E])
-                   (index: TestIndex)
-                   (implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Movie)]] = {
+  override def test[ThisE <: E](
+                                 d: DBInstance[ThisE]
+                               )(index: TestIndex
+  )(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Movie)]] = {
     implicit val instance = d
     val coactor = ActsIn --><-- ActsIn
     val sameDirector = Directed <----> Directed

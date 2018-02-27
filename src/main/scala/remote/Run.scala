@@ -1,6 +1,4 @@
 package remote
-import core.user.dsl.E
-import core.user.interfaces.DBBackend
 import impl.lmdb._
 import impl.sql.SQLDB
 import remote.tests._
@@ -12,18 +10,14 @@ import scala.language.higherKinds
 object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
-      // MemoryDB,
-      fastjoins.LMDB,
-      // SQLDB,
-      Vector[(String, DBBackend[_ <: E])](
-    //    "SQL" -> SQLDB,
-    //    "LMDB" -> original.LMDB,
-        lmdbcse -> cse.LMDB,
-        lmdbfast -> fast.LMDB,
-        lmdbOriginal -> original.LMDB,
 
-        postgres -> SQLDB
-      )
+      fastjoins.LMDB,
+      Some(lmdbcse -> cse.LMDB),
+      Some(lmdbfast -> fast.LMDB),
+      Some(lmdbOriginal -> original.LMDB),
+      Some(postgres -> SQLDB),
+      None,
+      None
     )
 
     tester.runTest(ExactlySparse)

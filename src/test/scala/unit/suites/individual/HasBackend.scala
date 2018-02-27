@@ -14,7 +14,7 @@ trait HasBackend[E1 <: E] {
   implicit def ec: ExecutionContext
   implicit def R: HasRecovery[E1]
 
-  def runTest(t: DBInstance[E1] => E ConstrainedFuture Unit): Unit =
+  def runTest(t: DBInstance[E1] => E1 ConstrainedFuture Unit): Unit =
     backend
       .open(Empty, description)
       .fold(errorThrowable, i =>

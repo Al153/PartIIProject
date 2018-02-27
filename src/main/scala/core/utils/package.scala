@@ -1,10 +1,15 @@
 package core
 
+import core.user.containers.{ConstrainedFuture, Operation}
+import core.user.dsl.HasRecovery
+
 import scala.collection.generic.CanBuildFrom
 import scala.collection.{MapLike, SetLike, immutable, mutable}
 import scala.language.higherKinds
 import scalaz.Scalaz.{ToEitherOps, ToOptionIdOps}
-import scalaz._, Scalaz._
+import scalaz._
+import Scalaz._
+import scala.concurrent.ExecutionContext
 
 /**
   * Created by Al on 24/10/2017.
@@ -162,5 +167,11 @@ package object utils extends BigSetOps {
 
   implicit class StringOps(s: String) {
     def strip: String = s.replaceAll("[\\W]|_", "")
+  }
+
+  implicit class OptionOps[A](u: Option[A]){
+    def mapSwitch[E, B](f: A => E \/ B): E \/ Option[B] = EitherOps.switch(u.map(f))
+    def mapSwitchO[E,B](f: A => Operation[E, B])(implicit ec: ExecutionContext, R: HasRecovery[E]): Operation[E, Option[B]] = Operation.switch(u.map(f))
+    def mapSwitchF[E, B](f: A => ConstrainedFuture[E, B])(implicit ec: ExecutionContext, R: HasRecovery[E]): ConstrainedFuture[E, Option[B]] = ConstrainedFuture.switch(u.map(f))
   }
 }

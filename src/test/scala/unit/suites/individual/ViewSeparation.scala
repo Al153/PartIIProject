@@ -22,7 +22,7 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
     val expected2 = Set(Bob -> Fred, Fred -> Charlie, Fred -> Georgie, Hannah -> Ian)
 
     for {
-      initialView <- instance.getDefaultView.eraseError
+      initialView <- instance.getDefaultView
 
       v1 <- writeToView(instance, initialView) {
         insert(
@@ -47,8 +47,8 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
       r2 <- usingView(instance, v2) {
         findPairs(Knows)
       }
-      _ <- assertEq[E, Set[(Person, Person)]](expected1, r1, "SeparateWrites View 1")
-      _ <- assertEq[E, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected1, r1, "SeparateWrites View 1")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
     } yield ()
   }
 
@@ -62,7 +62,7 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
     val expected2 = Set((Bob, Bob), (Fred, Fred), (Charlie, Charlie), (Georgie, Georgie), (Hannah, Hannah), (Ian, Ian))
 
     for {
-      initialView <- instance.getDefaultView.eraseError
+      initialView <- instance.getDefaultView
 
       v1 <- writeToView(instance, initialView) {
         insert(
@@ -87,8 +87,8 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
       r2 <- usingView(instance, v2) {
         findPairs(Knows * 0)
       }
-      _ <- assertEq[E, Set[(Person, Person)]](expected1, r1, "SeparateWrites Repetition View 1")
-      _ <- assertEq[E, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected1, r1, "SeparateWrites Repetition View 1")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
     } yield ()
   }
 
@@ -102,7 +102,7 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
     val expectedPet = Set[Pet]()
 
     for {
-      initialView <- instance.getDefaultView.eraseError
+      initialView <- instance.getDefaultView
 
       v1 <- writeToView(instance, initialView) {
         insert(
@@ -124,8 +124,8 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
         find(personSchema.pattern(None))
       }
 
-      _ <- assertEq[E, Set[Pet]](expectedPet, r1, "Separate patterns pet")
-      _ <- assertEq[E, Set[Person]](expectedPerson, r2, "Separate Patterns")
+      _ <- assertEq[E1, Set[Pet]](expectedPet, r1, "Separate patterns pet")
+      _ <- assertEq[E1, Set[Person]](expectedPerson, r2, "Separate Patterns")
     } yield ()
 
   }

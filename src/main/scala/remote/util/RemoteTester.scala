@@ -1,12 +1,11 @@
 package remote.util
 
 import core.user.containers.ConstrainedFuture
-import core.user.dsl.{E, Empty}
-import E._
+import core.user.dsl.{E, Empty, HasRecovery}
 import core.user.interfaces.{DBBackend, DBInstance}
-import core.utils.EitherOps
-import org.slf4j.Logger
-import remote.{errorThrowable, ns}
+import core.utils._
+import remote.ns
+import core.user.dsl.E.ERecovery
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
@@ -17,24 +16,37 @@ import scalaz._
   *
   * Class to run remote tests and time them
   */
-class RemoteTester(
-                    referenceImplementation: DBBackend[_ <: E],
-                    testImplementations: Vector[(String, DBBackend[_ <: E])]
-                  )(implicit logger: Logger, ec: ExecutionContext) {
-
+class RemoteTester[ER <: E, E1 <: E, E2 <: E, E3 <: E, E4 <: E, E5 <: E, E6 <: E](
+                    referenceImplementation: DBBackend[ER],
+                    imp1: Option[(String, DBBackend[E1])],
+                    imp2: Option[(String, DBBackend[E2])],
+                    imp3: Option[(String, DBBackend[E3])],
+                    imp4: Option[(String, DBBackend[E4])],
+                    imp5: Option[(String, DBBackend[E5])],
+                    imp6: Option[(String, DBBackend[E6])])(implicit ec: ExecutionContext,
+                    RR: HasRecovery[ER],
+                    R1: HasRecovery[E1],
+                    R2: HasRecovery[E2],
+                    R3: HasRecovery[E3],
+                    R4: HasRecovery[E4],
+                    R5: HasRecovery[E5],
+                    R6: HasRecovery[E6]
+) extends Logged {
 
   def runTest[A](testSpec: TestSpec[A]): Unit = {
     val runningTests = (for {
       ref <- referenceImplementation.open(Empty, testSpec.schema).leftMap(e => e: E)
-      instances <- EitherOps.sequence[E, (String, DBInstance[_ <: E]), Vector](testImplementations.map{
-        case (n, instance) =>
-          instance.open(Empty, testSpec.schema).map(n -> _).leftMap(e => e: E)
-      })
-    } yield (ref, instances)).fold(
+      i1 <- imp1.mapSwitch{case (n, db) => db.open(Empty, testSpec.schema).map(n ->_).leftMap(e => e: E)}
+      i2 <- imp2.mapSwitch{case (n, db) => db.open(Empty, testSpec.schema).map(n ->_).leftMap(e => e: E)}
+      i3 <- imp3.mapSwitch{case (n, db) => db.open(Empty, testSpec.schema).map(n ->_).leftMap(e => e: E)}
+      i4 <- imp4.mapSwitch{case (n, db) => db.open(Empty, testSpec.schema).map(n ->_).leftMap(e => e: E)}
+      i5 <- imp5.mapSwitch{case (n, db) => db.open(Empty, testSpec.schema).map(n ->_).leftMap(e => e: E)}
+      i6 <- imp6.mapSwitch{case (n, db) => db.open(Empty, testSpec.schema).map(n ->_).leftMap(e => e: E)}
+    } yield (ref, i1, i2, i3, i4, i5, i6)).fold(
       {e =>
         logger.info("Error thrown " + e)
-        ConstrainedFuture.point(logError(e))},
-      {case (ref, i) => runBatches(testSpec, ref, i)}
+        ConstrainedFuture.point(logError(e))(ec, ERecovery)},
+      {case (ref, i1, i2, i3, i4, i5, i6) => runBatches(testSpec, ref, i1, i2, i3, i4, i5, i6)}
     )
     Await.result(runningTests.run, (60*60*24*365).seconds) match {
       case \/-(()) => logger.info("[Done]")
@@ -42,52 +54,76 @@ class RemoteTester(
     }
   }
 
-  private def doSetup(
-               setup: (DBInstance[_ <: E]) => ConstrainedFuture[E, Unit],
-               instance: DBInstance[_ <: E],
+  private def doSetup[ThisE <: E](
+               setup: (DBInstance[ThisE]) => ConstrainedFuture[ThisE, Unit],
+               instance: DBInstance[ThisE],
                name: String
-             ): ConstrainedFuture[E, Unit] = for {
+             ): ConstrainedFuture[ThisE, Unit] = for {
     _ <- setup(instance)
     _ = logger.info(s"[Setup][Done]: Instance = $name")
   } yield logger.info(s"[Setup][Done]: Instance = $name")
 
-  private def runBatches[A](spec: TestSpec[A], reference: DBInstance[_ <: E], toTest: Vector[(String, DBInstance[_ <: E])]): ConstrainedFuture[E, Unit] = {
+  private def runOptionTest[ThisE <: E, A](
+                                spec: TestSpec[A],
+                                oi: Option[(String, DBInstance[ThisE])],
+                                refValues: Map[TestIndex, Int],
+                                R: HasRecovery[ThisE]
+                              ) =
+    spec.canRun(oi).mapSwitchF[ThisE, Unit]{
+      case (name, instance) =>
+        logger.info(s"[Starting test for $name] ")
+        (for {
+          _ <- doSetup[ThisE](spec.setup(_)(R, ec), instance, name)
+          _ = logger.info(s"[Done setup for $name] ")
+          _ <- runTestBatch(spec, instance, name, refValues, R)
+          _ = logger.info(s"[Run test for $name] ")
+        } yield ()).recover(_ => ())
+    }(ec, R)
+
+  private def runBatches[A](
+                             spec: TestSpec[A],
+                             reference: DBInstance[ER],
+                             oi1: Option[(String, DBInstance[E1])],
+                             oi2: Option[(String, DBInstance[E2])],
+                             oi3: Option[(String, DBInstance[E3])],
+                             oi4: Option[(String, DBInstance[E4])],
+                             oi5: Option[(String, DBInstance[E5])],
+                             oi6: Option[(String, DBInstance[E6])]
+                           ): ConstrainedFuture[E, Unit] = {
     logger.info("Starting Setup")
     for {
-      _ <- doSetup(spec.setup, reference, "reference")
+      _ <- doSetup(spec.setup[ER], reference, "reference").eraseError
       _ = logger.info("[Starting reference batch]")
-      refValues <- runReferenceBatch(spec, reference)
+      refValues <- runReferenceBatch(spec, reference).eraseError
       _ = logger.info("[Done reference batch]")
-      _ <- sequence(spec.getTestable(toTest)) {
-        case (name, instance) =>
-          logger.info(s"[Starting test for $name] ")
-          (for {
-            _ <- doSetup(spec.setup, instance, name)
-            _ = logger.info(s"[Done setup for $name] ")
-            _ <- runTestBatch(spec, instance, name, refValues)
-            _ = logger.info(s"[Run test for $name] ")
-          } yield ()).recover(_ => ())
-      }
+      _ <- runOptionTest(spec, oi1, refValues, R1).eraseError
+      _ <- runOptionTest(spec, oi2, refValues, R2).eraseError
+      _ <- runOptionTest(spec, oi3, refValues, R3).eraseError
+      _ <- runOptionTest(spec, oi4, refValues, R4).eraseError
+      _ <- runOptionTest(spec, oi5, refValues, R5).eraseError
+      _ <- runOptionTest(spec, oi6, refValues, R6).eraseError
     } yield ()
   }
 
-  private def runBatch[A](
+
+  private def runBatch[ThisE <: E, A](
                    spec: TestSpec[A],
-                   impl: DBInstance[_ <: E],
-                   instanceName: String
-                 ): ConstrainedFuture[E, Map[TestInstance, TimeResult[Int]]] =
+                   impl: DBInstance[ThisE],
+                   instanceName: String,
+                   R: HasRecovery[ThisE]
+                 ): ConstrainedFuture[ThisE, Map[TestInstance, TimeResult[Int]]] =
     sequence(TestInstance(spec, instanceName)) {
       i =>
         logger.info(s"Running $i" )
-        timeConstrainedFuture(spec.test(impl))(i)
-    }
+        timeConstrainedFuture(spec.test(impl)(_)(R, ec))(i)
+    }(R)
 
   private def runReferenceBatch[A](
                             spec: TestSpec[A],
-                            impl: DBInstance[_ <: E]
-                          ): ConstrainedFuture[E, Map[TestIndex, Int]] =
+                            impl: DBInstance[ER]
+                          ): ConstrainedFuture[ER, Map[TestIndex, Int]] =
     for {
-      instanceToTimedResult <- runBatch(spec, impl, "ReferenceInstance")
+      instanceToTimedResult <- runBatch(spec, impl, "ReferenceInstance", RR)
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
       referenceResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
       _ = timeResults.values.foreach(logTimeResult(_, success = true))
@@ -107,14 +143,15 @@ class RemoteTester(
     logger.info(s"[Result][Batch]:test=${tas.testName.name}:impl=${tas.backend}:testcount=${tas.length}:totalTime=${ns(tas.fullTime)}")
   }
 
-  private def runTestBatch[A](
+  private def runTestBatch[ThisE <: E, A](
                        spec: TestSpec[A],
-                       impl: DBInstance[_ <: E],
+                       impl: DBInstance[ThisE],
                        toTest: String,
-                       expectedResults: Map[TestIndex, Int]
-                     ): ConstrainedFuture[E, Unit] = {
+                       expectedResults: Map[TestIndex, Int],
+                       R: HasRecovery[ThisE]
+                     ): ConstrainedFuture[ThisE, Unit] = {
     for {
-      instanceToTimedResult <- runBatch(spec, impl, toTest)
+      instanceToTimedResult <- runBatch(spec, impl, toTest, R)
       timeResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res}
       testResults = instanceToTimedResult.map {case (t, res) => t.testIndex -> res.a}
       isSuccess = testResults == expectedResults
@@ -128,9 +165,9 @@ class RemoteTester(
     logger.error(e.toString)
   }
 
-  private def sequence[A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[E, B]): ConstrainedFuture[E, Map[A, B]]
+  private def sequence[ThisE <: E, A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[ThisE, B])(implicit R: HasRecovery[ThisE]): ConstrainedFuture[ThisE, Map[A, B]]
   = {
-    in.foldLeft(ConstrainedFuture.point(Map.empty[A, B])){
+    in.foldLeft(ConstrainedFuture.point[ThisE, Map[A, B]](Map.empty[A, B])){
       case (or, a) =>
         for {
           r <- or
@@ -140,7 +177,7 @@ class RemoteTester(
   }
 
 
-  private def timeConstrainedFuture[R](block: TestIndex => ConstrainedFuture[E, R])(testInstance: TestInstance): ConstrainedFuture[E, TimeResult[Int]] = {
+  private def timeConstrainedFuture[ThisE, R](block: TestIndex => ConstrainedFuture[ThisE, R])(testInstance: TestInstance): ConstrainedFuture[ThisE, TimeResult[Int]] = {
     val t0 = System.nanoTime()
     for {
       r <- block(testInstance.testIndex)
