@@ -35,13 +35,13 @@ trait Commands {
   def allShortestPaths[E1 <: E, A](start: A, relationalQuery: FindPairAble[A, A])(implicit d: DBInstance[E1], sa: SchemaObject[A]): Operation[E1, Set[Path[A]]] = d.executor.allShortestPaths(start, relationalQuery.toFindPair)
 
   /**
-   * add a collection of relations to the database, creating a new [[core.user.dsl.View]]
+   * add a collection of relations to the database, creating a new [[core.user.dsl.ViewId]]
    */
 
   def insert[E1 <: E, A, B](t: TraversableOnce[CompletedRelation[A, B]])(implicit d: DBInstance[E1], sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E1, Unit] = d.executor.insert(t)
 
   /**
-    * add a collection of relations to the database, creating a new [[core.user.dsl.View]]
+    * add a collection of relations to the database, creating a new [[core.user.dsl.ViewId]]
     */
   def insert[E1 <: E, A, B](xs: CompletedRelation[A, B]*)(implicit d: DBInstance[E1], sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E1, Unit] = insert(xs.toList)
 }

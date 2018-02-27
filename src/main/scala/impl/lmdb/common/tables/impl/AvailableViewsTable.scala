@@ -2,7 +2,7 @@ package impl.lmdb.common.tables.impl
 
 import java.nio.ByteBuffer
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.utils._
 import impl.lmdb.common
 import impl.lmdb.common.access.Key._
@@ -32,19 +32,19 @@ class AvailableViewsTable(implicit val instance: LMDBInstance) extends LMDBTable
     * To initialise, simply set the initial view
     * @return
     */
-  override def initialise(): LMDBEither[Unit] = put[Set[View]](key, Set(initialView))
+  override def initialise(): LMDBEither[Unit] = put[Set[ViewId]](key, Set(initialView))
 
   /**
     * Get available views in DB
     * @return
     */
-  def availableViews(): LMDBEither[Set[View]] = get(key)
+  def availableViews(): LMDBEither[Set[ViewId]] = get(key)
 
   /**
     * Check a view is available
     */
   // check logical clock. If valid, test against local set
-  def validateView(v: View): LMDBEither[Unit] = for {
+  def validateView(v: ViewId): LMDBEither[Unit] = for {
     views <- availableViews()
     _ <- if (v in views) LMDBEither(()) else InvalidView(v).left
   } yield ()
@@ -53,6 +53,6 @@ class AvailableViewsTable(implicit val instance: LMDBInstance) extends LMDBTable
     * Append a view to the available views
     */
 
-  def insertNewView(v: View): LMDBEither[Unit] = transactionalAppendToSet(key, v)
+  def insertNewView(v: ViewId): LMDBEither[Unit] = transactionalAppendToSet(key, v)
 
 }

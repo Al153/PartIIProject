@@ -5,7 +5,7 @@ import java.sql.ResultSet
 import core.backend.common._
 import core.backend.intermediate._
 import core.user.containers.Path
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.user.schema._
 import core.utils.Logged
 import impl.sql._
@@ -124,9 +124,9 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     * @param query - query to run
     */
 
-  def getView(query: String): SQLEither[Set[View]] = {
+  def getView(query: String): SQLEither[Set[ViewId]] = {
     val rs = getResultSet(query)
-    var result = Set.newBuilder[View].right[SQLError]
+    var result = Set.newBuilder[ViewId].right[SQLError]
     while (result.isRight && rs.next()) {
       result = for {
         r <- getViewId(rs)
@@ -258,7 +258,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
   def getPathfindingFound[A](
                               ids: Vector[ObjId],
                               table: ObjectTable,
-                              v: View
+                              v: ViewId
                             )(implicit sa: SchemaObject[A]): SQLEither[Path[A]] = {
     val query = PathMemberQuery(ids.toSet, sa, table)
     val rs = getResultSet(query.render(v))
@@ -329,8 +329,8 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
   // helper method
   private def pair[A, B](a: A, b: B): (A, B) = (a, b)
 
-  private def getViewId(rs: ResultSet): SQLEither[View] = SQLEither {
-    View(rs.getLong(SQLColumnName.viewId.s))
+  private def getViewId(rs: ResultSet): SQLEither[ViewId] = SQLEither {
+    ViewId(rs.getLong(SQLColumnName.viewId.s))
   }
 
   /**

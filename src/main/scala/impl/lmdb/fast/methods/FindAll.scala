@@ -2,7 +2,7 @@ package impl.lmdb.fast.methods
 
 import core.backend.intermediate.FindSingle
 import core.user.containers.{Operation, ReadOperation}
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.schema.SchemaObject
 import core.utils._
 import impl.lmdb.common._
@@ -24,7 +24,7 @@ trait FindAll { self: Methods =>
     * @return - A Set of found objects
     */
   def find[A](t: FindSingle[A])(implicit sa: SchemaObject[A]): LMDBOperation[Set[A]] =
-    new ReadOperation({view: View => LMDBFutureE(for {
+    new ReadOperation({view: ViewId => LMDBFutureE(for {
     // Check the view is valid
       _ <- instance.controlTables.availableViews.validateView(view)
       // to type erasure on the findSingle

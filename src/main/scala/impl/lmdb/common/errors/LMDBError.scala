@@ -2,7 +2,7 @@ package impl.lmdb.common.errors
 
 import core.backend.common.{ExtractError, MissingRelation}
 import core.backend.intermediate.unsafe.UnsafeFindSingle
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.schema.TableName
 import impl.lmdb.common.access.ObjId
 
@@ -62,7 +62,7 @@ case class LMDBMissingRelation(e: MissingRelation) extends LMDBError {
   *
   * Created when a view doesn't exist
   */
-case class InvalidView(v: View) extends LMDBError
+case class InvalidView(v: ViewId) extends LMDBError
 
 /**
   * Created by Al on 29/12/2017.

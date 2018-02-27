@@ -1,6 +1,6 @@
 package impl.sql.tables
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.sql._
 import impl.sql.errors.MissingDefaultViewError
 import impl.sql.names.{DefaultsTableName, SQLColumnName, SQLTableName}
@@ -18,16 +18,16 @@ class DefaultsTable(implicit val instance: SQLInstance) extends SQLTable {
   /**
     * Set value with simple update
     */
-  def setDefaultView(v: View): SQLEither[Unit] = {
+  def setDefaultView(v: ViewId): SQLEither[Unit] = {
     instance.doWriteEither(s"UPDATE $name SET ${DefaultsTable.viewId} = ${v.id}")
   }
 
   /**
     * Get value with simple SELECT
     */
-  def getDefaultView: SQLFuture[View] = SQLFutureE {
+  def getDefaultView: SQLFuture[ViewId] = SQLFutureE {
     instance.reader.getView(s"SELECT ${DefaultsTable.viewId} FROM $name").map(_.find(_ => true)).flatMap {
-      ov => ov.fold(MissingDefaultViewError.left[View])(_.right)
+      ov => ov.fold(MissingDefaultViewError.left[ViewId])(_.right)
     }
   }
 

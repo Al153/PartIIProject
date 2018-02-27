@@ -1,7 +1,7 @@
 package core.user.interfaces
 
 import core.user.containers.ConstrainedFuture
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.schema.SchemaDescription
 import core.utils.Logged
 
@@ -34,19 +34,19 @@ trait DBInstance[E <: core.user.dsl.E] extends Logged{
   /**
     * Set the default view of the database
     */
-  def setDefaultView(view: View): ConstrainedFuture[E, Unit]
+  def setDefaultView(view: ViewId): ConstrainedFuture[E, Unit]
 
   /**
     * Get hold of the default view
     */
 
-  def getDefaultView: ConstrainedFuture[E, View]
+  def getDefaultView: ConstrainedFuture[E, ViewId]
 
   /**
     * Get all available views from the Database
     */
 
-  def getViews: ConstrainedFuture[E, Set[View]]
+  def getViews: ConstrainedFuture[E, Set[ViewId]]
 
   /**
     * Close the database

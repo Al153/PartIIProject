@@ -1,6 +1,6 @@
 package impl.sql.adt
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.sql._
 import impl.sql.adt.CompilationContext.Compilation
 import impl.sql.names.{RelationTableName, SQLColumnName}
@@ -25,7 +25,7 @@ object Definitions {
     */
   def compute(
                compilation: Compilation[Query],
-               view: View
+               view: ViewId
            )(outer: String)(implicit instance: SQLInstance): SQLEither[String] = {
         getDefinitions(compilation, view).map(_+ " (" + outer + ")")
     }
@@ -34,7 +34,7 @@ object Definitions {
       *
       */
 
-    def getDefinitions(compilation: Compilation[Query], view: View)(implicit instance: SQLInstance): SQLEither[String] = {
+    def getDefinitions(compilation: Compilation[Query], view: ViewId)(implicit instance: SQLInstance): SQLEither[String] = {
       val (context, mainQuery) = compilation.run(Query.emptyContext)
       for {
         defs <- context.getDefs(instance)

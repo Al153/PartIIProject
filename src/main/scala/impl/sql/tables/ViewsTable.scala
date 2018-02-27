@@ -1,6 +1,6 @@
 package impl.sql.tables
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.sql._
 import impl.sql.names.{SQLColumnName, SQLTableName, ViewsTableName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
@@ -17,7 +17,7 @@ class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
   /**
     * Get commits associated with a view
     */
-  def getCommits(view: View): SQLFuture[Set[Commit]] = SQLFutureE {
+  def getCommits(view: ViewId): SQLFuture[Set[Commit]] = SQLFutureE {
     val query =
       s"""
          |SELECT $commitID FROM $tableName WHERE $viewID = ${view.id}""".stripMargin
@@ -28,7 +28,7 @@ class ViewsTable(implicit val instance: SQLInstance) extends SQLTable {
   /**
     * Inserts a new view with the relevant commits
     */
-  def insertNewView(view: View, commits: Set[Commit]):SQLFuture[Unit] =
+  def insertNewView(view: ViewId, commits: Set[Commit]):SQLFuture[Unit] =
     instance.writeBatch(
       commits.map(
         commit =>
@@ -66,7 +66,7 @@ object ViewsTable {
     * Syntactic sugar for wrapping a query in a view_cte expression
     */
 
-  def withView(v: View)(query: String): String =
+  def withView(v: ViewId)(query: String): String =
     s"${definition(v)} ($query)"
 
 
@@ -79,14 +79,14 @@ object ViewsTable {
     * relations from a given view
 
     */
-  private[ViewsTable] def definition(v: View): String =
+  private[ViewsTable] def definition(v: ViewId): String =
     s"WITH RECURSIVE $viewVar AS (SELECT ${SQLColumnName.commitId} FROM $tableName " +
       s"WHERE ${SQLColumnName.viewId} = ${v.id})"
 
   /**
     * Syntax for views
     */
-  implicit class ViewSyntax(v: View) {
+  implicit class ViewSyntax(v: ViewId) {
     def definition: String = ViewsTable.definition(v)
   }
 

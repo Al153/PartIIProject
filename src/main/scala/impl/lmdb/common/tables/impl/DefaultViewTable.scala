@@ -2,7 +2,7 @@ package impl.lmdb.common.tables.impl
 
 import java.nio.ByteBuffer
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.lmdb.common.access.Key._
 import impl.lmdb.common.access.Storable.StorableView
 import impl.lmdb.common.interfaces.LMDBInstance
@@ -33,11 +33,11 @@ class DefaultViewTable(implicit val instance: LMDBInstance) extends LMDBTable {
   /**
     * Gets default view
     */
-  def getDefault(): LMDBFuture[View] = LMDBFutureE(get[View](key)(instance, StorableView))
+  def getDefault(): LMDBFuture[ViewId] = LMDBFutureE(get[ViewId](key)(instance, StorableView))
 
   /**
     * Sets default view, non transactional
     */
-  def setDefault(v: View): LMDBFuture[Unit] = LMDBFutureE(put(key, v)(StorableView, instance))
+  def setDefault(v: ViewId): LMDBFuture[Unit] = LMDBFutureE(put(key, v)(StorableView, instance))
 
 }

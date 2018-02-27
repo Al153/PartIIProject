@@ -3,7 +3,7 @@ package impl.lmdb.fast.methods
 import core.utils.algorithms
 import core.backend.intermediate.FindPair
 import core.user.containers.{Operation, Path, ReadOperation}
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.schema.SchemaObject
 import core.utils.{EitherOps, _}
 import impl.lmdb.common._
@@ -37,7 +37,7 @@ trait PathFinding { self: Methods =>
                      )(
     implicit sa: SchemaObject[A]
   ): LMDBOperation[Option[Path[A]]] = new ReadOperation ({
-    view: View => LMDBFutureE(
+    view: ViewId => LMDBFutureE(
       for {
         // check the view is accessible
         _ <- instance.validateView(view)
@@ -87,7 +87,7 @@ trait PathFinding { self: Methods =>
                          )(
     implicit sa: SchemaObject[A]
   ): LMDBOperation[Set[Path[A]]] =  new ReadOperation ({
-    view: View => LMDBFutureE(
+    view: ViewId => LMDBFutureE(
       for {
         // Check the view is accessible
         _ <- instance.validateView(view)

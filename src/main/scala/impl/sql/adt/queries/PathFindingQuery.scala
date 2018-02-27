@@ -1,6 +1,6 @@
 package impl.sql.adt.queries
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.backend.intermediate.unsafe.UnsafeFindPair
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
@@ -16,14 +16,14 @@ case class PathFindingQuery(p: UnsafeFindPair)(implicit instance: SQLInstance) {
     * @param v - view to execute against
     * @return
     */
-  def render(v: View): SQLEither[String] = {
+  def render(v: ViewId): SQLEither[String] = {
     // render query to string
     Definitions.compute(Query.convertPair(p), v) {
       s"SELECT $leftId, $rightId FROM ${optionalBrackets(mainQuery)}"
     }
   }
 
-  def getRight(v: View): SQLEither[ObjId => String] =
+  def getRight(v: ViewId): SQLEither[ObjId => String] =
     for {
       defs <- Definitions.getDefinitions(Query.convertPair(p), v)
     } yield {

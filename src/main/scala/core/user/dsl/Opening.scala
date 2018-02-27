@@ -53,7 +53,7 @@ trait Opening {
     * @return
     */
   // todo: is instance param needed?
-  def usingView[E1 <: E, A](instance: DBInstance[E1], v: View)
+  def usingView[E1 <: E, A](instance: DBInstance[E1], v: ViewId)
                   (action: => Operation[E1, A])
   : ConstrainedFuture[E1, A] = {
     for {
@@ -68,9 +68,9 @@ trait Opening {
     * @param v - view to start with
     * @param action - action to run
     */
-  def writeToView[E1 <: E](instance: DBInstance[E1], v: View)
+  def writeToView[E1 <: E](instance: DBInstance[E1], v: ViewId)
                  (action: => Operation[E1, Unit])
-  : ConstrainedFuture[E1, View] = {
+  : ConstrainedFuture[E1, ViewId] = {
     for {
       pair <- action.runView(v)
       (_, newView) = pair

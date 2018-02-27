@@ -1,7 +1,7 @@
 package impl.sql.tables
 
 import ViewsTable._
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.sql._
 import impl.sql.names.{RelationTableName, SQLColumnName}
 import impl.sql.schema.{SQLForeignRef, SQLSchema}
@@ -30,7 +30,7 @@ class RelationTable(val name: RelationTableName, leftTable: ObjectTable, rightTa
     */
 
   def getExistingRelations(
-                            view: View
+                            view: ViewId
                           ): SQLFuture[Set[(ObjId, ObjId)]] = SQLFutureE {
     val q = withView(view){
       s"""

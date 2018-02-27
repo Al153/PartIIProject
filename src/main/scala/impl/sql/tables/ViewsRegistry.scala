@@ -2,7 +2,7 @@ package impl.sql.tables
 
 import java.sql.Statement
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.sql._
 import impl.sql.errors.{SQLError, UnableToCreateView}
 import impl.sql.names.{SQLColumnName, SQLTableName, ViewsRegistryName}
@@ -24,7 +24,7 @@ class ViewsRegistry(implicit val instance: SQLInstance) extends SQLTable {
     * Transactionally get a new, unique view Id, using the Dummy column to keep SQL syntax correct
     * @return
     */
-  def getNewViewId: SQLFuture[View] = SQLFutureE {
+  def getNewViewId: SQLFuture[ViewId] = SQLFutureE {
     val stmt = instance.connection.prepareStatement(s"INSERT INTO $name($dummyCol) VALUES(0)", Statement.RETURN_GENERATED_KEYS)
     val affectedRows = stmt.executeUpdate()
     if (affectedRows == 0) {
@@ -32,7 +32,7 @@ class ViewsRegistry(implicit val instance: SQLInstance) extends SQLTable {
     } else {
       val generatedKeys = stmt.getGeneratedKeys
       if (generatedKeys.next()){
-        View(generatedKeys.getLong(viewID.toString)).right[SQLError]
+        ViewId(generatedKeys.getLong(viewID.toString)).right[SQLError]
       } else {
         UnableToCreateView("No ID obtained").left
       }
@@ -43,7 +43,7 @@ class ViewsRegistry(implicit val instance: SQLInstance) extends SQLTable {
   /**
     * read all views from the views registry
     */
-  def getViews: SQLFuture[Set[View]] = SQLFutureE {
+  def getViews: SQLFuture[Set[ViewId]] = SQLFutureE {
     instance.reader.getView(s"SELECT $viewID FROM $tableName")
   }
 

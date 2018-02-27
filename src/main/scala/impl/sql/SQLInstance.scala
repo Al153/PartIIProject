@@ -5,7 +5,7 @@ import java.sql.Connection
 import core.backend.common.MissingTableName
 import core.user.interfaces.{DBExecutor, DBInstance}
 import core.user.containers.ConstrainedFuture
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.backend.intermediate.unsafe.ErasedRelationAttributes
 import core.user.schema.{SchemaDescription, TableName}
 import core.utils._
@@ -89,12 +89,12 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
   /**
     * Delegates setDefaultView to the defaults table
     */
-  override def setDefaultView(view: View): SQLFuture[Unit] = SQLFutureE(defaultsTable.setDefaultView(view))
+  override def setDefaultView(view: ViewId): SQLFuture[Unit] = SQLFutureE(defaultsTable.setDefaultView(view))
 
   /**
     * Delegates getDefaultView to the defaults table
     */
-  override def getDefaultView: SQLFuture[View] = defaultsTable.getDefaultView
+  override def getDefaultView: SQLFuture[ViewId] = defaultsTable.getDefaultView
 
 
 
@@ -120,7 +120,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
     * read from the views table
     * @return
     */
-  override def getViews: SQLFuture[Set[View]] = viewsRegistry.getViews
+  override def getViews: SQLFuture[Set[ViewId]] = viewsRegistry.getViews
 
 
   /**

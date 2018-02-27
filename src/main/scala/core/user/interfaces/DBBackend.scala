@@ -1,7 +1,7 @@
 package core.user.interfaces
 
 import core.user.containers.{ConstrainedFuture, Operation}
-import core.user.dsl.{DatabaseAddress, E, View}
+import core.user.dsl.{DatabaseAddress, E, ViewId}
 import core.user.schema.SchemaDescription
 import core.utils.Logged
 

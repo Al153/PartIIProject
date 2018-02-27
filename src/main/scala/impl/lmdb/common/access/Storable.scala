@@ -3,7 +3,7 @@ package impl.lmdb.common.access
 import java.nio.ByteBuffer
 
 import core.backend.common._
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.lmdb.common.LMDBEither
 import impl.lmdb.common.access.Storable.StorableInt
 import impl.lmdb.common.errors.{BooleanExtractError, UnrecognisedDBHeader}
@@ -131,8 +131,8 @@ object Storable {
   /**
     * Storeable instances for common classes
     */
-  implicit object StorableView extends ConstantLengthStorable[View] {
-    override def fromBuffer(buf: ByteBuffer): LMDBEither[View] = StorableLong.fromBuffer(buf).map(View.apply)
+  implicit object StorableView extends ConstantLengthStorable[ViewId] {
+    override def fromBuffer(buf: ByteBuffer): LMDBEither[ViewId] = StorableLong.fromBuffer(buf).map(ViewId.apply)
 
     /**
       * Expected length in buffer
@@ -144,7 +144,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: View, buf: ByteBuffer): Unit = StorableLong.writeToBuffer(a.id, buf)
+    override def writeToBuffer(a: ViewId, buf: ByteBuffer): Unit = StorableLong.writeToBuffer(a.id, buf)
 }
 
   implicit object StorableString extends Storable[String] {

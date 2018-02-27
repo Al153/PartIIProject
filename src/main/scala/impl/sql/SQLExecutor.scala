@@ -2,7 +2,7 @@ package impl.sql
 
 import core.backend.intermediate.{FindPair, FindSingle}
 import core.user.containers.{Operation, Path, ReadOperation, WriteOperation}
-import core.user.dsl.{CompletedRelation, E, View}
+import core.user.dsl.{CompletedRelation, E, ViewId}
 import core.user.interfaces.DBExecutor
 import core.user.schema.SchemaObject
 import core.utils.algorithms.PathFinding
@@ -35,7 +35,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
                         implicit sa: SchemaObject[A]
                       ): SQLOperation[Set[A]] =
     new ReadOperation({
-      v: View => {
+      v: ViewId => {
         for {
           // compile query
           query <- compileSingleQuery(t, v)
@@ -62,7 +62,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
   override def findPairs[A, B](t: FindPair[A, B])
                               (implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLOperation[Set[(A, B)]] =
     new ReadOperation({
-      v: View =>
+      v: ViewId =>
         for {
         // Compile query to SQL
           query <- compilePairQuery(t, v)
@@ -89,7 +89,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
     implicit sa: SchemaObject[A]
   ): SQLOperation[Option[Path[A]]] =
     new ReadOperation({
-      v: View => {
+      v: ViewId => {
         // find the table which we want to traverse
 
         val cfTable = SQLFutureE(
@@ -148,7 +148,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
   override def allShortestPaths[A](start: A, t: FindPair[A, A])
                                   (implicit sa: SchemaObject[A]): SQLOperation[Set[Path[A]]] =
     new ReadOperation({
-      v: View => {
+      v: ViewId => {
         // Get the table to use
         val cfTable = SQLFutureE(
           instance.lookupTable(sa.name)
@@ -242,7 +242,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
     * @tparam A - type of objects
     * @return
     */
-  private def compilePathQuery[A](query: FindPair[A, A], v: View): SQLFuture[ObjId => String] =
+  private def compilePathQuery[A](query: FindPair[A, A], v: ViewId): SQLFuture[ObjId => String] =
     SQLFutureE (
       for {
         // get unsafe
@@ -261,7 +261,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
     * @tparam A - type of objects
     * @return
     */
-  private def compilePairQuery[A, B](query: FindPair[A, B], v: View): SQLFuture[String] =
+  private def compilePairQuery[A, B](query: FindPair[A, B], v: ViewId): SQLFuture[String] =
     SQLFutureE(
       for {
         // get unsafe
@@ -284,7 +284,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
     * @tparam A - type of objects
     * @return
     */
-  private def compileSingleQuery[A](query: FindSingle[A], v: View): SQLFuture[String] =
+  private def compileSingleQuery[A](query: FindSingle[A], v: ViewId): SQLFuture[String] =
     SQLFutureER(
       for {
         // get erased query

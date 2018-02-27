@@ -1,6 +1,6 @@
 package core.user.containers
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 
 import scala.concurrent.ExecutionContext
 
@@ -9,6 +9,6 @@ import scala.concurrent.ExecutionContext
   * A read operation is an operation that does not create any more views, so the [[ConstrainedFuture]]
   * can ignore the view parameter as it is trivial
   */
-class ReadOperation[E, A](action: View => ConstrainedFuture[E, A])(implicit ec: ExecutionContext)
+class ReadOperation[E, A](action: ViewId => ConstrainedFuture[E, A])(implicit ec: ExecutionContext)
   extends Operation[E, A](view => action(view).map(x => (x, view)))
 

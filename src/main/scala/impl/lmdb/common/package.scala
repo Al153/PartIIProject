@@ -1,7 +1,7 @@
 package impl.lmdb
 
 import core.user.containers.{ConstrainedFuture, Operation}
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import impl.lmdb.common.errors._
 
 import scala.concurrent.{ExecutionContext, Promise}
@@ -44,6 +44,6 @@ package object common {
 
 
   // Set up the initial view of the DB
-  val initialView = View(0)
+  val initialView = ViewId(0)
 
 }

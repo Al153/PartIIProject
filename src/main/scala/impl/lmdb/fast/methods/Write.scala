@@ -2,7 +2,7 @@ package impl.lmdb.fast.methods
 
 import core.backend.intermediate.RelationName
 import core.user.containers.{Operation, WriteOperation}
-import core.user.dsl.{CompletedRelation, E, View}
+import core.user.dsl.{CompletedRelation, E, ViewId}
 import core.user.schema.SchemaObject
 import core.utils.{EitherOps, _}
 import impl.lmdb.common._
@@ -37,9 +37,9 @@ trait Write { self: Methods =>
     * @param v - view to insert to
     * @return
     */
-  private def doInsert[A, B](t: TraversableOnce[CompletedRelation[A, B]], v: View)(
+  private def doInsert[A, B](t: TraversableOnce[CompletedRelation[A, B]], v: ViewId)(
     implicit sa: SchemaObject[A], sb: SchemaObject[B]
-  ): LMDBEither[View] = for {
+  ): LMDBEither[ViewId] = for {
     // Check the view is valid
     _ <- instance.controlTables.availableViews.validateView(v)
     _ = logger.trace("Checked View")

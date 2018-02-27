@@ -2,7 +2,7 @@ package impl.lmdb.cse.methods
 
 import core.backend.intermediate.FindPair
 import core.user.containers.{Operation, ReadOperation}
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.schema.SchemaObject
 import core.utils._
 import impl.lmdb.common._
@@ -28,7 +28,7 @@ trait FindAllPairs { self: Methods =>
     */
 
   def findPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): LMDBOperation[Set[(A, B)]] =
-    new ReadOperation({view: View => LMDBFutureE(for {
+    new ReadOperation({view: ViewId => LMDBFutureE(for {
     // Check the view is accessible
       _ <- instance.controlTables.availableViews.validateView(view)
       // Get the unsafe equivalent of the query

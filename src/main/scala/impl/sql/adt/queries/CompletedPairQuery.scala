@@ -1,6 +1,6 @@
 package impl.sql.adt.queries
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.backend.intermediate.unsafe.{UnsafeFindPair, ErasedFindable}
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
@@ -26,7 +26,7 @@ case class CompletedPairQuery(
   /**
     * Fully render query to a string to execute against the given view
     */
-    def render(v: View): SQLEither[String] =
+    def render(v: ViewId): SQLEither[String] =
     // render query to string
       for {
         leftPrototype <- instance.schema.lookupTable(p.leftMostTable).leftMap(SQLExtractError)

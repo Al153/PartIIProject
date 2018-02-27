@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import core.user.interfaces.{DBExecutor, DBInstance}
 import core.user.containers.{ConstrainedFuture, Operation, ReadOperation, WriteOperation}
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.backend.intermediate.unsafe.ErasedRelationAttributes
 import core.user.schema.SchemaDescription
 import core.utils._
@@ -37,11 +37,11 @@ class MemoryInstance(
     * stores the mutable state for the instance
     */
   private object Store {
-    private var defaultView: View = View(0)
+    private var defaultView: ViewId = ViewId(0)
     /**
       * Stores View => Tree
       */
-    private val memoryStore: concurrent.Map[View, MemoryTree] = new ConcurrentHashMap[View, MemoryTree]().asScala
+    private val memoryStore: concurrent.Map[ViewId, MemoryTree] = new ConcurrentHashMap[ViewId, MemoryTree]().asScala
 
     /**
       * View counter - mutable
@@ -54,15 +54,15 @@ class MemoryInstance(
     /**
       * Pick a tree according to the view
       */
-    def get(v: View): MemoryEither[MemoryTree] = this.synchronized {
+    def get(v: ViewId): MemoryEither[MemoryTree] = this.synchronized {
       memoryStore.getOrError(v, MissingViewError(v))
     }
 
     /**
       * Insert a tree and get its view
       */
-    def put(t: MemoryTree): MemoryEither[View] = this.synchronized {
-      val view = View(viewId.incrementAndGet())
+    def put(t: MemoryTree): MemoryEither[ViewId] = this.synchronized {
+      val view = ViewId(viewId.incrementAndGet())
       memoryStore(view) = t
       return view.right
     }
@@ -70,15 +70,15 @@ class MemoryInstance(
     /**
       * get default view
       */
-    def getDefaultView: View = this.synchronized(defaultView)
+    def getDefaultView: ViewId = this.synchronized(defaultView)
     /**
       * set default view
       */
-    def setDefaultView(v: View): Unit = this.synchronized(defaultView = v)
+    def setDefaultView(v: ViewId): Unit = this.synchronized(defaultView = v)
     /**
       * get all views
       */
-    def getViews: Set[View] = memoryStore.keys.toSet
+    def getViews: Set[ViewId] = memoryStore.keys.toSet
   }
 
   /**
@@ -105,19 +105,19 @@ class MemoryInstance(
   /**
     * Implements trait method
     */
-  override def setDefaultView(view: View): MemoryFuture[Unit] = MemoryFutureI(Store.setDefaultView(view))
+  override def setDefaultView(view: ViewId): MemoryFuture[Unit] = MemoryFutureI(Store.setDefaultView(view))
 
   /**
     * Implements trait method
     */
 
-  override def getDefaultView: MemoryFuture[View] = MemoryFutureI(Store.getDefaultView)
+  override def getDefaultView: MemoryFuture[ViewId] = MemoryFutureI(Store.getDefaultView)
 
   /**
     * Implements trait method
     */
 
-  override def getViews: MemoryFuture[Set[View]] = MemoryFuture(Store.getViews)
+  override def getViews: MemoryFuture[Set[ViewId]] = MemoryFuture(Store.getViews)
 
   /**
     * Implements trait method

@@ -1,7 +1,7 @@
 package impl.memory.errors
 
 import core.backend.common.{ExtractError, MissingRelation}
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.schema.TableName
 
 /**
@@ -52,6 +52,6 @@ case class MemoryMissingTableName(t: TableName) extends MemoryError
   *
   * Error when there is a missing view
   */
-case class MissingViewError(v: View) extends MemoryError {
+case class MissingViewError(v: ViewId) extends MemoryError {
 
 }

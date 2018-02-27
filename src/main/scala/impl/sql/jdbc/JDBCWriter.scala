@@ -2,7 +2,7 @@ package impl.sql.jdbc
 
 import core.backend.common.DBObject
 import core.user.containers.ConstrainedFuture
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.utils._
 import impl.sql._
 import impl.sql.tables.{ObjectTable, RelationTable}
@@ -32,7 +32,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
   /**
     * Creates a new child view + commit of a view
     */
-  def setupAndGetNewView(v: View): SQLFuture[(View, Commit)] =
+  def setupAndGetNewView(v: ViewId): SQLFuture[(ViewId, Commit)] =
     for {
       connectedCommits <- instance.viewsTable.getCommits(v)
       newView <- instance.viewsRegistry.getNewViewId
@@ -51,7 +51,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
     * @return
     */
   def insertObjects(
-                     view: View,
+                     view: ViewId,
                      commit: Commit,
                      leftTable: ObjectTable,
                      rightTable: ObjectTable,
@@ -147,7 +147,7 @@ class JDBCWriter(implicit instance: SQLInstance) {
     */
   private def getExistingRelations(
                                     t: Set[RelationTable],
-                                    view: View
+                                    view: ViewId
                           ): SQLFuture[Set[(ObjId, RelationTable, ObjId)]] = {
     // delegate to the relation tables
     val sets = for {

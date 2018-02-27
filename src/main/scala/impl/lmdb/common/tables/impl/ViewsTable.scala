@@ -2,7 +2,7 @@ package impl.lmdb.common.tables.impl
 
 import java.nio.ByteBuffer
 
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.lmdb.common.access.Commit
 import impl.lmdb.common.access.Key._
 import impl.lmdb.common.access.Storable._
@@ -34,10 +34,10 @@ class ViewsTable(implicit val instance: LMDBInstance) extends LMDBTable {
     * @param v - view to lookup
     * @return
     */
-  def lookupCommits(v: View): LMDBEither[List[Commit]] = get[List[Commit]](v.key)
+  def lookupCommits(v: ViewId): LMDBEither[List[Commit]] = get[List[Commit]](v.key)
 
   /**
     * Insert a new child view  with its commits
     */
-  def newChildView(newView: View, commits: List[Commit]): LMDBEither[Unit] = put[List[Commit]](newView.key, commits)
+  def newChildView(newView: ViewId, commits: List[Commit]): LMDBEither[Unit] = put[List[Commit]](newView.key, commits)
 }

@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 
 import core.backend.intermediate.unsafe.ErasedFindable
 import core.user.containers.ConstrainedFuture
-import core.user.dsl.{E, View}
+import core.user.dsl.{E, ViewId}
 import core.user.interfaces.DBInstance
 import core.user.schema.{SchemaDescription, TableName}
 import impl.lmdb.common._
@@ -29,19 +29,19 @@ abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescript
   /**
     * Delegate responsibility
     */
-  override def setDefaultView(view: View): LMDBFuture[Unit] = controlTables.defaultView.setDefault(view)
+  override def setDefaultView(view: ViewId): LMDBFuture[Unit] = controlTables.defaultView.setDefault(view)
 
 
   /**
     * Delegate responsibility
     */
-  override def getDefaultView: LMDBFuture[View] = controlTables.defaultView.getDefault()
+  override def getDefaultView: LMDBFuture[ViewId] = controlTables.defaultView.getDefault()
 
 
   /**
     * Delegate responsibility
     */
-  override def getViews: LMDBFuture[Set[View]] = LMDBFutureE(controlTables.availableViews.availableViews())
+  override def getViews: LMDBFuture[Set[ViewId]] = LMDBFutureE(controlTables.availableViews.availableViews())
 
 
 
@@ -49,7 +49,7 @@ abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescript
   /**
     * Helper method to validate view
     */
-  private[lmdb] def validateView(v: View): LMDBEither[Unit] = controlTables.availableViews.validateView(v)
+  private[lmdb] def validateView(v: ViewId): LMDBEither[Unit] = controlTables.availableViews.validateView(v)
 
   /**
     * Contains an [[ObjectRetrievalTable]] for each of the tables in the schema

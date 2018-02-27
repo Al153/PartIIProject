@@ -1,7 +1,7 @@
 package impl.sql.adt.queries
 
 import core.backend.intermediate.unsafe.{ErasedFindable, UnsafeFindSingle}
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import impl.sql._
 import impl.sql.adt.{Definitions, Query}
 import impl.sql.errors.SQLExtractError
@@ -20,7 +20,7 @@ case class CompletedSingleQuery(
     * @param v - view to execute against
     * @return
     */
-  def render(v: View): SQLEither[String] = {
+  def render(v: ViewId): SQLEither[String] = {
     for {
       tablePrototype <- instance.schema.lookupTable(p.table).leftMap(SQLExtractError)
       res <- Definitions.compute(Query.convertSingle(p), v) {

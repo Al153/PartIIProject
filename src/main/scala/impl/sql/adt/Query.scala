@@ -1,7 +1,7 @@
 package impl.sql.adt
 
 import core.backend.intermediate.unsafe._
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.user.schema.TableName
 import core.utils.Logged
 import impl.sql.SQLInstance

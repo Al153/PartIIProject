@@ -1,7 +1,7 @@
 package impl.sql.adt.queries
 
 import core.backend.intermediate.unsafe.ErasedFindable
-import core.user.dsl.View
+import core.user.dsl.ViewId
 import core.user.schema.SchemaObject
 import impl.sql._
 import impl.sql.names.SQLColumnName
@@ -21,7 +21,7 @@ case class PathMemberQuery(
   /**
     * Rendert the query
     */
-  def render(v: View): String = extractMainQuery(sa.any.getUnsafe, table)
+  def render(v: ViewId): String = extractMainQuery(sa.any.getUnsafe, table)
 
 
   /**
