@@ -1,4 +1,5 @@
 package remote
+import core.user.dsl.E
 import core.user.interfaces.DBBackend
 import impl.lmdb._
 import impl.sql.SQLDB
@@ -14,7 +15,7 @@ object Run {
       // MemoryDB,
       fastjoins.LMDB,
       // SQLDB,
-      Vector[(String, DBBackend)](
+      Vector[(String, DBBackend[_ <: E])](
     //    "SQL" -> SQLDB,
     //    "LMDB" -> original.LMDB,
         lmdbcse -> cse.LMDB,

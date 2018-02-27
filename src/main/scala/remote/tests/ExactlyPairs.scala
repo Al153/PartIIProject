@@ -16,12 +16,12 @@ import scala.concurrent.ExecutionContext
 object ExactlyPairs extends TestSpec[Set[(Person, Person)]] {
   override def testName = "ExactlyPairs".test
   override def schema: SchemaDescription = schemaDescription
-  override  def setup(instance: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override  def setup(instance: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(instance){
       DBBuilder.buildDB("imdb/smallest")(instance)
     }
 
-  override def test(instance: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] =
+  override def test(instance: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] =
     for { res <- {
       implicit val inst = instance
       using(instance){

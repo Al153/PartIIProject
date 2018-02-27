@@ -9,15 +9,15 @@ import core.user.interfaces.DBInstance
 import core.user.schema.{SchemaDescription, TableName}
 import impl.lmdb.common._
 import impl.lmdb.common.access.{Commit, ObjId}
-import impl.lmdb.common.errors.LMDBMissingTable
+import impl.lmdb.common.errors.{LMDBError, LMDBMissingTable}
 import impl.lmdb.common.tables.impl._
 import org.lmdbjava.Env
 import core.utils._
-import scalaz.Scalaz._
 
+import scalaz.Scalaz._
 import scala.concurrent.ExecutionContext
 
-abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
+abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance[LMDBError] {
   // makes passing to other methods easier
   private [lmdb] implicit val instance: LMDBInstance = this
 
@@ -29,19 +29,19 @@ abstract class LMDBInstance(val env: Env[ByteBuffer], val schema: SchemaDescript
   /**
     * Delegate responsibility
     */
-  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = controlTables.defaultView.setDefault(view).asCFuture
+  override def setDefaultView(view: View): LMDBFuture[Unit] = controlTables.defaultView.setDefault(view)
 
 
   /**
     * Delegate responsibility
     */
-  override def getDefaultView: ConstrainedFuture[E, View] = controlTables.defaultView.getDefault().asCFuture
+  override def getDefaultView: LMDBFuture[View] = controlTables.defaultView.getDefault()
 
 
   /**
     * Delegate responsibility
     */
-  override def getViews: ConstrainedFuture[E, Set[View]] = LMDBFutureE(controlTables.availableViews.availableViews()).asCFuture
+  override def getViews: LMDBFuture[Set[View]] = LMDBFutureE(controlTables.availableViews.availableViews())
 
 
 

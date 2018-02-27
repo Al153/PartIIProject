@@ -36,7 +36,7 @@ trait PathFinding { self: Methods =>
                        relationalQuery: FindPair[A, A]
                      )(
     implicit sa: SchemaObject[A]
-  ): Operation[E, Option[Path[A]]] = new ReadOperation ({
+  ): LMDBOperation[Option[Path[A]]] = new ReadOperation ({
     view: View => LMDBFutureE(
       for {
         // check the view is accessible
@@ -69,7 +69,7 @@ trait PathFinding { self: Methods =>
         // extract the path that has been found
         res <- EitherOps.switch(optionalPath.map(p => extractorTable.retrieve[A](p).map(Path.fromVector)))
       } yield res
-    ).asCFuture
+    )
   })
 
   /**
@@ -86,7 +86,7 @@ trait PathFinding { self: Methods =>
                            relationalQuery: FindPair[A, A]
                          )(
     implicit sa: SchemaObject[A]
-  ): Operation[E, Set[Path[A]]] =  new ReadOperation ({
+  ): LMDBOperation[Set[Path[A]]] =  new ReadOperation ({
     view: View => LMDBFutureE(
       for {
         // Check the view is accessible
@@ -116,6 +116,6 @@ trait PathFinding { self: Methods =>
         // extract the paths
         res <- EitherOps.sequence(paths.map(p => extractor.retrieve[A](p).map(Path.fromVector)))
       } yield res
-    ).asCFuture
+    )
   })
 }

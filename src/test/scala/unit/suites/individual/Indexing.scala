@@ -15,9 +15,9 @@ import scalaz._
 /**
   * Created by Al on 08/01/2018.
   */
-trait Indexing { self: HasBackend =>
+trait Indexing[E1 <: E] { self: HasBackend[E1] =>
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] =
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] =
     for {
       _ <-  insert(
       CompletedRelation(fido, OwnedBy, Alice),

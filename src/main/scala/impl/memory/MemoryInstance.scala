@@ -9,7 +9,7 @@ import core.user.dsl.{E, View}
 import core.backend.intermediate.unsafe.ErasedRelationAttributes
 import core.user.schema.SchemaDescription
 import core.utils._
-import impl.memory.errors.MissingViewError
+import impl.memory.errors.{MemoryError, MissingViewError}
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
@@ -21,8 +21,12 @@ import scalaz.Scalaz._
   *
   * Instance implementation
   */
-class MemoryInstance(val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
-  override lazy val executor: DBExecutor = new InMemoryExecutor(this)
+class MemoryInstance(
+                      val schema: SchemaDescription
+                    )(
+  implicit val executionContext: ExecutionContext
+) extends DBInstance[MemoryError] {
+  override lazy val executor: DBExecutor[MemoryError] = new InMemoryExecutor(this)
 
   /**
     * initial default tree
@@ -81,39 +85,39 @@ class MemoryInstance(val schema: SchemaDescription)(implicit val executionContex
     * Wraps a function of [[MemoryTree]] into an [[Operation]]
     */
 
-  def readOp[A](f: MemoryTree => MemoryEither[A]): Operation[E, A] =
+  def readOp[A](f: MemoryTree => MemoryEither[A]): MemoryOperation[A] =
     new ReadOperation(v => MemoryFutureE(for {
       t <- Store.get(v)
       a <- f(t)
-    } yield a).asCFuture)
+    } yield a))
 
   /**
     * Wraps a function of [[MemoryTree]] => [[MemoryTree]] into an [[Operation]]
     */
 
-  def writeOp(f: MemoryTree => MemoryEither[MemoryTree]): Operation[E, Unit]  =
+  def writeOp(f: MemoryTree => MemoryEither[MemoryTree]): MemoryOperation[Unit]  =
     new WriteOperation (u => MemoryFutureE(for {
       t <- Store.get(u)
       newTree <- f(t)
       v <- Store.put(newTree)
-    } yield v).asCFuture)
+    } yield v))
 
   /**
     * Implements trait method
     */
-  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = MemoryFutureI(Store.setDefaultView(view)).asCFuture
-
-  /**
-    * Implements trait method
-    */
-
-  override def getDefaultView: ConstrainedFuture[E, View] = MemoryFutureI(Store.getDefaultView).asCFuture
+  override def setDefaultView(view: View): MemoryFuture[Unit] = MemoryFutureI(Store.setDefaultView(view))
 
   /**
     * Implements trait method
     */
 
-  override def getViews: ConstrainedFuture[E, Set[View]] = MemoryFuture(Store.getViews).asCFuture
+  override def getDefaultView: MemoryFuture[View] = MemoryFutureI(Store.getDefaultView)
+
+  /**
+    * Implements trait method
+    */
+
+  override def getViews: MemoryFuture[Set[View]] = MemoryFuture(Store.getViews)
 
   /**
     * Implements trait method

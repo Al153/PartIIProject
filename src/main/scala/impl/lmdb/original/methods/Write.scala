@@ -27,8 +27,8 @@ trait Write { self: Methods =>
                     t: TraversableOnce[CompletedRelation[A, B]]
                   )(
     implicit sa: SchemaObject[A], sb: SchemaObject[B]
-  ): Operation[E, Unit] = new WriteOperation[E](
-    v => LMDBFutureE(doInsert(t, v)).asCFuture
+  ): LMDBOperation[Unit] = new WriteOperation(
+    v => LMDBFutureE(doInsert(t, v))
   )
 
   /**

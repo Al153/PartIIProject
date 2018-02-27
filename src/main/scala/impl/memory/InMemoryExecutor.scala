@@ -6,7 +6,7 @@ import core.user.dsl.{CompletedRelation, E}
 import core.user.interfaces.DBExecutor
 import core.user.schema.SchemaObject
 import core.utils._
-import impl.memory.errors.{MemoryExtractError, MemoryMissingRelation}
+import impl.memory.errors.{MemoryError, MemoryExtractError, MemoryMissingRelation}
 import impl.memory.methods.Methods
 
 
@@ -15,11 +15,11 @@ import impl.memory.methods.Methods
   *
   * Executor implementation
   */
-class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Methods {
+class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor[MemoryError] with Methods {
   /**
     * Implementation of findDistinct, uses methods implementation
     */
-  override def find[A](q: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Set[A]] =
+  override def find[A](q: FindSingle[A])(implicit sa: SchemaObject[A]): MemoryOperation[Set[A]] =
     instance.readOp(
       t =>
         for {
@@ -38,7 +38,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
     * Implementation of findDistinctPairs, uses methods implementation
     */
 
-  override def findPairs[A, B](q: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
+  override def findPairs[A, B](q: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): MemoryOperation[Set[(A, B)]] =
     instance.readOp {
       t =>
         for {
@@ -65,7 +65,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
   /**
     * Implementation of shortestPath, uses methods implementation
     */
-  override def shortestPath[A](start: A, end: A, relationalQuery: FindPair[A, A])(implicit sa: SchemaObject[A]): Operation[E, Option[Path[A]]] =
+  override def shortestPath[A](start: A, end: A, relationalQuery: FindPair[A, A])(implicit sa: SchemaObject[A]): MemoryOperation[Option[Path[A]]] =
     instance.readOp {
       tree =>
         for {
@@ -91,7 +91,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
     * Implementation of allShortestPaths, uses methods implementation
     */
 
-  override def allShortestPaths[A](start: A, relationalQuery: FindPair[A, A])(implicit sa: SchemaObject[A]): Operation[E, Set[Path[A]]] =
+  override def allShortestPaths[A](start: A, relationalQuery: FindPair[A, A])(implicit sa: SchemaObject[A]): MemoryOperation[Set[Path[A]]] =
     instance.readOp {
       tree =>
         for {
@@ -114,7 +114,7 @@ class InMemoryExecutor(val instance: MemoryInstance) extends DBExecutor with Met
   override def insert[A, B](q: TraversableOnce[CompletedRelation[A, B]])(
     implicit sa: SchemaObject[A],
     sb: SchemaObject[B]
-  ): Operation[E, Unit] =
+  ): MemoryOperation[Unit] =
     instance.writeOp {
       t =>
         q.foldLeft(MemoryEither(t)){ // inserts one by one

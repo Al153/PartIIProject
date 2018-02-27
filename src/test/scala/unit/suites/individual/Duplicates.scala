@@ -5,7 +5,7 @@ import org.junit.Test
 import unit.Objects.{Alice, Bob, Charlie, David}
 import unit.{Knows, assertEqOp, description}
 
-trait Duplicates { self: HasBackend =>
+trait Duplicates[E1 <: E] { self: HasBackend[E1] =>
   /**
     * Check the number of paths is always 0 or 1 (redundant with the usage of sets)
   */
@@ -37,7 +37,7 @@ trait Duplicates { self: HasBackend =>
 
   @Test
   def Distinct(): Unit = runTest { implicit instance =>
-    val expectedDistinctPairs = Set(Alice -> Charlie)
+    val expectedDistinctPairs = Set(Alice -> Charlie, Bob -> David)
     val expectedDistinctSingle = Set(Charlie)
     using(instance) {
 

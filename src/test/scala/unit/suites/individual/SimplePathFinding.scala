@@ -13,14 +13,14 @@ import scala.concurrent.ExecutionContext
 /**
   * Created by Al on 23/12/2017.
   */
-trait SimplePathFinding {self: HasBackend =>
+trait SimplePathFinding[E1 <: E] {self: HasBackend[E1] =>
   /*
       * A number of tests of the pathfinding algorithms
       *
       * A -> B -> E -> F -> G
       */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob),
     CompletedRelation(Bob, Knows, Eve),
     CompletedRelation(Eve, Knows, Fred),

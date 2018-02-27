@@ -7,6 +7,8 @@ import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
 import core.user.interfaces._
 import core.user.schema.SchemaDescription
 import impl.lmdb.common
+import impl.lmdb.common.LMDBEither
+import impl.lmdb.common.errors.LMDBError
 import org.lmdbjava.Env
 import org.lmdbjava.Env._
 import org.slf4j.Logger
@@ -21,14 +23,14 @@ import scalaz._
   * Bespoke LMDB backend for the system
   */
 
-trait Backend extends DBBackend {
+trait Backend extends DBBackend[LMDBError] {
   def mkTempInstance(env: Env[ByteBuffer], sd: SchemaDescription, dir: Path)(implicit ec: ExecutionContext): LMDBInstance
   def mkNewInstance(env: Env[ByteBuffer], sd: SchemaDescription)(implicit ec: ExecutionContext): LMDBInstance
   def mkExistingInstance(env: Env[ByteBuffer], sd: SchemaDescription)(implicit ec: ExecutionContext): LMDBInstance
 
   val mapSize: Long = 1024 * 1024 * 1024
 
-  override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): \/[E, DBInstance] =
+  override def open(address: DatabaseAddress, schema: SchemaDescription)(implicit e: ExecutionContext): LMDBEither[DBInstance[LMDBError]] =
     try {
       val instance = getInstance(address, schema)
       Thread.sleep(2) // small sleep to allow LMDB to update its mapsize

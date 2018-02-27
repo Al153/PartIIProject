@@ -10,7 +10,7 @@ trait E
 object E {
   implicit object ERecovery extends HasRecovery[E] {
     override def recover(t: Throwable): E = new E {
-      override def toString: String = "Caught exception: " + t.getMessage
+      override def toString: String = "Caught general exception: " + t.toString + "Cause = " + t.getCause
     }
   }
 }

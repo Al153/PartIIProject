@@ -14,7 +14,7 @@ import scala.language.postfixOps
 /**
   * Created by Al on 04/11/2017.
   */
-trait ComplexRepetition { self: HasBackend =>
+trait ComplexRepetition[E1 <: E] { self: HasBackend[E1] =>
 
   /**
     * Check that paths work
@@ -32,7 +32,7 @@ trait ComplexRepetition { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] =
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] =
     insert(
       CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
       CompletedRelation(Alice, Knows, David), CompletedRelation(David, Knows, Eve),

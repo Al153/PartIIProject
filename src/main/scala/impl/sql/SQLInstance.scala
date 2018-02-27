@@ -27,8 +27,8 @@ import Scalaz._
   * implements [[DBInstance]]
   */
 
-class SQLInstance(val connection: Connection, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance {
-  override val executor: DBExecutor = new SQLExecutor(this)
+class SQLInstance(val connection: Connection, val schema: SchemaDescription)(implicit val executionContext: ExecutionContext) extends DBInstance[SQLError] {
+  override val executor: DBExecutor[SQLError] = new SQLExecutor(this)
 
   /**
     * To close, close the connection
@@ -89,12 +89,12 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
   /**
     * Delegates setDefaultView to the defaults table
     */
-  override def setDefaultView(view: View): ConstrainedFuture[E, Unit] = SQLFutureE(defaultsTable.setDefaultView(view)).asCFuture
+  override def setDefaultView(view: View): SQLFuture[Unit] = SQLFutureE(defaultsTable.setDefaultView(view))
 
   /**
     * Delegates getDefaultView to the defaults table
     */
-  override def getDefaultView: ConstrainedFuture[E, View] = defaultsTable.getDefaultView.asCFuture
+  override def getDefaultView: SQLFuture[View] = defaultsTable.getDefaultView
 
 
 
@@ -120,7 +120,7 @@ class SQLInstance(val connection: Connection, val schema: SchemaDescription)(imp
     * read from the views table
     * @return
     */
-  override def getViews: ConstrainedFuture[E, Set[View]] = viewsRegistry.getViews.asCFuture
+  override def getViews: SQLFuture[Set[View]] = viewsRegistry.getViews
 
 
   /**

@@ -19,7 +19,7 @@ import scalaz._
   * @param instance - backreference to containing instance
   */
 
-class SQLExecutor(instance: SQLInstance) extends DBExecutor {
+class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
 
   import instance.executionContext
 
@@ -33,7 +33,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
   override def find[A](t: FindSingle[A])
                       (
                         implicit sa: SchemaObject[A]
-                      ): Operation[E, Set[A]] =
+                      ): SQLOperation[Set[A]] =
     new ReadOperation({
       v: View => {
         for {
@@ -46,7 +46,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
               .getSingleDistinct[A](query)
           )
         } yield res
-      }.asCFuture
+      }
   })
 
   /**
@@ -60,11 +60,11 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
   override def findPairs[A, B](t: FindPair[A, B])
-                              (implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
+                              (implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLOperation[Set[(A, B)]] =
     new ReadOperation({
       v: View =>
-        (for {
-          // Compile query to SQL
+        for {
+        // Compile query to SQL
           query <- compilePairQuery(t, v)
           // Run the query
           res <- SQLFutureE(
@@ -72,7 +72,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
               .reader
               .getDistinctPairs[A, B](query)
           )
-        } yield res).asCFuture
+        } yield res
   })
 
   /**
@@ -87,7 +87,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
 
   override def shortestPath[A](start: A, end: A, t: FindPair[A, A])(
     implicit sa: SchemaObject[A]
-  ): Operation[E, Option[Path[A]]] =
+  ): SQLOperation[Option[Path[A]]] =
     new ReadOperation({
       v: View => {
         // find the table which we want to traverse
@@ -132,7 +132,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
             path.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
           )
         } yield populatedPath
-      }.asCFuture
+      }
     })
 
 
@@ -146,7 +146,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     */
 
   override def allShortestPaths[A](start: A, t: FindPair[A, A])
-                                  (implicit sa: SchemaObject[A]): Operation[E, Set[Path[A]]] =
+                                  (implicit sa: SchemaObject[A]): SQLOperation[Set[Path[A]]] =
     new ReadOperation({
       v: View => {
         // Get the table to use
@@ -180,7 +180,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
               paths.map(ids => instance.reader.getPathfindingFound[A](ids, table, v)))
           )
         } yield populatedPaths
-      }.asCFuture
+      }
   })
 
   /**
@@ -193,7 +193,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
     * @return
     */
   override def insert[A, B](t: TraversableOnce[CompletedRelation[A, B]])(
-    implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Unit] = {
+    implicit sa: SchemaObject[A], sb: SchemaObject[B]): SQLOperation[Unit] = {
       new WriteOperation (
         view => {
           // set off non-dependent operations asynchronously
@@ -231,7 +231,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor {
             // write all the relations to the database
             _ <- instance.writer.insertObjects(newView, newCommit, leftTable, rightTable, processedSeq)
           } yield newView
-        }.asCFuture
+        }
       )
   }
 

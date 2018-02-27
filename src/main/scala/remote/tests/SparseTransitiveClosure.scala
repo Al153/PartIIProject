@@ -19,7 +19,7 @@ object SparseTransitiveClosure extends TestSpec[Set[(Person, Person)]] {
 
   override def batchSize: TestIndex = 10.tests
 
-  override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup(d: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     {
       implicit val instance = d
       using(d){
@@ -28,7 +28,7 @@ object SparseTransitiveClosure extends TestSpec[Set[(Person, Person)]] {
     }
 
   override def test(
-                     d: DBInstance
+                     d: DBInstance[_ <: E]
                    )(
     index: TestIndex
   )(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] = {

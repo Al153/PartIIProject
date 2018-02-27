@@ -23,7 +23,7 @@ trait FindAll { self: Methods =>
     * @tparam A - Type of objects to return
     * @return - A Set of found objects
     */
-  def find[A](t: FindSingle[A])(implicit sa: SchemaObject[A]): Operation[E, Set[A]] =
+  def find[A](t: FindSingle[A])(implicit sa: SchemaObject[A]): LMDBOperation[Set[A]] =
     new ReadOperation({view: View => LMDBFutureE(for {
     // Check the view is valid
       _ <- instance.controlTables.availableViews.validateView(view)
@@ -35,7 +35,7 @@ trait FindAll { self: Methods =>
       commits <- instance.controlTables.viewsTable.lookupCommits(view)
       // Interpret the ADT
       res <- readSet(ut, commits, objectTable)
-    } yield res).asCFuture})
+    } yield res)})
 
 
 }

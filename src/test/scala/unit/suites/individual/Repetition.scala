@@ -14,7 +14,7 @@ import scala.language.postfixOps
 /**
   * Created by Al on 04/11/2017.
   */
-trait Repetition { self: HasBackend =>
+trait Repetition[E1 <: E] { self: HasBackend[E1] =>
 
   /**
     * Check that paths work, simple example
@@ -28,7 +28,7 @@ trait Repetition { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
     CompletedRelation(Charlie, Knows, David), CompletedRelation(David, Knows, Eve),
     CompletedRelation(Eve, Knows, Fred), CompletedRelation(Fred, Knows, Georgie),

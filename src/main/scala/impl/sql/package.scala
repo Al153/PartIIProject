@@ -1,6 +1,6 @@
 package impl
 
-import core.user.containers.ConstrainedFuture
+import core.user.containers.{ConstrainedFuture, Operation}
 import core.user.dsl.E
 import impl.sql.errors.SQLError
 
@@ -18,6 +18,7 @@ package object sql {
     * Convenience types
     */
   type SQLFuture[A] = ConstrainedFuture[SQLError, A]
+  type SQLOperation[A] = Operation[SQLError, A]
   type SQLEither[A] = SQLError \/ A
 
   /**
@@ -45,23 +46,4 @@ package object sql {
   def asE(s: SQLError): E = s
   def asEither[A](sQLEither: SQLEither[A]): E \/ A = sQLEither.leftMap(asE)
   def asCFuture[A](f: SQLFuture[A]): ConstrainedFuture[E, A] = f.leftMap(asE)
-
-  /**
-    * Syntax for SQLFutures
-    * @param u
-    * @tparam A
-    */
-  implicit class SQLFutureOps[A](u: SQLFuture[A]) {
-    def asCFuture: ConstrainedFuture[E, A] = sql.asCFuture(u)
-  }
-
-  /**
-    * Syntax for SQLEither
-    * @param u
-    * @tparam A
-    */
-
-  implicit class SQLEitherOps[A](u: SQLEither[A]) {
-    def asEither: E \/ A = sql.asEither(u)
-  }
 }

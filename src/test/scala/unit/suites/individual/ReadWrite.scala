@@ -6,7 +6,7 @@ import org.junit.Test
 import unit.Objects._
 import unit._
 
-trait ReadWrite { self: HasBackend =>
+trait ReadWrite[E1 <: E] { self: HasBackend[E1] =>
   /**
     * A write followed by a read should result in the written values being read
     */

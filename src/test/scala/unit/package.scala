@@ -1,6 +1,7 @@
 import core.user.containers.{ConstrainedFuture, Operation, ReadOperation}
-import core.user.dsl.{E, RelationAttributes}
+import core.user.dsl.{E, HasRecovery, RelationAttributes}
 import core.user.schema._
+import core.utils.Logged
 import errors.{AssertionFailure, UnknownError}
 import org.junit.Assert
 
@@ -10,7 +11,7 @@ import scala.concurrent.ExecutionContext
   * Some simple test core.user.schema for unit tests
   */
 
-package object unit {
+package object unit extends Logged {
   case class Person(n: String) { def name: String = n}
 
   implicit def personSchema = new SchemaObject1[Person, String] {
@@ -46,23 +47,18 @@ package object unit {
     Set(Knows, Owns, OwnedBy)
   )
 
-  def assertEqOp[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): Operation[E, Unit] = new ReadOperation (
-    _ => ConstrainedFuture.point(
-      try{
-        Assert.assertEquals(expected, trial)
-      } catch {
-        case e: AssertionError => AssertionFailure(e, msg)
-        case e: Throwable => UnknownError(e)
-      })
+  def assertEqOp[E1, A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext, R: HasRecovery[E1]): Operation[E1, Unit] = new ReadOperation (
+    _ => ConstrainedFuture.point[E1, Unit]{
+      Assert.assertEquals(msg, expected, trial)
+    }
+
+
   )
 
-  def assertEq[A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
-    ConstrainedFuture.point(try{
-      Assert.assertEquals(expected, trial)
-    } catch {
-      case e: AssertionError => AssertionFailure(e, msg)
-      case e: Throwable => UnknownError(e)
-    })
+  def assertEq[E1, A](expected: A, trial: A, msg: String)(implicit ec: ExecutionContext, R: HasRecovery[E1]): ConstrainedFuture[E1, Unit] =
+    ConstrainedFuture.point[E1, Unit](
+      Assert.assertEquals(msg, expected, trial)
+    )
 
 
   implicit def PersonOrdering(implicit os: Ordering[String]) = new Ordering[Person] {
@@ -79,8 +75,6 @@ package object unit {
     * @tparam A - type to shoehorn to
     * @return
     */
-  def errorThrowable[A](e: E): A = throw new Throwable {
-    override def toString: String = e.toString
-  }
+  def errorThrowable[A](e: E): A = throw new Throwable(e.toString)
 }
 

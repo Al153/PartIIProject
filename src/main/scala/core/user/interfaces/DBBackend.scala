@@ -13,7 +13,7 @@ import scalaz.\/
   *
   * A database connection can open an [[DBInstance]]
   */
-trait DBBackend extends Logged {
+trait DBBackend[E <: core.user.dsl.E] extends Logged {
   /**
     * Open an Instance
     * @param address - Address to open
@@ -21,7 +21,7 @@ trait DBBackend extends Logged {
     * @return a [[DBInstance]]
     */
   def open(address: DatabaseAddress, schema: SchemaDescription)
-          (implicit e: ExecutionContext): \/[E, DBInstance]
+          (implicit e: ExecutionContext): \/[E, DBInstance[E]]
 }
 
 

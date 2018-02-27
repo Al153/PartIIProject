@@ -1,6 +1,6 @@
 package impl.lmdb
 
-import core.user.containers.ConstrainedFuture
+import core.user.containers.{ConstrainedFuture, Operation}
 import core.user.dsl.{E, View}
 import impl.lmdb.common.errors._
 
@@ -18,6 +18,7 @@ package object common {
     */
   type LMDBEither[A] = LMDBError \/ A
   type LMDBFuture[A] = ConstrainedFuture[LMDBError, A]
+  type LMDBOperation[A] = Operation[LMDBError, A]
 
 
   /**
@@ -40,33 +41,6 @@ package object common {
   def asE(s: LMDBError): E = s
   def asEither[A](sQLEither: LMDBEither[A]): E \/ A = sQLEither.leftMap(asE)
   def asCFuture[A](f: LMDBFuture[A]): ConstrainedFuture[E, A] = f.leftMap(asE)
-
-
-
-
-  /**
-    * Syntax for LMDB Futures
-    */
-  implicit class LMDBFutureOps[A](u: LMDBFuture[A]) {
-    /**
-      * Convert and LMDBFuture to an E ConstrainedFuture A
-      * @return
-      */
-    def asCFuture: ConstrainedFuture[E, A] = common.asCFuture(u)
-  }
-
-  /**
-    * Syntax for LMDB Eithers
-    */
-
-  implicit class LMDBEitherOps[A](u: LMDBEither[A]) {
-    /**
-      * Convert and LMDBEither to an E \/ A
-      * @return
-      */
-    def asEither: E \/ A = common.asEither(u)
-  }
-
 
 
   // Set up the initial view of the DB

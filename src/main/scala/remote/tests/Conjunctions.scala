@@ -18,7 +18,7 @@ object Conjunctions extends TestSpec[Set[(Person, Person)]]{
 
   override def batchSize: TestIndex = 12.tests
 
-  override def setup(d: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup(d: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     using(d){
       DBBuilder.buildDB("imdb/large")(d)
     }
@@ -26,7 +26,7 @@ object Conjunctions extends TestSpec[Set[(Person, Person)]]{
   private def actsWith(a: Person) =
     (ActsIn--><-- ActsIn) ->>- a
 
-  override def test(d: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] =
+  override def test(d: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[(Person, Person)]] =
   {
     implicit val inst = d
     readDefault(d) {

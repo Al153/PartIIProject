@@ -3,14 +3,12 @@ package impl.sql.jdbc
 import java.sql.ResultSet
 
 import core.backend.common._
+import core.backend.intermediate._
 import core.user.containers.Path
 import core.user.dsl.View
-import core.backend.intermediate._
 import core.user.schema._
 import core.utils.Logged
 import impl.sql._
-import impl.sql.adt.Definitions
-import impl.sql.adt.Query.logger
 import impl.sql.adt.queries.PathMemberQuery
 import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
 import impl.sql.jdbc.Conversions._

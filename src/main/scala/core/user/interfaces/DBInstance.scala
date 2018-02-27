@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
   *
   * An open Database connection
   */
-trait DBInstance extends Logged{
+trait DBInstance[E <: core.user.dsl.E] extends Logged{
   /**
     * The bound [[ExecutionContext]]
     */
@@ -28,7 +28,7 @@ trait DBInstance extends Logged{
     * The database's executor
     * @return
     */
-  def executor: DBExecutor
+  def executor: DBExecutor[E]
 
 
   /**

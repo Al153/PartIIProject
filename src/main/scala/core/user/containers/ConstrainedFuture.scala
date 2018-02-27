@@ -140,5 +140,10 @@ object ConstrainedFuture {
     */
   def switch[E, A](in: Option[E ConstrainedFuture A])(implicit ec: ExecutionContext, R: HasRecovery[E]): E ConstrainedFuture Option[A] =
     in.fold(immediatePoint[E, Option[A]](Option.empty[A]))(ea => ea.map(_.some))
+
+
+  implicit class ConstrainedFutureOps[E <: core.user.dsl.E, A](u: ConstrainedFuture[E, A]) {
+    def eraseError: ConstrainedFuture[core.user.dsl.E, A] = u.leftMap(e => e: E)
+  }
 }
 

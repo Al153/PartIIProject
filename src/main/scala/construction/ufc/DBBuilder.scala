@@ -60,7 +60,7 @@ object DBBuilder {
     }
   }
 
-  def buildDB(sourcePath: String)(implicit instance: DBInstance): Operation[E, Unit] = {
+  def buildDB[E1 <: E](sourcePath: String)(implicit instance: DBInstance[E1]): Operation[E, Unit] = {
 
     def getEdges(sourcePath: String): (Set[JSShorter], Set[JSLighter], Set[JSBeat]) = {
       val allObjects = Source.fromResource(s"$sourcePath/edges.json").mkString.parseJson
@@ -79,11 +79,11 @@ object DBBuilder {
     println("Beat Size = " + beat.size)
 
 
-    for {
+    (for {
       _ <- insert(shorter.collect {case JSShorter(a, b) => CompletedRelation(a.toDBPerson, ShorterThan, b.toDBPerson)})
       _ <- insert(lighter.collect {case JSLighter(a, b) => CompletedRelation(a.toDBPerson, LighterThan, b.toDBPerson)})
       _ <- insert(beat.collect {case JSBeat(a, b) => CompletedRelation(a.toDBPerson, Beat, b.toDBPerson)})
-    } yield ()
+    } yield ()).eraseError
   }
 
   def main(args: Array[String]): Unit = {
@@ -107,10 +107,7 @@ object DBBuilder {
             for {
               _ <- buildDB(sourcePath = testName)(instance)
               _ = println("Built db")
-             //bacons <- find(personSchema.pattern("Kevin Bacon".some))
-             // _ = println("Got bacons")
-             // res <- bacons.headOption.fold(Operation.point[E, Set[Path[Person]]](Set(), recover))(kb => allShortestPaths(kb, ActsIn --><-- ActsIn))
-            } yield  ()// res.map{p => (p.length, p.end)}.toList.sortBy(_._1)
+            } yield  ()
           )
         } yield res
       }.run, 120000.seconds)

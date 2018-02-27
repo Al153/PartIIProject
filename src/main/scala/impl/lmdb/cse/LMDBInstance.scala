@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext
   *
   * [[DBInstance]] implementation
   */
-sealed abstract class CSELMDBInstance(env: Env[ByteBuffer], schema: SchemaDescription)(implicit executionContext: ExecutionContext) extends LMDBInstance(env, schema) {
+sealed abstract class CSELMDBInstance(env: Env[ByteBuffer], schema: SchemaDescription)(implicit executionContext: ExecutionContext) extends LMDBInstance(env, schema) with Logged {
 
   /**
     * @return internal executor

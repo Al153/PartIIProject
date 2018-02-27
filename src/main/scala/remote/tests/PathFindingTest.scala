@@ -22,9 +22,9 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
 
   override def batchSize: TestIndex = 6.tests
 
-  override def setup(instance: DBInstance)(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
+  override def setup(instance: DBInstance[_ <: E])(implicit ec: ExecutionContext): ConstrainedFuture[E, Unit] =
     for {
-      v0 <- instance.getDefaultView
+      v0 <- instance.getDefaultView.leftMap(e => e: E)
       v1 <- writeToView(instance, v0){
         DBBuilder.buildDB("imdb/smallest")(instance)
       }
@@ -63,10 +63,10 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
 
     } yield ()
 
-  override def test(instance: DBInstance)(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[Path[Person]]] = {
+  override def test(instance: DBInstance[_ <: E])(index: TestIndex)(implicit ec: ExecutionContext): ConstrainedFuture[E, Set[Path[Person]]] = {
     implicit val inst = instance
     for {
-      views <- instance.getViews
+      views <- instance.getViews.eraseError
       v = views.toVector.sortBy(_.id).apply(index.i)
       r <- usingView(instance, v){
         allShortestPaths(KevinBacon, ActsIn --><-- ActsIn)

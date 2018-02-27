@@ -1,7 +1,7 @@
 package impl
 
 import core.backend.common._
-import core.user.containers.ConstrainedFuture
+import core.user.containers.{ConstrainedFuture, Operation}
 import core.user.dsl.E
 import core.backend.intermediate.unsafe._
 import core.user.schema.TableName
@@ -44,6 +44,7 @@ package object memory extends {
 
   type MemoryFuture[A] = ConstrainedFuture[MemoryError, A]
   type MemoryEither[A] = MemoryError \/ A
+  type MemoryOperation[A] = Operation[MemoryError, A]
 
   def MemoryFutureE[A](ea: MemoryEither[A])(implicit ec: ExecutionContext): MemoryFuture[A] = ConstrainedFuture.either(ea)
   def MemoryFuture[A](a: => A)(implicit ec: ExecutionContext): MemoryFuture[A] =  ConstrainedFuture.point(a)
@@ -56,11 +57,4 @@ package object memory extends {
   def asEither[A](sQLEither: MemoryEither[A]): E \/ A = sQLEither.leftMap(asE)
   def asCFuture[A](f: MemoryFuture[A]): ConstrainedFuture[E, A] = f.leftMap(asE)
 
-  implicit class MemoryFutureOps[A](u: MemoryFuture[A]) {
-    def asCFuture: ConstrainedFuture[E, A] = memory.asCFuture(u)
-  }
-
-  implicit class MemoryEitherOps[A](u: MemoryEither[A]) {
-    def asEither: E \/ A = memory.asEither(u)
-  }
 }

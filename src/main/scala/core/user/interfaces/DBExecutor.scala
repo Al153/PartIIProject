@@ -11,7 +11,7 @@ import core.user.schema.SchemaObject
   * Core operations a [[DBInstance]] should implement
   */
 
-trait DBExecutor {
+trait DBExecutor[E <: core.user.dsl.E] {
   /**
    * Find a set of distinct elements that match a query
    */

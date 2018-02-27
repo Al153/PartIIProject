@@ -11,7 +11,7 @@ import unit.{Knows, Person, assertEqOp, description}
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
-trait LoopedRepetition { self: HasBackend =>
+trait LoopedRepetition[E1 <: E] { self: HasBackend[E1] =>
   /**
     * Check that paths work, on a cyclic graph
     *
@@ -19,7 +19,7 @@ trait LoopedRepetition { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] = insert(
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] = insert(
     CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
     CompletedRelation(Charlie, Knows, David), CompletedRelation(David, Knows, Alice)
   )
@@ -107,7 +107,7 @@ trait LoopedRepetition { self: HasBackend =>
         _ <- setupPath
         res1 <- find(Alice >> Knows * (2 --> 3))
         res2 <- find(Alice >> Knows * (2 --> 3))
-        _ <- assertEqOp(expected, res1.toSet, "Exactly (all pairs)")
+        _ <- assertEqOp(expected, res1, "Exactly (all pairs)")
         _ <- assertEqOp(expected, res2, "Exactly (distinct)")
       } yield ()
     }

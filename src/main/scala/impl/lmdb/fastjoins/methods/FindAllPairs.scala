@@ -27,7 +27,7 @@ trait FindAllPairs { self: Methods =>
     * @return - A Set of found objects
     */
 
-  def findPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
+  def findPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): LMDBOperation[Set[(A, B)]] =
     new ReadOperation({view: View => LMDBFutureE(for {
     // Check the view is accessible
       _ <- instance.controlTables.availableViews.validateView(view)
@@ -40,6 +40,6 @@ trait FindAllPairs { self: Methods =>
       commits <- instance.controlTables.viewsTable.lookupCommits(view)
       // interpret the ADT
       res <- readSetPairs[A, B](ut, commits, leftTable, rightTable)
-    } yield res).asCFuture})
+    } yield res)})
 }
 

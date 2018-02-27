@@ -18,17 +18,17 @@ import scalaz._
   * Class to run remote tests and time them
   */
 class RemoteTester(
-                    referenceImplementation: DBBackend,
-                    testImplementations: Vector[(String, DBBackend)]
+                    referenceImplementation: DBBackend[_ <: E],
+                    testImplementations: Vector[(String, DBBackend[_ <: E])]
                   )(implicit logger: Logger, ec: ExecutionContext) {
 
 
   def runTest[A](testSpec: TestSpec[A]): Unit = {
     val runningTests = (for {
-      ref <- referenceImplementation.open(Empty, testSpec.schema)
-      instances <- EitherOps.sequence(testImplementations.map{
+      ref <- referenceImplementation.open(Empty, testSpec.schema).leftMap(e => e: E)
+      instances <- EitherOps.sequence[E, (String, DBInstance[_ <: E]), Vector](testImplementations.map{
         case (n, instance) =>
-          instance.open(Empty, testSpec.schema).map(n -> _)
+          instance.open(Empty, testSpec.schema).map(n -> _).leftMap(e => e: E)
       })
     } yield (ref, instances)).fold(
       {e =>
@@ -43,15 +43,15 @@ class RemoteTester(
   }
 
   private def doSetup(
-               setup: (DBInstance) => ConstrainedFuture[E, Unit],
-               instance: DBInstance,
+               setup: (DBInstance[_ <: E]) => ConstrainedFuture[E, Unit],
+               instance: DBInstance[_ <: E],
                name: String
              ): ConstrainedFuture[E, Unit] = for {
     _ <- setup(instance)
     _ = logger.info(s"[Setup][Done]: Instance = $name")
   } yield logger.info(s"[Setup][Done]: Instance = $name")
 
-  private def runBatches[A](spec: TestSpec[A], reference: DBInstance, toTest: Vector[(String, DBInstance)]): ConstrainedFuture[E, Unit] = {
+  private def runBatches[A](spec: TestSpec[A], reference: DBInstance[_ <: E], toTest: Vector[(String, DBInstance[_ <: E])]): ConstrainedFuture[E, Unit] = {
     logger.info("Starting Setup")
     for {
       _ <- doSetup(spec.setup, reference, "reference")
@@ -73,7 +73,7 @@ class RemoteTester(
 
   private def runBatch[A](
                    spec: TestSpec[A],
-                   impl: DBInstance,
+                   impl: DBInstance[_ <: E],
                    instanceName: String
                  ): ConstrainedFuture[E, Map[TestInstance, TimeResult[Int]]] =
     sequence(TestInstance(spec, instanceName)) {
@@ -84,7 +84,7 @@ class RemoteTester(
 
   private def runReferenceBatch[A](
                             spec: TestSpec[A],
-                            impl: DBInstance
+                            impl: DBInstance[_ <: E]
                           ): ConstrainedFuture[E, Map[TestIndex, Int]] =
     for {
       instanceToTimedResult <- runBatch(spec, impl, "ReferenceInstance")
@@ -109,7 +109,7 @@ class RemoteTester(
 
   private def runTestBatch[A](
                        spec: TestSpec[A],
-                       impl: DBInstance,
+                       impl: DBInstance[_ <: E],
                        toTest: String,
                        expectedResults: Map[TestIndex, Int]
                      ): ConstrainedFuture[E, Unit] = {
@@ -130,12 +130,10 @@ class RemoteTester(
 
   private def sequence[A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[E, B]): ConstrainedFuture[E, Map[A, B]]
   = {
-    var ok = true
     in.foldLeft(ConstrainedFuture.point(Map.empty[A, B])){
       case (or, a) =>
         for {
           r <- or
-          _ = ok = true
           m <- f(a).map(b => r + (a -> b)).recover{e => logError(e); r}
         } yield m
     }

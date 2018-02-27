@@ -6,7 +6,7 @@ import core.user.dsl.{E, View}
 import core.user.schema.SchemaObject
 import core.utils._
 import impl.lmdb.common._
-import impl.lmdb.common.errors.{LMDBMissingRelation, LMDBMissingTable}
+import impl.lmdb.common.errors.{LMDBError, LMDBMissingRelation, LMDBMissingTable}
 
 
 /**
@@ -27,19 +27,22 @@ trait FindAllPairs { self: Methods =>
     * @return - A Set of found objects
     */
 
-  def findPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): Operation[E, Set[(A, B)]] =
-    new ReadOperation({view: View => LMDBFutureE(for {
-    // Check the view is accessible
-      _ <- instance.controlTables.availableViews.validateView(view)
-      // Get the unsafe equivalent of the query
-      ut <- t.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
-      // get the tables from which to extract values
-      leftTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
-      rightTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
-      // get the commits needed according to the view
-      commits <- instance.controlTables.viewsTable.lookupCommits(view)
-      // interpret the ADT
-      res <- readSetPairs[A, B](ut, commits, leftTable, rightTable)
-    } yield res).asCFuture})
+  def findPairs[A, B](t: FindPair[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]): LMDBOperation[Set[(A, B)]] =
+    new ReadOperation(
+      {
+        view: View => LMDBFutureE(for {
+        // Check the view is accessible
+          _ <- instance.controlTables.availableViews.validateView(view)
+          // Get the unsafe equivalent of the query
+          ut <- t.getUnsafe(instance.schema).leftMap(LMDBMissingRelation)
+          // get the tables from which to extract values
+          leftTable <- instance.objects.getOrError(sa.name, LMDBMissingTable(sa.name))
+          rightTable <- instance.objects.getOrError(sb.name, LMDBMissingTable(sb.name))
+          // get the commits needed according to the view
+          commits <- instance.controlTables.viewsTable.lookupCommits(view)
+          // interpret the ADT
+          res <- readSetPairs[A, B](ut, commits, leftTable, rightTable)
+        } yield res)
+      })
 }
 

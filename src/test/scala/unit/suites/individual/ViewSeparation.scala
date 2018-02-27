@@ -10,7 +10,7 @@ import scalaz._
 /**
   * Created by Al on 27/12/2017.
   */
-trait ViewSeparation { self: HasBackend =>
+trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
 
 
   /**
@@ -22,7 +22,7 @@ trait ViewSeparation { self: HasBackend =>
     val expected2 = Set(Bob -> Fred, Fred -> Charlie, Fred -> Georgie, Hannah -> Ian)
 
     for {
-      initialView <- instance.getDefaultView
+      initialView <- instance.getDefaultView.eraseError
 
       v1 <- writeToView(instance, initialView) {
         insert(
@@ -47,8 +47,8 @@ trait ViewSeparation { self: HasBackend =>
       r2 <- usingView(instance, v2) {
         findPairs(Knows)
       }
-      _ <- assertEq(expected1, r1, "SeparateWrites View 1")
-      _ <- assertEq(expected2, r2, "SeparateWrites View 2")
+      _ <- assertEq[E, Set[(Person, Person)]](expected1, r1, "SeparateWrites View 1")
+      _ <- assertEq[E, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
     } yield ()
   }
 
@@ -62,7 +62,7 @@ trait ViewSeparation { self: HasBackend =>
     val expected2 = Set((Bob, Bob), (Fred, Fred), (Charlie, Charlie), (Georgie, Georgie), (Hannah, Hannah), (Ian, Ian))
 
     for {
-      initialView <- instance.getDefaultView
+      initialView <- instance.getDefaultView.eraseError
 
       v1 <- writeToView(instance, initialView) {
         insert(
@@ -87,8 +87,8 @@ trait ViewSeparation { self: HasBackend =>
       r2 <- usingView(instance, v2) {
         findPairs(Knows * 0)
       }
-      _ <- assertEq(expected1, r1, "SeparateWrites Repetition View 1")
-      _ <- assertEq(expected2, r2, "SeparateWrites View 2")
+      _ <- assertEq[E, Set[(Person, Person)]](expected1, r1, "SeparateWrites Repetition View 1")
+      _ <- assertEq[E, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
     } yield ()
   }
 
@@ -98,10 +98,11 @@ trait ViewSeparation { self: HasBackend =>
 
   @Test
   def SeparatePatterns(): Unit = runTest { implicit instance =>
-    val expected = Set[Person]()
+    val expectedPerson = Set[Person](Alice)
+    val expectedPet = Set[Pet]()
 
     for {
-      initialView <- instance.getDefaultView
+      initialView <- instance.getDefaultView.eraseError
 
       v1 <- writeToView(instance, initialView) {
         insert(
@@ -119,7 +120,12 @@ trait ViewSeparation { self: HasBackend =>
         find(petSchema.pattern("Gus".some, None, None, None))
       }
 
-      _ <- assertEq(expected, r1, "Separate Patterns")
+      r2 <- usingView(instance, v1) {
+        find(personSchema.pattern(None))
+      }
+
+      _ <- assertEq[E, Set[Pet]](expectedPet, r1, "Separate patterns pet")
+      _ <- assertEq[E, Set[Person]](expectedPerson, r2, "Separate Patterns")
     } yield ()
 
   }

@@ -11,7 +11,7 @@ import unit.{Knows, Owns, Person, assertEqOp}
 
 import scala.concurrent.ExecutionContext
 
-trait Transitive { self: HasBackend =>
+trait Transitive[E1 <: E] { self: HasBackend[E1] =>
   /**
     * Check that basic transitive queries work
     */
@@ -142,7 +142,7 @@ trait Transitive { self: HasBackend =>
     *
     */
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] =
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] =
     insert(
       CompletedRelation(Alice, Knows, Bob), CompletedRelation(Bob, Knows, Charlie),
       CompletedRelation(Alice, Knows, David), CompletedRelation(David, Knows, Eve),

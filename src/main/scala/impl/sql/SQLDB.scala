@@ -6,6 +6,7 @@ import java.util.Properties
 import core.user.dsl.{DBDir, DatabaseAddress, E, Empty}
 import core.user.interfaces._
 import core.user.schema.SchemaDescription
+import impl.sql.errors.SQLError
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
@@ -15,7 +16,7 @@ import scalaz._
   * PostgreSQL based DB implementation
   */
 
-object SQLDB extends DBBackend {
+object SQLDB extends DBBackend[SQLError] {
   /**
     * Open an SQLInstance
     * @param address - Address to open
@@ -25,14 +26,14 @@ object SQLDB extends DBBackend {
   override def open(
                      address: DatabaseAddress,
                      schema: SchemaDescription
-                   )(implicit e: ExecutionContext): \/[E, DBInstance] = try {
+                   )(implicit e: ExecutionContext): SQLEither[DBInstance[SQLError]] = try {
     // start a connection
-    val conn = openConnection(address, schema)
+    val conn = openConnection(address)
     val instance = new SQLInstance(conn, schema)
     for {
       _ <- if (address.isInstanceOf[Empty.type]) instance.freshen() else ().right
       _ <- instance.validateTables()
-    } yield instance: DBInstance
+    } yield instance: DBInstance[SQLError]
   } catch {case e: Throwable => errors.SQLRecovery.recover(e).left}
 
 
@@ -42,8 +43,7 @@ object SQLDB extends DBBackend {
    */
 
   private def openConnection(
-                              address: DatabaseAddress,
-                              schema: SchemaDescription
+                              address: DatabaseAddress
                             )(implicit ec: ExecutionContext): Connection =
       address match {
         case DBDir(path, user, password) =>

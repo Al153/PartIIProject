@@ -11,7 +11,7 @@ import scalaz._, Scalaz._
 
 import scala.concurrent.ExecutionContext
 
-trait IntersectionsAndDisjunctions { self: HasBackend =>
+trait IntersectionsAndDisjunctions[E1 <: E] { self: HasBackend[E1] =>
 
   /**
     * Test that Intersections and disjunctions work
@@ -66,7 +66,7 @@ trait IntersectionsAndDisjunctions { self: HasBackend =>
     }
   }
 
-  private def setupPath(implicit instance: DBInstance, ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E, Unit] =
+  private def setupPath(implicit instance: DBInstance[E1], ec: ExecutionContext, sa: SchemaObject[Person]): Operation[E1, Unit] =
     for {
       _ <-  insert(
         CompletedRelation(fido, OwnedBy, Alice),
