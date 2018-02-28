@@ -305,7 +305,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
     * @param f subgraph generation function
     * @return
     */
-  private def findPath(s: Option[ObjId], e: Option[ObjId], f: ObjId => SQLEither[Set[ObjId]]): SQLFuture[Option[Vector[ObjId]]] =
+  private def findPath(s: Option[ObjId], e: Option[ObjId], f: ObjId => SQLEither[Set[ObjId]]): SQLFuture[Option[List[ObjId]]] =
     SQLFutureE(
       (s, e) match {
         case (None, _) | (_, None) => None.right
@@ -322,7 +322,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
     * @param f - subgraph traversal function
     * @return
     */
-  private def allPaths(s: Option[ObjId], f: ObjId => SQLEither[Set[ObjId]]): SQLFuture[Set[Vector[ObjId]]] =
+  private def allPaths(s: Option[ObjId], f: ObjId => SQLEither[Set[ObjId]]): SQLFuture[Set[List[ObjId]]] =
     SQLFutureE {
       s match {
         case None => SQLEither(Set())

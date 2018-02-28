@@ -256,7 +256,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
 
 
   def getPathfindingFound[A](
-                              ids: Vector[ObjId],
+                              ids: List[ObjId],
                               table: ObjectTable,
                               v: ViewId
                             )(implicit sa: SchemaObject[A]): SQLEither[Path[A]] = {
@@ -283,7 +283,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
         r <- result
       } yield r += (id -> a)
     }
-      result.map(_.result()).map(lookup => Path.fromVector(ids.map(lookup.apply)))
+      result.map(_.result()).map(lookup => Path.fromList(ids.map(lookup.apply)))
   }
 
   /**

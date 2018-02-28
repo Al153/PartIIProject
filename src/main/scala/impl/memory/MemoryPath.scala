@@ -14,7 +14,7 @@ import scalaz.\/
   *
   * Memory specific implementation of a Path
   */
-case class MemoryPath private (p: Vector[MemoryObject]) {
+case class MemoryPath private (p: List[MemoryObject]) {
 
   /**
     * Convert to a proper paths
@@ -23,13 +23,13 @@ case class MemoryPath private (p: Vector[MemoryObject]) {
   def toPath[A](implicit sa: SchemaObject[A]): MemoryEither[Path[A]] =
     EitherOps
       .sequence(p.map(o => sa.fromRow(o.value)))
-      .map(Path.fromVector)
+      .map(Path.fromList)
       .leftMap(MemoryExtractError)
 
   /**
     * Add an object to the path
     */
-  def +(m: MemoryObject): MemoryPath = MemoryPath(p :+ m)
+  def +(m: MemoryObject): MemoryPath = MemoryPath(m :: p)
 
   /**
     * Get the last value from the path
@@ -42,5 +42,5 @@ object MemoryPath {
   /**
     * Alternate constructor
     */
-  def apply(ps: MemoryObject*): MemoryPath = new MemoryPath(ps.toVector)
+  def apply(ps: MemoryObject*): MemoryPath = new MemoryPath(ps.toList)
 }

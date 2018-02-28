@@ -51,6 +51,7 @@ trait ComplexPathFinding[E1 <: E] {
       for {
         _ <- setupPath
         res1 <- shortestPath(Alice, Georgie, Knows)
+        _ = println("Shortest path = " + res1)
         _ <- assertEqOp(expectedPath.getSteps, res1.get.getSteps, "ShortestPaths")
       } yield ()
     }

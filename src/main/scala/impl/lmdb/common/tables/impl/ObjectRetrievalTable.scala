@@ -74,9 +74,9 @@ class ObjectRetrievalTable(sa: SchemaObject[_])(implicit val instance: LMDBInsta
   /**
     * Given a Vector of ObjIds, retrieve each ObjId
     */
-  def retrieve[A](as: Vector[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[Vector[A]] =
+  def retrieve[A](as: List[ObjId])(implicit sa: SchemaObject[A]): LMDBEither[List[A]] =
     for {
-      dbObjects <- getBatch[DBObject, Vector](as.map(getKey))
+      dbObjects <- getBatch[DBObject, List](as.map(getKey))
       rs <- EitherOps.sequence(dbObjects.map(sa.fromRow(_).leftMap(UnmarshallingError)))
     } yield rs
 

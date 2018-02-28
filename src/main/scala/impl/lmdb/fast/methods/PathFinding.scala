@@ -62,12 +62,12 @@ trait PathFinding { self: Methods =>
         searchStep = findFrom(_: ObjId, query, commits, fsCache)
 
         // run a generic pathfinding algorithm
-        optionalPath <- target.fold(LMDBEither[Option[Vector[ObjId]]](None)) {
+        optionalPath <- target.fold(LMDBEither[Option[List[ObjId]]](None)) {
           e => algorithms.PathFinding.singleShortestsPathImpl(initialSet, e, searchStep)
         }
 
         // extract the path that has been found
-        res <- EitherOps.switch(optionalPath.map(p => extractorTable.retrieve[A](p).map(Path.fromVector)))
+        res <- EitherOps.switch(optionalPath.map(p => extractorTable.retrieve[A](p).map(Path.fromList)))
       } yield res
     )
   })
@@ -114,7 +114,7 @@ trait PathFinding { self: Methods =>
         paths <- algorithms.PathFinding.allShortestPathsImpl(initialSet, searchStep)
 
         // extract the paths
-        res <- EitherOps.sequence(paths.map(p => extractor.retrieve[A](p).map(Path.fromVector)))
+        res <- EitherOps.sequence(paths.map(p => extractor.retrieve[A](p).map(Path.fromList)))
       } yield res
     )
   })

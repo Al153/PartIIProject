@@ -81,10 +81,13 @@ object Path {
 
   /**
     * Create a path from a vector of objects
-    * @param v - vector of values in order
+    * @param l - list of values in order
     * @tparam A - type to put in path
     * @return
     */
-  def fromVector[A](v: Vector[A]): Path[A] = new PathImpl[A](v.dropRight(1).zip(v.drop(1)))
+  def fromList[A](l: List[A]): Path[A] = {
+    val lr = l.reverse.toVector
+    new PathImpl[A](lr.dropRight(1).zip(lr.drop(1)))
+  }
 }
 
