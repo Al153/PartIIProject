@@ -127,6 +127,94 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
       _ <- assertEq[E1, Set[Pet]](expectedPet, r1, "Separate patterns pet")
       _ <- assertEq[E1, Set[Person]](expectedPerson, r2, "Separate Patterns")
     } yield ()
+  }
 
+  /**
+    * Make sure that separate writes don't interfere with each other, this time by asking for a zero order repetition
+    * of a relation. This should return all objects of the type that are accessible from the view
+    */
+  @Test
+  def SeparateUpto: Unit = runTest { implicit instance =>
+    val expected1 = Set(Alice -> Alice, Bob -> Bob, Charlie -> Charlie, David -> David, Alice -> Bob, Charlie -> David)
+    val expected2 =
+      Set(Bob, Fred).map(Bob -> _)
+        .union(Set(Fred, Charlie, Georgie).map(Fred -> _))
+        .union(Set(Hannah, Ian).map(Hannah -> _))
+        .union(Set(Charlie -> Charlie, Georgie -> Georgie, Ian -> Ian))
+
+    for {
+      initialView <- instance.getDefaultView
+
+      v1 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Charlie, Knows, David)
+        )
+      }
+
+      v2 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(Bob, Knows, Fred),
+          CompletedRelation(Fred, Knows, Charlie),
+          CompletedRelation(Fred, Knows, Georgie),
+          CompletedRelation(Hannah, Knows, Ian)
+        )
+      }
+
+      r1 <- usingView(instance, v1) {
+        findPairs(Knows * (0 --> 1))
+      }
+
+      r2 <- usingView(instance, v2) {
+        findPairs(Knows * (0 --> 1))
+      }
+      _ <- assertEq[E1, Set[(Person, Person)]](expected1, r1, "SeparateWrites Upto View 1")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected2, r2, "SeparateWrites Upto View 2")
+    } yield ()
+  }
+
+
+  /**
+    * Make sure that separate writes don't interfere with each other, this time by asking for a zero order repetition
+    * of a relation. This should return all objects of the type that are accessible from the view
+    */
+  @Test
+  def SeparateFixedPoint: Unit = runTest { implicit instance =>
+    val expected1 = Set(Alice -> Alice, Bob -> Bob, Charlie -> Charlie, David -> David, Alice -> Bob, Charlie -> David)
+    val expected2 =
+      Set(Bob, Fred, Charlie, Georgie, Hannah, Ian).map(x => x -> x)
+        .union(Set(Fred, Charlie, Georgie).map(Bob -> _))
+        .union(Set(Charlie, Georgie).map(Fred -> _))
+        .union(Set(Hannah -> Ian))
+
+    for {
+      initialView <- instance.getDefaultView
+
+      v1 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Charlie, Knows, David)
+        )
+      }
+
+      v2 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(Bob, Knows, Fred),
+          CompletedRelation(Fred, Knows, Charlie),
+          CompletedRelation(Fred, Knows, Georgie),
+          CompletedRelation(Hannah, Knows, Ian)
+        )
+      }
+
+      r1 <- usingView(instance, v1) {
+        findPairs(Knows.**)
+      }
+
+      r2 <- usingView(instance, v2) {
+        findPairs(Knows.**)
+      }
+      _ <- assertEq[E1, Set[(Person, Person)]](expected1, r1, "SeparateWrites Repetition View 1")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
+    } yield ()
   }
 }

@@ -19,7 +19,8 @@ sealed trait SQLError extends E
   */
 
 case class CaughtSQLException(e: SQLException) extends SQLError {
-  override def toString: String = "CAUGHT SQL EXCEPTION: " + e.getMessage + "\n" + e.getStackTrace.mkString("\n")
+  override def toString: String = "CAUGHT SQL EXCEPTION: " + e.getMessage + "\n" + e.getStackTrace.mkString("\n") +
+    (if (e.getCause != null)"\n" + e.getCause.toString else "")
 }
 
 /**
@@ -86,5 +87,6 @@ case class UnableToCreateView(msg: String) extends SQLError {
   * Catches an unknown exception
   */
 case class UnknownSQLException(e: Throwable) extends SQLError {
-  override def toString: String = "CAUGHT UNKNOWN SQL EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n")
+  override def toString: String = "CAUGHT UNKNOWN SQL EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n")  +
+    (if (e.getCause != null)"\n" + e.getCause.toString else "")
 }

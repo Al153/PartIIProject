@@ -19,7 +19,7 @@ sealed trait LMDBError extends E {}
   *  Catches unknown exceptions
   */
 case class CaughtLMDBException(e: Throwable) extends LMDBError {
-  override def toString: String = "CAUGHT UNKNOWN LMDB EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n")
+  override def toString: String = "CAUGHT UNKNOWN LMDB EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n")  + "\n" + e.getCause.toString
 }
 
 /**

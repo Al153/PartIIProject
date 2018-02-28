@@ -136,12 +136,12 @@ object Query extends Logged {
     case USFixedPoint(rel) => for {
       precomputed <- convertPair(rel) // precompute a view
       temporaryView <- CompilationContext.newSubexpression(precomputed) // get a name for it
-      n <- CompilationContext.getTableName(rel.leftMostTable)
+      n <- CompilationContext.getAuxTableName(rel.leftMostTable)
       // compute as an atleast(0) using a fixed point
       rec <- CompilationContext.fixedPoint {
         recursiveCall =>
           Union(
-            SelectWhere(FromObject, NoConstraint, Var(n)),
+            SelectWhere(Simple, NoConstraint, Var(n)),
             SelectWhere( // add values to it
               Joined(recursiveCall, temporaryView),
               NoConstraint,
@@ -175,7 +175,7 @@ object Query extends Logged {
 
       // id, select all values from an object
     case USId(tableName) => for {
-      n <- CompilationContext.getTableName(tableName)
+      n <- CompilationContext.getAuxTableName(tableName)
     } yield SelectWhere(FromObject, NoConstraint, Var(n))
 
       // simply union results together
@@ -301,7 +301,7 @@ object Query extends Logged {
 
 
   /**
-    * Find all values in a table that match a given findable
+    * Find all values in a table that match a given findable in the view
     * @param findable - pattern to find
     * @return
     */
@@ -310,7 +310,5 @@ object Query extends Logged {
     name <- CompilationContext.getTableName(findable.tableName)
     // needs to consult aux table to get values in the required view
     aux <- CompilationContext.getAuxTableName(findable.tableName)
-    a <- CompilationContext.newSymbol
-    b <- CompilationContext.newSymbol
   } yield SelectTable(name, aux, Pattern(findable)) // returns SQL code to do a find of a findable
 }

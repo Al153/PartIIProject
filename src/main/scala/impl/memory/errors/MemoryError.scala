@@ -19,7 +19,7 @@ sealed trait MemoryError extends E {
   * Error which catches exceptions
   */
 case class CaughtMemoryException(e: Throwable) extends MemoryError {
-  override def toString: String = "CAUGHT UNKNOWN MEMORY EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n")
+  override def toString: String = "CAUGHT UNKNOWN MEMORY EXCEPTION: " + e.toString + "\n" + e.getStackTrace.mkString("\n") + e.getCause.toString
 }
 
 /**
