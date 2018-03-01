@@ -20,13 +20,12 @@ object Run {
       None
     )
 
-    tester.runTest(ExactlySparse)
-    tester.runTest(PathFindingTest)
-    tester.runTest(ExactlyPairs)
 
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
-
+    tester.runTest(PathFindingTest)
+    tester.runTest(ExactlySparse)
+    tester.runTest(ExactlyPairs)
     tester.runTest(RawLookupLarge)
     tester.runTest(UptoSparse)
     tester.runTest(RawLookup)
