@@ -14,6 +14,7 @@ import impl.sql.errors.{EmptyResultError, SQLError, SQLExtractError}
 import impl.sql.jdbc.Conversions._
 import impl.sql.names.{SQLColumnName, SQLTableName, TableNameFromDatabase}
 import impl.sql.schema.{ColumnSpecification, SQLType}
+import impl.sql.tables.AuxObjectTable.rightId
 import impl.sql.tables.ObjectTable
 import impl.sql.tables.ViewsTable._
 import impl.sql.types.{Commit, ObjId}
@@ -248,7 +249,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
       table <- instance.lookupTable(sa.name)
       auxTable = table.auxTable
       pairs = createComparisons(db)
-      q = vdef + s"""(SELECT $objId FROM ($table JOIN (${auxTable.query}) AS $aux ON ($table.$objId = $aux.$objId))WHERE $pairs)"""
+      q = vdef + s"""(SELECT $objId FROM ($table JOIN (${auxTable.query}) AS $aux ON ($table.$objId = $aux.$rightId))WHERE $pairs)"""
       rs = getResultSet(q)
       res <- if (rs.next()) getObjId(rs, Single).map(Some(_)) else Option.empty[ObjId].right
     } yield res
