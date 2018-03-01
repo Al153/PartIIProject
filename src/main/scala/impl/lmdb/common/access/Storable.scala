@@ -30,22 +30,22 @@ trait Storable[A] {
     */
   final def toBuffer(a: A): ByteBuffer = {
     val buf = ByteBuffer.allocateDirect(bufferLength(a))
-    writeToBuffer(a, buf)
+    writeToExistingBuffer(a, buf)
     buf.flip()
     buf
   }
 
   /**
-    * Storable objects need to be able to be converted to bytes to be stored
+    * appends an object into teh remaining space in a byte buffer
     */
-  def writeToBuffer(a: A, buf: ByteBuffer): Unit
+  def writeToExistingBuffer(a: A, buf: ByteBuffer): Unit
 
   /**
-    * Storeable objects need to be extracted from a series of bytes
+    * Storable objects need to be extracted from a series of bytes
     * @param buf - buffer to extract from
     * @return
     */
-  def fromBuffer(buf: ByteBuffer): LMDBEither[A]
+  def fromBuffer(buf: ByteBuffer): LMDBEither[A] // alias for LMDBError \/ A
 }
 
 /**
@@ -144,7 +144,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: ViewId, buf: ByteBuffer): Unit = StorableLong.writeToBuffer(a.id, buf)
+    override def writeToExistingBuffer(a: ViewId, buf: ByteBuffer): Unit = StorableLong.writeToExistingBuffer(a.id, buf)
 }
 
   implicit object StorableString extends Storable[String] {
@@ -155,7 +155,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: String, buf: ByteBuffer): Unit = {
+    override def writeToExistingBuffer(a: String, buf: ByteBuffer): Unit = {
       val bytes = a.getBytes()
       buf.putInt(bytes.length)
       buf.put(bytes)
@@ -190,7 +190,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: Boolean, buf: ByteBuffer): Unit =
+    override def writeToExistingBuffer(a: Boolean, buf: ByteBuffer): Unit =
       if (a){
         buf.put((-1).toByte)
       } else {
@@ -226,7 +226,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: Int, buf: ByteBuffer): Unit = buf.putInt(a)
+    override def writeToExistingBuffer(a: Int, buf: ByteBuffer): Unit = buf.putInt(a)
 
     /**
       * Storeable objects need to be extracted from a series of bytes
@@ -251,7 +251,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: Double, buf: ByteBuffer): Unit = buf.putDouble(a)
+    override def writeToExistingBuffer(a: Double, buf: ByteBuffer): Unit = buf.putDouble(a)
 
     /**
       * Storeable objects need to be extracted from a series of bytes
@@ -277,7 +277,7 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: Long, buf: ByteBuffer): Unit = buf.putLong(a)
+    override def writeToExistingBuffer(a: Long, buf: ByteBuffer): Unit = buf.putLong(a)
 
     /**
       * Storeable objects need to be extracted from a series of bytes
@@ -307,10 +307,10 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: Set[A], buf: ByteBuffer): Unit = {
+    override def writeToExistingBuffer(a: Set[A], buf: ByteBuffer): Unit = {
       buf.putInt(a.size)
       for (a <- a) {
-        sa.writeToBuffer(a, buf)
+        sa.writeToExistingBuffer(a, buf)
       }
     }
 
@@ -352,11 +352,11 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: DBCell, buf: ByteBuffer): Unit = a match {
-      case DBInt(i) => buf.put(intFlag); StorableInt.writeToBuffer(i, buf)
-      case DBString(s) =>  buf.put(stringFlag); StorableString.writeToBuffer(s, buf)
-      case DBBool(b) =>  buf.put(booleanFlag); StorableBoolean.writeToBuffer(b, buf)
-      case DBDouble(d) =>  buf.put(doubleFlag); StorableDouble.writeToBuffer(d, buf)
+    override def writeToExistingBuffer(a: DBCell, buf: ByteBuffer): Unit = a match {
+      case DBInt(i) => buf.put(intFlag); StorableInt.writeToExistingBuffer(i, buf)
+      case DBString(s) =>  buf.put(stringFlag); StorableString.writeToExistingBuffer(s, buf)
+      case DBBool(b) =>  buf.put(booleanFlag); StorableBoolean.writeToExistingBuffer(b, buf)
+      case DBDouble(d) =>  buf.put(doubleFlag); StorableDouble.writeToExistingBuffer(d, buf)
 
     }
 
@@ -394,11 +394,11 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: DBObject, buf: ByteBuffer): Unit = {
+    override def writeToExistingBuffer(a: DBObject, buf: ByteBuffer): Unit = {
       buf.putInt(a.fields.size)
       for {
         f <- a.fields
-      } StorableDBCell.writeToBuffer(f, buf)
+      } StorableDBCell.writeToExistingBuffer(f, buf)
     }
 
     /**
@@ -428,10 +428,10 @@ object Storable {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: List[A], buf: ByteBuffer): Unit = {
+    override def writeToExistingBuffer(a: List[A], buf: ByteBuffer): Unit = {
       buf.putInt(a.size)
       for (a <- a) {
-        sa.writeToBuffer(a, buf)
+        sa.writeToExistingBuffer(a, buf)
       }
     }
 

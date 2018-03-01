@@ -36,7 +36,7 @@ object Commit {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: Commit, buf: ByteBuffer): Unit = buf.putLong(a.id)
+    override def writeToExistingBuffer(a: Commit, buf: ByteBuffer): Unit = buf.putLong(a.id)
 
     /**
       * Storeable objects need to be extracted from a series of bytes

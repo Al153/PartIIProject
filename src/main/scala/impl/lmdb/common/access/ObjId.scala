@@ -44,7 +44,7 @@ object ObjId {
     /**
       * Storeable objects need to be able to be converted to bytes to be stored
       */
-    override def writeToBuffer(a: ObjId, buf: ByteBuffer): Unit = StorableLong.writeToBuffer(a.id, buf)
+    override def writeToExistingBuffer(a: ObjId, buf: ByteBuffer): Unit = StorableLong.writeToExistingBuffer(a.id, buf)
 
     /**
       * Storeable objects need to be extracted from a series of bytes
