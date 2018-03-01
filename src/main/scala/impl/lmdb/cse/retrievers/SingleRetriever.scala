@@ -17,7 +17,7 @@ trait SingleRetriever {
 object SingleRetriever {
   implicit class SingleRetrieverOps(outer: SingleRetriever) {
     def into(that: RelationRetriever): SingleRetriever = new CachedSingleRetriever(
-      outer.find.flatMapS(that.findRight)
+      outer.find.flatMapS(that.findFrom)
     )
     def and(that: SingleRetriever): SingleRetriever = new CachedSingleRetriever(
       for {

@@ -41,7 +41,7 @@ class CachedRelationRetriever(
     }
   }
 
-  override def findRight(from: ObjId): LMDBEither[Set[ObjId]] =
+  override def findFrom(from: ObjId): LMDBEither[Set[ObjId]] =
     if (from in memo) LMDBEither(memo(from))
     else {
       for {

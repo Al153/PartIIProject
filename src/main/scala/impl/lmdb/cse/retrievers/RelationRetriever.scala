@@ -21,7 +21,7 @@ trait RelationRetriever extends Logged {
   /**
     * Lookup all reachable values from an initial value
     */
-  def findRight(from: ObjId): LMDBEither[Set[ObjId]]
+  def findFrom(from: ObjId): LMDBEither[Set[ObjId]]
 }
 
 object RelationRetriever {
@@ -44,7 +44,7 @@ object RelationRetriever {
             rs <- that.find(ls.mapProj2)
           } yield Joins.joinSet(ls, rs),
         // join reduced to a flatmap
-        outer.findRight(_).flatMapS(that.findRight)
+        outer.findFrom(_).flatMapS(that.findFrom)
     )
 
     /**
@@ -60,7 +60,7 @@ object RelationRetriever {
         that.find.flatMap(
           as =>
             if (objId in as)
-              as.flatMapE(outer.findRight)
+              as.flatMapE(outer.findFrom)
             else
               LMDBEither(Set()))
     )
@@ -73,7 +73,7 @@ object RelationRetriever {
         rightRes <- that.find
       } yield leftRes.filter{case (_, b) => rightRes.contains(b)},
       objId => for {
-        rs <- outer.findRight(objId)
+        rs <- outer.findFrom(objId)
         filter <- that.find
       } yield rs intersect filter
     )
@@ -88,7 +88,7 @@ object RelationRetriever {
       } yield rres.filter{case (a, b) => a != b},
 
       objId => for {
-        res <- outer.findRight(objId)
+        res <- outer.findFrom(objId)
       } yield res - objId
     )
 
@@ -101,8 +101,8 @@ object RelationRetriever {
         rightRes <- that.find(objIds)
       } yield leftRes intersect rightRes,
       objId => for {
-        rs <- outer.findRight(objId)
-        filter <- that.findRight(objId)
+        rs <- outer.findFrom(objId)
+        filter <- that.findFrom(objId)
       } yield rs intersect filter
     )
     /**
@@ -114,8 +114,8 @@ object RelationRetriever {
         rightRes <- that.find(objIds)
       } yield leftRes union rightRes,
       objId => for {
-        rs <- outer.findRight(objId)
-        filter <- that.findRight(objId)
+        rs <- outer.findFrom(objId)
+        filter <- that.findFrom(objId)
       } yield rs union filter
     )
 
@@ -125,8 +125,8 @@ object RelationRetriever {
       * @return
       */
     def exactly(n: Int): RelationRetriever = new CachedRelationRetriever(
-      FixedPointTraversal.exactly(outer.findRight, _, n),
-      SimpleFixedPointTraversal.exactly(outer.findRight, _, n)
+      FixedPointTraversal.exactly(outer.findFrom, _, n),
+      SimpleFixedPointTraversal.exactly(outer.findFrom, _, n)
     )
 
     /**
@@ -135,8 +135,8 @@ object RelationRetriever {
       * @return
       */
     def upto(n: Int): RelationRetriever = new CachedRelationRetriever(
-      FixedPointTraversal.upTo(outer.findRight, _, n),
-      SimpleFixedPointTraversal.upTo(outer.findRight, _, n)
+      FixedPointTraversal.upTo(outer.findFrom, _, n),
+      SimpleFixedPointTraversal.upTo(outer.findFrom, _, n)
     )
 
     /**
@@ -144,8 +144,8 @@ object RelationRetriever {
       * @return
       */
     def fixedPoint: RelationRetriever = new CachedRelationRetriever(
-      objId => FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findRight), objId),
-      SimpleFixedPointTraversal.fixedPoint(outer.findRight, _)
+      objId => FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findFrom), objId),
+      SimpleFixedPointTraversal.fixedPoint(outer.findFrom, _)
     )
   }
 
