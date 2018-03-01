@@ -10,7 +10,7 @@ import impl.lmdb.fastjoins._
 
 trait RelationRetriever extends Logged {
   def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]]
-  def findRight(from: ObjId): LMDBEither[Set[ObjId]]
+  def findFrom(from: ObjId): LMDBEither[Set[ObjId]]
 }
 
 object RelationRetriever {
@@ -24,7 +24,7 @@ object RelationRetriever {
           rs <- that.find(middles)
           _ = logger.info("Joining: left_size = " + ls.size + " Rights = " + rs.size)
         } yield ls.mapValues(s => s.flatMap(rs.getOrElse(_, Set()))).prune,
-      outer.findRight(_).flatMapS(that.findRight)
+      outer.findFrom(_).flatMapS(that.findFrom)
     )
     def leftAnd(that: SingleRetriever): RelationRetriever = new CachedRelationRetriever(
       objIds =>
@@ -37,7 +37,7 @@ object RelationRetriever {
         that.find.flatMap(
           as =>
             if (objId in as)
-              as.flatMapE(outer.findRight)
+              as.flatMapE(outer.findFrom)
             else
               LMDBEither(Set()))
     )
@@ -47,7 +47,7 @@ object RelationRetriever {
         rightRes <- that.find
       } yield leftRes.mapValues{rightRes intersect _}.prune,
       objId => for {
-        rs <- outer.findRight(objId)
+        rs <- outer.findFrom(objId)
         filter <- that.find
       } yield rs intersect filter
     )
@@ -57,7 +57,7 @@ object RelationRetriever {
       } yield rres.map{case (key, set) => key -> (set - key) }.prune,
 
       objId => for {
-        res <- outer.findRight(objId)
+        res <- outer.findFrom(objId)
       } yield res - objId
     )
     def and(that: RelationRetriever): RelationRetriever = new CachedRelationRetriever(
@@ -66,8 +66,8 @@ object RelationRetriever {
         rightRes <- that.find(objIds)
       } yield leftRes intersect rightRes,
       objId => for {
-        rs <- outer.findRight(objId)
-        filter <- that.findRight(objId)
+        rs <- outer.findFrom(objId)
+        filter <- that.findFrom(objId)
       } yield rs intersect filter
     )
     def or(that: RelationRetriever): RelationRetriever = new CachedRelationRetriever(
@@ -76,8 +76,8 @@ object RelationRetriever {
         rightRes <- that.find(objIds)
       } yield leftRes union rightRes,
       objId => for {
-        rs <- outer.findRight(objId)
-        filter <- that.findRight(objId)
+        rs <- outer.findFrom(objId)
+        filter <- that.findFrom(objId)
       } yield rs union filter
     )
     def exactly(n: Int): RelationRetriever = {
@@ -111,9 +111,9 @@ object RelationRetriever {
     }
     def fixedPoint: RelationRetriever = new CachedRelationRetriever(
       objId =>
-        FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findRight), objId)
+        FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findFrom), objId)
           .map(_.collectSets(identity)),
-      SimpleFixedPointTraversal.fixedPoint(outer.findRight, _)
+      SimpleFixedPointTraversal.fixedPoint(outer.findFrom, _)
     )
   }
 }

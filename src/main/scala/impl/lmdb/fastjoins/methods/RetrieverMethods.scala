@@ -29,7 +29,7 @@ trait RetrieverMethods { self: Methods =>
     compilePairs(q, commits).run(emptyState)._2.find(from).map(_.renderPairs)
 
   def getFrom(q: UnsafeFindPair, commits: List[Commit]): (ObjId) => LMDBEither[Set[ObjId]] =
-    compilePairs(q, commits).run(emptyState)._2.findRight(_)
+    compilePairs(q, commits).run(emptyState)._2.findFrom(_)
 
   private def emptyState = new QueryMemo(Map(), Map())
 

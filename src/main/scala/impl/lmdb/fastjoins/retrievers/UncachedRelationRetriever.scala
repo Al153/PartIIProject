@@ -12,5 +12,5 @@ class UncachedRelationRetriever(
                                  simpleLookup: ObjId => LMDBEither[Set[ObjId]]
                                ) extends RelationRetriever {
                                  override def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]] = lookup(from).map(_.collectSets(identity))
-                                 override def findRight(from: ObjId): LMDBEither[Set[ObjId]] = simpleLookup(from)
+                                 override def findFrom(from: ObjId): LMDBEither[Set[ObjId]] = simpleLookup(from)
                                }
