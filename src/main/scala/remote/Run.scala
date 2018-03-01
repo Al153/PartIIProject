@@ -19,6 +19,7 @@ object Run {
       None
     )
 
+    tester.runTest(Redundancy)
     tester.runTest(PathFindingTest)
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
