@@ -101,14 +101,14 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
         val cfStart = SQLFutureE(
           instance
             .reader
-            .getPathfindingEnd(start))
+            .getPathfindingEnd(start, v))
 
         // find the end object
 
         val cfEnd = SQLFutureE(
           instance
             .reader
-            .getPathfindingEnd(end))
+            .getPathfindingEnd(end, v))
 
         for {
           s <- cfStart
@@ -158,7 +158,7 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
         val cfStart =  SQLFutureE(
           instance
             .reader
-            .getPathfindingEnd(start))
+            .getPathfindingEnd(start, v))
 
         for {
           // compile the query

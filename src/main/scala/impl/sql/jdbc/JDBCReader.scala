@@ -15,6 +15,7 @@ import impl.sql.jdbc.Conversions._
 import impl.sql.names.{SQLColumnName, SQLTableName, TableNameFromDatabase}
 import impl.sql.schema.{ColumnSpecification, SQLType}
 import impl.sql.tables.ObjectTable
+import impl.sql.tables.ViewsTable._
 import impl.sql.types.{Commit, ObjId}
 
 import scalaz.Scalaz._
@@ -24,6 +25,7 @@ import scalaz.Scalaz._
   */
 
 class JDBCReader(implicit instance: SQLInstance) extends Logged {
+  import SQLColumnName._
 
   /**
     * get a single ObjectId
@@ -237,13 +239,16 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     * get the id for the end of a pathfinding query, according to a findable
     */
 
-  def getPathfindingEnd[A](a: A)(implicit sa: SchemaObject[A]): SQLEither[Option[ObjId]] = {
+  def getPathfindingEnd[A](a: A, v: ViewId)(implicit sa: SchemaObject[A]): SQLEither[Option[ObjId]] = {
     val db = sa.getDBObject(a)
+    val vdef = v.definition
+    val aux = "aux_query"
 
     for {
       table <- instance.lookupTable(sa.name)
+      auxTable = table.auxTable
       pairs = createComparisons(db)
-      q = s"""SELECT ${SQLColumnName.objId} FROM $table WHERE $pairs"""
+      q = vdef + s"""(SELECT $objId FROM ($table JOIN (${auxTable.query}) AS $aux ON ($table.$objId = $aux.$objId))WHERE $pairs)"""
       rs = getResultSet(q)
       res <- if (rs.next()) getObjId(rs, Single).map(Some(_)) else Option.empty[ObjId].right
     } yield res
@@ -307,7 +312,7 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
   private def getSQLColumn(rs: ResultSet): SQLEither[ColumnSpecification] =
     SafeEither {
       SQLType.checkString(rs.getString("DATA_TYPE"))
-        .map(t => ColumnSpecification(SQLColumnName.extractedSQLColumnName(rs.getString("COLUMN_NAME")), t))
+        .map(t => ColumnSpecification(extractedSQLColumnName(rs.getString("COLUMN_NAME")), t))
     }
 
   /**
@@ -323,14 +328,14 @@ class JDBCReader(implicit instance: SQLInstance) extends Logged {
     */
   private def getCommitId(rs: ResultSet): SQLEither[Commit] =
     SQLEither {
-      Commit(rs.getLong(SQLColumnName.commitId.s))
+      Commit(rs.getLong(commitId.s))
     }
 
   // helper method
   private def pair[A, B](a: A, b: B): (A, B) = (a, b)
 
   private def getViewId(rs: ResultSet): SQLEither[ViewId] = SQLEither {
-    ViewId(rs.getLong(SQLColumnName.viewId.s))
+    ViewId(rs.getLong(viewId.s))
   }
 
   /**

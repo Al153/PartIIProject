@@ -1,5 +1,6 @@
 package unit.suites.individual
 
+import core.user.containers.Path
 import core.user.dsl._
 import org.junit.Test
 import unit.Objects._
@@ -214,7 +215,54 @@ trait ViewSeparation[E1 <: E] { self: HasBackend[E1] =>
         findPairs(Knows.**)
       }
       _ <- assertEq[E1, Set[(Person, Person)]](expected1, r1, "SeparateWrites Repetition View 1")
-      _ <- assertEq[E1, Set[(Person, Person)]](expected2, r2, "SeparateWrites View 2")
+      _ <- assertEq[E1, Set[(Person, Person)]](expected2, r2, "SeparateWrites Repetition View 2")
+    } yield ()
+  }
+
+
+  /**
+    * Make sure that separate writes don't interfere with each other, this time by querying for a path from an object that doesn't exist
+    * in this view. This should return all objects of the type that are accessible from the view
+    */
+  @Test
+  def SeparatePathFinding: Unit = runTest { implicit instance =>
+    val expected1 = Set[Path[Person]]()
+    val expected2 = None
+    val expected3 = None
+
+    for {
+      initialView <- instance.getDefaultView
+
+      v1 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(Alice, Knows, Bob),
+          CompletedRelation(Charlie, Knows, David)
+        )
+      }
+
+      v2 <- writeToView(instance, initialView) {
+        insert(
+          CompletedRelation(Bob, Knows, Fred),
+          CompletedRelation(Fred, Knows, Charlie),
+          CompletedRelation(Fred, Knows, Georgie),
+          CompletedRelation(Hannah, Knows, Ian)
+        )
+      }
+
+      r1 <- usingView(instance, v1) {
+        allShortestPaths(Fred, Knows)
+      }
+
+      r2 <- usingView(instance, v2) {
+        shortestPath(Alice, Fred, Knows)
+      }
+
+      r3 <- usingView(instance, v2) {
+        shortestPath(Fred, Alice, Knows)
+      }
+      _ <- assertEq[E1, Set[Path[Person]]](expected1, r1, "SeparateWrites Pathfinding 1")
+      _ <- assertEq[E1, Option[Path[Person]]](expected2, r2, "SeparateWrites Pathfinding 2")
+      _ <- assertEq[E1, Option[Path[Person]]](expected3, r3, "SeparateWrites Pathfinding 3")
     } yield ()
   }
 }
