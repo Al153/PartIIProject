@@ -10,20 +10,18 @@ import scala.language.higherKinds
 object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
-
-      fastjoins.LMDB,
+      referenceImplementation = fastjoins.LMDB,
+      Some(postgres -> SQLDB),
       Some(lmdbcse -> cse.LMDB),
       Some(lmdbfast -> fast.LMDB),
       Some(lmdbOriginal -> original.LMDB),
-      Some(postgres -> SQLDB),
       None,
       None
     )
 
-
+    tester.runTest(PathFindingTest)
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
-    tester.runTest(PathFindingTest)
     tester.runTest(ExactlySparse)
     tester.runTest(ExactlyPairs)
     tester.runTest(RawLookupLarge)
