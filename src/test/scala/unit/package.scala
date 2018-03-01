@@ -1,5 +1,5 @@
 import core.user.containers.{ConstrainedFuture, Operation, ReadOperation}
-import core.user.dsl.{E, HasRecovery, RelationAttributes}
+import core.user.dsl.{E, HasRecovery, Relation}
 import core.user.schema._
 import core.utils.Logged
 import errors.{AssertionFailure, UnknownError}
@@ -37,9 +37,9 @@ package object unit extends Logged {
     override def toTuple(a: Pet): SchemaObject[Pet] => DBTuple4[Pet, String, Int, Double, Boolean] = buildDBTuple(a.name, a.age, a.height, a.isDog)
   }
 
-  case object Knows extends RelationAttributes[Person, Person]
-  case object Owns extends RelationAttributes[Person, Car]
-  case object OwnedBy extends RelationAttributes[Pet, Person]
+  case object Knows extends Relation[Person, Person]
+  case object Owns extends Relation[Person, Car]
+  case object OwnedBy extends Relation[Pet, Person]
 
 
   implicit val description = new SchemaDescription(

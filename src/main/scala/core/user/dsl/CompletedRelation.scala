@@ -7,7 +7,7 @@ import core.user.schema.SchemaObject
   * A [[CompletedRelation]] is an insertable relation
   */
 case class CompletedRelation[A, B]
-(a: A, r: RelationAttributes[A, B], b: B)
+(a: A, r: Relation[A, B], b: B)
 (implicit sa: SchemaObject[A], sb: SchemaObject[B]) {
 
 }

@@ -3,7 +3,7 @@ package core.user.schema
 import core.backend.common.{ExtractError, MissingRelation, MissingTableName}
 import core.backend.intermediate.RelationName
 import core.backend.intermediate.unsafe.ErasedRelationAttributes
-import core.user.dsl.RelationAttributes
+import core.user.dsl.Relation
 import core.utils._
 
 import scalaz._
@@ -14,13 +14,13 @@ import scalaz._
   */
 final class SchemaDescription(
                                val objects: Set[SchemaObject[_]],
-                               val relations: Set[RelationAttributes[_, _]]
+                               val relations: Set[Relation[_, _]]
                        ) {
 
   /**
     * Gives each relation a guaranteed unique name
     */
-  val relationMap: Map[RelationAttributes[_, _], ErasedRelationAttributes] = relations.zipWithIndex.map { case (r, index) =>
+  val relationMap: Map[Relation[_, _], ErasedRelationAttributes] = relations.zipWithIndex.map { case (r, index) =>
     val from = r.sa.name
     val to = r.sb.name
     r -> ErasedRelationAttributes(RelationName(index.toString), from, to)
@@ -46,13 +46,13 @@ final class SchemaDescription(
   /**
     * Safely lookup a relation attributes to get its erased (named) equivalent
     */
-  def getRelation[A, B](r: RelationAttributes[A, B]): MissingRelation \/ ErasedRelationAttributes =
+  def getRelation[A, B](r: Relation[A, B]): MissingRelation \/ ErasedRelationAttributes =
     relationMap.getOrError(r, MissingRelation(r))
 
   /**
     * Get the name of a relation from its relational attributes
     */
-  def getRelationName[A, B](r: RelationAttributes[A, B]): MissingRelation \/ RelationName = getRelation(r).map(_.name)
+  def getRelationName[A, B](r: Relation[A, B]): MissingRelation \/ RelationName = getRelation(r).map(_.name)
 }
 
 

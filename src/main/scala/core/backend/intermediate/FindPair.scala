@@ -2,7 +2,7 @@ package core.backend.intermediate
 
 import core.backend.common.MissingRelation
 import core.backend.intermediate.unsafe.{UnsafeFindPair, _}
-import core.user.dsl.{FindPairAble, RelationAttributes}
+import core.user.dsl.{FindPairAble, Relation}
 import core.user.schema.{SchemaDescription, SchemaObject}
 
 import scalaz.Scalaz._
@@ -35,17 +35,17 @@ sealed abstract class FindPair[A, B](implicit val sa: SchemaObject[A], val sb: S
 }
 
 /**
-  * Search for pairs related by a [[RelationAttributes]]
+  * Search for pairs related by a [[Relation]]
   */
-case class Rel[A, B](r: RelationAttributes[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
+case class Rel[A, B](r: Relation[A, B])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
   override def reverse: FindPair[B, A] = RevRel(r)
   override def getUnsafe(sd: SchemaDescription):  MissingRelation \/ UnsafeFindPair = for {erased <- sd.getRelation(r)} yield USRel(erased)
 }
 
 /**
-  * Search for pairs related in reverse by a [[RelationAttributes]]
+  * Search for pairs related in reverse by a [[Relation]]
   */
-case class RevRel[A, B](r: RelationAttributes[B, A])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
+case class RevRel[A, B](r: Relation[B, A])(implicit sa: SchemaObject[A], sb: SchemaObject[B]) extends FindPair[A, B] {
  override def reverse: FindPair[B, A] = Rel(r)
   override def getUnsafe(sd: SchemaDescription):  MissingRelation \/ UnsafeFindPair = for {erased <- sd.getRelation(r)} yield USRevRel(erased)
 }
