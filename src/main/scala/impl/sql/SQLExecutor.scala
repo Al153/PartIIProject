@@ -250,8 +250,8 @@ class SQLExecutor(instance: SQLInstance) extends DBExecutor[SQLError] {
         // create a query object
         pathQuery = PathFindingQuery(unsafe)(instance)
         // render it
-        stringQuery <- pathQuery.getRight(v)
-      } yield stringQuery
+        stringQueryFn <- pathQuery.getRight(v)
+      } yield stringQueryFn
     )
 
   /**

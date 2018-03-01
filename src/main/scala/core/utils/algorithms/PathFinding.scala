@@ -13,7 +13,7 @@ import scalaz._
   * Suite of pathfinding methods for the LMDB and memory implementations
   * Non recursive implementations to avoid stack overflows
   */
-object PathFinding {
+object PathFinding extends Logged {
   /**
     *
     * @param start - Starting set
@@ -29,11 +29,14 @@ object PathFinding {
     var resBuilder:mutable.Builder[List[A], Set[List[A]]] = Set.newBuilder[List[A]]
 
     var okay: E \/ Unit = ().right
-
+    var generationCount = 0
+    var nodeArity: Long = 0
     while (fringe.nonEmpty && okay.isRight) {
+      generationCount += 1
       okay = for {
         stepResult <- doStep(searchStep, fringe, alreadyExplored)
         (newFringe, path, objects) = stepResult
+        _ = nodeArity += objects.size
 
 
         _ =  resBuilder ++= objects.map(_ :: path)
@@ -42,7 +45,11 @@ object PathFinding {
 
       } yield ()
     }
-
+    
+    logger.info("Path Generation Count = " + generationCount)
+    if (generationCount > 0)
+      logger.info("Path Arity  = " +  nodeArity.toDouble / generationCount.toDouble)
+    
     okay.map(_ => resBuilder.result())
 
   }
