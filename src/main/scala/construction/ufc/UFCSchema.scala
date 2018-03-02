@@ -1,6 +1,6 @@
 package construction.ufc
 
-import core.user.dsl.RelationAttributes
+import core.user.dsl.Relation
 import core.user.schema._
 
 /**
@@ -26,9 +26,9 @@ object UFCSchema {
     override def toTuple(a: Person): (SchemaObject[Person]) => DBTuple3[Person, String, Int, Int] = buildDBTuple(a.name, a.height, a.weight)
   }
 
-  case object Beat extends RelationAttributes[Person, Person]
-  case object ShorterThan extends RelationAttributes[Person, Person]
-  case object LighterThan extends RelationAttributes[Person, Person]
+  case object Beat extends Relation[Person, Person]
+  case object ShorterThan extends Relation[Person, Person]
+  case object LighterThan extends Relation[Person, Person]
 
   implicit val schema = new SchemaDescription(
     Set(PersonSchema),

@@ -8,9 +8,9 @@ import scala.language.implicitConversions
 /**
   * Created by Al on 15/10/2017.
   *
-  * A [[RelationAttributes]] is a relation in the DB
+  * A [[Relation]] is a relation in the DB
   */
-abstract class RelationAttributes[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B]) extends FindPairAble[A, B]
+abstract class Relation[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B]) extends FindPairAble[A, B]
 {
   /**
     * Names of tables used by the query

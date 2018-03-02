@@ -1,6 +1,6 @@
 package construction.imdb
 
-import core.user.dsl.RelationAttributes
+import core.user.dsl.Relation
 import core.user.schema._
 
 
@@ -50,11 +50,11 @@ object IMDBSchema {
   }
 
 
-  case object ActsIn extends RelationAttributes[Person, Movie]
-  case object Directed extends RelationAttributes[Person, Movie]
-  case object HasBirthday extends RelationAttributes[Person,Date]
-  case object BornIn extends RelationAttributes[Person, Place]
-  case object HasGenre extends RelationAttributes[Movie, Genre]
+  case object ActsIn extends Relation[Person, Movie]
+  case object Directed extends Relation[Person, Movie]
+  case object HasBirthday extends Relation[Person,Date]
+  case object BornIn extends Relation[Person, Place]
+  case object HasGenre extends Relation[Movie, Genre]
 
   implicit val schemaDescription = new SchemaDescription(
     Set(personSchema, movieSchema, dateSchema, placeSchema, genreSchema),
