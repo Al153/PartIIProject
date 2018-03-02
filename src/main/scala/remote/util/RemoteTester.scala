@@ -96,12 +96,12 @@ class RemoteTester[ER <: E, E1 <: E, E2 <: E, E3 <: E, E4 <: E, E5 <: E, E6 <: E
       _ = logger.info("[Starting reference batch]")
       refValues <- runReferenceBatch(spec, reference).eraseError
       _ = logger.info("[Done reference batch]")
-      _ <- runOptionTest(spec, oi1, refValues, R1).eraseError
-      _ <- runOptionTest(spec, oi2, refValues, R2).eraseError
-      _ <- runOptionTest(spec, oi3, refValues, R3).eraseError
-      _ <- runOptionTest(spec, oi4, refValues, R4).eraseError
-      _ <- runOptionTest(spec, oi5, refValues, R5).eraseError
-      _ <- runOptionTest(spec, oi6, refValues, R6).eraseError
+      _ <- runOptionTest(spec, oi1, refValues, R1).eraseError.logRecovery
+      _ <- runOptionTest(spec, oi2, refValues, R2).eraseError.logRecovery
+      _ <- runOptionTest(spec, oi3, refValues, R3).eraseError.logRecovery
+      _ <- runOptionTest(spec, oi4, refValues, R4).eraseError.logRecovery
+      _ <- runOptionTest(spec, oi5, refValues, R5).eraseError.logRecovery
+      _ <- runOptionTest(spec, oi6, refValues, R6).eraseError.logRecovery
     } yield ()
   }
 
@@ -160,10 +160,7 @@ class RemoteTester[ER <: E, E1 <: E, E2 <: E, E3 <: E, E4 <: E, E5 <: E, E6 <: E
     } yield ()
   }
 
-  private def logError(e: E): Unit = {
-    logger.error("Hit an error when setting up instances. Halting tests")
-    logger.error(e.toString)
-  }
+
 
   private def sequence[ThisE <: E, A, B](in: TraversableOnce[A])(f: A => ConstrainedFuture[ThisE, B])(implicit R: HasRecovery[ThisE]): ConstrainedFuture[ThisE, Map[A, B]]
   = {

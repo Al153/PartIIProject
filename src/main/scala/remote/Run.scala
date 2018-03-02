@@ -11,9 +11,10 @@ object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
       referenceImplementation = fastjoins.LMDB,
-      Some(postgres -> SQLDB),
+
       Some(lmdbcse -> cse.LMDB),
       Some(lmdbfast -> fast.LMDB),
+      Some(postgres -> SQLDB),
       Some(lmdbOriginal -> original.LMDB),
       None,
       None

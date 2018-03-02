@@ -19,8 +19,8 @@ package object remote {
 
   def ns(l: Long): String = formatter.format(l)+"ns"
 
-  val lmdbcse = "LMDB Cse"
-  val lmdbfast = "LMDBFast"
-  val postgres = "SQL"
-  val lmdbOriginal = "original"
+  val lmdbcse = "LMDB CSE"
+  val lmdbfast = "LMDB Batched"
+  val postgres = "Postgres"
+  val lmdbOriginal = "LMDB original"
 }
