@@ -10,6 +10,7 @@ import remote.util.{TestIndex, TestName, TestSpec}
 import TestIndex._
 import TestName._
 import scala.concurrent.ExecutionContext
+import remote._
 
 
 /**
@@ -40,5 +41,5 @@ object UptoTest extends TestSpec[Set[(Person, Person)]] {
     }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

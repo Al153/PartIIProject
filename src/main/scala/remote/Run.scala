@@ -19,20 +19,23 @@ object Run {
       None
     )
 
+    tester.runTest(SingleShortestPath)
     tester.runTest(PathFindingTest)
-    tester.runTest(Redundancy)
-    tester.runTest(Conjunctions)
-    tester.runTest(Disjunctions)
-    tester.runTest(ExactlySparse)
-    tester.runTest(ExactlyPairs)
-    tester.runTest(RawLookupLarge)
-    tester.runTest(UptoSparse)
-    tester.runTest(RawLookup)
-    tester.runTest(JoinSpeed)
-    tester.runTest(UptoTest)
-    tester.runTest(Writes)
     tester.runTest(SparseTransitiveClosure)
-    tester.runTest(ExactlyTest)
+
+    //tester.runTest(Redundancy)
+    //tester.runTest(Conjunctions)
+    //tester.runTest(Disjunctions)
+    //tester.runTest(ExactlySparse)
+    //tester.runTest(ExactlyPairs)
+    //tester.runTest(RawLookupLarge)
+    //tester.runTest(UptoSparse)
+    //tester.runTest(RawLookup)
+    //tester.runTest(JoinSpeed)
+    //tester.runTest(UptoTest)
+    //tester.runTest(Writes)
+
+    //tester.runTest(ExactlyTest)
 
 
 
