@@ -30,6 +30,13 @@ abstract class Path[A] {
     */
   def end: A = getSteps.last._2
 
+
+  /**
+    * Get the first object in the path
+    * @return
+    */
+  def start: A = getSteps.head._1
+
   /**
     * Override string and equality methods - we're only interested in the extensional
     * equality of getSteps method

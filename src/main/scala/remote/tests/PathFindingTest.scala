@@ -7,10 +7,10 @@ import core.user.dsl.{E, HasRecovery, allShortestPaths, usingView, writeToView}
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
 import core.utils.Logged
+import remote._
 import remote.util.TestIndex._
 import remote.util.TestName._
 import remote.util.{TestIndex, TestName, TestSpec}
-import remote._
 
 import scala.concurrent.ExecutionContext
 
@@ -72,6 +72,7 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
         allShortestPaths(KevinBacon, ActsIn --><-- ActsIn)
       }
       lengths = r.map(_.length: Long)
+      comparableResults = r.map(documentPath)
         _ = logger.info("Number of paths found = " + r.size)
       _ = if (r.nonEmpty) {
         logger.info("Average Length of paths found = " + lengths.sum/r.size)
@@ -81,6 +82,13 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
     } yield r
   }
 
+  /**
+    * Different backends may give different valid paths of the same length, so we need a weaker comparison
+    * @param p
+    * @return
+    */
+  private def documentPath(p: Path[Person]): String =
+    s"${p.end}:${p.length}:${p.start}"
   override def schema: SchemaDescription = schemaDescription
   override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

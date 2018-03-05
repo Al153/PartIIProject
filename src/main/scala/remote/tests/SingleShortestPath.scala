@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext
 /**
   * Created by Al on 04/03/2018.
   */
-object SingleShortestPath extends TestSpec[Option[Path[Person]]] with Logged {
+object SingleShortestPath extends TestSpec[Option[String]] with Logged {
   override def testName: TestName = "Pathfinding".test
 
   override def batchSize: TestIndex = 6.tests
@@ -65,7 +65,7 @@ object SingleShortestPath extends TestSpec[Option[Path[Person]]] with Logged {
 
     } yield ()
 
-  override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Option[Path[Person]]] = {
+  override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Option[String]] = {
     implicit val inst = instance
     for {
       views <- instance.getViews
@@ -73,6 +73,7 @@ object SingleShortestPath extends TestSpec[Option[Path[Person]]] with Logged {
       r <- usingView(instance, v){
         shortestPath(KevinBacon, TomCruise, ActsIn --><-- ActsIn)
       }
+      comparableResults = r.map(documentPath)
       lengths = r.map(_.length: Long)
       _ = logger.info("Found paths = " + r)
       _ = logger.info("Number of paths found = " + r.size)
@@ -81,9 +82,16 @@ object SingleShortestPath extends TestSpec[Option[Path[Person]]] with Logged {
         logger.info("longest path = " + lengths.max)
         logger.info("shortest path = " + lengths.min)
       }
-    } yield r
+    } yield comparableResults
   }
 
+  /**
+    * Different backends may give different valid paths of the same length, so we need a weaker comparison
+    * @param p
+    * @return
+    */
+  private def documentPath(p: Path[Person]): String =
+    s"${p.end}:${p.length}:${p.start}"
   override def schema: SchemaDescription = schemaDescription
   override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }
