@@ -23,26 +23,20 @@ object Run {
     tester.runTest(SingleShortestPath)
     tester.runTest(PathFindingTest)
     tester.runTest(SparseTransitiveClosure)
+    tester.runTest(Redundancy)
+    tester.runTest(Conjunctions)
+    tester.runTest(Disjunctions)
+    tester.runTest(ExactlySparse)
+    tester.runTest(ExactlyPairs)
+    tester.runTest(RawLookupLarge)
+    tester.runTest(UptoSparse)
+    tester.runTest(RawLookup)
+    tester.runTest(JoinSpeed)
+    tester.runTest(UptoTest)
+    tester.runTest(Writes)
 
-    //tester.runTest(Redundancy)
-    //tester.runTest(Conjunctions)
-    //tester.runTest(Disjunctions)
-    //tester.runTest(ExactlySparse)
-    //tester.runTest(ExactlyPairs)
-    //tester.runTest(RawLookupLarge)
-    //tester.runTest(UptoSparse)
-    //tester.runTest(RawLookup)
-    //tester.runTest(JoinSpeed)
-    //tester.runTest(UptoTest)
-    //tester.runTest(Writes)
-
-    //tester.runTest(ExactlyTest)
-
+    tester.runTest(ExactlyTest)
 
 
-    // dodgy tests
-
-    // CSE/LMDB test for JoinSpeed (Massive joins)
-    // todo: fix pathfinding
   }
 }
