@@ -74,7 +74,7 @@ object SingleShortestPath extends TestSpec[Option[Path[Person]]] with Logged {
         shortestPath(KevinBacon, TomCruise, ActsIn --><-- ActsIn)
       }
       lengths = r.map(_.length: Long)
-      _ = r.foreach(p => logger.info("Path = " + p))
+      _ = logger.info("Found paths = " + r)
       _ = logger.info("Number of paths found = " + r.size)
       _ = if (r.nonEmpty) {
         logger.info("Average Length of paths found = " + lengths.sum/r.size)
