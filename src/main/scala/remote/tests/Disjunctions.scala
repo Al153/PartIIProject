@@ -23,16 +23,16 @@ object Disjunctions extends TestSpec[Set[(Person, Person)]]{
       DBBuilder.buildDB("imdb/large")(d)
     }
 
-  private def actsWith(a: Person) =
-    (ActsIn --><-- ActsIn) ->>- a
+  private def coactorWith(a: Person) =
+    ActsIn --> (a >> ActsIn) <-- ActsIn
 
   override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] = {
     implicit val inst = d
     readDefault(d) {
       (index.i % 3) match {
-        case 0 => findPairs(actsWith(KevinBacon))
-        case 1 => findPairs(actsWith(KevinBacon) | actsWith(TomCruise))
-        case _ => findPairs(actsWith(KevinBacon) | actsWith(TomCruise) & actsWith(TomHanks))
+        case 0 => findPairs(coactorWith(KevinBacon))
+        case 1 => findPairs(coactorWith(KevinBacon) | coactorWith(TomCruise))
+        case _ => findPairs(coactorWith(KevinBacon) | coactorWith(TomCruise) | coactorWith(TomHanks))
       }
     }
   }

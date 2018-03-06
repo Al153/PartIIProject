@@ -19,6 +19,11 @@ object Run {
       None
     )
 
+
+    // tests that need to be redone
+    tester.runTest(Conjunctions)
+    tester.runTest(Disjunctions)
+
     // tests that trigger running out of file size.
 
     tester.runTest(ExactlyPairs)
@@ -32,8 +37,7 @@ object Run {
 
     tester.runTest(SparseTransitiveClosure)
 
-    tester.runTest(Conjunctions)
-    tester.runTest(Disjunctions)
+
 
     tester.runTest(RawLookupLarge)
 
