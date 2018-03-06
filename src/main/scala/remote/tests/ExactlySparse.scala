@@ -18,7 +18,7 @@ import remote.util.TestName._
   */
 
 object ExactlySparse extends TestSpec[Set[Person]] {
-  override def testName = "Exactly Sparse".test
+  override def testName = "ExactlySparse".test
   override def schema: SchemaDescription = schemaDescription
   override  def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(instance){

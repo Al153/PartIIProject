@@ -37,8 +37,6 @@ object Run {
 
     tester.runTest(SparseTransitiveClosure)
 
-
-
     tester.runTest(RawLookupLarge)
 
     tester.runTest(RawLookup)

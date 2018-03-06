@@ -89,7 +89,7 @@ object Query extends Logged {
 
     case SelectTable(name, auxTable, where) =>
       s"SELECT ${SelectMapping.render(FromObject)} FROM ($name JOIN $auxTable ON $name.${SQLColumnName.objId} = $auxTable.${SQLColumnName.leftId}) ${WhereTable.render(where)}"
-    case SelectWhere(mappings, where, from) => s"SELECT ${SelectMapping.render(mappings)} FROM ${render(from)} ${Where.render(where)}"
+    case SelectWhere(mappings, where, from) => s"SELECT DISTINCT ${SelectMapping.render(mappings)} FROM ${render(from)} ${Where.render(where)}"
     case IntersectAll(left, right) => s"(${render(left)}) INTERSECT (${render(right)})"
     case UnionAll(left, right) => s"(${render(left)}) UNION ALL (${render(right)})"
     case Union(left, right) => s"(${render(left)}) UNION ${render(right)}"
