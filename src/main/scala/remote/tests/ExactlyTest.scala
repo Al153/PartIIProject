@@ -36,6 +36,6 @@ object ExactlyTest extends TestSpec[Set[Person]] {
     _ = logger.info("Length of exactlies = " + res.size)
   } yield res
 
-  override def batchSize: TestIndex = 50.tests
+  override def batchSize: TestIndex = 5.tests
   override def ignoreBackends: Set[String] = Set(lmdbOriginal, postgres)
 }
