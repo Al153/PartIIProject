@@ -42,5 +42,5 @@ object Redundancy extends TestSpec[Set[Person]]{
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
 
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

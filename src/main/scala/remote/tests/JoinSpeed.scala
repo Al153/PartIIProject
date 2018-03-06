@@ -23,7 +23,7 @@ object JoinSpeed extends TestSpec[Set[(Person, Person)]] {
   override def batchSize: TestIndex = 300.tests
 
   override def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
-    using(instance){
+    using(instance) {
       DBBuilder.buildDB("imdb/medium_sparse")(instance)
     }
 
@@ -38,4 +38,6 @@ object JoinSpeed extends TestSpec[Set[(Person, Person)]] {
   }
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
+
   override def ignoreBackends: Set[String] = Set(lmdbOriginal)
+}

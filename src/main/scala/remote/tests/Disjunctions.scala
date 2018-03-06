@@ -1,16 +1,15 @@
 package remote.tests
 
 import construction.imdb.IMDBSchema.{ActsIn, Person}
+import construction.imdb.{DBBuilder, IMDBSchema}
 import core.user.containers.ConstrainedFuture
 import core.user.dsl._
 import core.user.interfaces.DBInstance
 import core.user.schema.SchemaDescription
-import remote.util.{TestIndex, TestName, TestSpec}
-import TestName._
-import TestIndex._
-import construction.imdb.{DBBuilder, IMDBSchema}
-import core.backend.intermediate.FindPair
 import remote.lmdbOriginal
+import remote.util.TestIndex._
+import remote.util.TestName._
+import remote.util.{TestIndex, TestName, TestSpec}
 
 import scala.concurrent.ExecutionContext
 
@@ -25,7 +24,7 @@ object Disjunctions extends TestSpec[Set[(Person, Person)]]{
     }
 
   private def actsWith(a: Person) =
-    (ActsIn--><-- ActsIn) ->>- a
+    (ActsIn --><-- ActsIn) ->>- a
 
   override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] = {
     implicit val inst = d
@@ -40,5 +39,5 @@ object Disjunctions extends TestSpec[Set[(Person, Person)]]{
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
 
-  override def ignoreBackends: Set[String] = Set()
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }
