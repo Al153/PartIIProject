@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext
 object RawLookupLarge extends TestSpec[Set[(Person, Movie)]] {
   override def testName: TestName = "RawLookupPerformanceLarge".test
 
-  override def batchSize: TestIndex = 10.tests // todo: increase for long tests
+  override def batchSize: TestIndex = 100.tests // todo: increase for long tests
 
   override def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(d){

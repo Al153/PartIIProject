@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext
 object SparseTransitiveClosure extends TestSpec[Set[(Person, Person)]] {
   override def testName: TestName = "SparseTransitiveClosure".test
 
-  override def batchSize: TestIndex = 10.tests
+  override def batchSize: TestIndex = 100.tests
 
   override def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     {

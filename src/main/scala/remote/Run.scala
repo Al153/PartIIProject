@@ -11,25 +11,27 @@ object Run {
   def main(args: Array[String]): Unit = {
     val tester = new RemoteTester(
       referenceImplementation = fastjoins.LMDB,
-
-      Some(postgres -> SQLDB),
       Some(lmdbcse -> cse.LMDB),
       Some(lmdbfast -> fast.LMDB),
       Some(lmdbOriginal -> original.LMDB),
+      Some(postgres -> SQLDB),
       None,
       None
     )
 
     // tests that trigger running out of file size.
-    tester.runTest(ExactlySparse)
+
     tester.runTest(ExactlyPairs)
     tester.runTest(ExactlyTest)
+    tester.runTest(Redundancy)
+
     tester.runTest(UptoSparse)
+    tester.runTest(ExactlySparse)
 
     tester.runTest(SingleShortestPath)
-    tester.runTest(PathFindingTest)
+
     tester.runTest(SparseTransitiveClosure)
-    tester.runTest(Redundancy)
+
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
 
@@ -40,6 +42,8 @@ object Run {
     tester.runTest(UptoTest)
     tester.runTest(Writes)
 
+    // slowest test
+    tester.runTest(PathFindingTest)
 
 
 

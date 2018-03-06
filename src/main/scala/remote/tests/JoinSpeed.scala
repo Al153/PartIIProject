@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext
 object JoinSpeed extends TestSpec[Set[(Person, Person)]] {
   override def testName: TestName = "JoinSpeed".test
 
-  override def batchSize: TestIndex = 30.tests
+  override def batchSize: TestIndex = 300.tests
 
   override def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(instance){
@@ -39,4 +39,3 @@ object JoinSpeed extends TestSpec[Set[(Person, Person)]] {
 
   override def schema: SchemaDescription = IMDBSchema.schemaDescription
   override def ignoreBackends: Set[String] = Set(lmdbOriginal)
-}
