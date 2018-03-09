@@ -18,8 +18,8 @@ object Run {
       None,
       None
     )
-
-
+    tester.runTest(ExactlyTest)
+    /*
     // tests that need to be redone
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
@@ -27,7 +27,7 @@ object Run {
     // tests that trigger running out of file size.
 
     tester.runTest(ExactlyPairs)
-    tester.runTest(ExactlyTest)
+
     tester.runTest(Redundancy)
 
     tester.runTest(UptoSparse)
@@ -46,8 +46,6 @@ object Run {
 
     // slowest test
     tester.runTest(PathFindingTest)
-
-
-
+    */
   }
 }
