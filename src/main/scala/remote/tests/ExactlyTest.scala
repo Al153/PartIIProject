@@ -37,5 +37,5 @@ object ExactlyTest extends TestSpec[Set[Person]] {
   } yield res
 
   override def batchSize: TestIndex = 50.tests
-  override def ignoreBackends: Set[String] = Set(lmdbOriginal, postgres)
+  override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }

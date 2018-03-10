@@ -79,7 +79,7 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
         logger.info("longest path = " + lengths.max)
         logger.info("shortest path = " + lengths.min)
       }
-    } yield r
+    } yield comparableResults
   }
 
   /**
