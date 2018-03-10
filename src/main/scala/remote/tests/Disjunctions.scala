@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 object Disjunctions extends TestSpec[Set[(Person, Person)]]{
   override def testName: TestName = "Disjunctions".test
 
-  override def batchSize: TestIndex = 12.tests
+  override def batchSize: TestIndex = 120.tests
 
   override  def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(d){

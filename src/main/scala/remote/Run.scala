@@ -18,11 +18,13 @@ object Run {
       None,
       None
     )
-    tester.runTest(ExactlyTest)
-    /*
-    // tests that need to be redone
+
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
+    // tester.runTest(ExactlyTest)
+    /*
+    // tests that need to be redone
+
 
     // tests that trigger running out of file size.
 
