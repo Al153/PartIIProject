@@ -21,6 +21,7 @@ object Run {
 
     tester.runTest(Conjunctions)
     tester.runTest(Disjunctions)
+    tester.runTest(Redundancy)
     // tester.runTest(ExactlyTest)
     /*
     // tests that need to be redone
@@ -30,7 +31,7 @@ object Run {
 
     tester.runTest(ExactlyPairs)
 
-    tester.runTest(Redundancy)
+
 
     tester.runTest(UptoSparse)
     tester.runTest(ExactlySparse)
