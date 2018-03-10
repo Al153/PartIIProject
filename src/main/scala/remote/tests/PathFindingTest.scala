@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext
 /**
   * Created by Al on 30/01/2018.
   */
-object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
+object PathFindingTest extends TestSpec[Set[String]] with Logged {
   override def testName: TestName = "Pathfinding".test
 
   override def batchSize: TestIndex = 6.tests
@@ -63,7 +63,7 @@ object PathFindingTest extends TestSpec[Set[Path[Person]]] with Logged {
 
     } yield ()
 
-  override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[Path[Person]]] = {
+  override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[String]] = {
     implicit val inst = instance
     for {
       views <- instance.getViews
