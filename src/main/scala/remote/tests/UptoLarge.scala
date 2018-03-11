@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext
   * Larger verson of FindSingles. Only test postgres and FastJoins impl, since they are the fast ones
   * Repeats tests for better reliability
   */
-object UptoSparse extends TestSpec[Set[(Person, Person)]] {
+object UptoLarge extends TestSpec[Set[(Person, Person)]] {
   override def testName: TestName = "UptoLarge".test
 
   override def batchSize: TestIndex = 100.tests
