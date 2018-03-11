@@ -21,7 +21,7 @@ object Run {
 
     // tester.runTest(Conjunctions)
     // tester.runTest(Disjunctions)
-    tester.runTest(Redundancy)
+    tester.runTest(ExactlyPairs)
     // tester.runTest(ExactlyTest)
     /*
     // tests that need to be redone

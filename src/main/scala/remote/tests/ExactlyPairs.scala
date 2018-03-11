@@ -18,7 +18,7 @@ object ExactlyPairs extends TestSpec[Set[(Person, Person)]] {
   override def schema: SchemaDescription = schemaDescription
   override  def setup[ThisE <: E](instance: DBInstance[ThisE])(implicit R: HasRecovery[ThisE],ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(instance){
-      DBBuilder.buildDB("imdb/smallest")(instance)
+      DBBuilder.buildDB("imdb/small")(instance)
     }
 
   override def test[ThisE <: E](instance: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE],ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] =
@@ -26,12 +26,12 @@ object ExactlyPairs extends TestSpec[Set[(Person, Person)]] {
       res <- {
         implicit val inst = instance
         using(instance){
-          findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * index.i)
+          findPairs(((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i% 10))
         }
       }
       _ = logger.info("Length of exactlies = " + res.size)
     } yield res
 
-  override def batchSize: TestIndex = 5.tests
+  override def batchSize: TestIndex = 50.tests
   override def ignoreBackends: Set[String] = Set(lmdbOriginal)
 }
