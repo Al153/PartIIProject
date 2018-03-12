@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext
   * Created by Al on 04/03/2018.
   */
 object SingleShortestPath extends TestSpec[Option[String]] with Logged {
-  override def testName: TestName = "Pathfinding".test
+  override def testName: TestName = "SingleShortestPath".test
 
   override def batchSize: TestIndex = 6.tests
 
