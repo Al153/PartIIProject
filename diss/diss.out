@@ -1,0 +1,85 @@
+\BOOKMARK [0][-]{chapter.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.1.1}{Progress}{chapter.1}% 2
+\BOOKMARK [1][-]{section.1.2}{Motivations}{chapter.1}% 3
+\BOOKMARK [1][-]{section.1.3}{Type safety}{chapter.1}% 4
+\BOOKMARK [0][-]{chapter.2}{Preparation}{}% 5
+\BOOKMARK [1][-]{section.2.1}{Existing Graph Databases}{chapter.2}% 6
+\BOOKMARK [2][-]{subsection.2.1.1}{Classes of Database}{section.2.1}% 7
+\BOOKMARK [2][-]{subsection.2.1.2}{Schema}{section.2.1}% 8
+\BOOKMARK [2][-]{subsection.2.1.3}{Mutability}{section.2.1}% 9
+\BOOKMARK [2][-]{subsection.2.1.4}{Query Languages}{section.2.1}% 10
+\BOOKMARK [1][-]{section.2.2}{Mutability}{chapter.2}% 11
+\BOOKMARK [1][-]{section.2.3}{Query Language}{chapter.2}% 12
+\BOOKMARK [2][-]{subsection.2.3.1}{DSL Syntax}{section.2.3}% 13
+\BOOKMARK [2][-]{subsection.2.3.2}{Algebraic Datatypes}{section.2.3}% 14
+\BOOKMARK [2][-]{subsection.2.3.3}{Typing}{section.2.3}% 15
+\BOOKMARK [2][-]{subsection.2.3.4}{Semantics}{section.2.3}% 16
+\BOOKMARK [2][-]{subsection.2.3.5}{Commands}{section.2.3}% 17
+\BOOKMARK [1][-]{section.2.4}{Languages and Libraries Used}{chapter.2}% 18
+\BOOKMARK [1][-]{section.2.5}{Software Engineering}{chapter.2}% 19
+\BOOKMARK [2][-]{subsection.2.5.1}{Front End}{section.2.5}% 20
+\BOOKMARK [2][-]{subsection.2.5.2}{Middle End}{section.2.5}% 21
+\BOOKMARK [2][-]{subsection.2.5.3}{Back End}{section.2.5}% 22
+\BOOKMARK [1][-]{section.2.6}{Scala Techniques}{chapter.2}% 23
+\BOOKMARK [2][-]{subsection.2.6.1}{Type Enrichment}{section.2.6}% 24
+\BOOKMARK [2][-]{subsection.2.6.2}{Implicit Parameters}{section.2.6}% 25
+\BOOKMARK [2][-]{subsection.2.6.3}{Typeclass Pattern}{section.2.6}% 26
+\BOOKMARK [0][-]{chapter.3}{Implementation}{}% 27
+\BOOKMARK [1][-]{section.3.1}{Note on Purity and Concurrency}{chapter.3}% 28
+\BOOKMARK [1][-]{section.3.2}{Functional Programming Techniques}{chapter.3}% 29
+\BOOKMARK [2][-]{subsection.3.2.1}{Monadic Compilation}{section.3.2}% 30
+\BOOKMARK [2][-]{subsection.3.2.2}{Constrained Future Monad}{section.3.2}% 31
+\BOOKMARK [2][-]{subsection.3.2.3}{Operation Monad}{section.3.2}% 32
+\BOOKMARK [2][-]{subsection.3.2.4}{Local and Global State}{section.3.2}% 33
+\BOOKMARK [1][-]{section.3.3}{Schema Implementation}{chapter.3}% 34
+\BOOKMARK [2][-]{subsection.3.3.1}{Schema Hierarchy}{section.3.3}% 35
+\BOOKMARK [2][-]{subsection.3.3.2}{DBObjects}{section.3.3}% 36
+\BOOKMARK [2][-]{subsection.3.3.3}{Unerasure}{section.3.3}% 37
+\BOOKMARK [2][-]{subsection.3.3.4}{Relations}{section.3.3}% 38
+\BOOKMARK [2][-]{subsection.3.3.5}{SchemaDescription}{section.3.3}% 39
+\BOOKMARK [2][-]{subsection.3.3.6}{Findables}{section.3.3}% 40
+\BOOKMARK [1][-]{section.3.4}{Query ADT}{chapter.3}% 41
+\BOOKMARK [1][-]{section.3.5}{Commands}{chapter.3}% 42
+\BOOKMARK [1][-]{section.3.6}{DSL}{chapter.3}% 43
+\BOOKMARK [1][-]{section.3.7}{Common Generic Algorithms}{chapter.3}% 44
+\BOOKMARK [2][-]{subsection.3.7.1}{Simple Traversal}{section.3.7}% 45
+\BOOKMARK [2][-]{subsection.3.7.2}{Full traversal}{section.3.7}% 46
+\BOOKMARK [2][-]{subsection.3.7.3}{Pathfinding}{section.3.7}% 47
+\BOOKMARK [2][-]{subsection.3.7.4}{Joins}{section.3.7}% 48
+\BOOKMARK [1][-]{section.3.8}{Views and Commits}{chapter.3}% 49
+\BOOKMARK [1][-]{section.3.9}{Memory Backend}{chapter.3}% 50
+\BOOKMARK [2][-]{subsection.3.9.1}{Table Structure}{section.3.9}% 51
+\BOOKMARK [2][-]{subsection.3.9.2}{Reads}{section.3.9}% 52
+\BOOKMARK [2][-]{subsection.3.9.3}{Left Optimisation}{section.3.9}% 53
+\BOOKMARK [2][-]{subsection.3.9.4}{Writes}{section.3.9}% 54
+\BOOKMARK [2][-]{subsection.3.9.5}{Storage}{section.3.9}% 55
+\BOOKMARK [2][-]{subsection.3.9.6}{Mutability}{section.3.9}% 56
+\BOOKMARK [2][-]{subsection.3.9.7}{Pathfinding and fixed point traversal}{section.3.9}% 57
+\BOOKMARK [1][-]{section.3.10}{PostgreSQL backend}{chapter.3}% 58
+\BOOKMARK [2][-]{subsection.3.10.1}{Table Structure}{section.3.10}% 59
+\BOOKMARK [2][-]{subsection.3.10.2}{Query Structure}{section.3.10}% 60
+\BOOKMARK [2][-]{subsection.3.10.3}{Monadic Compilation}{section.3.10}% 61
+\BOOKMARK [2][-]{subsection.3.10.4}{Writes}{section.3.10}% 62
+\BOOKMARK [2][-]{subsection.3.10.5}{Mutability}{section.3.10}% 63
+\BOOKMARK [2][-]{subsection.3.10.6}{Pathfinding and Fixed Point Traversal}{section.3.10}% 64
+\BOOKMARK [2][-]{subsection.3.10.7}{Object Storage}{section.3.10}% 65
+\BOOKMARK [1][-]{section.3.11}{LMDB Backends}{chapter.3}% 66
+\BOOKMARK [2][-]{subsection.3.11.1}{Common}{section.3.11}% 67
+\BOOKMARK [2][-]{subsection.3.11.2}{Original LMDB Implementation}{section.3.11}% 68
+\BOOKMARK [2][-]{subsection.3.11.3}{Batched}{section.3.11}% 69
+\BOOKMARK [2][-]{subsection.3.11.4}{Common Subexpression Elimination}{section.3.11}% 70
+\BOOKMARK [2][-]{subsection.3.11.5}{Complex Common Subexpression Elimination}{section.3.11}% 71
+\BOOKMARK [0][-]{chapter.4}{Evaluation}{}% 72
+\BOOKMARK [1][-]{section.4.1}{Unit Tests}{chapter.4}% 73
+\BOOKMARK [1][-]{section.4.2}{Performance Tests}{chapter.4}% 74
+\BOOKMARK [2][-]{subsection.4.2.1}{Introduction}{section.4.2}% 75
+\BOOKMARK [2][-]{subsection.4.2.2}{Hardware}{section.4.2}% 76
+\BOOKMARK [2][-]{subsection.4.2.3}{Datasets}{section.4.2}% 77
+\BOOKMARK [2][-]{subsection.4.2.4}{Test Harness}{section.4.2}% 78
+\BOOKMARK [2][-]{subsection.4.2.5}{Results}{section.4.2}% 79
+\BOOKMARK [1][-]{section.4.3}{Semantics Proofs}{chapter.4}% 80
+\BOOKMARK [2][-]{subsection.4.3.1}{Denotational == Operational}{section.4.3}% 81
+\BOOKMARK [2][-]{subsection.4.3.2}{Typesafety}{section.4.3}% 82
+\BOOKMARK [2][-]{subsection.4.3.3}{Join as a Monoid}{section.4.3}% 83
+\BOOKMARK [0][-]{chapter.5}{Conclusion}{}% 84
+\BOOKMARK [0][-]{chapter.5}{Bibliography}{}% 85
