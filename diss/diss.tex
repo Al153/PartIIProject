@@ -1,3 +1,4 @@
+
 % Template for a Computer Science Tripos Part II project dissertation
 \documentclass[12pt,a4paper,twoside,openright]{report}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
@@ -15,7 +16,11 @@
 %Highlighter commands. most need to properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \newcommand\codeName[1]{\textcolor{blue}{#1}}
+\newcommand\term[1]{\textcolor{purple}{#1}}
 \newcommand\code[1]{\textcolor{green}{\begin{verbatim}#1\end{verbatim}}}
+\newcommand\note[1]{\textcolor{cyan}{#1}}
+\newcommand\mathName[1]{\textcolor{pink}{#1}}
+
 
 \newcommand\either[0]{\textbackslash/}
 \newcommand\eitherR[0]{\textbackslash/-}
@@ -339,7 +344,7 @@ As specified in the previous chapter, each backend needs to implement five comma
 \end{itemize}
 Each command should return an \codeName{Operation} of the correct type.
 \section{DSL}
-The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type enrichment pattern. Both \codeName{Relatation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.scala} in the appendix for examples of DSL). \todo{Put in appendix}
+The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.scala} in the appendix for examples of DSL). \todo{Put in appendix}
 
 \section{Common Generic Algorithms}
 During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different backends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
@@ -381,7 +386,7 @@ In the memory backend, as will be explained later, views are easy implement as a
 \section{Memory Backend}
 The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages as libraries as in the SQL and LMDB backends.)
 	\subsection{Table Structure}
-	A memory instance stores a concurrent map of \codeName{ViewId} to \codeName{MemoryTree}, which itself is a map of \codeName{TableName} (derived from the \codeName{SchemaDescription}) to \codeName{MemoryTable}. There is a \codeName{MemoryTable} for each object class in the \codeName{SchemaDescription}. A \codeName{MemoryTable] provides lookups using maps for \codeName{DBObjects} and \codeName{Findable}s, in the form of an index to set of objects for each column value. These lookups return objects containing a \codeName{DBObject} and the outgoing and incoming relations for the object, indexed by \codeName{RelationName}. 
+	A memory instance stores a concurrent map of \codeName{ViewId} to \codeName{MemoryTree}, which itself is a map of \codeName{TableName} (derived from the \codeName{SchemaDescription}) to \codeName{MemoryTable}. There is a \codeName{MemoryTable} for each object class in the \codeName{SchemaDescription}. A \codeName{MemoryTable} provides lookups using maps for \codeName{DBObjects} and \codeName{Findable}s, in the form of an index to set of objects for each column value. These lookups return objects containing a \codeName{DBObject} and the outgoing and incoming relations for the object, indexed by \codeName{RelationName}. 
 	\todo{Diagram of View => Tree(TableName => Table(Index => Object)) }
 
 	
@@ -389,44 +394,151 @@ The first backend that I have implemented is a simple, naive memory-based backen
 Reads occur by simply walking over the ADTs recursively, following the denotational semantics \todo{Code is small enough to place in an appendix}. The only real departures from the denotational semantics are the Left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables).
 	
 	\subsection{Left Optimisation}
+	One of the few optimisations here is the Left optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of maybe a few dozen unique rightmost values to a large query with several million unique leftmost values. The pairs of the right relation only need to be joined if their leftmost value is in the set of rightmost values of the left relation. Hence it makes sense to pre-limit our search to pairs with leftmost values in the right most value. \todo{(Diagram showing redundant calculations in the join)}. This pattern also makes an appearance in the original LMDB implementation.
 	\subsection{Writes}
+	Thanks to Scala’s immutable collections library, updating the database is fairly easy When inserting a collection of relations, we simply add, relation by relation, each object in the relation, if it doesn’t exist, and update the outgoing and incoming relation map of each object. This update creates new immutable object tables and a new memory tree. This is stored to the map of \codeName{ViewId}  to \codeName{MemoryTree} as a new view.
+
 	\subsection{Storage}
+	Objects are stored as \codeName{DBObject}s in wrapper \codeName{MemoryObject}s. \codeName{MemoryObject}s  are hashed and compared by their \codeName{DBObject}s. \todo{Memory object diagram}
+	
 	\subsection{Mutability}
+	The only mutability in the Memory implementation is for the views counter and the views lookup table. Access is kept transactional using a lock.
+
 	\subsection{Pathfinding and fixed point traversal}
+	The pathfinding and fixed point traversal methods are simply implemented by calls to the appropriate generic algorithms. One redundancy is that the search functions passed calculate all linked pairs, rather than optimising only to look at right hand sides of relations. \todo{(more detail?)}
+
 
 \section{PostgreSQL backend}
+Upon completion of the initial memory backend, I started work on a PostgreSQL based backend. This compiles the ADT intermediate representation into SQL queries that are then executed by a Postgres database.
+
 	\subsection{Table Structure}
+	The construction of the underlying database uses several SQL tables. These can be partitioned into a set of control tables that will be present in all database instances and a set  of schema defined tables.
+
 		\paragraph{Control Tables}
+		\todo{Insert the table from GDrive}
+\note{Note: \codeName{ViewId} is a foreign key into the views registry, \codeName{CommitId} is a foreign key into Commits Registry. The Dummy column is needed to fix postgresql syntax when we try to get the next key for a table with one column.}		
+		
 		\paragraph{Schema defined Tables}
+		\todo{Insert the table from GDrive}
+		\note{Note: Object-, Left-, and Right- Ids are foreign keys to the \codeName{ObjectTable}’s ObjectId column.}
 	\subsection{Query Structure}
 	\subsection{Monadic Compilation}
+	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \todo{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \todo{ObjectId}s along the path as opposed to whole  objects. \todo{Compilation context figure from GDrive}
+
 	\subsection{Writes}
+	There are several steps in the implementation of writes, though I have not expended  a great deal of effort making them fast. A significant part of this is the “insert or get” SQL query, which looks up an object in the relevant table, returning its \codeName{ObjectId} if it exists and creating the object and returning the new ID if it does not.
+	
+	\todo{insertOrGet query from GDrive}
+	
+	We create a new view and commit, then we run a memoised \codeName{InsertOrGet} over all the leftmost objects to be inserted, then all the right objects to be inserted, yielding tagged relations between \codeName{ObjectIds}. For each inserted relation, the existing relation instances are removed from those to insert, and the remaining inserted to the relevant \codeName{RelationTable} with the correct \codeName{CommitId}. The auxiliary tables are now updated and, on success, the views table is updated.
+
 	\subsection{Mutability}
+	As with the memory backend, all mutability except for the availability of views and the default view is hidden from the user. The SQL backend uses commits to manage view mutability.
 	\subsection{Pathfinding and Fixed Point Traversal}
+Pathfinding is implemented by constructing an SQL query to generate right hand side \codeName{ObjectIds} for a relation given a left hand side \codeName{ObjectId}. This query is used as the search function for the generic pathfinding algorithms. Once paths have been found, their \codeName{ObjectIds} are looked up in the database to find the full values along each path.
+
+Fixed point traversal and repetitions are done natively in SQL. \codeName{FixedPoint} and \codeName{Upto} are done using a recursive CTE, while \codeName{Exactly} is done by explicitly joining together the required number of repetitions of the sub-relation’s query.	
+	
+	\todo{Recursive CTE example. Caption = An example of a recursive CTE computing \codeName{Upto}. \codeName{FixedPoint} would omit the counter variable and the limit.}
+	
 	\subsection{Object Storage}
+	Objects are stored as in the appropriate \codeName{ObjectTable} in a manner derived from the \codeName{DBObject} of each object. Each \codeName{DBCell} is converted to appropriate SQL type.
 
 \section{LMDB Backends}
+The final family of backends are the LMDB backends. LMDB is a simple, efficient memory mapped file based Key-Value datastore. \todo{(https://symas.com/lmdb/)}. It is already the backend for DBMSs \todo{(Source?)}.
+
 	\subsection{Common}
+	Although I have written several versions of the LMDB backend, there are several overarching similarities.
 		\paragraph{LMDB API}
 			\subparagraph{Terminology}
+			LMDB terminology differs slightly from that of more mainstream systems. What would be called a database in SQL is known as an \term{Env} and a table known as a \term{DBI}.
 			\subparagraph{Transactions}
+				LMDB’s transactional model differs from more traditional systems. In short, we need to create a transaction to do reads but not writes. This stems from LMDB delegating as much work as possible to the OS kernel's memory-mapped file system. All writes are immediately written to the database, whereas starting a read transaction gives a view of the \term{Env} as it was at the start of  the transaction, ensuring that concurrent writes don't affect what is read from the database. Writes may be included in transactions to allow atomic get-and-sets. In practice the transactions we actually use are very short lived.
 			\subparagraph{JVM API}
+			The LMDB backend uses the \codeName{LMDBJava} API \todo{https://github.com/lmdbjava/lmdbjava} to allow access to an LMDB Database from JVM languages (such as Scala). For each \term{DBI}, we have a byte array to byte array key-value map, much like a \codeName{Map[Array[Byte], Array[Byte]]}.
+			
 		\paragraph{Storage and Keys}
+			In order to write to the database using the LMDBJava API, we need to convert the key and value to \codeName{ByteBuffer}. To generify this process I have introduced two type classes: \codeName{Keyable} and \codeName{Storable}.
+			
+			\todo{figures for these type-classes}
+			 \codeName{Keyable} is a type class which shows that an object can be converted into an array of bytes representing a component of a key (Can be concatenated with others to make a full key). \codeName{Storable} is a more general typeclass that shows that objects can be converted into a \codeName{ByteBuffer}. \codeName{Storable} objects are typically more complex than objects used as keys, and have a higher marshalling throughput, hence the lower level, faster, \codeName{ByteBuffer} API. Typeclass instances exist to allow sets and lists of \codeName{Storable} objects to be stored.	
+			
 		\paragraph{Table Structure}
+	
+ Similarly to the SQL implementation, there are several tables, some generated based on the \codeName{SchemaSescription} and other, control, tables exist regardless. Each table is represented in memory by a subclass of the \codeName{impl.lmdb.common.tables.interfaces.LMDBTable} trait, which provides utility methods such as transactional reads and computations.
+ 
+ \todo{Import control table table from G-drive}
+ \note{Singleton Keys denote tables with single key.}
+ \todo{Import schema table table from g-drive}
+
+For each \codeName{SchemaObject} in the \codeName{Schemadescription}, there exists a \codeName{RetrievalTable}, \codeName{EmptyIndexTable}, and a \codeName{ColumnIndexTable} per column in the \codeName{SchemaObject}.
+		
+		
 		\paragraph{Writes}
+		Writes occur in a similar way to the SQL implementation, again using commits to manage views. First we lookup all the left and right hand side objects to find their \codeName{ObjectIds} (If needed, we create new entries in the retrieval table and update the index tables to insert the objects.), we then look up existing instances of the relations to insert and only insert new ones to the relation table with the new \codeName{CommitId}. Upon success, we create a new view and insert it to the views table and the available views table.
+
 	\subsection{Original LMDB Implementation}
+	\note{impl.lmdb.original}
+
+The original LMDB backend implementation executed queries in much the same way as the in-memory backend, the only difference being the flat LMDB table structure. Interpretation occurs by a very similar to function that of the memory backend, instead passing around a list of Commits to search rather than the memory tree. At the end of a query’s execution, the resulting \codeName{ObjectId}s are looked up in the relevant Retrieval table to extract the actual objects and convert them into user objects. Pathfinding and the repetition operators are handled in the same way as the memory backend by calling the relevant generic algorithms.
+ 
+
 	\subsection{Batched}
+	\note{impl.lmdb.fast}
+	This is the first variant upon my simple original LMDB backend, it focuses on making small local optimisations rather than significant algorithmic changes.
+	
 		\paragraph{Read Batching}
+		Firstly, the original implementation made suboptimal uses of reads. For example, when extracting objects at the end of query execution, it would lookup each object individually with its own read transaction. This is sped up by batching together reads to separate keys and commits in the same transaction, allowing for a small speed up.
+		
 		\paragraph{Pre-Caching}
+		The result of executing a \codeName{FindSingle} is constant throughout the whole query, so by lifting out and pre-emptively executing any \codeName{FindSingle}s, we speed up execution by removing redundancy. More importantly, this helps enable the next operation.
+		
 		\paragraph{FindFrom}
+		For the pathfinding commands, the transitive queries and \codeName{From} \codeName{FindSingle} query, we’re not actually interested in finding all pairs matching a query, or interested in which pairs are related, but actually the reachability function \codeName{$A \Rightarrow Set[B]$} (this is a kleisli arrow), which takes a node and finds the directly reachable neighbours. Since we don’t have to do any bookwork to maintain the left hand side of any relation, this greatly simplifies our search. Hence, in these cases, we interpret the query using a new \codeName{FindFrom} method, which is an alternative interpreter. For example, joins now become a concatenation of these arrows (\codeName{flatMap}  in Scala parlance), \codeName{Id} becomes the return function \codeName{($x \Rightarrow Set(x)$)}, \codeName{Distinct} becomes set subtraction as opposed to calling the \codeName{Set.filter} function, and, finally, we can make use of the \codeName{SimpleFixedPointTraversal} algorithms described above. The pre-caching above is useful here, since due to the \codeName{flatMap}s, the computation of \codeName{FindSingle}s would be repeated many times otherwise.
+
 	\subsection{Common Subexpression Elimination}
+	\note{impl.lmdb.cse}
+	A common performance issue in the previous implementation was that of redundancy and lack of general common subexpression elimination (CSE). When a common sub expression is repeated outside of an \codeName{Upto} or \codeName{Exactly} block, then it is repeatedly recalculated, leading to poor performance. In addition, there is lots of redundancy exposed by the above \codeName{FindFrom} optimisation. Consider calculation $R join (S join T)$. If a node $n$ appears in the results of $S(m)$, $S(m')$ for distinct $\opRule{(?, m)}{A, B}{R}$, $\opRule{(?, m')}{A, B}{R}$ ($m$, $m'$ are right hand results of R), then $T(n)$ is computed redundantly in the overall calculation. These issues of redundancy can be solved using a combination of global CSE and memoization.
+
 		\paragraph{The Memoisation Problem}
+		When looking at a graph data structure, memoization is harder than when looking to optimise pure functions. To optimise a pure function $f\colon A \Rightarrow B$, we only need to store a hash table \codeName{Map[A, B]}. To compute $f(a)$, we simply look up $a$ in the map. If it is in the map, we return the mapped value else, we call $f$, and add the result to the map before returning. In a large graph, computing and storing all pairs generated by a query is extremely wasteful, since many of those pairs might never be used (effectively, we would have ignored the left-optimisation). Conversely, memoizing the full left-optimised function, $interpret(Q)\colon Set[A] \Rightarrow Set[(A, B)]$ is also wasteful, since there may be overlap in the sets used as keys. Instead, we memoise the \codeName{FindFrom} function of a query, \todo{get this findfrom to be verbatim}$findFrom(Q)\colon A \Rightarrow Set[B]$, and reconstruct results from the pairs. This allows for the best overlap.
+
+To make the best use of memoization, and to overusing memory by memoizing the same query twice, we need to also apply CSE to group together instances of the same query.
+
 		\paragraph{Retrievers}
+		A solution to these parameters is the use of an object called a \codeName{Retriever}. This exposes two methods which mirror those from interpreting a query. 
+		\todo{Insert retriever trait here from G-Drive}	
+		For each subquery node in a query(e.g. \mathName{And(Id_A, Or(R_1, R_2 ))}), we generate a retriever. Retrievers for primitive relations (e.g. \mathName{Id_A} , \mathName{Rel(R)}) are uncached, as LMDB allows for very fast re-computations of these. In the other cases, we use a CachedRelationRetriever, which memorises an underlying lookup function. Using type-enrichment, I have implemented methods such as \codeName{join}, \codeName{and}, \codeName{or}, \codeName{exactly}, \codeName{fixedPoint} on \codeName{RelationRetrievers}, allowing them to be composed to mirror the query they are generated from. This memoises every node of the query to be executed, yielding a significant reduction of redundancy.
+	
+		
 		\paragraph{Monadic Compilation}
+		To avoid storing multiple \codeName{RelationRetriever}s for the same subexpression, it is useful to reuse the same retriever for every occurrence of a subquery. Hence when building a retriever for a query, we want to keep track of all subqueries we’ve seen before. This can be done using the monadic compilation pattern above. The compilation state stores a hashmap of all the subtrees that have already been computed (A bit like when constructing a binary decision diagram in automated theorem proving). 
+		
+		\todo{Compilation state from G-Drive}
+		\note{Compilation state}
+		The compilation function checks the memo for precomputed values, and if they are not already computed, recurses to compute subtrees, then composes the subtree results to get a new retriever for the current node, which is added to the compilation state.
+		
 	\subsection{Complex Common Subexpression Elimination}
+	\note{impl.lmdb.fastjoins}
+Despite these optimisations, there are still sources of redundancy.
+
 		\paragraph{Index Building}
+			Firstly, the original CSE implementation uses the excessively generic join function to join result sets. This function wastes time by computing an index map on every call. So instead we can change the definition of a \codeName{Retriever}'s public functions to mitigate the need to build indices.
+			\todo{new retriever trait
+			Indeed, the function to join a pair of retrievers becomes a simpler \codeName{flatmap} of one map to another. Functions such as the \codeName{union} and \codeName{intersection} of retrievers also become simpler, \note{(see impl.lmdb.fastjoins.retrievers.RelationRetriever.RelationRetrieverOps)}
+}
 		\paragraph{Exactly}
+		This implementation also explores other formulations of the \mathName{Exactly(n, P)} query. Exactly effectively joins together n repetitions of the underlying query in a linear fashion. This makes relatively poor reuse of the join function, since each join has different operand subqueries, so it cannot be memoised. This formulation does make good reuse of \mathName{P}, however.
+		
+		\todo{Diagram showing n joins of P, linear}
+		
+		
+		As joins over the set of results of query form a \mathName{Monoid} \todo{Proof in appendix or in evaluation?}, we can use associativity to change the order in which the joins are evaluated, aiming for as much reuse as possible. This can be done in a manner similar to binary exponentiation \todo{(http://computingonline.net/computing/article/viewFile/229/204)}.
+
+We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. \todo{Diagram showing join structure;} \todo{Algorithm}
+
 		\paragraph{Upto Optimisation}
+			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$} \todo{Proof in appendix}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
 
 
 
@@ -464,8 +576,6 @@ The correctness of each backend is tested using a suite of 45 unit tests which v
 	
 \chapter{Conclusion}
 
-I hope that this rough guide to writing a dissertation is \LaTeX\ has
-been helpful and saved you time.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
