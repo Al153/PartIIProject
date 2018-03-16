@@ -552,18 +552,56 @@ The correctness of each backend is tested using a suite of 45 unit tests which v
 	Tests were run on the oslo machine belonging to Timothy Jones’ group. Its specifications are shown below. All of the backends ran off of an SSD.
 	\todo{Oslo Specs}
 	\subsection{Datasets}
+	To evaluate tests on non-trivial examples, I sought to construct datasets over which large queries were feasible.
+
 		\paragraph{IMDB}
+		The first and most used collection of tests are derived from the IMDB movie database,the most popular 5000 of which were collected from kaggle \todo{https://www.kaggle.com/tmdb/tmdb-movie-metadata}
+
+The CSV data was processed using a python script (\todo{in src/resources/imdb/}) into a simplified JSON format. A separate, larger dataset was constructed from tests for another graph database. \todo{https://github.com/arangodb/example-datasets/tree/master/Graphs/IMDB} and manually (in python) converted to the same JSON format. I then wrote a Scala script which reads the JSON and writes the relations to a given database instance.
+
+Slightly different parameters were given when generating each dataset.
+\todo{Table from GDrive with all the data}
+
+The objects in the database are as follows:
+\todo{Object and relation tables}
+
 		\paragraph{UFC}
+		
+		A second dataset, built from UFC fight data, \todo{https://www.kaggle.com/cformey24/ufc-fights-data-1993-2232016/data} was constructed in the same way to produce one JSON dataset.
+		
+		\todo{object and relation tables}
+		
+		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. \todo{Size of graph.}
 	\subsection{Test Harness}
 	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate backends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included.
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
-		\paragraph{Pathfinding}
+		\todo{This needs to be more specific, rewrite}
+		An overall view of the results is that, as might be expected, the SQL implementation is the fastest, with the most aggressively optimised LMDB typically performing the closest in speed to SQL, \todo{calculate precise values} though occasionally beating SQL’s performance by up to 150\%. Due to a high overhead of initiating individual queries, the SQL instance performed appalling on pathfinding queries. The LMDB optimisations worked very effectively where they were hypothesised to, such as queries with repeated joins and those which made use of \mathName{Exactly} and \mathName{Upto}, yielding orders of magnitude speedup. However, in some tests, the optimisations yielded overheads slowing down performance, especially those queries which make use of \mathName{FindFrom} rather than finding pairs.
+
+Typically, the CSE optimisations alone do not provide a statistically significant speed up, or even slow down operations, however the optimisations also applied to joins and transitive queries do often show a large speedup. 
+
+		The pathfinding implementation, for simplicity, sends queries at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched, but this complicates the SQL implementation significantly (clearing up on error becomes a lot harder). Hence, I am ignoring the pathfinding tests for the purpose of backend comparison.
+
+
 		\paragraph{Redundancy}
+			This test is to demonstrate the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \note{DISTINCT} modifier of queries, and ends up running out of temporary space on this query.
+			
+			\todo{Test summary table}
+
 		\paragraph{Conjunctions and Disjunctions}
+	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
+	
+	\todo{Test summary Tables}	
+		
 		\paragraph{Tests that involve repetitions}
+		These are a suite of benchmarks for testing the optimisations and performance on repetitive queries. A general overview is that the join-reordering optimisations strongly sped up benchmarks which ran \codeName{FindPairs} queries, but in \codeName{FindSingles} queries, the overhead of this formulation did not compete as strongly with the fast \codeName{SimpleFixedPointTraversal} methods. SQL performed strongly in \mathName{Upto} queries which use built in, optimised, recursive CTEs to calculate results, but less strongly in \mathName{Exactly} queries which do not have a built-in formulation.
+
 			\subparagraph{Exactly Test}
+			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join optimisations in the optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
+			
+			\todo{test summary tables}
 			\subparagraph{Exactly Pairs}
 			\subparagraph{UptoTest}
 			\subparagraph{UptoLarge}
