@@ -12,121 +12,132 @@
 \contentsline {section}{\numberline {2.3}Query Language}{14}{section.2.3}
 \contentsline {subsection}{\numberline {2.3.1}DSL Syntax}{14}{subsection.2.3.1}
 \contentsline {subsection}{\numberline {2.3.2}Algebraic Datatypes}{15}{subsection.2.3.2}
+\contentsline {paragraph}{FindPair queries}{15}{equation.2.3.1}
+\contentsline {paragraph}{FindSingle queries}{15}{equation.2.3.2}
 \contentsline {subsection}{\numberline {2.3.3}Typing}{15}{subsection.2.3.3}
-\contentsline {subsection}{\numberline {2.3.4}Semantics}{15}{subsection.2.3.4}
-\contentsline {subsection}{\numberline {2.3.5}Commands}{15}{subsection.2.3.5}
-\contentsline {section}{\numberline {2.4}Languages and Libraries Used}{15}{section.2.4}
-\contentsline {paragraph}{Scala}{15}{section*.9}
-\contentsline {paragraph}{Scala Build Tool}{15}{section*.10}
-\contentsline {paragraph}{PostgreSQL}{15}{section*.11}
-\contentsline {paragraph}{LMDB}{15}{section*.12}
-\contentsline {paragraph}{Scalaz}{15}{section*.13}
-\contentsline {paragraph}{JDBC}{16}{section*.14}
-\contentsline {paragraph}{LMDBJava}{16}{section*.15}
-\contentsline {paragraph}{Junit}{16}{section*.16}
-\contentsline {paragraph}{SLF4J}{16}{section*.17}
-\contentsline {paragraph}{Spray-JSON}{16}{section*.18}
-\contentsline {paragraph}{Python}{16}{section*.19}
-\contentsline {section}{\numberline {2.5}Software Engineering}{16}{section.2.5}
-\contentsline {subsection}{\numberline {2.5.1}Front End}{16}{subsection.2.5.1}
-\contentsline {subsection}{\numberline {2.5.2}Middle End}{16}{subsection.2.5.2}
-\contentsline {subsection}{\numberline {2.5.3}Back End}{16}{subsection.2.5.3}
-\contentsline {section}{\numberline {2.6}Scala Techniques}{16}{section.2.6}
-\contentsline {subsection}{\numberline {2.6.1}Type Enrichment}{17}{subsection.2.6.1}
-\contentsline {subsection}{\numberline {2.6.2}Implicit Parameters}{17}{subsection.2.6.2}
-\contentsline {subsection}{\numberline {2.6.3}Typeclass Pattern}{17}{subsection.2.6.3}
-\contentsline {chapter}{\numberline {3}Implementation}{19}{chapter.3}
-\contentsline {section}{\numberline {3.1}Note on Purity and Concurrency}{19}{section.3.1}
-\contentsline {section}{\numberline {3.2}Functional Programming Techniques}{19}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Monadic Compilation}{19}{subsection.3.2.1}
-\contentsline {subsection}{\numberline {3.2.2}Constrained Future Monad}{19}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}Operation Monad}{20}{subsection.3.2.3}
-\contentsline {subsection}{\numberline {3.2.4}Local and Global State}{20}{subsection.3.2.4}
-\contentsline {section}{\numberline {3.3}Schema Implementation}{21}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}Schema Hierarchy}{21}{subsection.3.3.1}
-\contentsline {subsection}{\numberline {3.3.2}DBObjects}{21}{subsection.3.3.2}
-\contentsline {subsection}{\numberline {3.3.3}Unerasure}{21}{subsection.3.3.3}
-\contentsline {subsection}{\numberline {3.3.4}Relations}{21}{subsection.3.3.4}
-\contentsline {subsection}{\numberline {3.3.5}SchemaDescription}{22}{subsection.3.3.5}
-\contentsline {subsection}{\numberline {3.3.6}Findables}{22}{subsection.3.3.6}
-\contentsline {section}{\numberline {3.4}Query ADT}{22}{section.3.4}
-\contentsline {section}{\numberline {3.5}Commands}{22}{section.3.5}
-\contentsline {section}{\numberline {3.6}DSL}{23}{section.3.6}
-\contentsline {section}{\numberline {3.7}Common Generic Algorithms}{23}{section.3.7}
-\contentsline {subsection}{\numberline {3.7.1}Simple Traversal}{23}{subsection.3.7.1}
-\contentsline {paragraph}{Exactly}{23}{section*.20}
-\contentsline {paragraph}{Upto}{23}{section*.21}
-\contentsline {paragraph}{FixedPoint}{23}{section*.22}
-\contentsline {subsection}{\numberline {3.7.2}Full traversal}{24}{subsection.3.7.2}
-\contentsline {paragraph}{Exactly}{24}{section*.23}
-\contentsline {paragraph}{Upto}{24}{section*.24}
-\contentsline {paragraph}{FixedPoint}{24}{section*.25}
-\contentsline {subsection}{\numberline {3.7.3}Pathfinding}{24}{subsection.3.7.3}
-\contentsline {subsection}{\numberline {3.7.4}Joins}{24}{subsection.3.7.4}
-\contentsline {section}{\numberline {3.8}Views and Commits}{25}{section.3.8}
-\contentsline {section}{\numberline {3.9}Memory Backend}{25}{section.3.9}
-\contentsline {subsection}{\numberline {3.9.1}Table Structure}{25}{subsection.3.9.1}
-\contentsline {subsection}{\numberline {3.9.2}Reads}{26}{subsection.3.9.2}
-\contentsline {subsection}{\numberline {3.9.3}Left Optimisation}{26}{subsection.3.9.3}
-\contentsline {subsection}{\numberline {3.9.4}Writes}{26}{subsection.3.9.4}
-\contentsline {subsection}{\numberline {3.9.5}Storage}{26}{subsection.3.9.5}
-\contentsline {subsection}{\numberline {3.9.6}Mutability}{26}{subsection.3.9.6}
-\contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{26}{subsection.3.9.7}
-\contentsline {section}{\numberline {3.10}PostgreSQL backend}{27}{section.3.10}
-\contentsline {subsection}{\numberline {3.10.1}Table Structure}{27}{subsection.3.10.1}
-\contentsline {paragraph}{Control Tables}{27}{section*.26}
-\contentsline {paragraph}{Schema defined Tables}{27}{section*.27}
-\contentsline {subsection}{\numberline {3.10.2}Query Structure}{27}{subsection.3.10.2}
-\contentsline {subsection}{\numberline {3.10.3}Monadic Compilation}{27}{subsection.3.10.3}
-\contentsline {subsection}{\numberline {3.10.4}Writes}{27}{subsection.3.10.4}
-\contentsline {subsection}{\numberline {3.10.5}Mutability}{28}{subsection.3.10.5}
-\contentsline {subsection}{\numberline {3.10.6}Pathfinding and Fixed Point Traversal}{28}{subsection.3.10.6}
-\contentsline {subsection}{\numberline {3.10.7}Object Storage}{28}{subsection.3.10.7}
-\contentsline {section}{\numberline {3.11}LMDB Backends}{28}{section.3.11}
-\contentsline {subsection}{\numberline {3.11.1}Common}{28}{subsection.3.11.1}
-\contentsline {paragraph}{LMDB API}{28}{section*.28}
-\contentsline {subparagraph}{Terminology}{28}{section*.29}
-\contentsline {subparagraph}{Transactions}{29}{section*.30}
-\contentsline {subparagraph}{JVM API}{29}{section*.31}
-\contentsline {paragraph}{Storage and Keys}{29}{section*.32}
-\contentsline {paragraph}{Table Structure}{29}{section*.33}
-\contentsline {paragraph}{Writes}{29}{section*.34}
-\contentsline {subsection}{\numberline {3.11.2}Original LMDB Implementation}{30}{subsection.3.11.2}
-\contentsline {subsection}{\numberline {3.11.3}Batched}{30}{subsection.3.11.3}
-\contentsline {paragraph}{Read Batching}{30}{section*.35}
-\contentsline {paragraph}{Pre-Caching}{30}{section*.36}
-\contentsline {paragraph}{FindFrom}{30}{section*.37}
-\contentsline {subsection}{\numberline {3.11.4}Common Subexpression Elimination}{30}{subsection.3.11.4}
-\contentsline {paragraph}{The Memoisation Problem}{31}{section*.38}
-\contentsline {paragraph}{Retrievers}{31}{section*.39}
-\contentsline {paragraph}{Monadic Compilation}{31}{section*.40}
-\contentsline {subsection}{\numberline {3.11.5}Complex Common Subexpression Elimination}{32}{subsection.3.11.5}
-\contentsline {paragraph}{Index Building}{32}{section*.41}
-\contentsline {paragraph}{Exactly}{32}{section*.42}
-\contentsline {paragraph}{Upto Optimisation}{32}{section*.43}
-\contentsline {chapter}{\numberline {4}Evaluation}{33}{chapter.4}
-\contentsline {section}{\numberline {4.1}Unit Tests}{33}{section.4.1}
-\contentsline {section}{\numberline {4.2}Performance Tests}{33}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}Introduction}{33}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Hardware}{33}{subsection.4.2.2}
-\contentsline {subsection}{\numberline {4.2.3}Datasets}{33}{subsection.4.2.3}
-\contentsline {paragraph}{IMDB}{34}{section*.44}
-\contentsline {paragraph}{UFC}{34}{section*.45}
-\contentsline {subsection}{\numberline {4.2.4}Test Harness}{34}{subsection.4.2.4}
-\contentsline {subsection}{\numberline {4.2.5}Results}{34}{subsection.4.2.5}
-\contentsline {paragraph}{Overall Picture}{34}{section*.46}
-\contentsline {paragraph}{Pathfinding}{35}{section*.47}
-\contentsline {paragraph}{Redundancy}{35}{section*.48}
-\contentsline {paragraph}{Conjunctions and Disjunctions}{35}{section*.49}
-\contentsline {paragraph}{Tests that involve repetitions}{35}{section*.50}
-\contentsline {subparagraph}{Exactly Test}{35}{section*.51}
-\contentsline {subparagraph}{Exactly Pairs}{35}{section*.52}
-\contentsline {subparagraph}{UptoTest}{35}{section*.53}
-\contentsline {subparagraph}{UptoLarge}{35}{section*.54}
-\contentsline {subparagraph}{JoinSpeed}{35}{section*.55}
-\contentsline {section}{\numberline {4.3}Semantics Proofs}{35}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}Denotational == Operational}{35}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}Typesafety}{35}{subsection.4.3.2}
-\contentsline {subsection}{\numberline {4.3.3}Join as a Monoid}{35}{subsection.4.3.3}
-\contentsline {chapter}{\numberline {5}Conclusion}{37}{chapter.5}
-\contentsline {chapter}{Bibliography}{37}{chapter.5}
+\contentsline {subsection}{\numberline {2.3.4}Semantics}{17}{subsection.2.3.4}
+\contentsline {paragraph}{Operational Semantics}{17}{section*.11}
+\contentsline {paragraph}{Denotational Semantics}{19}{section*.12}
+\contentsline {subsection}{\numberline {2.3.5}Commands}{21}{subsection.2.3.5}
+\contentsline {section}{\numberline {2.4}Languages and Libraries Used}{21}{section.2.4}
+\contentsline {paragraph}{Scala}{21}{section*.13}
+\contentsline {paragraph}{Scala Build Tool}{21}{section*.14}
+\contentsline {paragraph}{PostgreSQL}{21}{section*.15}
+\contentsline {paragraph}{LMDB}{21}{section*.16}
+\contentsline {paragraph}{Scalaz}{21}{section*.17}
+\contentsline {paragraph}{JDBC}{21}{section*.18}
+\contentsline {paragraph}{LMDBJava}{21}{section*.19}
+\contentsline {paragraph}{Junit}{21}{section*.20}
+\contentsline {paragraph}{SLF4J}{21}{section*.21}
+\contentsline {paragraph}{Spray-JSON}{21}{section*.22}
+\contentsline {paragraph}{Python}{21}{section*.23}
+\contentsline {section}{\numberline {2.5}Software Engineering}{22}{section.2.5}
+\contentsline {subsection}{\numberline {2.5.1}Front End}{22}{subsection.2.5.1}
+\contentsline {subsection}{\numberline {2.5.2}Middle End}{22}{subsection.2.5.2}
+\contentsline {subsection}{\numberline {2.5.3}Back End}{22}{subsection.2.5.3}
+\contentsline {section}{\numberline {2.6}Scala Techniques}{22}{section.2.6}
+\contentsline {subsection}{\numberline {2.6.1}Type Enrichment}{22}{subsection.2.6.1}
+\contentsline {subsection}{\numberline {2.6.2}Implicit Parameters}{22}{subsection.2.6.2}
+\contentsline {subsection}{\numberline {2.6.3}Typeclass Pattern}{23}{subsection.2.6.3}
+\contentsline {chapter}{\numberline {3}Implementation}{25}{chapter.3}
+\contentsline {section}{\numberline {3.1}Note on Purity and Concurrency}{25}{section.3.1}
+\contentsline {section}{\numberline {3.2}Functional Programming Techniques}{25}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Monadic Compilation}{25}{subsection.3.2.1}
+\contentsline {subsection}{\numberline {3.2.2}Constrained Future Monad}{25}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.3}Operation Monad}{26}{subsection.3.2.3}
+\contentsline {subsection}{\numberline {3.2.4}Local and Global State}{26}{subsection.3.2.4}
+\contentsline {section}{\numberline {3.3}Schema Implementation}{27}{section.3.3}
+\contentsline {subsection}{\numberline {3.3.1}Schema Hierarchy}{27}{subsection.3.3.1}
+\contentsline {subsection}{\numberline {3.3.2}DBObjects}{27}{subsection.3.3.2}
+\contentsline {subsection}{\numberline {3.3.3}Unerasure}{27}{subsection.3.3.3}
+\contentsline {subsection}{\numberline {3.3.4}Relations}{27}{subsection.3.3.4}
+\contentsline {subsection}{\numberline {3.3.5}SchemaDescription}{28}{subsection.3.3.5}
+\contentsline {subsection}{\numberline {3.3.6}Findables}{28}{subsection.3.3.6}
+\contentsline {section}{\numberline {3.4}Query ADT}{28}{section.3.4}
+\contentsline {section}{\numberline {3.5}Commands}{28}{section.3.5}
+\contentsline {section}{\numberline {3.6}DSL}{29}{section.3.6}
+\contentsline {section}{\numberline {3.7}Common Generic Algorithms}{29}{section.3.7}
+\contentsline {subsection}{\numberline {3.7.1}Simple Traversal}{29}{subsection.3.7.1}
+\contentsline {paragraph}{Exactly}{29}{section*.24}
+\contentsline {paragraph}{Upto}{29}{section*.25}
+\contentsline {paragraph}{FixedPoint}{29}{section*.26}
+\contentsline {subsection}{\numberline {3.7.2}Full traversal}{30}{subsection.3.7.2}
+\contentsline {paragraph}{Exactly}{30}{section*.27}
+\contentsline {paragraph}{Upto}{30}{section*.28}
+\contentsline {paragraph}{FixedPoint}{30}{section*.29}
+\contentsline {subsection}{\numberline {3.7.3}Pathfinding}{30}{subsection.3.7.3}
+\contentsline {subsection}{\numberline {3.7.4}Joins}{30}{subsection.3.7.4}
+\contentsline {section}{\numberline {3.8}Views and Commits}{31}{section.3.8}
+\contentsline {section}{\numberline {3.9}Memory Backend}{31}{section.3.9}
+\contentsline {subsection}{\numberline {3.9.1}Table Structure}{31}{subsection.3.9.1}
+\contentsline {subsection}{\numberline {3.9.2}Reads}{32}{subsection.3.9.2}
+\contentsline {subsection}{\numberline {3.9.3}Left Optimisation}{32}{subsection.3.9.3}
+\contentsline {subsection}{\numberline {3.9.4}Writes}{32}{subsection.3.9.4}
+\contentsline {subsection}{\numberline {3.9.5}Storage}{32}{subsection.3.9.5}
+\contentsline {subsection}{\numberline {3.9.6}Mutability}{32}{subsection.3.9.6}
+\contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{32}{subsection.3.9.7}
+\contentsline {section}{\numberline {3.10}PostgreSQL backend}{33}{section.3.10}
+\contentsline {subsection}{\numberline {3.10.1}Table Structure}{33}{subsection.3.10.1}
+\contentsline {paragraph}{Control Tables}{33}{section*.30}
+\contentsline {paragraph}{Schema defined Tables}{33}{section*.31}
+\contentsline {subsection}{\numberline {3.10.2}Query Structure}{33}{subsection.3.10.2}
+\contentsline {subsection}{\numberline {3.10.3}Monadic Compilation}{33}{subsection.3.10.3}
+\contentsline {subsection}{\numberline {3.10.4}Writes}{33}{subsection.3.10.4}
+\contentsline {subsection}{\numberline {3.10.5}Mutability}{34}{subsection.3.10.5}
+\contentsline {subsection}{\numberline {3.10.6}Pathfinding and Fixed Point Traversal}{34}{subsection.3.10.6}
+\contentsline {subsection}{\numberline {3.10.7}Object Storage}{34}{subsection.3.10.7}
+\contentsline {section}{\numberline {3.11}LMDB Backends}{34}{section.3.11}
+\contentsline {subsection}{\numberline {3.11.1}Common}{34}{subsection.3.11.1}
+\contentsline {paragraph}{LMDB API}{34}{section*.32}
+\contentsline {subparagraph}{Terminology}{34}{section*.33}
+\contentsline {subparagraph}{Transactions}{35}{section*.34}
+\contentsline {subparagraph}{JVM API}{35}{section*.35}
+\contentsline {paragraph}{Storage and Keys}{35}{section*.36}
+\contentsline {paragraph}{Table Structure}{35}{section*.37}
+\contentsline {paragraph}{Writes}{35}{section*.38}
+\contentsline {subsection}{\numberline {3.11.2}Original LMDB Implementation}{36}{subsection.3.11.2}
+\contentsline {subsection}{\numberline {3.11.3}Batched}{36}{subsection.3.11.3}
+\contentsline {paragraph}{Read Batching}{36}{section*.39}
+\contentsline {paragraph}{Pre-Caching}{36}{section*.40}
+\contentsline {paragraph}{FindFrom}{36}{section*.41}
+\contentsline {subsection}{\numberline {3.11.4}Common Subexpression Elimination}{36}{subsection.3.11.4}
+\contentsline {paragraph}{The Memoisation Problem}{37}{section*.42}
+\contentsline {paragraph}{Retrievers}{37}{section*.43}
+\contentsline {paragraph}{Monadic Compilation}{37}{section*.44}
+\contentsline {subsection}{\numberline {3.11.5}Complex Common Subexpression Elimination}{38}{subsection.3.11.5}
+\contentsline {paragraph}{Index Building}{38}{section*.45}
+\contentsline {paragraph}{Exactly}{38}{section*.46}
+\contentsline {paragraph}{Upto Optimisation}{38}{section*.47}
+\contentsline {chapter}{\numberline {4}Evaluation}{39}{chapter.4}
+\contentsline {section}{\numberline {4.1}Unit Tests}{39}{section.4.1}
+\contentsline {section}{\numberline {4.2}Performance Tests}{39}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Introduction}{39}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}Hardware}{39}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.3}Datasets}{39}{subsection.4.2.3}
+\contentsline {paragraph}{IMDB}{40}{section*.48}
+\contentsline {paragraph}{UFC}{40}{section*.49}
+\contentsline {subsection}{\numberline {4.2.4}Test Harness}{40}{subsection.4.2.4}
+\contentsline {subsection}{\numberline {4.2.5}Results}{40}{subsection.4.2.5}
+\contentsline {paragraph}{Overall Picture}{40}{section*.50}
+\contentsline {paragraph}{Redundancy}{41}{section*.51}
+\contentsline {paragraph}{Conjunctions and Disjunctions}{41}{section*.52}
+\contentsline {paragraph}{Tests that involve repetitions}{42}{section*.53}
+\contentsline {subparagraph}{Exactly Test}{42}{section*.54}
+\contentsline {subparagraph}{Exactly Pairs}{42}{section*.55}
+\contentsline {subparagraph}{UptoTest}{43}{section*.56}
+\contentsline {subparagraph}{UptoLarge}{43}{section*.57}
+\contentsline {paragraph}{JoinSpeed}{43}{section*.58}
+\contentsline {paragraph}{Closing Thoughts}{44}{section*.59}
+\contentsline {section}{\numberline {4.3}Semantics Proofs}{44}{section.4.3}
+\contentsline {subsection}{\numberline {4.3.1}Denotational == Operational}{44}{subsection.4.3.1}
+\contentsline {subsection}{\numberline {4.3.2}Typesafety}{44}{subsection.4.3.2}
+\contentsline {subsection}{\numberline {4.3.3}Join as a Monoid}{44}{subsection.4.3.3}
+\contentsline {chapter}{\numberline {5}Conclusion}{45}{chapter.5}
+\contentsline {section}{\numberline {5.1}Successes}{45}{section.5.1}
+\contentsline {section}{\numberline {5.2}Further extensions}{45}{section.5.2}
+\contentsline {section}{\numberline {5.3}Lessons learned}{46}{section.5.3}
+\contentsline {section}{\numberline {5.4}Concluding Thoughts}{46}{section.5.4}
+\contentsline {chapter}{Bibliography}{46}{section.5.4}
+\contentsline {chapter}{\numberline {A}domain closure(A, v)}{49}{appendix.A}
+\contentsline {paragraph}{Theorem: $closure(A, v)$ is a domain}{49}{section*.61}
+\contentsline {paragraph}{proof:}{49}{section*.62}

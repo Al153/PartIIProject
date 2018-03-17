@@ -6,12 +6,11 @@
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
 \usepackage{verbatim}
 \usepackage{docmute}   % only needed to allow inclusion of proposal.tex
-
-
-\usepackage{breqn}
 \usepackage{stmaryrd}
 \usepackage{amssymb}
+\usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{breqn}
 
 %Highlighter commands. most need to properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
@@ -21,6 +20,28 @@
 \newcommand\note[1]{\textcolor{cyan}{#1}}
 \newcommand\mathName[1]{\textcolor{pink}{#1}}
 
+\newcommand{\reference}{RefImpl}
+\newcommand{\batched}{LMDBatched}
+\newcommand{\cse}{LMDBCSE}
+\newcommand{\postgres}{Postgres}
+
+\newcommand\resultTable[4]{
+\begin{center}
+	\begin{tabular}{ |p{3cm}||p{3cm}|p{3cm}|  }
+ 	\hline
+ 		Name & \multicolumn{2}{|c|}{#1} \\
+ 	\hline
+ 		Iterations & \multicolumn{2}{|c|}{#2} \\
+ 	\hline
+ 		Queries & \multicolumn{2}{|c|}{#3} \\
+ 	\hline
+ 		implementation   	& 	time (ms) & /optimised \\
+		#4
+ 	\hline
+	\end{tabular}
+\end{center}
+
+}
 
 \newcommand\either[0]{\textbackslash/}
 \newcommand\eitherR[0]{\textbackslash/-}
@@ -186,16 +207,198 @@ As a result, I settled upon on an edge-labelled-relation oriented approach which
 
 This is much more readable and concise. With this syntax, and the assumption that \codeName{ActsIn} relates \codeName{Actors} to \codeName{Movies}, Scala’s typesystem can infer that \codeName{coactor} relates \codeName{Actors} to other \codeName{Actors}. There is also syntax for repetitions, intersections and unions. \todo{Examples in the appendix}
 \subsection{Algebraic Datatypes}
-These DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values. \todo{Insert latex of the ADTs here}
+These DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values.
+
+\paragraph{FindPair queries}
+\begin{equation}
+\label{PDefinition}
+\begin{split}
+P  &\rightarrow Rel(R) \mbox{ Find pairs related by the relation R}\\
+&\mid RevRel(R) \mbox{ Find pairs related by the relation R in the reverse direction}\\
+&\mid Chain(P, P) \mbox{   Find pairs related by the first subquery followed by the second}\\
+&\mid And(P, P) \mbox{  Find pairs related by both of the sub-queries}\\
+&\mid AndRight(P, S) \mbox{  Find pairs related by P where the right value is a result of s}\\
+&\mid AndLeft(P, S) \mbox{  Find pairs related by P where the left value is a result of s}\\
+&\mid Or(P, P) \mbox{  Find pairs related by either of the sub-queries}\\
+&\mid Distinct(P) \mbox{  Find pairs related by P that are not symmetrical}\\
+&\mid Id_A \mbox{ Identity relation}\\
+&\mid Exactly(\mathit{n}, P) \mbox{  Find pairs related by n repetitions of P}\\
+&\mid Upto(\mathit{n}, P) \mbox{  Find pairs related by upto n repetitions of P}\\
+&\mid FixedPoint(P) \mbox{  Find the transitive closure of P}\\
+\end{split}
+\end{equation} 
+where $n$ denotes a natural number. These queries lookup a set of pairs of objects.\\
+
+\paragraph{FindSingle queries}
+\begin{equation}
+\label{SDefinition}
+\begin{split}
+S & \rightarrow Find(F) \mbox{ Find values that match the findable F}\\
+&\mid From(S, P) \mbox{ Find values that are reable from results of S via P}\\
+&\mid AndS(S, S') \mbox{ Find values that are results of both subqueries}\\
+& \mid OrS(S, S') \mbox{ Find values that are results of either subquery}
+\end{split}
+\end{equation} 
+Which lookup sets of single objects.\\
+
 
 We also define a view of the database and schema, as well as findables 
 
 \todo{Import view + schema semantic definitions here; reword if necessary}
 
 \subsection{Typing}
-In order to ensure the correctness of a given query, there is a type system which checks the correctness of queries. \todo{Latex for typing;} \todo{Whre do I mention that this is encoded into scala?}
+In order to ensure the correctness of a given query, there is a type system which checks the correctness of queries. Typing rules take two forms. Firstly typing of pair queries:
+\[ \Sigma \vdash P\colon (A, B)\]
+
+Which means ``under the schema $\Sigma$, pair query $P$ returns a subset of $A \times B$''.  The second is for single queries:
+
+\[ \Sigma \vdash S \colon A \]
+
+Which means ``under the schema $\Sigma$ single query returns a subset of $A$''
+
+The rules of the first kind are as follows
+
+\[ \begin{array}{c}
+\displaystyle\mbox{(Rel)}\frac{\Sigma(r)\downarrow(A, B)}{\typeRule{Rel(r)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(Rev)}\frac{\Sigma(r)\downarrow(B, A)}{\typeRule{Rel(r)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(Id)}\frac{\Sigma(A)\downarrow True}{\typeRule{Id_A}{(A, A)}} \\[3ex]
+
+\displaystyle\mbox{(Chain)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{Q}{(B, C)}}{\typeRule{Chain(P, Q)}{(A, C)}} \\[3ex]
+
+\displaystyle\mbox{(And)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{Q}{(A, B)}}{\typeRule{And(P, Q)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(Or)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{Q}{(A, B)}}{\typeRule{Or(P, Q)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(Distinct)}\frac{\typeRule{P}{(A, B)}}{\typeRule{Distinct(P)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(AndLeft)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{S}{(A)}}{\typeRule{AndLeft(P,S)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(AndRight)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{S}{B}}{\Sigma \vdash \typeRule{AndRight(P, S)}{(A, B)}} \\[3ex]
+
+\displaystyle\mbox{(Exactly)}\frac{\typeRule{P}{(A, A)}}{\typeRule{Exactly(n, P)}{(A, A)}} \\[3ex]
+
+\displaystyle\mbox{(Upto)}\frac{\typeRule{P}{(A, A)}}{\typeRule{Upto(n, P)}{(A, A)}} \\[3ex]
+
+\displaystyle\mbox{(FixedPoint)}\frac{\typeRule{P}{(A, A)}}{\typeRule{FixedPoint(P)}{(A, A)}} \\[3ex]
+
+\end{array} \]
+
+
+The rules for types of Single queries are similar:
+
+\[ \begin{array}{c}
+\displaystyle\mbox{(Find)}\frac{\Sigma(f)\downarrow(A)}{\typeRule{Find(f)}{A}} \\[3ex]
+
+\displaystyle\mbox{(From)}\frac{\typeRule{P}{(A, B)} \indent \typeRule{S}{A}}{\typeRule{From(S, P)}{B}} \\[3ex]
+
+\displaystyle\mbox{(AndS)}\frac{  \typeRule{S}{A} \indent  \typeRule{S'}{A}}{\typeRule{AndS(S, S')}{A}} \\[3ex]
+
+\displaystyle\mbox{(OrS)}\frac{  \typeRule{S}{A} \indent  \typeRule{S'}{A}}{\typeRule{OrS(S, S')}{A}} \\[3ex]
+\end{array}
+\]
 \subsection{Semantics}
-    To fully define the query language, we need to define the semantics. I have defined two collections of semantics: operational style and denotational style. \todo{import he latex for these;}\todo{Proof?} I have also proved in the appendix the correspondence of these two sets of semantics.
+    To fully define the query language, we need to define the semantics. I have defined two collections of semantics: operational style and denotational style.
+\paragraph{Operational Semantics}   
+
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft_A Q$ to mean``a is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
+
+\[ \begin{array}{c}
+\displaystyle\mbox{(Rel)}\frac{(a,b) \in v(r)}{\opRule{(a, b)}{(A, B)}{Rel(r)}} \\[3ex]
+
+\displaystyle\mbox{(Rev)}\frac{(b,a) \in v(r)}{\opRule{(a, b)}{(A, B)}{RevRel(r)}} \\[3ex]
+
+\displaystyle\mbox{(Id)}\frac{a \in v(A)}{\opRule{(a, a)} {(A, A)} {Id_A}} \\[3ex]
+
+\displaystyle\mbox{(Distinct)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent a \neq b}{\opRule{(a,b)}{(A, B)}{Distinct(P)}} \\[3ex]
+
+\displaystyle\mbox{(And)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{(a,b)}{(A, B)}{Q}}{\opRule{(a,b)}{(A, B)}{And(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(Or1)}\frac{\opRule{(a,b)}{(A, B)}{P}}{\opRule{(a,b)}{(A, B)}{Or(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(Or2)}\frac{\opRule{(a,b)}{(A, B)}{Q}}{\opRule{(a,b)}{(A, B)}{Or(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(Chain)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{(b,c)}{(B, C)}{Q}}{\opRule{(a,c)}{(A, C)}{Chain(P, Q)}} \\[3ex]
+
+\displaystyle\mbox{(AndLeft)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{a}{A}{S}}{\opRule{(a,b)}{(A, B)}{AndLeft(P, S)}} \\[3ex]
+
+\displaystyle\mbox{(AndRight)}\frac{\opRule{(a,b)}{(A, B)}{P} \indent \opRule{b}{
+B}{S}}{\opRule{(a,b)}{(A, B)}{AndRight(P, S)}} \\[3ex]
+
+\displaystyle\mbox{(Exactly_0)}\frac{\opRule{(a,b)}{(A, A)}{Id_A}}{\opRule{(a, b)}{(A, A)}{Exactly(0, P)}} \\[3ex]
+
+\displaystyle\mbox{(Exactly_{n+1})}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{Exactly(n, P)}}{\opRule{(a, c)}{(A, A)}{Exactly(n + 1, P)}} \\[3ex]
+
+\displaystyle\mbox{(Upto_0)}\frac{\opRule{(a,b)}{(A, A)}{Id_A}}{\opRule{(a, b)}{(A, A)}{Upto(0, P)}} \\[3ex]
+
+\displaystyle\mbox{(Upto_n)}\frac{\opRule{(a, b)}{(A, A)}{Upto(n, P)}}{\opRule{(a, b)}{(A, A)}{Upto(n + 1, P)}} \\[3ex]
+
+\displaystyle\mbox{(Upto_{n+1})}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{Upto(n, P)}}{\opRule{(a, c)}{(A, A)}{Upto(n + 1, P)}} \\[3ex]
+
+\displaystyle\mbox{(fix1)}\frac{\opRule{(a,b)}{(A, A)}{Id_A}}{\opRule{(a, b)}{(A, A)}{FixedPoint(P)}} \\[3ex]
+
+\displaystyle\mbox{(fix2)}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{FixedPoint(P)}}{\opRule{(a, b)}{(A, A)}{FixedPoint(P)}} \\[3ex]
+
+\end{array} \]
+
+And the FindSingle rules
+
+\[ \begin{array}{c}
+
+\displaystyle\mbox{(Find)}\frac{a \in v(A) \indent f(a)\downarrow True}{\opRule{a}{A}{Find(f)}} \\[3ex]
+
+\displaystyle\mbox{(From)}\frac{\opRule{a}{A}{S} \indent \opRule{(a,b)}{)(A, B)}{P}}{\opRule{b}{A}{From(S, P)}} \\[3ex]
+
+\displaystyle\mbox{(AndS)}\frac{\opRule{a}{A}{S} \indent \opRule{a}{A}{S'}}{\opRule{a}{A}{And(S, S')}} \\[3ex]
+
+\displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
+
+\displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S'}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
+\end{array} \] 
+\paragraph{Denotational Semantics}
+The operational semantics clearly demonstrate membership of a query, but don't give a means to efficiently generate the results of query. To this end, we introduce denotations $\llbracket P \rrbracket$ and $\llbracket S \rrbracket$ such that \[\Sigma \vdash P \colon (A, B) \Rightarrow\llbracket P \rrbracket \colon View_{\Sigma} \rightarrow \wp(A \times B)\]
+
+and \[\Sigma \vdash S \colon A \Rightarrow\llbracket S \rrbracket \colon View_{\Sigma} \rightarrow \wp(A)\] Such denotations should be compositional and syntax directed, whilst still corresponding to the operational semantics.
+
+\[ \begin{array}{c}
+ \deno{Rel(r)} = v(r) \\[3ex]
+ \deno{RevRel(r)} = swap(v(r)) \\[3ex]
+ \deno{Id_A} = dup(v(A)) \\[3ex]
+ \deno{Chain(P, Q)} = join(\deno{P}, \deno{Q}) \\[3ex]
+ \deno{And(P, Q)} = \deno{P} \cap \deno{Q} \\[3ex]
+ \deno{Or(P, Q)} = \deno{P} \cup \deno{Q} \\[3ex]
+ \deno{AndLeft(P, S)} = filterLeft(\deno{P}, \deno{S}) \\[3ex]
+ \deno{AndRight(P, S)} = filterRight(\deno{P}, \deno{S}) \\[3ex]
+ \deno{Distinct(P)} = distinct(\deno{P}) \\[3ex]
+ 
+ \deno{Exactly(n, P)} = (\lambda pairs. join(\deno{P}, pairs))^n \deno{Id_A} \\[3ex]
+ \deno{Upto(n, P)} = (\lambda pairs. join(\deno{P}, pairs) \cup pairs)^n \deno{Id_A} \\[3ex]
+ \deno{FixedPoint(P)} = fix (\lambda pairs. join(\deno{P}, pairs) \cup pairs)  \mbox{ in the domain $\clos$}\\[3ex]
+\end{array} \]
+
+And similarly with single queries
+
+\[ \begin{array}{c}
+\deno{Find(f)} = \setComp{a \in v(A)}{f(a)\downarrow True} \mbox{ for $\Sigma(f) = A$} \\[3ex]
+
+\deno{From(S, P)} =  \setComp{b}{(a, b) \in \deno{P} \wedge a \in \deno{S}}   \\[3ex]
+
+\deno{AndS(S, S')} = \deno{S} \cap \deno{S'} \\[3ex]
+
+\deno{OrS(S, S')} = \deno{S} \cup \deno{S'} \\[3ex]
+
+\end{array}\]
+
+with the following definitions:
+\[ swap(s) = \setComp{(b,a)}{(a, b) \i s}\]
+\[ dup(s) = \setComp{(a,a)}{a \in s}\]
+\[ join(p, q) = \setComp{(a, c)}{ \exists b. (a, b) \in p \wedge (b, c) \in q}\]
+\[ distinct(s) = \setComp{(a, b) \in s} { a \neq b} \]
+\[ filterLeft(p, s) = \setComp{(a, b) \in p}{a \in s}\]
+\[ filterRight(p, s) = \setComp{(a, b) \in p}{b \in s}\]
+    
+    \todo{ I have also proved in the appendix the correspondence of these two sets of semantics.}
 \subsection{Commands}
 In addition to the query construction language, there are five commands which make use of the queries. \todo{define and semantics}
 
@@ -331,7 +534,7 @@ In order to build the database structures the backends need a definitive collect
 	
 \section{Query ADT}
 	\todo{This feels like it needs rewriting}
-The ADTs described in the preparation section \todo{link}	are implemented in scala each by a pair of ADTs: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they lookup. Due to this typing and scala’s type inference, I have encoded the type of the typed ADTs such that the scala compiler checks the types and does inference for us, according to the type rules of the query language. \todo{Appendix: Type definitions of ADT} The only rules that cannot be checked at compile time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{Id}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile time without dependent types.  These typed ADTs are erased,  with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a runtime error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
+The ADTs described in the preparation section \todo{link}	are implemented in scala each by a pair of ADTs: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they lookup. Using this parameterisation, I have encoded the type of the typed ADTs such that the scala compiler checks the typing of the any generated query and does type inference for us, according to the type rules of the query language. \todo{Appendix: Class definitions of ADT} The only rules that cannot be checked at compile time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{Id}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile time without dependent types.  These typed ADTs are erased,  with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a runtime error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
 	
 \section{Commands}
 As specified in the previous chapter, each backend needs to implement five commands: 
@@ -577,6 +780,7 @@ The objects in the database are as follows:
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
+		\todo{results;}
 		\todo{This needs to be more specific, rewrite}
 		An overall view of the results is that, as might be expected, the SQL implementation is the fastest, with the most aggressively optimised LMDB typically performing the closest in speed to SQL, \todo{calculate precise values} though occasionally beating SQL’s performance by up to 150\%. Due to a high overhead of initiating individual queries, the SQL instance performed appalling on pathfinding queries. The LMDB optimisations worked very effectively where they were hypothesised to, such as queries with repeated joins and those which made use of \mathName{Exactly} and \mathName{Upto}, yielding orders of magnitude speedup. However, in some tests, the optimisations yielded overheads slowing down performance, especially those queries which make use of \mathName{FindFrom} rather than finding pairs.
 
@@ -588,24 +792,86 @@ Typically, the CSE optimisations alone do not provide a statistically significan
 		\paragraph{Redundancy}
 			This test is to demonstrate the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \note{DISTINCT} modifier of queries, and ends up running out of temporary space on this query.
 			
-			\todo{Test summary table}
+			\todo{Graph}
+			
+\resultTable{Redundancy}{4 each}{\todo{queries}}{ \reference   	& 	381,972 & 1\\
+ \cse 			&   379,280 & 0.993 \\
+ \batched 		&	9,318,741 & 24.4 \\
+ \postgres    	&	Did not finish & Did not finish \\
+ } 
 
 		\paragraph{Conjunctions and Disjunctions}
 	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
-	
-	\todo{Test summary Tables}	
-		
+				\todo{Graph}
+\resultTable{Conjunctions}{40 each}{\todo{queries}}{ 
+ \reference 			&   879,984 & 1 \\
+ \cse 					&	827,734 & 0.941	\\
+ \batched 				&   791,678 & 0.900 \\
+ \postgres    			&	106,165 & 0.121 \\
+ }
+				\todo{Graph}
+	\resultTable{Disjunctions}{40 each}{\todo{queries}}{ 
+ \reference 			&   853,664 & 1 \\
+ \cse 					&	824,799 & 0.966	\\
+ \batched				&   800,455 & 0.938 \\
+ \postgres    			&	112,488 & 0.132 \\
+ }	
 		\paragraph{Tests that involve repetitions}
 		These are a suite of benchmarks for testing the optimisations and performance on repetitive queries. A general overview is that the join-reordering optimisations strongly sped up benchmarks which ran \codeName{FindPairs} queries, but in \codeName{FindSingles} queries, the overhead of this formulation did not compete as strongly with the fast \codeName{SimpleFixedPointTraversal} methods. SQL performed strongly in \mathName{Upto} queries which use built in, optimised, recursive CTEs to calculate results, but less strongly in \mathName{Exactly} queries which do not have a built-in formulation.
 
 			\subparagraph{Exactly Test}
 			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join optimisations in the optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
-			
-			\todo{test summary tables}
+						\todo{Graph}
+	\resultTable{Exactly}{50}{\todo{queries}}{ 
+ \reference 			&  	1,752 	& 1 \\
+ \cse 					&	1,798 	& 1.03	\\
+ \batched				&   1,513 	& 0.834 \\
+ \postgres    			&	102,461 & 58.5 \\
+ }	
 			\subparagraph{Exactly Pairs}
+This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} query over the small movies database. Since this test involves keeping track of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations based on generic algorithm. Postgres also performs well in this test.
+			
+
+			\todo{Graph}
+	\resultTable{ExactlyPairs}{50}{\todo{queries}}{ 
+ \reference 			&  	83,269 		& 1 \\
+ \cse 					&	1,792,388 	& 21.5 \\
+ \batched				&   1,787,390 	& 21.5 \\
+ \postgres    			&	107,797 	& 1.29 \\
+ }	
+
+
 			\subparagraph{UptoTest}
+			
+				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides significant speed-ups, such as 225x on the other LMDB backends and 1.5x over postgres.
+						\todo{Graph}
+				\resultTable{Upto}{10}{\todo{queries}}{ 
+ \reference 			&  	126,448 	& 1 \\
+ \cse 					&	28,491,910 	& 225 \\
+ \batched				&   28,423,658 	& 225 \\
+ \postgres    			&	197,880 	& 1.56 \\
+ }	
 			\subparagraph{UptoLarge}
-			\subparagraph{JoinSpeed}
+			
+				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance.
+			\todo{Graph}
+				\resultTable{Upto}{10}{\todo{queries}}{ 
+ \reference 			&  	1,059,091 	& 1 \\
+ \postgres    			&	1,557,314 	& 1.47 \\
+ }	
+	
+			\paragraph{JoinSpeed}
+				This test is  to demonstrate the cost of joins, we interleave queries that calculate two subqueries and then combine them using, firstly, a relatively fast And and, secondly, instead, a higher complexity join. In theory, the difference between these two types of queries should give us an idea of the cost of a join.
+			\todo{Graph}
+			\resultTable{Join Speed}{150 each}{\todo{queries}}{
+			\reference   	& 	368,320 & 1 	\\
+ 			\cse 			&   525,992 & 1.43   	\\
+			\batched 		&	543,909 & 1.48	\\
+			\postgres    	&	289,352 & 0.786	\\}
+			
+						\todo{More detail}
+			\paragraph{Closing Thoughts}
+			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. An option to produce a performant back end might be to produce heuristics for estimating graph density and the relative performance of the various LMDB backends upon it to create an adaptive backend. Since all the LMDB backends use the same underlying database format (indeed the code for constructing and writing to the database remains the same), a backend could choose at query time which strategy it wants to use to execute each individual query.
 \section{Semantics Proofs}
 	\subsection{Denotational == Operational}
 	\subsection{Typesafety}
@@ -613,6 +879,25 @@ Typically, the CSE optimisations alone do not provide a statistically significan
 
 	
 \chapter{Conclusion}
+
+\section{Successes}
+To the best of my knowledge, the graph database system I have built over the last seven months is one of the, if not the, first explicitly purely functional graph database systems in existence. This project is a demonstration that complex, performant software projects can be built using purely functional languages, whilst keeping the benefits of strong type systems. I feel that despite having written the project in Scala, a high level, often inefficient language I have achieved an acceptable level of performance for graph traversal. Although the system would need significant work in areas of security, networked access, and tests and tweaks on real world use cases to become commercially viable, it would be interesting to see if companies known for their use of functional programming, especially finance firms, might find use cases for graph databases
+
+\section{Further extensions}
+Interesting extensions to the core project that, given more time, I would have been interested to explore include
+\begin{itemize}
+ \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by how large the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
+ \item The implementation of deletions and garbage collection of unused views of the database. Garbage collection in particular might be difficult, as the database is not required to store any state about client instances.
+ \item Exploration of  improvement of the schema system using a dependent types library, such as shapeless.
+ \item Rewriting the lowest layer of the LMDB backends' interpreters in C or another low level language to extract maximum performance from the LMDB system, without having to construct Scala collections at every step.
+\end{itemize}
+
+\section{Lessons learned}
+	In hindsight, I might aimed to build a narrower project, focusing on a single backend and comparing  performance against a widely used graph database such as neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and really digging down to extract all redundancy.
+
+\section{Concluding Thoughts}
+I hope for another chance to this space as I feel there are still many areas to explore within it.
+
 
 
 
@@ -624,5 +909,41 @@ Typically, the CSE optimisations alone do not provide a statistically significan
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the appendices
 \appendix
+
+\chapter{domain \clos}
+
+\todo{Do we split this?}
+For the various semantics proofs it is necessary to define the Scott domain $\clos$ for some object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ such that $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$. From this point on, I shall use $x \subseteq y$ to mean $y \sqsubseteq x$.
+
+\hfill\begin{minipage}{\dimexpr\textwidth-1cm}
+\paragraph{Theorem: $\clos$ is a domain}
+
+
+Firstly, by definition, $$\forall x. x \in \clos \Rightarrow x \supseteq \deno{Id_A}$$ hence $\deno{Id_A}$ is the bottom element.
+
+Secondly for any chain $ x_1 \subseteq x_2 \subseteq x_3 \subseteq ...$, $x_i \in \clos$, there exists a value $\bigsqcup_n x_n \in \clos$ such that $\forall i. \bigsqcup_n x_n \supseteq x_i$ and $\forall y. (\forall i. x_i \subseteq y) \Rightarrow y \supseteq \bigsqcup_n x_n$
+
+\paragraph{proof:}
+
+Take $\bigsqcup_n x_n = \bigcup_n x_n$. This is in $\clos$, since both $\bigcup_n x_n \supseteq \deno{Id_A}$ due to $\forall i. x_i \supseteq \deno{Id_A}$ by definition and $\bigcup_n x_n \subseteq A \times A$, by $$\forall a. (a \in \bigcup_n x_n \wedge \neg (a \in A \times A)) \Rightarrow (\exists i. a \in x_i \wedge \neg a \in A \times A ) \Rightarrow (\exists i. \neg x_i \subseteq A \times A)$$ yielding a contradiction if $\bigcup_n x_n \subseteq A \times A$ does not hold.
+$\\ $
+We know $\forall i. \bigcup_n x_n \supseteq x_i$ by definition, so it is an upper bound. $\\ $
+To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \supseteq x_i$ 
+
+\begin{equation}
+\label{LeastUpperBound}
+\begin{split}
+\forall a. (\exists i. a \in x_i) & \Rightarrow a \in y \\
+\forall a. \bigvee_n (a \in x_n) & \Rightarrow a \in y \\
+\forall a. (a \in \bigcup_n x_n) & \Rightarrow a \in y \\
+\therefore \bigcup_n x_n & \subseteq y\\
+\square
+\end{split}
+\end{equation}
+
+\xdef\tpd{0pt}
+\end{minipage}
+
+\prevdepth\tpd
 
 \end{document}
