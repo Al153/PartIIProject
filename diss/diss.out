@@ -11,7 +11,7 @@
 \BOOKMARK [1][-]{section.2.2}{Mutability}{chapter.2}% 11
 \BOOKMARK [1][-]{section.2.3}{Query Language}{chapter.2}% 12
 \BOOKMARK [2][-]{subsection.2.3.1}{DSL Syntax}{section.2.3}% 13
-\BOOKMARK [2][-]{subsection.2.3.2}{Algebraic Datatypes}{section.2.3}% 14
+\BOOKMARK [2][-]{subsection.2.3.2}{Semantic Definitions}{section.2.3}% 14
 \BOOKMARK [2][-]{subsection.2.3.3}{Typing}{section.2.3}% 15
 \BOOKMARK [2][-]{subsection.2.3.4}{Semantics}{section.2.3}% 16
 \BOOKMARK [2][-]{subsection.2.3.5}{Commands}{section.2.3}% 17
@@ -87,4 +87,13 @@
 \BOOKMARK [1][-]{section.5.3}{Lessons learned}{chapter.5}% 87
 \BOOKMARK [1][-]{section.5.4}{Concluding Thoughts}{chapter.5}% 88
 \BOOKMARK [0][-]{section.5.4}{Bibliography}{}% 89
-\BOOKMARK [0][-]{appendix.A}{domain closure\(A, v\)}{}% 90
+\BOOKMARK [0][-]{chapter*.71}{Appendix}{}% 90
+\BOOKMARK [0][-]{appendix.A}{The Domain closure\(A, v\)}{}% 91
+\BOOKMARK [0][-]{appendix.B}{Correspondence of operational and denotational semantics}{}% 92
+\BOOKMARK [0][-]{appendix.C}{Joins on Query\(v\) as a monoid}{}% 93
+\BOOKMARK [1][-]{section.C.1}{Lemma: Join is closed on Query\(v\)}{appendix.C}% 94
+\BOOKMARK [1][-]{section.C.2}{Lemma: Join is associative on Query\(v\)}{appendix.C}% 95
+\BOOKMARK [1][-]{section.C.3}{Joins on QueryA\(v\) as a monoid}{appendix.C}% 96
+\BOOKMARK [1][-]{section.C.4}{Joins distribute over Or}{appendix.C}% 97
+\BOOKMARK [1][-]{section.C.5}{Upto\(n, P\) expressed as Exactly\(n, P'\)}{appendix.C}% 98
+\BOOKMARK [1][-]{section.C.6}{Joins do not distribute over And}{appendix.C}% 99

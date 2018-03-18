@@ -11,6 +11,7 @@
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usepackage{breqn}
+\usepackage{framed}
 
 %Highlighter commands. most need to properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
@@ -60,6 +61,8 @@
 \newcommand{\query}[0]{Query(v)}
 \newcommand{\queryT}[1]{Query_{#1}(v)}
 \newcommand{\projectTitle}[0]{A Purely Functional Approach to Graph Queries on a Database}
+
+{\renewcommand{\baselinestretch}{0.8}\small
 
 
 \raggedbottom                           % try to avoid widows and orphans
@@ -172,7 +175,7 @@ There exist several attempts to make access to relational databases purely funct
 
 
 \section{Type safety}
-When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Sources of a lack of  type safety in typical programs include exceptions (These are inherently not type safe in scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to function without wrapping or tagging them in more specific types, and unmarshalling data from a type-erased source. If we don’t know whether we’re expecting a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
+When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Sources of a lack of  type safety in typical programs include exceptions (These are inherently not type safe in scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to function without wrapping or tagging them in more specific types, and unmarshalling data from a type-erased source. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
 By this definition, accessing an external, imperative, database from scala is not type safe. The database will have some collection of error modes that often manifest as exceptions, and the database system typically stores data in a type erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern match-able type hierarchy, a DSL that is checked at compile time by the scala type checker, and typeclass based marshalling.
 
 \chapter{Preparation}
@@ -184,7 +187,7 @@ Existing graph databases typically fall into two classes: property graphs and ed
 \todo{Insert and acknowledge edge-labelled vs property graph examples in GDrive}
 
 \subsection{Schema}
-Current graph database systems often do not have rigid schema \todo{https://arxiv.org/pdf/1602.00503.pdf, introduction}. Instead they use dynamic schema. This requires additional typing checks at runtime. This also fails to fit into our definition of type safety, since we have no guarantees about any objects extracted from the database. Instead, I’ve opted for a rigid schema which is built using scala objects and hence is checked by the scala compiler at compile time.
+Current graph database systems often do not have rigid schema \todo{https://arxiv.org/pdf/1602.00503.pdf, introduction}. Instead they use dynamic schema. This requires additional typing checks at runtime. This also fails to fit into our definition of type safety, since we have no guarantees about any objects extracted from the database. Instead, I have opted for a rigid schema which is built using scala objects and hence is checked by the scala compiler at compile time.
 \subsection{Mutability}
 Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user has impose extra constraints, such as time stamping nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID transactions. The introduction of immutable data structures gives us these effectively for free.
 \subsection{Query Languages}
@@ -199,22 +202,22 @@ I spent some time iterating over a DSL syntax and how I wanted queries to look a
 \todo{Ugly syntax figure}
 However, the scala type inference is fairly localised so would need some type parameterisations filled out, yielding a more accurate syntax below.
 \todo{Even uglier syntax}
-This is fairly cluttered syntax and difficult to read. It would also have been complicated by a desire to implement property graph features. Furthermore, we would not be able to easily and safely replicate Neo4j’s ability to extract an arbitrary number of objects of different types from a path. Doing so would require use of structures such as heterogeneously typed lists.
+This is fairly cluttered syntax and difficult to read. It would also have been complicated by a desire to implement property graph features. Furthermore, we would not be able to easily and safely replicate Neo4j's ability to extract an arbitrary number of objects of different types from a path. Doing so would require use of structures such as heterogeneously typed lists.
 
 As a result, I settled upon on an edge-labelled-relation oriented approach which neatens the above query significantly.
 \todo{reword above;}
 \todo{neat syntax}
 
-This is much more readable and concise. With this syntax, and the assumption that \codeName{ActsIn} relates \codeName{Actors} to \codeName{Movies}, Scala’s typesystem can infer that \codeName{coactor} relates \codeName{Actors} to other \codeName{Actors}. There is also syntax for repetitions, intersections and unions. \todo{Examples in the appendix}
-\subsection{Algebraic Datatypes}
-These DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values.
+This is much more readable and concise. With this syntax, and the assumption that \codeName{ActsIn} relates \codeName{Actors} to \codeName{Movies}, Scala's typesystem can infer that \codeName{coactor} relates \codeName{Actors} to other \codeName{Actors}. There is also syntax for repetitions, intersections and unions. \todo{Examples in the appendix}
+\subsection{Semantic Definitions}
+To correctly implement the DSL, we need to model mathematically its operation. Hence,the above DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors to do this. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values.
 
 \paragraph{FindPair queries}
 \begin{equation}
 \label{PDefinition}
 \begin{split}
-P  &\rightarrow Rel(R) \mbox{ Find pairs related by the relation R}\\
-&\mid RevRel(R) \mbox{ Find pairs related by the relation R in the reverse direction}\\
+P  &\rightarrow Rel(R) \mbox{ Find pairs related by the named relation R}\\
+&\mid RevRel(R) \mbox{ Find pairs related by the named relation R in the reverse direction}\\
 &\mid Chain(P, P) \mbox{   Find pairs related by the first subquery followed by the second}\\
 &\mid And(P, P) \mbox{  Find pairs related by both of the sub-queries}\\
 &\mid AndRight(P, S) \mbox{  Find pairs related by P where the right value is a result of s}\\
@@ -241,11 +244,52 @@ S & \rightarrow Find(F) \mbox{ Find values that match the findable F}\\
 \end{equation} 
 Which lookup sets of single objects.\\
 
+\paragraph{Other Definitions}
+In order to model the operation of queries correctly, we need to define the environment in which they operate.
 
-We also define a view of the database and schema, as well as findables 
+\subparagraph{Object Types} are the ``real world'' types stored in the database. These correspond to the user's Scala classes.
 
-\todo{Import view + schema semantic definitions here; reword if necessary}
+\[ \tau \rightarrow A \mid B \mid C \mid .. \]
 
+\subparagraph{Named relations} are the primitive relations between objects
+
+\[R \rightarrow r_1 \mid r_2 \mid .. \]
+
+\subparagraph{Findables} are names for defined partial functions
+
+\[F_A \rightarrow f_1 \mid f_2 \mid ... \]
+
+\[f \colon A \rightharpoonup \{True, False\} \]
+
+For some given object type A. (i.e. a findable is an index into the database)
+
+\subparagraph{A schema,}$\Sigma$, is made up of three partial functions:
+
+\[\Sigma_{rel}\colon R \rightharpoonup \tau\times\tau \]
+\[\Sigma_{findable}\colon F \rightharpoonup \tau \]
+\[\Sigma_{table}\colon \tau \rightharpoonup \{True, False\} \]
+
+Which, give the types of relations and findables, and validiate the existence of a type. When it is obvious from the context, I shall use simply use $\Sigma(x)$ to signify application of the appropriate function.
+ 
+\subparagraph{A view,} $v \in V_\Sigma$, for a given schema $\Sigma$ represents an immutable state of a database.
+
+It represents a pair of partial functions. Firstly the named-relation lookup function.
+
+\begin{equation}
+v \in V_\Sigma \Rightarrow v_{rel}(r) \in \wp(A \times B)\mbox{ if $\Sigma(r)\downarrow (A, B)$}
+\end{equation} 
+
+That is, if a relation r is in the schema, then $v(r)$ is a set of pairs of objects with object type $\Sigma(r)$. Here, and from this point onwards I am using $\wp(s)$ to represent the power-set of a set, and $f(x) \downarrow y$ to mean $f$ is defined at $x$ and $f(x)=y$
+
+
+The next function of a view is the type-lookup function, it returns all objects in the view of a given object type
+
+\begin{equation}
+v \in V_\Sigma \Rightarrow v_{table}(A) \in \wp(A)\indent \mbox{if $\Sigma(A)\downarrow True$}
+\end{equation} 
+
+That is, $v(A)$ is a set of objects of type $A$ stored in the view, and $A$ is a member of the schema $\Sigma$. Again I shall overload these two functions where it is clear from the context which is to be used.
+ 
 \subsection{Typing}
 In order to ensure the correctness of a given query, there is a type system which checks the correctness of queries. Typing rules take two forms. Firstly typing of pair queries:
 \[ \Sigma \vdash P\colon (A, B)\]
@@ -302,7 +346,7 @@ The rules for types of Single queries are similar:
     To fully define the query language, we need to define the semantics. I have defined two collections of semantics: operational style and denotational style.
 \paragraph{Operational Semantics}   
 
-Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft_A Q$ to mean``a is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$, and the type of the expression. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft_A Q$ to mean``a is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
 
 \[ \begin{array}{c}
 \displaystyle\mbox{(Rel)}\frac{(a,b) \in v(r)}{\opRule{(a, b)}{(A, B)}{Rel(r)}} \\[3ex]
@@ -357,7 +401,7 @@ And the FindSingle rules
 \displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S'}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
 \end{array} \] 
 \paragraph{Denotational Semantics}
-The operational semantics clearly demonstrate membership of a query, but don't give a means to efficiently generate the results of query. To this end, we introduce denotations $\llbracket P \rrbracket$ and $\llbracket S \rrbracket$ such that \[\Sigma \vdash P \colon (A, B) \Rightarrow\llbracket P \rrbracket \colon View_{\Sigma} \rightarrow \wp(A \times B)\]
+The operational semantics clearly demonstrate membership of a query, but do not give a means to efficiently generate the results of query. To this end, we introduce denotations $\llbracket P \rrbracket$ and $\llbracket S \rrbracket$ such that \[\Sigma \vdash P \colon (A, B) \Rightarrow\llbracket P \rrbracket \colon View_{\Sigma} \rightarrow \wp(A \times B)\]
 
 and \[\Sigma \vdash S \colon A \Rightarrow\llbracket S \rrbracket \colon View_{\Sigma} \rightarrow \wp(A)\] Such denotations should be compositional and syntax directed, whilst still corresponding to the operational semantics.
 
@@ -398,9 +442,31 @@ with the following definitions:
 \[ filterLeft(p, s) = \setComp{(a, b) \in p}{a \in s}\]
 \[ filterRight(p, s) = \setComp{(a, b) \in p}{b \in s}\]
     
-    \todo{ I have also proved in the appendix the correspondence of these two sets of semantics.}
+   I have also proved in the appendix the correspondence of these two formulations of semantics.
 \subsection{Commands}
-In addition to the query construction language, there are five commands which make use of the queries. \todo{define and semantics}
+In addition to the query construction language, there are five commands which make use of the queries.
+
+\todo{format this correctly}
+\[\label{CommandSemantics}
+\begin{split}
+findPairs(P, v) &= \deno{P}\\
+find(S, v) &=  \deno{S}\\
+shortestPath(a, a', P, v) &= \mbox{Shortest path from $a$ to $a'$ in the graph defined by $\deno{P}$}\\
+allShortestPaths(a, P, v) &= \mbox{The shortest path to each element reachable from $a$ in the graph defined by $\deno{P}$}\\
+\end{split}\]
+
+The definition of the write command is slightly more complicated. It needs to return an updated view with its lookup functions now returning the inserted objects. Write takes a collection, $rs$, of correctly typed named relations instances.
+
+
+\[rs = \setComp{(a_i, r_i, b_i) \in (A \times R \times B)}{0 < i \leqslant n} \mbox{for some $n$ being the size of the set.}\]
+and updates the view as so: 
+\begin{equation}
+\begin{split}
+write(rs, v) = &v\left[A \mapsto v_{table}(A) \cup \setComp{a_i}{0 < i \leqslant n}\right]\\
+& \left[B \mapsto v_{table}(B) \cup \setComp{b_i}{0 < i \leqslant n}\right]\\
+& \left[r \mapsto v_{rel}(R) \cup \setComp{(a_i, b_i)}{0 < i \leqslant n}\right] 
+\end{split}
+\end{equation}
 
 
 \section{Languages and Libraries Used}
@@ -413,7 +479,7 @@ In addition to the query construction language, there are five commands which ma
 \paragraph{LMDB} An open source, highly optimised key-value datastore.
 \todo{https://symas.com/lmdb/}
 \paragraph{Scalaz} A library for scala providing typeclasses and syntax to aid advanced functional programming. \todo{https://github.com/scalaz/scalaz}
-\paragraph{JDBC} Java’s standard library support for SQL connections. Used to interact with a postgres database.
+\paragraph{JDBC} Java's standard library support for SQL connections. Used to interact with a postgres database.
 \todo{http://www.oracle.com/technetwork/java/javase/jdbc/index.html}
 \paragraph{LMDBJava} A JNI library allowing access to the LMDB datastore. 
 \todo{https://github.com/lmdbjava/lmdbjava}
@@ -434,7 +500,7 @@ The system was designed to be as modular and re-implementable as possible.
 \subsection{Front End}
 The front end mostly consists of interfaces and syntax for building queries and the schema for the database.
 \subsection{Middle End}
-The front-end’s DSL translates into the underlying typed ADT. This then has its compile time type information erased to become an un-typed query ADT, which is easier and cleaner to interpret.
+The front-end's DSL translates into the underlying typed ADT. This then has its compile time type information erased to become an un-typed query ADT, which is easier and cleaner to interpret.
 \subsection{Back End}
 Finally, there are three interfaces that a backend system must implement: DBBackend, DBInstance and DBExecutor. These specify a root backend object that opens an instance which represents a database connection. Each DBInstance has an executor that allows us to execute commands
 
@@ -443,60 +509,275 @@ I have made use of several advanced programming techniques which are specific to
 
 \subsection{Type Enrichment}
 The type enrichment feature of the scala language allows retroactive addition of methods to previously defined types. Type enrichment is performed by creating an implicit class, taking a single underlying value of some given type. The methods defined in the implicit class can now be called as if they were methods of the underlying class, provided the implicit class is in scope.
-\todo{Type enrichment example from G Drive}
+
+\renewcommand{\baselinestretch}{0.8}\small
+\begin{framed}
+\begin{verbatim}
+object Outer {
+    implicit class EnrichInt(i: Int){
+        def neg: Int = -i
+        def  succ: Int = i + 1
+        def mod(n: Int) = i - (i / n)*n
+    }
+}
+\end{verbatim}
+When Outer is imported, we can now do
+
+\begin{verbatim}
+5.neg == -5
+6.succ == 7
+10 mod 4 == 2
+\end{verbatim}
+\end{framed}
+
+
+
+
+
+
 This allows us to add syntax to types where a small number of core methods have been defined.
 
 \subsection{Implicit Parameters}
 Another advanced feature of scala that  I have used is that of implicit  parameters to functions and class constructors. Values such as vals, functions, and classes can be declared with a implicit tag. Functions and classes can declare additional parameters as implicit. When these functions are called, the implicit parameter can be omitted if and only if there is an unambiguous implicit value of the correct type in scope.
-\todo{Implicit parameters example 1}
+\begin{framed}
+\begin{framed}
+\begin{verbatim}
+object foo {
+    implicit val i = 5
+}
+
+object bar {
+    def plusImpl(j: Int)(implicit k: Int): Int = j + k
+}
+\end{verbatim}
+\end{framed}
+
+\begin{framed}
+\begin{verbatim}
+import foo._
+
+bar.plusImpl(4) == 9
+\end{verbatim}
+\end{framed}
+\end{framed}
 This is typically used for purposes such as passing around values that are typically defined once and used many times in a program, such as an ExecutionContext, or a logging framework instance.
 
 Functions can also be implicit and take implicit values
-\todo{Implicit function example, caption: When an implicit value of type A is available, then an implicit value of type B is also available.}
-
+\begin{framed}
+\begin{verbatim}
+implicit def f(implicit a: A): B = ...
+\end{verbatim}
+When an implicit value of type A is available, then an implicit value of type B is also available.
+\end{framed}
 
 This can be made more interesting when we include parameterised generic types. This allows us to get the compiler to do work in the manner of an automated theorem prover (by the curry-howard correspondence) at compile time.
 
-\todo{Implicit parameters example 2}
+\begin{framed}
+	\begin{framed}
+		\begin{verbatim}
+		
+object Defs {
+    implicit val s: String = "foo"
+    implicit val i: Int = 2
+    Implicit def toList[A](implicit a: A): List[A] = List(a, a, a)
+
+    def getImplicit[A](implicit a: A): A = a
+}
+		\end{verbatim}
+	\end{framed}
+	\begin{framed}
+		\begin{verbatim}
+		import Defs._
+
+getImplicit[List[Int]] == List(2, 2, 2)
+getImplicit[List[List[String]] == 
+        List(List(“foo", “foo", "foo"),
+        List("foo", "foo", "foo"), 
+        List("foo", "foo", "foo"))
+		\end{verbatim}
+	\end{framed}
+\end{framed}
 
 
 \subsection{Typeclass Pattern}
-A further combination of these two patterns is the typeclass pattern. We define a typeclass for a type by defining as methods on a trait the operations we want on the type. We can then define implicit objects which work as type class instances for the types we want. We can also use implicit functions to generate typeclass instances in a manner similar to a proof tree. \todo{example}
+A further combination of these two patterns is the typeclass pattern. We define a typeclass for a type by defining as methods on a trait the operations we want on the type. We can then define implicit objects which work as type class instances for the types we want. We can also use implicit functions to generate typeclass instances in a manner similar to a proof tree. We can then use the type enrichment feature to add methods to values of a type that is a member of the typeclass.
 
-We can then use the type enrichment feature to add methods to values of a type that is a member of the typeclass.
 
-\todo{Monoid typeclass example. Caption: An example of combining the three techniques above to define a Monoid Typeclass, ways to construct instances of the monoid typeclass and a syntax object which enriches types for which moinoid properties can be proven.}
+\begin{framed}
+	\begin{framed}
+		\begin{verbatim}
+trait Monoid[A] {
+     def id: A
+     def op(a1: A, a2: A): A
+}
+		\end{verbatim}
+	\end{framed}
+	
+	Definition of a monoid typeclass instance using F-type polymorphism
+	
+	\begin{framed}
+		\begin{verbatim}
+object Instances {
+     implicit object IntMonoid extends Monoid[Int] {
+        override val id: Int = 0
+        override def op(a1: Int, a2: Int): Int = a1 + a2
+     }
 
-It is clear that these patterns allow for very expressive structures and abstractions to be built in scala. I use these frequently within the project to neaten code and to achieve type safety.
+    implicit def ListMonoid[A] = new Monoid[List[A]] {
+            override val id: List[A] = List()
+            override def op(a1: List[A], a2:  List[A):  List[A= a1 ++ a2
+      }
+ 
+
+    implicit def PairMonoid[A, B](implicit MA: Monoid[A], MB: Monoid[B]) =
+     new Monoid[(A, B)]{
+      override val id: (A, B) = (MA.id, MB.id)
+      override def op(p: (A, B), q: (A, B)) =
+      	(MA.op(p._1, q._1), MB.op(p._2, q._2))
+    }
+}
+		\end{verbatim}
+	\end{framed}
+	
+	Definition of several monoid instances, including a pair monoid that combines monoids.
+	
+	\begin{framed}
+		\begin{verbatim}
+		
+object Syntax {
+        implicit class MonoidOps[A](a: A)(implicit ma: Monoid[A]) {
+          def *(n: Int): A = if (n == 0) ma.id else ma.op(a, *(n-1))
+        }
+}
+		\end{verbatim}
+	\end{framed}
+Definition of a multiplication operation on the monoid.
+	\begin{framed}
+		\begin{verbatim}
+			 (5, List("f")) * 3 == (15, List("f", "f", "f"))
+		\end{verbatim}
+	\end{framed}
+Usage of the multiplication operation on a tuple.
+\end{framed}
+
+It is clear that these patterns allow for very expressive structures and abstractions to be built in Scala. I use these frequently within the project to neaten code and to achieve type safety.
 
 
 
 \chapter{Implementation}
 \section{Note on Purity and Concurrency}
-All of the backends aim to preserve the global immutability of the database. The immutable semantics of the database also mean that queries generally don’t interfere with each other. This means that we can avoid keeping locks or creating large transactions. Hence, the backends don’t require much work to maintain correct concurrency.
+All of the backends aim to preserve the global immutability of the database. The immutable semantics of the database also mean that queries generally do not interfere with each other. This means that we can avoid keeping locks or creating large transactions. Hence, the backends do not require much work to maintain correct concurrency.
 \section{Functional Programming Techniques}
 	\subsection{Monadic Compilation}
 	At several points in building a backend, it becomes necessary to transform one algebraic type to another. This is typically done by walking over a tree, whilst keeping some mutable state representing parts of the tree that are relevant. One example is converting an intermediate representation to SQL output code. Here, we may want to extract common subexpressions into a dictionary, or pick out all the database tables that need to be accessed by the query. This can be encoded by folding a State Monad instance over the tree.
 
 The state monad is an abstraction over functions that chain an immutable state through successive computations.
 
-\todo{State monad definition or link to it}
+{\renewcommand{\baselinestretch}{0.8}\small
+\begin{verbatim}
+class State[S, A](r: S => (S, A)) {
+      def runState(s: S): (S, A) = r(s)
+}
+
+
+object Example {
+    Implicit def StateMonadInstance[S] = new Monad[State[S, _]] {
+         def point[A](a: A) = new State(s => (s, a))
+         def bind[A, B](sa: State[S, A], f: A => State[S, B]) = new State(
+            s => {
+                  val (s', a) = sa.runState(s)
+                  f(a).runState(s')
+              }
+                
+         )
+    }
+}
+\end{verbatim}
+
+\todo{Do I want to link to this instead?}
 
 To define a monadic compiler, we define a recursive function which chains state monad objects together.
-\todo{State monad compiler example}
+
+{\renewcommand{\baselinestretch}{0.8}\small
+\begin{verbatim}
+def compile(adt: ADT): State[S, Res] = adt match {
+   case basis => ...
+   case Pattern(a, b) => for {
+      ca <- compile(a)
+      cb <- compile(b)
+   } yield foo(ca, cb) 
+}
+\end{verbatim}
+
 
 	\subsection{Constrained Future Monad}
-	Part of the goal of type safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad. \todo{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf} In scala, this manifests as the built in Try monad and Scalaz’s \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}’s failure case is the unsealed \codeName{Throwable} trait, we don’t really have a way to ensure we have handled all error cases at compile time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the scala compiler at runtime. For example, consider the simple interpreter below. All error cases are proved to be handled by the typesystem.
-\todo{Error interpreter example}	
+	Part of the goal of type safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad. \todo{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf} In scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the scala compiler at runtime. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
+	
+\begin{framed}
+	\begin{framed}
+		\begin{verbatim}
+			sealed trait Error
+			case object DivByZero extends Error
+			case object Underflow extends Error
 
-Typically, we’re dealing with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we’re interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we don’t have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
+			sealed trait NoError
+		\end{verbatim}
+	\end{framed}
+	
+	A simple pair of error hierarchies. One signifying errors, and NoError indicating a lack of error. Note that $NoError$ cannot be instantiated or sub-classed.
 
-\todo{Hashrecovery typeclass}
+
+	\begin{framed}
+		\begin{verbatim}
+def eval(e: Expr): Error \/ Int = 
+    e match {
+         case Div(a, b) => for {
+               aRes <- eval(a)
+               bRes <- eval(b)
+               r <- if (bRes == 0) DivByZero.left else (aRes/bRes).right
+            } yield r
+
+        case Sub(a, b) => for {
+            aRes <- eval(a)
+            bRes <- eval(b)
+            r <- if(bRes > aRes) Underflow.left else (aRes-bRes).right
+    } yield r
+}
+		\end{verbatim}
+	\end{framed}
+	
+	A simple interpreter for a simple algebraic datatype for expressions that returns an error or a result
+	
+	\begin{framed}
+		\begin{verbatim}
+def evalAndPrint(e: Expr): NoError \/ String = 
+    eval(e) match {
+        case \/-(i) =>i.toString.right
+        case -\/(e) => e match {
+                 case DivByZero => “division by zero”.right
+                 case UnderFlow => “underflow”.right
+}}
+		\end{verbatim}
+	\end{framed}
+	A simple result printer that correctly handles all error cases and reduces its error parameter to the un-instantiable $NoError$ type
+		
+\end{framed}
+
+
+Typically, we're dealing with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we're interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
+
+\begin{framed}
+	\begin{verbatim}
+trait HasRecovery[E] {
+ def recover(t: Throwable): E
+}
+	\end{verbatim}
+\end{framed}
 
 The underlying future is kept private, and can only be accessed via the run method, which calls the recover method on any errors (tail recursively, so any exceptions thrown during execution are also handled). By this construction \todo{appendix} we ensure all non-fatal error cases are contained in a type-safe way.
 
 	\subsection{Operation Monad}
-	As stated, \todo{Can I link to it?} typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{(ViewId => ConstrainedFuture[E, (ViewId, A)])} in a similar way to how \codeName{State} monad chains together functions \codeName{S => (S, A)}. Each of the commands on a database yields an operation.
+	As stated, \todo{Can I link to it?} typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
 
 	
 	\subsection{Local and Global State}
@@ -508,7 +789,7 @@ Although it would be preferable to only use purely functional folds, maps, and i
 	In order to work with the database, a class needs to have an instance of the \codeName{SchemaObject} typeclass.
 	\todo{definition of schema object}
 	
-	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These are implemented by effectively defining marshalling functions from the type to and from tuples of “\codeName{Storable}”  (read: primitive) types.
+	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These are implemented by effectively defining marshalling functions from the type to and from tuples of "\codeName{Storable}"  (read: primitive) types.
 	
 	\todo{To go in the appendix: The definition of a schema object subclass}
 	
@@ -521,8 +802,15 @@ Although it would be preferable to only use purely functional folds, maps, and i
 	In order to correctly retrieve values from the database, we need to be able to undo the erasure process. This can be done using the unmarshalling methods derived from the \codeName{SchemaObject}  for an object type.
 	\subsection{Relations}
 	    In order for type checking to work, relations need to have type parameters for the object types they link. Hence, to define relations in the schema, the user needs to define objects that extend the relation interface.
-	  
-	    \todo{Relation definition}
+	    
+\begin{framed}
+\begin{verbatim}
+abstract class Relation[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B])
+   extends FindPairAble[A, B]
+\end{verbatim}
+\end{framed}
+
+
 
 	
 	\subsection{SchemaDescription}
@@ -539,11 +827,11 @@ The ADTs described in the preparation section \todo{link}	are implemented in sca
 \section{Commands}
 As specified in the previous chapter, each backend needs to implement five commands: 
 \begin{itemize}
-\item \codeName{find(S)}
-\item \codeName{findPairs(P)}
-\item \codeName{ShortestPath(start, end, P)}
-\item \codeName{allShortestPaths(start, P)}
-\item \codeName{insert(relations)}.
+\item \codeName{find(S): Operation[E, Set[A]]}
+\item \codeName{findPairs(P): Operation[E, Set[(A, B)]]}
+\item \codeName{ShortestPath(start, end, P): Operation[E, Option[Path[A]]}
+\item \codeName{allShortestPaths(start, P): Operation[E, Set[Path[A]]}
+\item \codeName{insert(relations): Operation[E, Unit]}.
 \end{itemize}
 Each command should return an \codeName{Operation} of the correct type.
 \section{DSL}
@@ -554,7 +842,7 @@ During construction of the database, several common patterns of problems emerged
 
 
 	\subsection{Simple Traversal}
-	The first set of generic algorithms to look at are the \codeName{SimpleFixedPointTraversal} algorithms. These compute the repetitions of a function for execution of the \codeName{FixedPoint}, \codeName{Upto}, and \codeName{Exactly} expressions of the ADT. They are labelled as “Simple” because they do the search from a single root. They carry out search mutably, and convert their output to an immutable set upon returning.
+	The first set of generic algorithms to look at are the \codeName{SimpleFixedPointTraversal} algorithms. These compute the repetitions of a function for execution of the \codeName{FixedPoint}, \codeName{Upto}, and \codeName{Exactly} expressions of the ADT. They are labelled as "Simple" because they do the search from a single root. They carry out search mutably, and convert their output to an immutable set upon returning.
 	
 		\paragraph{Exactly}
 The simplest algorithm is for computing \codeName{Exactly} query nodes. Here, we simply expand a fringe set of values outwards, by applying the search step to every value in the fringe to get the new fringe. We also memoise the search step function in the case of repetitions. After the required number of repetitions, the remaining fringe is returned. \todo{(Diagram showing expanding fringe)}
@@ -584,7 +872,7 @@ Finally, the FixedPoint take a departure from the parallel implementations above
 	\todo{Join algorithm code?}
 	
 \section{Views and Commits}
-In the memory backend, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala’s immutable collections to handle sharing of data in an efficient way. In the other backends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that with the operation monad model, each view only has one direct predecessor, forming a tree where we’re only interested in the path back to the root from a given node. From this insight, we can think of each new view only needing to store a difference against its parent. Since the current design of the database only allows the addition of values and not deletion, this difference is only going to be positive. Hence, we can store all the added values between two views in a container called a \codeName{Commit}. As an optimisation, we can disregard the parent view, and simply store each view as a collection of its commits. This would also allow us to implement deletion if desired. This would be done by removing commits in a view that are to be modified, and replacing them with a new commit containing the contents of those commits, excluding the deleted values.
+In the memory backend, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other backends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that with the operation monad model, each view only has one direct predecessor, forming a tree where we're only interested in the path back to the root from a given node. From this insight, we can think of each new view only needing to store a difference against its parent. Since the current design of the database only allows the addition of values and not deletion, this difference is only going to be positive. Hence, we can store all the added values between two views in a container called a \codeName{Commit}. As an optimisation, we can disregard the parent view, and simply store each view as a collection of its commits. This would also allow us to implement deletion if desired. This would be done by removing commits in a view that are to be modified, and replacing them with a new commit containing the contents of those commits, excluding the deleted values.
 
 \section{Memory Backend}
 The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages as libraries as in the SQL and LMDB backends.)
@@ -599,7 +887,7 @@ Reads occur by simply walking over the ADTs recursively, following the denotatio
 	\subsection{Left Optimisation}
 	One of the few optimisations here is the Left optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of maybe a few dozen unique rightmost values to a large query with several million unique leftmost values. The pairs of the right relation only need to be joined if their leftmost value is in the set of rightmost values of the left relation. Hence it makes sense to pre-limit our search to pairs with leftmost values in the right most value. \todo{(Diagram showing redundant calculations in the join)}. This pattern also makes an appearance in the original LMDB implementation.
 	\subsection{Writes}
-	Thanks to Scala’s immutable collections library, updating the database is fairly easy When inserting a collection of relations, we simply add, relation by relation, each object in the relation, if it doesn’t exist, and update the outgoing and incoming relation map of each object. This update creates new immutable object tables and a new memory tree. This is stored to the map of \codeName{ViewId}  to \codeName{MemoryTree} as a new view.
+	Thanks to Scala's immutable collections library, updating the database is fairly easy When inserting a collection of relations, we simply add, relation by relation, each object in the relation, if it does not exist, and update the outgoing and incoming relation map of each object. This update creates new immutable object tables and a new memory tree. This is stored to the map of \codeName{ViewId}  to \codeName{MemoryTree} as a new view.
 
 	\subsection{Storage}
 	Objects are stored as \codeName{DBObject}s in wrapper \codeName{MemoryObject}s. \codeName{MemoryObject}s  are hashed and compared by their \codeName{DBObject}s. \todo{Memory object diagram}
@@ -618,18 +906,35 @@ Upon completion of the initial memory backend, I started work on a PostgreSQL ba
 	The construction of the underlying database uses several SQL tables. These can be partitioned into a set of control tables that will be present in all database instances and a set  of schema defined tables.
 
 		\paragraph{Control Tables}
-		\todo{Insert the table from GDrive}
+		\begin{center}
+			\begin{tabular}{|p{4cm}||p{4cm}|p{4cm}|} \hline
+			Name & Schema & Description \\ \hline
+			Default & (ViewId) & Holds the mutable default ViewId \\ \hline
+			Commits Registry & (CommitId$^{primary}$, Dummy) & Stores which commits are valid, allows us to give each commit a unique id \\ \hline
+			Views Registry & (ViewId$^{primary}$, Dummy) & Stores which views are valid, allows us to give each view a unique id \\ \hline
+			Views Table & (ViewId, CommitId) & Stores which commits belong to which view. \\ \hline
+			\end{tabular}
+		\end{center}
 \note{Note: \codeName{ViewId} is a foreign key into the views registry, \codeName{CommitId} is a foreign key into Commits Registry. The Dummy column is needed to fix postgresql syntax when we try to get the next key for a table with one column.}		
 		
 		\paragraph{Schema defined Tables}
-		\todo{Insert the table from GDrive}
-		\note{Note: Object-, Left-, and Right- Ids are foreign keys to the \codeName{ObjectTable}’s ObjectId column.}
+				\paragraph{Control Tables}
+		\begin{center}
+			\begin{tabular}{|p{4cm}||p{4cm}|p{4cm}|} \hline
+			Name & Schema & Description \\ \hline
+			Object Table & (ObjectId$^{primary}$, generated) & Generated per schema object in schema description. A schema column is generated per schema object field, with an appropriate SQL type. This allows indexing by findables to get object Ids for queries, and extraction of objects from the database. \\ \hline
+			Auxiliary Table & (ObjectId, CommitId) & One auxiliary table is associated with each object table. It stores the object Ids associated with each CommitId, which is a many-many relation \\ \hline
+			Relation & (LeftId, CommitId, RightId) & Generated per relation in schema description. Each is associated with a commit.  \\ \hline
+			\end{tabular}
+		\end{center}
+		\note{Note: Object-, Left-, and Right- Ids are foreign keys to the \codeName{ObjectTable}'s ObjectId column.}
 	\subsection{Query Structure}
+	\todo{Tables from G-Drive}
 	\subsection{Monadic Compilation}
 	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \todo{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \todo{ObjectId}s along the path as opposed to whole  objects. \todo{Compilation context figure from GDrive}
 
 	\subsection{Writes}
-	There are several steps in the implementation of writes, though I have not expended  a great deal of effort making them fast. A significant part of this is the “insert or get” SQL query, which looks up an object in the relevant table, returning its \codeName{ObjectId} if it exists and creating the object and returning the new ID if it does not.
+	There are several steps in the implementation of writes, though I have not expended  a great deal of effort making them fast. A significant part of this is the "insert or get" SQL query, which looks up an object in the relevant table, returning its \codeName{ObjectId} if it exists and creating the object and returning the new ID if it does not.
 	
 	\todo{insertOrGet query from GDrive}
 	
@@ -640,7 +945,7 @@ Upon completion of the initial memory backend, I started work on a PostgreSQL ba
 	\subsection{Pathfinding and Fixed Point Traversal}
 Pathfinding is implemented by constructing an SQL query to generate right hand side \codeName{ObjectIds} for a relation given a left hand side \codeName{ObjectId}. This query is used as the search function for the generic pathfinding algorithms. Once paths have been found, their \codeName{ObjectIds} are looked up in the database to find the full values along each path.
 
-Fixed point traversal and repetitions are done natively in SQL. \codeName{FixedPoint} and \codeName{Upto} are done using a recursive CTE, while \codeName{Exactly} is done by explicitly joining together the required number of repetitions of the sub-relation’s query.	
+Fixed point traversal and repetitions are done natively in SQL. \codeName{FixedPoint} and \codeName{Upto} are done using a recursive CTE, while \codeName{Exactly} is done by explicitly joining together the required number of repetitions of the sub-relation's query.	
 	
 	\todo{Recursive CTE example. Caption = An example of a recursive CTE computing \codeName{Upto}. \codeName{FixedPoint} would omit the counter variable and the limit.}
 	
@@ -656,7 +961,7 @@ The final family of backends are the LMDB backends. LMDB is a simple, efficient 
 			\subparagraph{Terminology}
 			LMDB terminology differs slightly from that of more mainstream systems. What would be called a database in SQL is known as an \term{Env} and a table known as a \term{DBI}.
 			\subparagraph{Transactions}
-				LMDB’s transactional model differs from more traditional systems. In short, we need to create a transaction to do reads but not writes. This stems from LMDB delegating as much work as possible to the OS kernel's memory-mapped file system. All writes are immediately written to the database, whereas starting a read transaction gives a view of the \term{Env} as it was at the start of  the transaction, ensuring that concurrent writes don't affect what is read from the database. Writes may be included in transactions to allow atomic get-and-sets. In practice the transactions we actually use are very short lived.
+				LMDB's transactional model differs from more traditional systems. In short, we need to create a transaction to do reads but not writes. This stems from LMDB delegating as much work as possible to the OS kernel's memory-mapped file system. All writes are immediately written to the database, whereas starting a read transaction gives a view of the \term{Env} as it was at the start of  the transaction, ensuring that concurrent writes don't affect what is read from the database. Writes may be included in transactions to allow atomic get-and-sets. In practice the transactions we actually use are very short lived.
 			\subparagraph{JVM API}
 			The LMDB backend uses the \codeName{LMDBJava} API \todo{https://github.com/lmdbjava/lmdbjava} to allow access to an LMDB Database from JVM languages (such as Scala). For each \term{DBI}, we have a byte array to byte array key-value map, much like a \codeName{Map[Array[Byte], Array[Byte]]}.
 			
@@ -670,9 +975,32 @@ The final family of backends are the LMDB backends. LMDB is a simple, efficient 
 	
  Similarly to the SQL implementation, there are several tables, some generated based on the \codeName{SchemaSescription} and other, control, tables exist regardless. Each table is represented in memory by a subclass of the \codeName{impl.lmdb.common.tables.interfaces.LMDBTable} trait, which provides utility methods such as transactional reads and computations.
  
- \todo{Import control table table from G-drive}
+\begin{center}
+	\begin{tabular}{ |p{3cm}||p{3cm}|p{3cm}||p{3cm}|}
+ 	\hline
+ 		
+	Name & Key Type & Value Type  & Description \\ \hline
+	Object Counter & Singleton & ObjId & Atomic counter holds the next ObjectId \\ \hline
+	Commit Counter & Singleton & CommitId & Atomic counter holds the next CommitId \\ \hline
+	View Counter & Singleton & ViewId & Atomic counter holds the next ViewId \\ \hline
+	Default table & Singleton & ViewId & Mutably stores the default view \\ \hline
+	Available Views & Singleton & Set[ViewId] & Mutably stores a set of available views \\ \hline
+	Views Table & ViewId & List[CommitId] & Maps a view to its constituent commits \\ \hline
+	Relations & (ObjectId, CommitId, RelationName) & Set[ObjId] & Single table stores all forward relations in a database \\ \hline
+	Reverse Relations & (ObjectId, CommitId, RelationName) & Set[ObjId] & Single table stores the reverse of all relations in the database \\ \hline
+	\end{tabular}
+\end{center} 
+ 
  \note{Singleton Keys denote tables with single key.}
- \todo{Import schema table table from g-drive}
+ \begin{center}
+	\begin{tabular}{ |p{3cm}||p{3cm}|p{3cm}||p{3cm}|}
+ 	\hline
+	Name & Key Type & Value Type  & Description \\ \hline
+	Retrieval Table & ObjectId & DBObject & Used to retrieve object data at end of a query \\ \hline
+	Empty Index & CommitId & ObjectId & Stores object Ids accessible a view. Used to compute Id_A. \\ \hline
+	Column Index &  (Commit, DBCell) & ObjectId & Provides an index over a field of a SchemaObject \\ \hline
+	\end{tabular}
+\end{center}
 
 For each \codeName{SchemaObject} in the \codeName{Schemadescription}, there exists a \codeName{RetrievalTable}, \codeName{EmptyIndexTable}, and a \codeName{ColumnIndexTable} per column in the \codeName{SchemaObject}.
 		
@@ -683,7 +1011,7 @@ For each \codeName{SchemaObject} in the \codeName{Schemadescription}, there exis
 	\subsection{Original LMDB Implementation}
 	\note{impl.lmdb.original}
 
-The original LMDB backend implementation executed queries in much the same way as the in-memory backend, the only difference being the flat LMDB table structure. Interpretation occurs by a very similar to function that of the memory backend, instead passing around a list of Commits to search rather than the memory tree. At the end of a query’s execution, the resulting \codeName{ObjectId}s are looked up in the relevant Retrieval table to extract the actual objects and convert them into user objects. Pathfinding and the repetition operators are handled in the same way as the memory backend by calling the relevant generic algorithms.
+The original LMDB backend implementation executed queries in much the same way as the in-memory backend, the only difference being the flat LMDB table structure. Interpretation occurs by a very similar to function that of the memory backend, instead passing around a list of Commits to search rather than the memory tree. At the end of a query's execution, the resulting \codeName{ObjectId}s are looked up in the relevant Retrieval table to extract the actual objects and convert them into user objects. Pathfinding and the repetition operators are handled in the same way as the memory backend by calling the relevant generic algorithms.
  
 
 	\subsection{Batched}
@@ -697,7 +1025,7 @@ The original LMDB backend implementation executed queries in much the same way a
 		The result of executing a \codeName{FindSingle} is constant throughout the whole query, so by lifting out and pre-emptively executing any \codeName{FindSingle}s, we speed up execution by removing redundancy. More importantly, this helps enable the next operation.
 		
 		\paragraph{FindFrom}
-		For the pathfinding commands, the transitive queries and \codeName{From} \codeName{FindSingle} query, we’re not actually interested in finding all pairs matching a query, or interested in which pairs are related, but actually the reachability function \codeName{$A \Rightarrow Set[B]$} (this is a kleisli arrow), which takes a node and finds the directly reachable neighbours. Since we don’t have to do any bookwork to maintain the left hand side of any relation, this greatly simplifies our search. Hence, in these cases, we interpret the query using a new \codeName{FindFrom} method, which is an alternative interpreter. For example, joins now become a concatenation of these arrows (\codeName{flatMap}  in Scala parlance), \codeName{Id} becomes the return function \codeName{($x \Rightarrow Set(x)$)}, \codeName{Distinct} becomes set subtraction as opposed to calling the \codeName{Set.filter} function, and, finally, we can make use of the \codeName{SimpleFixedPointTraversal} algorithms described above. The pre-caching above is useful here, since due to the \codeName{flatMap}s, the computation of \codeName{FindSingle}s would be repeated many times otherwise.
+		For the pathfinding commands, the transitive queries and \codeName{From} \codeName{FindSingle} query, we're not actually interested in finding all pairs matching a query, or interested in which pairs are related, but actually the reachability function \codeName{$A \Rightarrow Set[B]$} (this is a kleisli arrow), which takes a node and finds the directly reachable neighbours. Since we do not have to do any bookwork to maintain the left hand side of any relation, this greatly simplifies our search. Hence, in these cases, we interpret the query using a new \codeName{FindFrom} method, which is an alternative interpreter. For example, joins now become a concatenation of these arrows (\codeName{flatMap}  in Scala parlance), \codeName{Id} becomes the return function \codeName{($x \Rightarrow Set(x)$)}, \codeName{Distinct} becomes set subtraction as opposed to calling the \codeName{Set.filter} function, and, finally, we can make use of the \codeName{SimpleFixedPointTraversal} algorithms described above. The pre-caching above is useful here, since due to the \codeName{flatMap}s, the computation of \codeName{FindSingle}s would be repeated many times otherwise.
 
 	\subsection{Common Subexpression Elimination}
 	\note{impl.lmdb.cse}
@@ -710,12 +1038,20 @@ To make the best use of memoization, and to overusing memory by memoizing the sa
 
 		\paragraph{Retrievers}
 		A solution to these parameters is the use of an object called a \codeName{Retriever}. This exposes two methods which mirror those from interpreting a query. 
-		\todo{Insert retriever trait here from G-Drive}	
+		
+		\begin{framed}
+			\begin{verbatim}
+trait RelationRetriever extends Logged {
+     def find(from: Set[ObjId]): LMDBEither[Set[(ObjId, ObjId)]]
+     def findFrom(from: ObjId): LMDBEither[Set[ObjId]]
+}
+			\end{verbatim}
+		\end{framed}
 		For each subquery node in a query(e.g. \mathName{And(Id_A, Or(R_1, R_2 ))}), we generate a retriever. Retrievers for primitive relations (e.g. \mathName{Id_A} , \mathName{Rel(R)}) are uncached, as LMDB allows for very fast re-computations of these. In the other cases, we use a CachedRelationRetriever, which memorises an underlying lookup function. Using type-enrichment, I have implemented methods such as \codeName{join}, \codeName{and}, \codeName{or}, \codeName{exactly}, \codeName{fixedPoint} on \codeName{RelationRetrievers}, allowing them to be composed to mirror the query they are generated from. This memoises every node of the query to be executed, yielding a significant reduction of redundancy.
 	
 		
 		\paragraph{Monadic Compilation}
-		To avoid storing multiple \codeName{RelationRetriever}s for the same subexpression, it is useful to reuse the same retriever for every occurrence of a subquery. Hence when building a retriever for a query, we want to keep track of all subqueries we’ve seen before. This can be done using the monadic compilation pattern above. The compilation state stores a hashmap of all the subtrees that have already been computed (A bit like when constructing a binary decision diagram in automated theorem proving). 
+		To avoid storing multiple \codeName{RelationRetriever}s for the same subexpression, it is useful to reuse the same retriever for every occurrence of a subquery. Hence when building a retriever for a query, we want to keep track of all subqueries we've seen before. This can be done using the monadic compilation pattern above. The compilation state stores a hashmap of all the subtrees that have already been computed (A bit like when constructing a binary decision diagram in automated theorem proving). 
 		
 		\todo{Compilation state from G-Drive}
 		\note{Compilation state}
@@ -747,12 +1083,12 @@ We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n
 
 \chapter{Evaluation}
 \section{Unit Tests}
-The correctness of each backend is tested using a suite of 45 unit tests which verify adherence to semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I’ve written a test case to target that bug, ensuring that it is not leaked into production again.
+The correctness of each backend is tested using a suite of 45 unit tests which verify adherence to semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again.
 \section{Performance Tests}
 	\subsection{Introduction}
-	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation. The LMDB implementation was able to do indexing faster than Scala’s tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses are the same.
+	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation. The LMDB implementation was able to do indexing faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses are the same.
 	\subsection{Hardware}
-	Tests were run on the oslo machine belonging to Timothy Jones’ group. Its specifications are shown below. All of the backends ran off of an SSD.
+	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the backends ran off of an SSD.
 	\todo{Oslo Specs}
 	\subsection{Datasets}
 	To evaluate tests on non-trivial examples, I sought to construct datasets over which large queries were feasible.
@@ -765,14 +1101,70 @@ The CSV data was processed using a python script (\todo{in src/resources/imdb/})
 Slightly different parameters were given when generating each dataset.
 \todo{Table from GDrive with all the data}
 
+\begin{center}
+	\begin{tabular}{ |p{3cm}||p{3cm}|p{3cm}||p{3cm}|  }	
+	\hline
+        Name & Movies Size & People Size & Notes \\ \hline
+        smallest & 100 & 10351 & 100 movies with most actors \\ \hline
+        small & 250 & 18167 & 250 movies with most actors \\ \hline
+        small _sparse & 250 & 1029 & 250 movies with fewest actors \\ \hline
+        medium & 1000 & 35626 & 1000 movies with most actors \\ \hline
+        medium_sparse & 1000 & 6310 & 1000 movies with most actors \\ \hline 
+       large & 12862 & 50134 & Largest dataset \\ \hline
+	\end{tabular}
+\end{center}
+
 The objects in the database are as follows:
-\todo{Object and relation tables}
+\paragraph{Objects}
+\begin{center}
+	\begin{tabular}{ |p{3cm}| p{3cm}|}
+	\hline
+	Name & Fields \\ \hline
+	Person & Name: String \\ \hline
+	Movie & Name: String Language: String \\ \hline
+	Date & Time: Long \\ \hline
+	Place & Place: String \\ \hline
+	Genre &	Genre: String \\ \hline
+	\end{tabular}
+\end{center}
+
+\paragraph{Relations}
+\begin{center}
+	\begin{tabular}{ |p{3cm}|| p{3cm}| p{3cm}|}
+	\hline
+		Name &  From & To \\ \hline
+		ActsIn & Person & Movie \\ \hline
+		Directed & Person & Movie\\ \hline
+		HasBirthday &Person & Date\\ \hline
+		BornIn & Person & Place\\ \hline
+		HasGenre & Movie & Genre\\ \hline
+	\end{tabular}
+\end{center}
 
 		\paragraph{UFC}
 		
 		A second dataset, built from UFC fight data, \todo{https://www.kaggle.com/cformey24/ufc-fights-data-1993-2232016/data} was constructed in the same way to produce one JSON dataset.
 		
-		\todo{object and relation tables}
+		\paragraph{Objects}
+\begin{center}
+	\begin{tabular}{ |p{3cm}| p{9cm}|}
+	\hline
+		Name & Fields \\ \hline
+		Person & Name: String, Height: Int, Weight: Int\\ \hline
+	\end{tabular}
+\end{center}
+
+\paragraph{Relations}
+\begin{center}
+	\begin{tabular}{ |p{3cm}|| p{2cm}| p{2cm}||p{3cm}|}
+	\hline
+		Name &  From & To & notes \\ \hline
+		Beat & Person & Person & \\ \hline
+		ShorterThan &  Person & Person & Transitive reduction of the shorter than relation \\ \hline
+		LighterThan & Person & Person & Transitive reduction of the lighter than relation \\ \hline
+
+	\end{tabular}
+\end{center}
 		
 		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. \todo{Size of graph.}
 	\subsection{Test Harness}
@@ -782,7 +1174,7 @@ The objects in the database are as follows:
 		\paragraph{Overall Picture}
 		\todo{results;}
 		\todo{This needs to be more specific, rewrite}
-		An overall view of the results is that, as might be expected, the SQL implementation is the fastest, with the most aggressively optimised LMDB typically performing the closest in speed to SQL, \todo{calculate precise values} though occasionally beating SQL’s performance by up to 150\%. Due to a high overhead of initiating individual queries, the SQL instance performed appalling on pathfinding queries. The LMDB optimisations worked very effectively where they were hypothesised to, such as queries with repeated joins and those which made use of \mathName{Exactly} and \mathName{Upto}, yielding orders of magnitude speedup. However, in some tests, the optimisations yielded overheads slowing down performance, especially those queries which make use of \mathName{FindFrom} rather than finding pairs.
+		An overall view of the results is that, as might be expected, the SQL implementation is the fastest, with the most aggressively optimised LMDB typically performing the closest in speed to SQL, \todo{calculate precise values} though occasionally beating SQL's performance by up to 150\%. Due to a high overhead of initiating individual queries, the SQL instance performed appalling on pathfinding queries. The LMDB optimisations worked very effectively where they were hypothesised to, such as queries with repeated joins and those which made use of \mathName{Exactly} and \mathName{Upto}, yielding orders of magnitude speedup. However, in some tests, the optimisations yielded overheads slowing down performance, especially those queries which make use of \mathName{FindFrom} rather than finding pairs.
 
 Typically, the CSE optimisations alone do not provide a statistically significant speed up, or even slow down operations, however the optimisations also applied to joins and transitive queries do often show a large speedup. 
 
@@ -909,23 +1301,23 @@ I hope for another chance to this space as I feel there are still many areas to 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the appendices
 \appendix
-
-\chapter{domain \clos}
+\addcontentsline{toc}{chapter}{Appendix}
+\chapter{The Domain \clos}
 
 \todo{Do we split this?}
 For the various semantics proofs it is necessary to define the Scott domain $\clos$ for some object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ such that $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$. From this point on, I shall use $x \subseteq y$ to mean $y \sqsubseteq x$.
 
 \hfill\begin{minipage}{\dimexpr\textwidth-1cm}
-\paragraph{Theorem: $\clos$ is a domain}
+\paragraph{$\clos$ is a domain}
 
 
-Firstly, by definition, $$\forall x. x \in \clos \Rightarrow x \supseteq \deno{Id_A}$$ hence $\deno{Id_A}$ is the bottom element.
+Firstly, by definition, \[\forall x. x \in \clos \Rightarrow x \supseteq \deno{Id_A}\] hence $\deno{Id_A}$ is the bottom element.
 
 Secondly for any chain $ x_1 \subseteq x_2 \subseteq x_3 \subseteq ...$, $x_i \in \clos$, there exists a value $\bigsqcup_n x_n \in \clos$ such that $\forall i. \bigsqcup_n x_n \supseteq x_i$ and $\forall y. (\forall i. x_i \subseteq y) \Rightarrow y \supseteq \bigsqcup_n x_n$
 
 \paragraph{proof:}
 
-Take $\bigsqcup_n x_n = \bigcup_n x_n$. This is in $\clos$, since both $\bigcup_n x_n \supseteq \deno{Id_A}$ due to $\forall i. x_i \supseteq \deno{Id_A}$ by definition and $\bigcup_n x_n \subseteq A \times A$, by $$\forall a. (a \in \bigcup_n x_n \wedge \neg (a \in A \times A)) \Rightarrow (\exists i. a \in x_i \wedge \neg a \in A \times A ) \Rightarrow (\exists i. \neg x_i \subseteq A \times A)$$ yielding a contradiction if $\bigcup_n x_n \subseteq A \times A$ does not hold.
+Take $\bigsqcup_n x_n = \bigcup_n x_n$. This is in $\clos$, since both $\bigcup_n x_n \supseteq \deno{Id_A}$ due to $\forall i. x_i \supseteq \deno{Id_A}$ by definition and $\bigcup_n x_n \subseteq A \times A$, by \[\forall a. (a \in \bigcup_n x_n \wedge \neg (a \in A \times A)) \Rightarrow (\exists i. a \in x_i \wedge \neg a \in A \times A ) \Rightarrow (\exists i. \neg x_i \subseteq A \times A)\] yielding a contradiction if $\bigcup_n x_n \subseteq A \times A$ does not hold.
 $\\ $
 We know $\forall i. \bigcup_n x_n \supseteq x_i$ by definition, so it is an upper bound. $\\ $
 To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \supseteq x_i$ 
@@ -945,5 +1337,504 @@ To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \sups
 \end{minipage}
 
 \prevdepth\tpd
+
+
+\chapter{Correspondence of operational and denotational semantics}
+
+In order to use the denotational semantics to construct an interpreter or compiler we need to prove they are equivalent to the operational semantics. Namely:
+
+For any pair query $P$, schema $\Sigma$ and $View_{\Sigma}$ $v$:
+$$
+\typeRule{P}{(A, B)}\Rightarrow \opRule{(a, b}{(A, B)}{P} \Leftrightarrow \denoRule{(a, b)}{P})
+$$
+
+And for any single query $S$, schema $\Sigma$ and $View_{\Sigma}$ $v$: 
+$$
+\typeRule{S}{A}\Rightarrow \opRule{(a}{A}{S} \Leftrightarrow \denoRule{a}{S})
+$$
+
+In order to prove these two propositions, we define two induction hypotheses
+
+
+
+$$
+\phiRule{P}{A}{B} \Leftrightarrow (\typeRule{P}{(A, B)} \Rightarrow \forall v \in View_{\Sigma}, (a, b) \in A \times B. (\opRule{(a, b)}{(A, B)}{P}) \Leftrightarrow \denoRule{(a, b)}{P})))
+$$
+
+$$
+\psiRule{S}{A} \Leftrightarrow (\typeRule{S}{A} \Rightarrow \forall v \in View_{\Sigma}, a \in A. (\opRule{a}{A}{S}) \Leftrightarrow (\denoRule{a}{S}))
+$$
+
+Now we shall induct over the structures of $P$ and $S$ starting with the SingleQuery cases
+
+
+\paragraph{Case $S = AndS(S', S'')$}
+\begin{equation} \label{case AndS}
+\begin{split}
+\denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cap \deno{S''}) \\
+				& \Leftrightarrow (\denoRule{a}{S'} \wedge \denoRule{a}{S''}) \\
+				& \Leftrightarrow (\opRule{a}{A}{S'} \wedge \opRule{a}{A}{S''}) \mbox{ by $\psiRule{S'}{A}$, $\psiRule{S''}{A}$}\\
+				& \Leftrightarrow (\opRule{a}{A}{AndS(S', S'')} \mbox{ by inversion of (AndS)}
+\end{split}
+\end{equation}
+
+\paragraph{Case $S = OrS(S', S'')$}
+\begin{equation} \label{case OrS}
+\begin{split}
+\denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cup \deno{S''}) \\
+				& \Leftrightarrow (\denoRule{a}{S'} \vee \denoRule{a}{S''}) \\
+				& \Leftrightarrow (\opRule{a}{A}{S'} \vee \opRule{a}{A}{S''}) \mbox{ by $\psiRule{S'}{A}$, $\psiRule{S''}{A}$}\\
+				& \Leftrightarrow (\opRule{a}{A}{OrS(S', S'')} \mbox{ by inversion of (OrS)}
+\end{split}
+\end{equation}
+
+\paragraph{Case $S = From(S', P)$}
+\begin{equation} \label{case From}
+\begin{split}
+\denoRule{b}{S} & \Leftrightarrow \exists a \in A. \indent (\denoRule{a}{S'} \wedge \denoRule{(a, b)}{\deno{P}}) \\
+				& \Leftrightarrow \exists a \in A. \indent (\opRule{a}{A}{S'} \wedge \opRule{(a, b)}{(A, B)}{P}) \mbox{ by $\psiRule{S'}{A}$, $\phiRule{P}{A}{B}$}\\
+				& \Leftrightarrow \opRule{b}{B}{From(S', P)} \indent\mbox{ by inversion of (OrS)}
+\end{split}
+\end{equation}
+
+\paragraph{Case $S = Find(f)$}
+\begin{equation} \label{case Find}
+\begin{split}
+\denoRule{a}{S} & \Leftrightarrow a \in v(A) \wedge f(a) \downarrow True  \indent \mbox{ by inversion of the type rule (Find)}\\
+				& \Leftrightarrow \opRule{a}{A}{Find(f)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+Now, looking at the FindPair queries
+
+\paragraph{Case $P = Rel(r)$}
+\begin{equation} \label{case Rel}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in v(r)\\
+				& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Rel(r)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+\paragraph{Case $P = RevRel(r)$}
+\begin{equation} \label{case RevRel}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (b, a) \in v(r)\\
+				& \Leftrightarrow \opRule{(a, b)}{(A, B)}{RevRel(r)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+\paragraph{Case $P = Id_A$}
+\begin{equation} \label{case Id_A}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow a \in v(A) \wedge a = b\\
+				& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Id_A} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+\paragraph{Case $P = Chain(P', Q)$}
+$\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} \Leftrightarrow \exists B. \indent\typeRule{P'}{(A, B)} \wedge \typeRule{Q}{(B, C)}$
+
+\begin{equation} \label{case Chain(P', Q)}
+\begin{split}
+\denoRule{(a, c)}{P} & \Leftrightarrow (a, c) \in join(\deno{P'}, \deno{Q})\\
+					& \Leftrightarrow \exists b \in B. \indent \denoRule{(a,b)}{P'} \wedge \denoRule{(b, c)}{Q}\\
+					&\Leftrightarrow \exists b \in B. \indent \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{(b, c)}{(B, C)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{B}{C}$} \\
+				& \Leftrightarrow \opRule{(a, c)}{(A, C)}{Chain(P', Q)} \mbox{ by definition}\\
+\end{split}
+\end{equation}
+
+\paragraph{Case $P = And(P', Q)$}
+\begin{equation} \label{case And(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cap \deno{Q})\\
+					& \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{(a, b)}{Q}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{(a,b)}{(A, B)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{A}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{And(P', Q)} \mbox{ by inversion of (And)}\\
+\end{split}
+\end{equation}
+
+\paragraph{Case $P = Or(P', Q)$}
+\begin{equation} \label{case Or(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cup \deno{Q})\\
+					& \Leftrightarrow \denoRule{(a, b)}{P'} \vee \denoRule{(a, b)}{Q}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \vee \opRule{(a,b)}{(A, B)}{Q}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\phiRule{Q}{A}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Or(P', Q)} \mbox{ by inversion of (Or1), (Or2)}\\\end{split}
+\end{equation}
+
+\paragraph{Case $P = AndLeft(P', S)$}
+\begin{equation} \label{case AndLeft(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{a}{S}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{a}{A}{S}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\psiRule{S}{A}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndLeft(P', S)} \mbox{ by inversion of (AndLeft)}\\\end{split}
+\end{equation}
+
+\paragraph{Case $P = AndRight(P', S)$}
+\begin{equation} \label{case AndRight(P', Q)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{b}{S}\\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge \opRule{b}{B}{S}\indent\mbox{by $\phiRule{P'}{A}{B}$, $\psiRule{S}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndRight(P', S)} \mbox{ by inversion of (AndRight)}\\\end{split}
+\end{equation}
+
+\paragraph{Case $P = Distinct(P')$}
+\begin{equation} \label{case Distinct(P)}
+\begin{split}
+\denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge a \neq b \\
+					&\Leftrightarrow \opRule{(a,b)}{(A, B)}{P'} \wedge a \neq b\indent\mbox{by $\phiRule{P'}{A}{B}$} \\
+					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Distinct(P')} \mbox{ by inversion of (AndRight)}\\\end{split}
+\end{equation}
+
+\paragraph{Case $P = Exactly(n, P')$}
+$\\ \indent$We have by inversion of the (Exactly) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
+
+\begin{equation}
+\label{fDef}
+\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs))$}\end{equation}
+$$\mbox{then}$$
+\begin{equation} \label{case Exactly(n, P)}\denoRule{(a, b)}{P} \Leftrightarrow (a, b) \in  f^n \deno{Id_A}\end{equation}
+$$\mbox{hence it suffices to prove}$$
+\begin{equation}
+\label{exactly Deno} (a, b)\in f^n \deno{Id_A} \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}
+\end{equation}
+
+\paragraph{Case $Exactly(0, P'):$}
+$$f^0\deno{Id_A} = \deno{Id_A}$$
+$$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
+\begin{equation}
+\begin{split}
+(a, b) \in f^0\deno{Id_A} & \Leftrightarrow \denoRule{(a,b)}{Id_A}\\
+& \Leftrightarrow \opRule{(a, b)}{(A, A)}{Id_A}\\
+& \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(0, P')}
+\end{split}
+\end{equation}
+
+\paragraph{Case $Exactly(n+1, P')$, assuming $\phiRule{Exactly(n, P')}{A}{A}$:}
+$$f^{n+1}\deno{Id_A} = f(f^n(\deno{Id_A}))$$
+$$\mbox{so by $\phiRule{Exactly(n, P')}{A}{A}$}$$
+\begin{equation}
+\begin{split}
+(a, b) \in f^{n+1}\deno{Id_A} & \Leftrightarrow \exists a'. \denoRule{(a,a')}{P'} \wedge (a', b) \in f^n(\deno{Id_A})\indent\mbox{by definition of $join$ and $f$}\\
+& \Leftrightarrow \opRule{(a, a')}{(A, A)}{P} \wedge \opRule{(a', b)}{(A, A)}{Exactly(n, p)}\\
+& \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n+1, P')}\mbox{ by (Exactly n+1)}\\
+\end{split}
+\end{equation}
+
+\paragraph{Case $P = Upto(n, P')$}
+$\\ \indent$We have by inversion of the (Upto) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
+
+\begin{equation}
+\label{fDef}
+\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs) \cup pairs)$}\end{equation}
+$$\mbox{then}$$
+
+\begin{equation}
+\deno{P} = f^n\deno{Id_A}\\
+\mbox{We now case split on n}
+\end{equation}
+
+\paragraph{Case $Upto(0, P')$}
+
+\begin{equation}
+\begin{split}
+\denoRule{(a,b)}{Upto(0, P')} & \Leftrightarrow (a, b) \in f^0 \deno{Id_A} \\
+							  & \Leftrightarrow (a, b) \in \deno{Id_A}\\ 
+							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Id_A} \mbox{    by $\phiRule{Id_A}{A}{A}$}\\ 
+							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Upto(0, P')} \mbox{    by (Upto0)}\\ 
+\end{split}
+\end{equation}
+
+\paragraph{Case $Upto(n+1, P')$}
+
+\begin{equation}
+\begin{split}
+\denoRule{(a,b)}{Upto(m + 1, P')} & \Leftrightarrow (a, b) \in f^{m+1} \deno{Id_A} \\
+							  & \Leftrightarrow (a, b) \in (join(\deno{P'}, f^{m} \deno{Id_A}) \cup f^{m} \deno{Id_A})\\ 
+							  & \Leftrightarrow (a, b) \in join(\deno{P'}, \deno{Upto(m, P)}) \vee (a, b) \in \deno{Upto(m, P')}\\ 
+							  & \Leftrightarrow (\exists a'.\denoRule{(a, a')}{P'} \wedge \denoRule{(a', b)}{Upto(m, P')}) \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
+							  & \Leftrightarrow (\exists a'.\opRule{(a, a')}{(A, A)}{P'} \wedge \opRule{(a', b)}{(A, A)}{Upto(m, P')}) \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
+							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Upto(m+1, P')}\mbox{   by (Upto n+1), (Upto n)}
+\end{split}
+\end{equation}
+
+
+\paragraph{case $P = FixedPoint(P')$}
+$\\ \indent$We have by inversion of the (FixedPoint) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
+
+\begin{equation}
+\label{fDef}
+\mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs) \cup pairs)$}\end{equation}
+$$\mbox{then}$$
+$$
+\deno{P} = fix(f) \mbox{   In the domain $\clos$}\\
+$$
+\paragraph{Lemma:  f is continuous in the domain $\clos$}
+\setlength{\leftskip}{1cm}
+\paragraph{Firstly, f is monotonous.} $\\ $
+Let $x \subseteq y$
+\begin{equation}
+\label{continuousLemma}
+\begin{split}
+(a, b) \in f(x) & \Rightarrow (a, b) \in x \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x)\\
+& \Rightarrow (a,b) \in y \vee(\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in y)\\
+& \Rightarrow (a, b) \in f(y)\\
+\therefore & f(x) \subseteq f(y)
+\end{split}
+\end{equation}
+\setlength{\leftskip}{0pt}
+
+
+\setlength{\leftskip}{1cm}
+\paragraph{Secondly, $f$ preserves the $lub$s of chains.} $\\ $
+$\indent\indent$ Consider a chain $x1 \subseteq x2 \subseteq ... $ in $\clos$
+Since $\clos$ is a domain, the $lub$, $\bigcup_nx_n$ is also in $\clos$
+
+ 
+\begin{equation}
+\begin{split}
+	\forall m. x_m & \subseteq \bigcup_n x_n \\
+	\forall m. f(x_n) & \subseteq f(\bigcup_n(x_n))\\
+	\therefore \bigcup_nf(x_n) & \subseteq f(\bigcup_n(x_n))
+\end{split}
+\end{equation}
+
+To get the inverse relation,
+
+\begin{equation}
+(a, b) \in f(\bigcup_n(x_n)) \Rightarrow ((\exists n. (a,b) \in x_n ) \vee (\exists m, a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_m)
+\end{equation}
+
+let $n' = max(n, m)$ so $x_n \subseteq x_{n'}  \wedge x_m \subseteq x_{n'}$
+
+\begin{equation}
+\begin{split}
+\exists n'. ((a,b) & \in x_{n'} ) \vee (\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in x_{n'})\\
+\therefore\exists n'. (a, b) &\in f(x_{n'})\\
+\therefore\exists n'. f(\bigcup_nx_n) &\subseteq f(x_{n'}\\
+\therefore f(\bigcup_nx_n) &\subseteq \bigcup_nf(x_{n'})\\
+\end{split}
+\end{equation}
+
+
+\setlength{\leftskip}{0pt}
+So $f$ is Scott-continuous.
+
+Now, by Tarski's fixed point theorem
+
+$$\deno{FixedPoint(P')} = fix(f) = \bigsqcup_nf^n(\bot)$$
+
+
+\paragraph{Lemma $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$}
+
+Firstly, in the forwards direction, $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)$
+
+By inversion of the operational rules (FixedPoint0), (FixedPoint n) and $\opRule{(a, b)}{(A, A)}{FixedPoint(P')}$, we get two cases.
+
+
+
+\paragraph{Case $\opRule{(a,b)}{A, A}{Id_A}$:\\}
+by $\phiRule{Id_A}{A}{A}, \denoRule{(a, b)}{Id_A} = \bot$\\so $n = 0$
+
+
+\paragraph{Case $\opRule{(a, b)}{(A,A)}{P'} \wedge \opRule{(b, c)}{(A,A)}{FixedPoint(P')}\\ $}
+(hence $\opRule{(a, c)}{(A, A)}{FixedPoint(P')}$)
+
+by $\phiRule{P'}{A}{A}, and \opRule{(b,c)}{(A,A)}{FixedPoint(P')}$
+
+$$\denoRule{(a, b)}{P'} \wedge \exists n. (b, c) \in f^n(\bot)$$
+
+Instantiating with $m = n$ gives
+$$\denoRule{(a, b)}{P'} \wedge (b, c) \in f^m(\bot)$$
+
+so $(a,c) \in f(f^m(\bot)) = f^{m+1}(\bot)$
+
+Hence $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)\\\\ $
+To go the other way, we need to prove $(a, b) \in \bigsqcup_nf^n(\bot) \Rightarrow \opRule{(a, b)}{(A, A)}{FixedPoint(P')}$
+
+$(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either:
+
+\paragraph{Case $(a, b) \in \bot$}
+\begin{equation}
+\label{Case Bottom}
+\begin{split}
+& \therefore \denoRule{(a,b)}{Id_A}\\
+& \therefore \opRule{(a,b)}{(A, A)}{Id_A} \mbox{ By $\phiRule{Id_a}{A}{A}$}\\
+& \therefore \denoRule{(a,b)}{Id_A} \mbox{ By (Fix1)}
+\end{split}
+\end{equation}
+
+\paragraph{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bot))$}
+\begin{equation}
+\label{Case n+1}
+\begin{split}
+(\exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in f^{n}(\bot)) & \vee (a, b) \in f^{n}(\bot) \wedge \neg ((a, b) \in f^n(\bot))\\
+&\therefore \exists a'. \denoRule{(a, a')}{P'} \wedge (a', b) \in f^{n}(\bot)\\
+&\therefore \opRule{(a, a')}{(A, A)}{P'} \wedge \opRule{(a', b)}{(A, A)}{FixedPoint(P')}\\
+&\therefore \opRule{(a,b)}{(A,A)}{FixedPoint(P')}
+\end{split}
+\end{equation}
+
+so we have $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot) \Leftrightarrow \denoRule{(a, b)}{FixedPoin(P')}$
+
+$$\square$$
+
+\chapter{Joins on $\query$ as a monoid}
+
+In order to justify some of our optimisations, we need to know certain properties of join denotation.
+
+Firstly, we want to define establish closure and associatiavity of the $join$ function defined in the denotational semantics.
+
+We want to define these for queryable subsets of a view $v \in View_{\Sigma}$
+\begin{equation}
+	Query(v) = \setComp{s}{\exists P, A, B. s = \deno{P} \wedge \typeRule{P}{A, B}}
+\end{equation}
+
+\section{Lemma: Join is closed on $\query$}
+Proof:
+For $s, t \in Query(v)$ there exists $P, Q, A, B, C, D$ such that $\typeRule{P}{A, B}$ and $\typeRule{Q}{C, D}$ hold and $s = \deno{P} \wedge t = \deno{Q}$
+
+\paragraph{Case $B \neq C$}
+	Then the join is empty, since no $b \in B = c \in C$, so 
+	\begin{equation}
+		join(\deno{P},\deno{Q}) = \emptyset = \deno{Distinct(Id_T)}
+	\end{equation}
+	For some type $T \in \Sigma$ (We know $\Sigma$ contains more than one type, due to the typing of $P$ and $Q$
+
+ 
+\paragraph{Case $B = C$}
+	Then the join is not empty.
+	By the correspondence of denotational and operational semantics, we have
+	\begin{equation}
+		join(\deno{P}, \deno{Q}) = \deno{Chain(P, Q)}
+	\end{equation}
+	
+	with the following typing
+	\begin{equation}
+	\typeRule{Chain(P, Q)}{A, D}
+	\end{equation}
+	 
+\section{Lemma: Join is associative on $\query$}
+Proof: For $r, s, t \in \query$ there exist queries $P, Q, R$ and object types $A, B, C, D, E, F$ such that $\typeRule{P}{A, B}$, $\typeRule{Q}{C, D}$, $\typeRule{R}{E, F}$ and  hold and $r = \deno{P} \wedge s = \deno{Q} \wedge t = \deno{R}$
+\\We want to prove that $join(r, join(s, t)) = join(join(r, s), t)$
+\paragraph{Case $B \neq C$}
+	Then 
+	\begin{equation}\label{Case B != C}
+	\begin{split}
+		join(r, join(s, t)) & = join(r, u) \mbox{ For some $u$, either $u = \emptyset$ or $u$ has a left type of $C$}\\
+							& = \emptyset \mbox{ hence equals the empty set}\\
+							& = join(\emptyset, t)\\
+							& = join(join(r, s), t) \\
+	\end{split}
+	\end{equation}
+	
+\paragraph{Case $D \neq E$}
+Then similarly
+	\begin{equation}\label{Case D != E}
+	\begin{split}
+		join(join(r, s), t) & = join(u, t) \mbox{ For some $u$, either $u = \emptyset$ or $u$ has a right type of $D$}\\
+							& = \emptyset \mbox{ hence equals the empty set}\\
+							& = join(r, \emptyset)\\
+							& = join(r, join(s, t)) \\
+	\end{split}
+	\end{equation}
+	
+\paragraph{Case $B = C$ and $D = E$}
+Then
+\begin{equation}\label{Well typed}
+\begin{split}
+(a, f) \in join(r, join(s, t)) & \Leftrightarrow (a, f) \in join(\deno{P}, join(\deno{Q},\deno{R}))\\
+							  & \Leftrightarrow \opRule{a,f}{A, F}{Chain(P, Chain(Q, R))} \mbox{ by deno-oper correspondence}\\
+							& \Leftrightarrow \exists b, d. \opRule{(a, b)}{A, B}{P} \wedge \opRule{(b,d)}{B,D}{Q} \wedge \opRule{(d,f)}{D,F}{Q}\\
+							& \Leftrightarrow \opRule{(a, f)}{A, F}{Chain(Chain(P, Q), R)}\\
+							& \Leftrightarrow \denoRule{(a, f)}{Chain(Chain(P, Q), R)}\\
+							& \Leftrightarrow (a, f) \in join(join(\deno{P}, \deno{Q}), \deno{R})\\
+							& \Leftrightarrow (a, f) \in join(join(r, s), t)\\							
+\end{split}
+\end{equation}
+
+Hence $\query$ is a monoid with $join$. However, it doesn't particularly stick to a nice typescheme.
+	
+\section{Joins on $\queryT{A}$ as a monoid}
+If we now take the more useful subset $\queryT{A}$ of $\query$
+
+\begin{equation}
+\queryT{A} = \setComp{s \subseteq A \times A}{\exists P. \typeRule{P}{A, A} \wedge s = \deno{P}}
+\end{equation}
+
+Trivially, from the above, $join$ over $\queryT{A}$ also forms a monoid.
+
+This enables several optimisations.
+
+Firstly, writing $p$ for $\deno{P}$ and with the binary representation of $n = \sum_i{b_i * 2^{i}}$
+\begin{equation}\label{ExactlyReordering}
+\begin{split}
+\deno{Exactly(n, P)} & = p^{n} \mbox{ In $\queryT{A}$}\\
+					& = \prod_i {p^{b_i * 2^i} }
+\end{split}
+\end{equation}
+
+Todo: join distributes over and and or
+
+\section{Joins distribute over Or}
+
+It is useful to know how $join$ interacts with other queries. Specifically we can do some re-writing if it is the case that join distributes over $Or$
+
+\begin{equation}
+\deno{Chain(P, Or(Q, R))} = \deno{Or(Chain(P,Q), Chain(P, R))}
+\end{equation}
+
+Firstly, we have by inversion of the type rules for $Chain$ and $Or$ that:
+\begin{equation}\label{typeEquality}
+\begin{split}
+	\typeRule{Chain(P, Or(Q, R))}{A, C} & \Leftrightarrow \typeRule{P}{A, B} \wedge \typeRule{Q, R}{B, C}\\
+									   & \Leftrightarrow \typeRule{Chain(P,Q)}{A, C} \wedge \typeRule{Chain(P, R)}{A, C}\\
+									   & \Leftrightarrow \typeRule{Or(Chain(P,Q), Chain(P, R))}{A, C}\\
+\end{split}
+\end{equation}
+
+\begin{equation}\label{denotationalEquality}
+\begin{split}
+\deno{Chain(P, Or(Q, R))} & = \setComp{(a, c)}{\exists b. \denoRule{(a, b)}{P} \wedge (b,c) \in (\deno{Q} \cup \deno{R}})\\
+						 & = \setComp{(a, c)}{\exists b. (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{Q}) \vee (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{R})}\\
+						 & = \deno{Chain(P, Q)} \cup \deno{Chain(P, R)}\\
+						 & = \deno{Or(Chain(P, Q), Chain(P, R))}
+\end{split}
+\end{equation}
+
+
+\section{$Upto(n, P)$ expressed as $Exactly(n, P')$}
+Thanks to the previous section, we can now rewrite the denotation of $upto$
+
+\begin{equation}
+\label{UptoToExactly}
+\begin{split}
+\deno{Upto(n, P)} & = (\lambda pairs. join(\deno{P}, pairs) \cup pairs)^n \deno{Id_A}\\
+				  & = (\lambda pairs. join(\deno{P} \cup \deno{Id_A}, pairs)^n \deno{Id_A} \mbox{ Since $Id_A$ is the identity of join}\\
+				  & = \deno{Exactly(n, Or(P, Id_A))}
+\end{split}
+\end{equation}
+
+This means that we can evaluate $Upto$ queries as $Exactly$ queries, and apply the binary-representation driven construction above to evaluate queries using fewer unique joins.
+
+
+\section{Joins do not distribute over And}
+
+Consider the schema containing object types $A$, $B$, $C$ and relations $R_1 \colon A,B$, $R_2 \colon B,C$,  and $R_3 \colon B,C$ and a view $v$ in this schema, with relations $R_1 \mapsto \lbrace(a, b1), (a, b2)\rbrace$, $R_2 \mapsto \lbrace(b1, c)\rbrace$, and $R_3 \mapsto \lbrace(b2, c)\rbrace$.
+
+Clearly 
+\begin{equation}
+\denoRule{(a,c)}{And(Chain(R_1, R_2), Chain(R_1, R_3))}
+\end{equation}
+
+But 
+\begin{equation}
+ \deno{And(R_2, R_3)} = \emptyset
+\end{equation}
+
+So
+\begin{equation}
+ \deno{Chain(And(R_2, R_3))} = \emptyset
+\end{equation}
 
 \end{document}
