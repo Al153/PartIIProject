@@ -200,18 +200,43 @@ In order to implement immutability, we need a way of creating an immutable snaps
 \section{Query Language}
 \subsection{DSL Syntax}
 I spent some time iterating over a DSL syntax and how I wanted queries to look and be structured. My goals we to have a highly composable and expressive, yet small language. At first I experimented with a neo4j style language, with pattern matching syntax, an example of which is below. The query takes a number of fields to fill in, in this case a pair of actors, and finds all valid ways to fill them in subject to the graph constraints.
-\diagramNeeded{Ugly syntax figure}
-However, the scala type inference is fairly localised so would need some type parameterisations filled out, yielding a more accurate syntax below.
-\diagramNeeded{Even uglier syntax}
+\begin{framed}
+\begin{verbatim}
+ val coactor = RelationQuery {
+    (x: Pattern[Actor], y: Pattern[Actor]) => {
+       val m = ?[Movie]
+        (x ~ ActsIn ~> m) && (y ~ ActsIn ~> m)
+    }
+}
+\end{verbatim}
+\note{Find two actors such they both act in the same movie}
+\end{framed}
+However, the Scala type inference is fairly localised so would need some type parameterisations filled out, yielding a more accurate syntax below.
+\begin{framed}
+\begin{verbatim}
+   val coactor = RelationQuery {
+      (x: Pattern[Actor], y: Pattern[Actor]) => {
+        val m = ?[Movie]
+        (x ~[Movie] ActsIn ~> m) && (y ~[Movie] ActsIn ~> m)
+      }
+    }
+\end{verbatim}
+\note{Find two actors such they both act in the same movie}
+\end{framed}
 This is fairly cluttered syntax and difficult to read. It would also have been complicated by a desire to implement property graph features. Furthermore, we would not be able to easily and safely replicate Neo4j's ability to extract an arbitrary number of objects of different types from a path. Doing so would require use of structures such as heterogeneously typed lists.
 
 As a result, I settled upon on an edge-labelled-relation oriented approach which neatens the above query significantly.
 \todo{reword above;}
-\todo{neat syntax}
+\begin{framed}
+\begin{verbatim}
+val coactor = ActsIn --><-- ActsIn
+\end{verbatim}
+\note{Find two actors such they both act in the same movie}
+\end{framed}
 
 This is much more readable and concise. With this syntax, and the assumption that \codeName{ActsIn} relates \codeName{Actors} to \codeName{Movies}, Scala's typesystem can infer that \codeName{coactor} relates \codeName{Actors} to other \codeName{Actors}. There is also syntax for repetitions, intersections and unions. \todo{Examples in the appendix}
 \subsection{Semantic Definitions}
-To correctly implement the DSL, we need to model mathematically its operation. Hence,the above DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors to do this. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values.
+To correctly implement the DSL, we need to model mathematically its operation. Hence, the above DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors to do this. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values.
 
 \paragraph{FindPair queries}
 \begin{equation}
@@ -471,15 +496,15 @@ write(rs, v) = &v\left[A \mapsto v_{table}(A) \cup \setComp{a_i}{0 < i \leqslant
 
 
 \section{Languages and Libraries Used}
-\paragraph{Scala} An object-oriented, functional JVM languages interoperable with Java. I chose Scala for its familiarity, advanced type system, ability to use Java libraries, and ease of deployment across many systems. \toReference{https://github.com/tperrigo/scala-type-system/wiki/Scala-Type-System-Overview}
+\paragraph{Scala} An object-oriented, functional JVM languages interoperable with Java. I chose Scala for its familiarity, advanced type system, ability to use Java libraries, and ease of deployment across many systems. \toReference{https://github.com/tperrigo/Scala-type-system/wiki/Scala-Type-System-Overview}
 
 \paragraph{Scala Build Tool} A package manager and build tool for Scala.
-\toReference{https://www.scala-sbt.org/}
+\toReference{https://www.Scala-sbt.org/}
 \paragraph{PostgreSQL}  An open source, multi platform, performant SQL implementation.
 \toReference{https://www.postgresql.org/}
 \paragraph{LMDB} An open source, highly optimised key-value datastore.
 \toReference{https://symas.com/lmdb/}
-\paragraph{Scalaz} A library for scala providing typeclasses and syntax to aid advanced functional programming. \toReference{https://github.com/scalaz/scalaz}
+\paragraph{Scalaz} A library for Scala providing typeclasses and syntax to aid advanced functional programming. \toReference{https://github.com/Scalaz/Scalaz}
 \paragraph{JDBC} Java's standard library support for SQL connections. Used to interact with a postgres database.
 \toReference{http://www.oracle.com/technetwork/java/javase/jdbc/index.html}
 \paragraph{LMDBJava} A JNI library allowing access to the LMDB datastore. 
@@ -509,7 +534,7 @@ Finally, there are three interfaces that a backend system must implement: DBBack
 I have made use of several advanced programming techniques which are specific to the Scala language.
 
 \subsection{Type Enrichment}
-The type enrichment feature of the scala language allows retroactive addition of methods to previously defined types. Type enrichment is performed by creating an implicit class, taking a single underlying value of some given type. The methods defined in the implicit class can now be called as if they were methods of the underlying class, provided the implicit class is in scope.
+The type enrichment feature of the Scala language allows retroactive addition of methods to previously defined types. Type enrichment is performed by creating an implicit class, taking a single underlying value of some given type. The methods defined in the implicit class can now be called as if they were methods of the underlying class, provided the implicit class is in scope.
 
 \renewcommand{\baselinestretch}{0.8}\small
 \begin{framed}
@@ -539,7 +564,7 @@ When Outer is imported, we can now do
 This allows us to add syntax to types where a small number of core methods have been defined.
 
 \subsection{Implicit Parameters}
-Another advanced feature of scala that  I have used is that of implicit  parameters to functions and class constructors. Values such as vals, functions, and classes can be declared with a implicit tag. Functions and classes can declare additional parameters as implicit. When these functions are called, the implicit parameter can be omitted if and only if there is an unambiguous implicit value of the correct type in scope.
+Another advanced feature of Scala that  I have used is that of implicit  parameters to functions and class constructors. Values such as vals, functions, and classes can be declared with a implicit tag. Functions and classes can declare additional parameters as implicit. When these functions are called, the implicit parameter can be omitted if and only if there is an unambiguous implicit value of the correct type in scope.
 \begin{framed}
 \begin{framed}
 \begin{verbatim}
@@ -712,7 +737,7 @@ def compile(adt: ADT): State[S, Res] = adt match {
 
 
 	\subsection{Constrained Future Monad}
-	Part of the goal of type safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad. \toReference{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf} In scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the scala compiler at runtime. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
+	Part of the goal of type safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad. \toReference{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf} In Scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the Scala compiler at runtime. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
 	
 \begin{framed}
 	\begin{framed}
@@ -765,7 +790,7 @@ def evalAndPrint(e: Expr): NoError \/ String =
 \end{framed}
 
 
-Typically, we're dealing with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we're interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
+Typically, we're dealing with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the Scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we're interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
 
 \begin{framed}
 	\begin{verbatim}
@@ -788,16 +813,40 @@ Although it would be preferable to only use purely functional folds, maps, and i
 	One of the goals of the project was to allow close to arbitrary user objects (assuming that they are finite) to be inserted and retrieved from the database. This was achieved using the typeclass pattern.
 	\subsection{Schema Hierarchy}
 	In order to work with the database, a class needs to have an instance of the \codeName{SchemaObject} typeclass.
-	\diagramNeeded{definition of schema object}
+	\begin{framed}
+		\begin{verbatim}
+sealed trait SchemaObject[A] {
+// components for constructing DB
+ def schemaComponents: Vector[SchemaComponent]  tables
+ def any: Pattern[A] // Findable that matches any A
+ def findable(a: A): DBTuple[A] // convert an object to a findable
+ def name: TableName // name of the table
+ def fromRow(row: DBObject): ExtractError \/ A // unmarshall an A
+}
+
+		\end{verbatim}
+		
+	\end{framed}
 	
-	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These are implemented by effectively defining marshalling functions from the type to and from tuples of "\codeName{Storable}"  (read: primitive) types.
+	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These simplify the construction of a type-class instance to marshalling values of the object type to tuples of  \codeName{Storable}"  (read: primitive) types.
 	
 	\todo{To go in the appendix: The definition of a schema object subclass}
 	
 	\subsection{DBObjects}
 	
 	To store objects in the database under various backends, we need to have a type erased (at compile time, but not runtime) version of the objects. Once we have a primitive representation of an object from the \codeName{SchemaObject}, we can fully unerase it by converting it to a \codeName{DBObject}. A \codeName{DBObject} is simply a collection of type tagged fields (\codeName{DBCell}). These can now be easily inserted or retrieved from a database.
-	\diagramNeeded{DBObject and cell definitions}
+\begin{framed}
+	\begin{verbatim}
+type DBObject = Vector[DBCell]
+
+type DBCell -> DBInt of Int 
+			|  DBString of String
+			| DBBool of Boolean
+			| DBDouble of Double
+	\end{verbatim}
+	
+	\note{Pseudo-ml definitions of \codeName{DBObject} and its components}
+\end{framed}
 	
 	\subsection{Unerasure}
 	In order to correctly retrieve values from the database, we need to be able to undo the erasure process. This can be done using the unmarshalling methods derived from the \codeName{SchemaObject}  for an object type.
@@ -823,7 +872,7 @@ In order to build the database structures the backends need a definitive collect
 	
 \section{Query ADT}
 	\todo{This feels like it needs rewriting}
-The ADTs described in the preparation section \todo{link}	are implemented in scala each by a pair of ADTs: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they lookup. Using this parameterisation, I have encoded the type of the typed ADTs such that the scala compiler checks the typing of the any generated query and does type inference for us, according to the type rules of the query language. \diagramNeeded{Appendix: Class definitions of ADT} The only rules that cannot be checked at compile time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{Id}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile time without dependent types.  These typed ADTs are erased,  with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a runtime error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
+The ADTs described in the preparation section \todo{link}	are implemented in Scala each by a pair of ADTs: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they lookup. Using this parameterisation, I have encoded the type of the typed ADTs such that the Scala compiler checks the typing of the any generated query and does type inference for us, according to the type rules of the query language. \todo{Link to Appendix "The definitions of these types can be found in the appendix..."} The only rules that cannot be checked at compile time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{Id}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile time without dependent types.  These typed ADTs are erased,  with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a runtime error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
 	
 \section{Commands}
 As specified in the previous chapter, each backend needs to implement five commands: 
@@ -836,7 +885,7 @@ As specified in the previous chapter, each backend needs to implement five comma
 \end{itemize}
 Each command should return an \codeName{Operation} of the correct type.
 \section{DSL}
-The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.scala} in the appendix for examples of DSL). \todo{Put in appendix}
+The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.Scala} in the appendix for examples of DSL). \todo{Put in appendix}
 
 \section{Common Generic Algorithms}
 During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different backends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
@@ -930,15 +979,89 @@ Upon completion of the initial memory backend, I started work on a PostgreSQL ba
 		\end{center}
 		\note{Note: Object-, Left-, and Right- Ids are foreign keys to the \codeName{ObjectTable}'s ObjectId column.}
 	\subsection{Query Structure}
-	\todo{text from GDrive;}
-	\diagramNeeded{Tables from G-Drive}
-	\subsection{Monadic Compilation}
-	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \todo{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \diagramNeeded{Compilation context figure from GDrive}
+	n order to manage the complexity of queries, I have made use of SQL’s Common Table Expressions feature. CTEs act like let expressions in ML. \toReference{(https://www.researchgate.net/publication/242270488_Common_Table_Expression_-_WITH_Statement)}
 
+	The first CTE we use selects all the valid CommitIds.
+\begin{framed}
+	\begin{verbatim}
+WITH RECURSIVE VIEW_CTE AS 
+	(SELECT $commitId FROM $viewTable WHERE $viewId = $id)
+	\end{verbatim}
+\end{framed}
+
+The next collection of CTEs select the valid instances of each relation from the relation tables.
+
+\diagramNeeded{Example of relation selection}
+
+We then select the valid instances from auxiliary queries we use for \mathName{$Id_A$} queries.
+
+\diagramNeeded{Example of table selection}
+
+We then create CTEs for any repeated subqueries (ie those used by \mathName{FixedPoint}, \mathName{Exactly}, and \mathName{Upto})
+
+\diagramNeeded{Example of repeated CTE}
+
+We then create a CTE for the main query, which exposes a \codeName{leftId} and \codeName{rightId}  column
+
+\diagramNeeded{Example of main query}
+
+Finally, we join the main query CTE to queries to extract the left and rights .
+\diagramNeeded{Example of extraction}
+
+The \codeName{main} query itself is built compositionally, in that each subquery exposes a \codeName{leftId} and \codeName{rightId},  allowing queries to be composed to form larger queries in a standard form. A full query might look like this:
+	\todo{Colour code this query, make it fit}
+\begin{framed}
+\begin{verbatim}
+WITH RECURSIVE
+	VIEW_CTE AS (SELECT CommitId FROM VIEWS_TABLE WHERE ViewId = 1),
+	Relation0 AS (SELECT left_id, right_id 
+					FROM REL_0_0 JOIN VIEW_CTE ON REL_0_0.CommitId = VIEW_CTE.CommitId),
+	AuxTable2 AS (SELECT DISTINCT obj_id AS left_id, obj_id AS right_id FROM AUXUSERSPACE_People_0 JOIN VIEW_CTE ON AUXUSERSPACE_People_0.CommitId = VIEW_CTE.CommitId),
+	View1 AS (SELECT * FROM Relation0),
+	View3 AS (
+		(SELECT left_id, right_id FROM AuxTable2 )
+		UNION
+		SELECT View3.left_id AS left_id, View1.right_id AS right_id
+		FROM
+			View3 INNER JOIN View1 ON View3.right_id = View1.left_id
+	),
+	main_query AS (SELECT left_id, right_id FROM View3 )
+(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0
+	FROM (
+		(USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id)
+		JOIN USERSPACE_People_0 AS right_table
+		ON right_id = right_table.obj_id)
+	)
+
+\end{verbatim}
+\end{framed}
+	\subsection{Monadic Compilation}
+	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \todo{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \todo{format diagrams here}
+	
+	\begin{framed}
+	\begin{verbatim}
+case class CompilationContext(
+        varCount: Int, // Unique identifier for variable names
+        relations: Map[ErasedRelationAttributes, VarName], // Relations used by the query
+        requiredTables: Map[TableName, VarName], // tables needed for Findables in the query
+	    requiredAuxTables: Map[TableName, VarName], // the aux (commit) tables needed for the query
+        commonSubExpressions: Map[SubExpression, VarName]
+)
+
+	\end{verbatim}
+	\end{framed}
 	\subsection{Writes}
 	There are several steps in the implementation of writes, though I have not expended  a great deal of effort making them fast. A significant part of this is the "insert or get" SQL query, which looks up an object in the relevant table, returning its \codeName{ObjectId} if it exists and creating the object and returning the new ID if it does not.
 	
-	\diagramNeeded{insertOrGet query from GDrive}
+	\begin{framed}
+		\begin{verbatim}
+WITH insertOrGetTemp AS (
+  INSERT INTO $objectTable ($columnNames)
+  SELECT $values WHERE NOT EXISTS (SELECT 0 FROM $objectTable WHERE $ValueConditions)
+  RETURNING $objId
+) SELECT * FROM insertOrGetTemp  UNION ALL (SELECT $objId FROM $name WHERE $ValueConditions)
+		\end{verbatim}
+	\end{framed}
 	
 	We create a new view and commit, then we run a memoised \codeName{InsertOrGet} over all the leftmost objects to be inserted, then all the right objects to be inserted, yielding tagged relations between \codeName{ObjectIds}. For each inserted relation, the existing relation instances are removed from those to insert, and the remaining inserted to the relevant \codeName{RelationTable} with the correct \codeName{CommitId}. The auxiliary tables are now updated and, on success, the views table is updated.
 
@@ -948,8 +1071,23 @@ Upon completion of the initial memory backend, I started work on a PostgreSQL ba
 Pathfinding is implemented by constructing an SQL query to generate right hand side \codeName{ObjectIds} for a relation given a left hand side \codeName{ObjectId}. This query is used as the search function for the generic pathfinding algorithms. Once paths have been found, their \codeName{ObjectIds} are looked up in the database to find the full values along each path.
 
 Fixed point traversal and repetitions are done natively in SQL. \codeName{FixedPoint} and \codeName{Upto} are done using a recursive CTE, while \codeName{Exactly} is done by explicitly joining together the required number of repetitions of the sub-relation's query.	
-	
-	\diagramNeeded{Recursive CTE example. Caption = An example of a recursive CTE computing \codeName{Upto}. \codeName{FixedPoint} would omit the counter variable and the limit.}
+	\begin{framed}
+	\begin{verbatim}
+	WITH RECURSIVE
+    RecursiveCTE AS (
+    	(SELECT *, 0 AS Counter FROM BasisCase )
+    	UNION
+    	SELECT 
+    		RecursiveCTE.left_id AS left_id,
+    		InductiveCase.right_id AS right_id,
+    		Counter + 1 AS Counter
+    	FROM RecursiveCTE INNER JOIN InductiveCase
+    	ON RecursiveCTE.right_id = InductiveCase.left_id
+    	WHERE Counter < Limit
+    )
+	\end{verbatim}
+	\note{An example of a recursive CTE computing \codeName{Upto}. \codeName{FixedPoint} would omit the counter variable and the limit.}
+	\end{framed}
 	
 	\subsection{Object Storage}
 	Objects are stored as in the appropriate \codeName{ObjectTable} in a manner derived from the \codeName{DBObject} of each object. Each \codeName{DBCell} is converted to appropriate SQL type.
@@ -970,8 +1108,20 @@ The final family of backends are the LMDB backends. LMDB is a simple, efficient 
 		\paragraph{Storage and Keys}
 			In order to write to the database using the LMDBJava API, we need to convert the key and value to \codeName{ByteBuffer}. To generify this process I have introduced two type classes: \codeName{Keyable} and \codeName{Storable}.
 			
-			\diagramNeeded{figures for these type-classes}
-			 \codeName{Keyable} is a type class which shows that an object can be converted into an array of bytes representing a component of a key (Can be concatenated with others to make a full key). \codeName{Storable} is a more general typeclass that shows that objects can be converted into a \codeName{ByteBuffer}. \codeName{Storable} objects are typically more complex than objects used as keys, and have a higher marshalling throughput, hence the lower level, faster, \codeName{ByteBuffer} API. Typeclass instances exist to allow sets and lists of \codeName{Storable} objects to be stored.	
+\begin{framed}
+\begin{verbatim}
+trait Keyable[K] { def bytes(k: K): Array[Byte]}
+
+trait Storable[A] {
+ def bufferLength(a: A): Int
+ final def toBuffer(a: A): ByteBuffer = 
+    {/*Allocates a buffer and fills it using declared methods*/}
+ def writeToExistingBuffer(a: A, buf: ByteBuffer): Unit
+ def fromBuffer(buf: ByteBuffer): LMDBError \/ A
+}
+\end{verbatim}
+\end{framed}			
+\codeName{Keyable} is a type class which shows that an object can be converted into an array of bytes representing a component of a key (Can be concatenated with others to make a full key). \codeName{Storable} is a more general typeclass that shows that objects can be converted into a \codeName{ByteBuffer}. \codeName{Storable} objects are typically more complex than objects used as keys, and have a higher marshalling throughput, hence the lower level, faster, \codeName{ByteBuffer} API. Typeclass instances exist to allow sets and lists of \codeName{Storable} objects to be stored.	
 			
 		\paragraph{Table Structure}
 	
@@ -1055,8 +1205,15 @@ trait RelationRetriever extends Logged {
 		\paragraph{Monadic Compilation}
 		To avoid storing multiple \codeName{RelationRetriever}s for the same subexpression, it is useful to reuse the same retriever for every occurrence of a subquery. Hence when building a retriever for a query, we want to keep track of all subqueries we've seen before. This can be done using the monadic compilation pattern above. The compilation state stores a hashmap of all the subtrees that have already been computed (A bit like when constructing a binary decision diagram in automated theorem proving). 
 		
-		\diagramNeeded{Compilation state from G-Drive}
-		\note{Compilation state}
+\begin{framed}
+\begin{verbatim}
+class QueryMemo(
+    val pairs: Map[UnsafeFindPair, RelationRetriever], 
+    val singles: Map[UnsafeFindSingle, SingleRetriever]
+)
+\end{verbatim}
+\note{Compilation state}
+\end{framed}
 		The compilation function checks the memo for precomputed values, and if they are not already computed, recurses to compute subtrees, then composes the subtree results to get a new retriever for the current node, which is added to the compilation state.
 		
 	\subsection{Complex Common Subexpression Elimination}
@@ -1261,13 +1418,10 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			\batched 		&	543,909 & 1.48	\\
 			\postgres    	&	289,352 & 0.786	\\}
 			
-						\diagramNeeded{More detail}
+						\todo{More detail}
 			\paragraph{Closing Thoughts}
 			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. An option to produce a performant back end might be to produce heuristics for estimating graph density and the relative performance of the various LMDB backends upon it to create an adaptive backend. Since all the LMDB backends use the same underlying database format (indeed the code for constructing and writing to the database remains the same), a backend could choose at query time which strategy it wants to use to execute each individual query.
-\section{Semantics Proofs}
-	\subsection{Denotational == Operational}
-	\subsection{Typesafety}
-	\subsection{Join as a Monoid}
+
 
 	
 \chapter{Conclusion}
@@ -1288,7 +1442,7 @@ Interesting extensions to the core project that, given more time, I would have b
 	In hindsight, I might aimed to build a narrower project, focusing on a single backend and comparing  performance against a widely used graph database such as neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and really digging down to extract all redundancy.
 
 \section{Concluding Thoughts}
-I hope for another chance to this space as I feel there are still many areas to explore within it.
+I hope for another chance to explore this space as I feel there are still many areas worth investigating.
 
 
 
@@ -1340,7 +1494,7 @@ To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \sups
 
 
 \chapter{Correspondence of operational and denotational semantics}
-
+\todo{neaten}
 In order to use the denotational semantics to construct an interpreter or compiler we need to prove they are equivalent to the operational semantics. Namely:
 
 For any pair query $P$, schema $\Sigma$ and $View_{\Sigma}$ $v$:
@@ -1836,5 +1990,180 @@ So
 \begin{equation}
  \deno{Chain(And(R_2, R_3))} = \emptyset
 \end{equation}
+ 
+\chapter{Scala Algebraic Data Type Definitions}
+Here, I have attached the definitions of the Scala typed intermediate representation. Note how the use of generic type parameters causes the Scala level type checking to also do the query-language type checking and inference. Also note how the use of \codeName{SchemaObject[A]} implicit parameters forces membership of the type-class of types that can be stored in the database.
+\begin{framed}
+\begin{verbatim}
+sealed abstract class FindPair[A, B](
+    implicit val sa: SchemaObject[A],
+    val sb: SchemaObject[B]
+) {
+  /**
+    * Reverse the relation
+    */
+  def reverse: FindPair[B, A]
+
+  /**
+    * Erase the type of the object, wrt SchemaDescription
+    */
+  def getUnsafe(sd: SchemaDescription):  MissingRelation \/ UnsafeFindPair
+}
+\end{verbatim}
+\end{framed}
+
+\begin{framed}
+\begin{verbatim}
+sealed abstract class FindSingle[A](implicit val sa: SchemaObject[A]) {
+  /**
+    * Convert to unsafe
+    */
+  def getUnsafe(sd: SchemaDescription): MissingRelation \/ UnsafeFindSingle
+}
+\end{verbatim}
+\end{framed}
+
+Definitions of \codeName{FindPair} case classes.
+For the sake of brevity and clarity, I have removed the implementations of \codeName{reverse} and \codeName{getUnsafe}. In short, they were defined straightforwardly to recursively process the tree.
+\begin{framed}
+\begin{verbatim}
+/**
+  * Search for pairs related by a [[Relation]]
+  */
+case class Rel[A, B](r: Relation[A, B])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindPair[A, B]
+
+/**
+  * Search for pairs related in reverse by a [[Relation]]
+  */
+case class RevRel[A, B](r: Relation[B, A])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindPair[A, B]
+
+/**
+  * Search for pairs that appear in the result of both subexpressions
+  */
+
+case class And[A, B](left: FindPair[A, B], right: FindPair[A, B])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindPair[A, B]
+
+/**
+  * Search pairs in the result of the left subexpression,
+  * such that the right of the pair is in result of the
+  * right subexpression
+  */
+case class AndRight[A, B](left: FindPair[A, B], right: FindSingle[B])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindPair[A, B]
+
+/**
+  * Search for pairs of the left sub expression
+  * such that the left of the pair is in the result
+  * of the right subexpression
+  */
+case class AndLeft[A, B](left: FindPair[A, B], right: FindSingle[A]                        )
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindPair[A, B]
+
+
+/**
+  * Search for pairs that appear in the result of either subexpression
+  */
+case class Or[A, B](left: FindPair[A, B], right: FindPair[A, B])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindPair[A, B]
+
+/**
+  * search for pairs (a, c) such that there
+  * exists b, (a, b) is in the result of left, (b, c)
+  * is in the result of right
+  */
+
+case class Chain[A, B, C](
+                           left: FindPair[A, B],
+                           right: FindPair[B, C]
+                         )
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B], sc: SchemaObject[C])
+    extends FindPair[A, C]
+
+/**
+  * return a set of repeated pairs of the type
+  *
+  * Chain(a, id) = Chain(id, a) = a
+  */
+
+case class FindIdentity[A]()(implicit sa: SchemaObject[A])
+extends FindPair[A, A]
+
+/**
+  * filter the result of the sub expression for those
+  * pairs which do not equal each other
+  */
+
+case class Distinct[A, B](rel: FindPair[A, B])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+extends FindPair[A, B]
+
+/**
+  * Find pairs that are related by n repetitions
+  * of the underlying subexpression
+  */
+
+case class Exactly[A](n: Int, rel: FindPair[A, A])
+    (implicit sa: SchemaObject[A])
+    extends FindPair[A, A]
+
+/**
+  * Find pairs that are related by up to n
+  * repetitions of the underlying subexpression
+  */
+
+case class Upto[A]( n: Int, rel: FindPair[A, A])
+    (implicit sa: SchemaObject[A])
+    extends FindPair[A, A]
+
+/**
+  * Find pairs that are related by the transitive closure
+  * of the underlying subexpression
+  */
+case class FixedPoint[A](rel: FindPair[A, A])
+    (implicit sa: SchemaObject[A])
+    extends FindPair[A, A]
+
+\end{verbatim}
+\end{framed}
+Definition of \codeName{FindSingle} case classes. Again, I have ommitted the implementations of \codeName{getUnsafe} for the sake of brevity
+\begin{framed}
+\begin{verbatim}
+/**
+  * Lookup a findable
+  */
+case class Find[A](pattern: Findable[A])
+    (implicit sa: SchemaObject[A])
+    extends FindSingle[A]
+/**
+  * Narrow down a findSingle query
+  */
+case class AndS[A
+    (left: FindSingle[A], right: FindSingle[A])(implicit sa: SchemaObject[A])
+    extends FindSingle[A]
+/**
+  * Find objects b: B, such that there exists a: A
+  * in the result of start that (a, b) is in the result of rel
+  */
+case class From[A, B](start: FindSingle[A], rel: FindPair[A, B])
+    (implicit sa: SchemaObject[A], sb: SchemaObject[B])
+    extends FindSingle[B]
+
+/**
+  * Broaden a findSingle query
+  */
+case class OrS[A](left: FindSingle[A], right: FindSingle[A])
+    (implicit sa: SchemaObject[A])
+    extends FindSingle[A]
+\end{verbatim}
+\end{framed}
 
 \end{document}
