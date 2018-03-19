@@ -191,3 +191,6 @@
 \contentsline {section}{\numberline {C.5}$Upto(n, P)$ expressed as $Exactly(n, P')$}{65}{section.C.5}
 \contentsline {section}{\numberline {C.6}Joins do not distribute over And}{65}{section.C.6}
 \contentsline {chapter}{\numberline {D}Scala Algebraic Data Type Definitions}{67}{appendix.D}
+\contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{71}{appendix.E}
+\contentsline {section}{\numberline {E.1}FindPairs}{71}{section.E.1}
+\contentsline {section}{\numberline {E.2}FindSingle}{72}{section.E.2}

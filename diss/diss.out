@@ -94,3 +94,6 @@
 \BOOKMARK [1][-]{section.C.5}{Upto\(n, P\) expressed as Exactly\(n, P'\)}{appendix.C}% 94
 \BOOKMARK [1][-]{section.C.6}{Joins do not distribute over And}{appendix.C}% 95
 \BOOKMARK [0][-]{appendix.D}{Scala Algebraic Data Type Definitions}{}% 96
+\BOOKMARK [0][-]{appendix.E}{Denotational Semantics Based Memory Implementation}{}% 97
+\BOOKMARK [1][-]{section.E.1}{FindPairs}{appendix.E}% 98
+\BOOKMARK [1][-]{section.E.2}{FindSingle}{appendix.E}% 99
