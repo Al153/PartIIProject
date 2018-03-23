@@ -80,35 +80,17 @@ object RelationRetriever {
         filter <- that.findFrom(objId)
       } yield rs union filter
     )
-    def exactly(n: Int): RelationRetriever = {
-      var i = n
-      var acc = outer
-      var res: RelationRetriever = IdRetriever
 
-      while (i > 0) {
-        if ((i & 1) == 1) {
-          res = res join acc
-        }
-        i = i >> 1
-        acc = acc join acc
-      }
-      res
-    }
+    def exactly(n: Int): RelationRetriever = repeat(n, outer, IdRetriever)
 
-    def upto(n: Int): RelationRetriever = {
-      var i = n
-      var acc = outer or IdRetriever
-      var res: RelationRetriever = IdRetriever
+    def upto(n: Int): RelationRetriever = repeat(n, outer or IdRetriever, IdRetriever)
 
-      while (i > 0) {
-        if ((i & 1) == 1) {
-          res = res join acc
-        }
-        i = i >> 1
-        acc = acc join acc
-      }
-      res
-    }
+    private def repeat(n: Int, acc: RelationRetriever, res: RelationRetriever): RelationRetriever = if (n > 0) {
+      val newRes = if((n & 1) == 1)  res join acc else res
+      val newAcc = acc join acc
+      repeat(n >> 1, newAcc, newRes)
+    } else res
+
     def fixedPoint: RelationRetriever = new CachedRelationRetriever(
       objId =>
         FixedPointTraversal.fixedPoint[LMDBError, ObjId](_.flatMapE(outer.findFrom), objId)

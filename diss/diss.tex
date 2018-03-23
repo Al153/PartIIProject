@@ -13,7 +13,7 @@
 \usepackage{breqn}
 \usepackage{framed}
 
-%Highlighter commands. most need to properly defined.
+%Highlighter commands. most need to be properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \newcommand\codeName[1]{\textcolor{blue}{#1}}
 \newcommand\term[1]{\textcolor{purple}{#1}}
@@ -176,25 +176,25 @@ There exist several attempts to make access to relational databases purely funct
 
 
 \section{Type safety}
-When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Sources of a lack of  type safety in typical programs include exceptions (These are inherently not type safe in scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to function without wrapping or tagging them in more specific types, and unmarshalling data from a type-erased source. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
-By this definition, accessing an external, imperative, database from scala is not type safe. The database will have some collection of error modes that often manifest as exceptions, and the database system typically stores data in a type erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern match-able type hierarchy, a DSL that is checked at compile time by the scala type checker, and typeclass based marshalling.
+When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Breaches of  type safety in typical programs include exceptions (These are inherently not type safe in scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to functions without wrapping or tagging them in more specific types, and unmarshalling data from type-erased sources. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
+By this definition, accessing an external, imperative database from Scala is not type-safe. The database will have some collection of error modes that often manifest as exceptions and typically stores data in a type-erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern-match-able type hierarchy, a DSL that is type checked at compile time by the Scala type checker, and safe, typeclass based marshalling.
 
 \chapter{Preparation}
 
 \section{Existing Graph Databases}
 \subsection{Classes of Database}
-Existing graph databases typically fall into two classes: property graphs and edge labelled graphs. \toReference{https://arxiv.org/pdf/1610.06264.pdf} . Edge labelled graphs typically store only a label on any given edge, whereas property graphs can store more attributes on edges, hence being closer to close to relational databases. Edge labelled graphs can be more succinctly modelled mathematically, since they can be represented purely using mathematical relations. Edge labelled graphs also lead to a cleaner syntax (we shall cover this later). Finally, any data expressible using a property graph can be represented using an edge labelled graph by introducing additional nodes to hold attributes.
+Existing graph databases typically fall into two classes: property graphs and edge labelled graphs. \toReference{https://arxiv.org/pdf/1610.06264.pdf} . Edge labelled graphs typically store only a label on each edge, whereas property graphs can store more attributes on edges and are hence close to relational databases. Edge labelled graphs can be more succinctly modelled mathematically, since they can be represented purely using mathematical relations. Edge labelled graphs also lead to a cleaner syntax (we shall cover this later). Finally, any data expressible using a property graph can be represented using an edge labelled graph by introducing additional nodes to hold attributes.
 
 \diagramNeeded{Insert and acknowledge edge-labelled vs property graph examples in GDrive}
 
 \subsection{Schema}
-Current graph database systems often do not have rigid schema \toReference{https://arxiv.org/pdf/1602.00503.pdf, introduction}. Instead they use dynamic schema. This requires additional typing checks at runtime. This also fails to fit into our definition of type safety, since we have no guarantees about any objects extracted from the database. Instead, I have opted for a rigid schema which is built using Scala objects and hence is checked by the Scala compiler at compile time.
+Current graph database systems often do not have rigid schema. \toReference{https://arxiv.org/pdf/1602.00503.pdf, introduction} Instead, they use dynamic schema. This requires additional typing checks at runtime. This also fails to fit into our definition of type safety, since we have no guarantees about any objects extracted from the database. I have instead opted for a rigid schema which is built using Scala objects and is checked by the Scala compiler at compile time.
 \subsection{Mutability}
 Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user has impose extra constraints, such as time stamping nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID transactions. The introduction of immutable data structures gives us these effectively for free.
 \subsection{Query Languages}
-Typically, database systems have their own query language, such as cypher for neo4j and gremlin. These are typically used by generating a query string and submitting it to the database engine. This is inherently un-typesafe. The job of ensuring that absolutely every query that a given program could generate is valid is intractable to undecidable for non trivial programs. By encoding our query language in the host language and aligning the type system to be checked by the host compiler, we can get much stronger guarantees about program correctness. \toReference{links to cypher and gremlin}
+Typically, database systems have their own query language, such as cypher for neo4j and gremlin. These are typically used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query that a given program could generate is valid is intractable to undecidable for non trivial programs. By encoding our query language in the host language and aligning the type system to be checked by the host compiler, we can get much stronger guarantees about program correctness. \toReference{links to cypher and gremlin}
 
-\section{Mutability}
+\section{Immutability}
 In order to implement immutability, we need a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A view is an immutable view of the database. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. \diagramNeeded{Read/Write diagram}
 
 \section{Query Language}
@@ -223,10 +223,10 @@ However, the Scala type inference is fairly localised so would need some type pa
 \end{verbatim}
 \note{Find two actors such they both act in the same movie}
 \end{framed}
-This is fairly cluttered syntax and difficult to read. It would also have been complicated by a desire to implement property graph features. Furthermore, we would not be able to easily and safely replicate Neo4j's ability to extract an arbitrary number of objects of different types from a path. Doing so would require use of structures such as heterogeneously typed lists.
+This is fairly cluttered syntax and difficult to read. It would also have been further complicated by adding the property graph features of Neo4j. Furthermore, we would not be able to easily and safely replicate Neo4j's ability to extract an arbitrary number of objects of different types from along a path defined by a query. Doing so would require use of structures such as heterogeneously typed lists.
 
 As a result, I settled upon on an edge-labelled-relation oriented approach which neatens the above query significantly.
-\todo{reword above;}
+
 \begin{framed}
 \begin{verbatim}
 val coactor = ActsIn --><-- ActsIn
@@ -686,7 +686,7 @@ Definition of a multiplication operation on instances of a monoid.
 Usage of the multiplication operation on a tuple.
 \end{framed}
 
-It is clear that these patterns allow for very expressive structures and abstractions to be built in Scala. I use these frequently within the project to neaten code and to achieve type safety.
+It is clear that these patterns allow for very expressive structures and abstractions to be built in Scala. I use these frequently within the project to neaten code and to achieve type-safety.
 
 
 
@@ -737,7 +737,7 @@ def compile(adt: ADT): State[S, Res] = adt match {
 
 
 	\subsection{Constrained Future Monad}
-	Part of the goal of type safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad. \toReference{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf} In Scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the Scala compiler at runtime. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
+	Part of the goal of type-safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad. \toReference{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf} In Scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the Scala compiler at runtime. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
 	
 \begin{framed}
 	\begin{framed}
@@ -915,17 +915,43 @@ The next algorithm is to compute \codeName{Upto}. This is again done like before
 Finally, the FixedPoint take a departure from the parallel implementations above. The reachable set of each node is calculated sequentially using a similar algorithm to above. However the memo now contains all nodes reachable from previously processed roots, allowing for fast convergence of dense graphs.	
 	
 	\subsection{Pathfinding}
-	The \codeName{ShortestPath} and \codeName{AllShortestPaths} commands require us to search a subgraph generated by a relation. Since all edges have unit weight, the pathfinding algorithm reduces to breadth-first-search, which I have implemented in an imperative format while wrapping up error cases in an Either. These functions take as a parameter the search step \codeName{A => E \/ Set[A]} which represents the edges going out of a node.  \todo{Is this needed/clear?} There is room for optimisation here, since most backends focus on returning sets of pairs rather than just the right hand side.
+	The \codeName{ShortestPath} and \codeName{AllShortestPaths} commands require us to search a subgraph generated by a relation. Since all edges have unit weight, the pathfinding algorithm reduces to breadth-first-search, which I have implemented in an imperative format while wrapping up error cases in an Either. These functions take, as a parameter, the search step \codeName{ A\ $\Rightarrow$ E \either Set[A]} which represents the edges going out of a node. 
+	
 	\subsection{Joins}
-	The problem of joining two sets of pairs based on shared intermediate values is a requirement for any backend. \diagramNeeded{Latex definition of a join}  I have implemented a simple hash join \toReference{(http://www.csd.uoc.gr/~hy460/pdf/p63-mishra.pdf)}. This operates by first assuming that the size of distinct leftmost elements in the right set is smaller (known to be a subset of, due to the left-optimisation of backends) than the rightmost elements of the left set. We then build a mutable map to index leftmost values to rightmost values. We then traverse the left set and for each pair generate all new joined pairs, using a \todo{explain that flatmap == bind?} flatmap to collect the values into one set. An issue with this approach is that we have to build the index upon each join call, an issue that is addressed later.
+	The problem of joining two sets of pairs based on shared intermediate values is a requirement for any backend. 
+\[
+A\mbox{ }join\mbox{ }B = \setComp{(a, c)}{\exists b. (a, b) \in A \wedge (b, c) \in B}
+\]	
+I have implemented a simple hash join \toReference{(http://www.csd.uoc.gr/~hy460/pdf/p63-mishra.pdf)}. This operates by first assuming that the size of distinct leftmost elements in the right set is smaller (known to be a subset of, due to the left-optimisation of backends) than the rightmost elements of the left set. We then build a mutable map to index leftmost values to rightmost values. We then traverse the left set and for each pair generate all new joined pairs, using a \codeName{flatmap} to collect the values into one set. An issue with this approach is that we have to build the index upon each join call, an issue that is addressed later.
 	
-	\diagramNeeded{Join algorithm code?}
-	
+\begin{framed}
+\begin{verbatim}
+  def joinSet[A, B, C](
+      leftRes: Set[(A, B)],
+      rightRes: Set[(B, C)]
+  ): Set[(A, C)] = {
+    // build an index of all 
+    // values to join on right, since Proj_B(right)
+    // is a subset of Proj_B(Left)
+    val collectedRight = mutable.Map[B, mutable.Set[C]]()
+    for ((b, c) <- rightRes) {
+      val s = collectedRight.getOrElseUpdate(b, mutable.Set())
+      s += c
+    }
+    
+    for {
+      (left, middle) <- leftRes
+      right <- collectedRight.getOrElse(middle, Set[C]())
+    } yield (left, right)
+  }
+\end{verbatim}
+\end{framed}
+
 \section{Views and Commits}
 In the memory backend, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other backends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that with the operation monad model, each view only has one direct predecessor, forming a tree where we're only interested in the path back to the root from a given node. From this insight, we can think of each new view only needing to store a difference against its parent. Since the current design of the database only allows the addition of values and not deletion, this difference is only going to be positive. Hence, we can store all the added values between two views in a container called a \codeName{Commit}. As an optimisation, we can disregard the parent view, and simply store each view as a collection of its commits. This would also allow us to implement deletion if desired. This would be done by removing commits in a view that are to be modified, and replacing them with a new commit containing the contents of those commits, excluding the deleted values.
 
 \section{Memory Backend}
-The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages as libraries as in the SQL and LMDB backends.)
+The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages or libraries as in the SQL and LMDB backends.)
 	\subsection{Table Structure}
 	A memory instance stores a concurrent map of \codeName{ViewId} to \codeName{MemoryTree}, which itself is a map of \codeName{TableName} (derived from the \codeName{SchemaDescription}) to \codeName{MemoryTable}. There is a \codeName{MemoryTable} for each object class in the \codeName{SchemaDescription}. A \codeName{MemoryTable} provides lookups using maps for \codeName{DBObjects} and \codeName{Findable}s, in the form of an index to set of objects for each column value. These lookups return objects containing a \codeName{DBObject} and the outgoing and incoming relations for the object, indexed by \codeName{RelationName}. 
 	\diagramNeeded{Diagram of View => Tree(TableName => Table(Index => Object)) }
@@ -946,7 +972,7 @@ Reads occur by simply walking over the ADTs recursively, following the denotatio
 	The only mutability in the Memory implementation is for the views counter and the views lookup table. Access is kept transactional using a lock.
 
 	\subsection{Pathfinding and fixed point traversal}
-	The pathfinding and fixed point traversal methods are simply implemented by calls to the appropriate generic algorithms. One redundancy is that the search functions passed calculate all linked pairs, rather than optimising only to look at right hand sides of relations. \todo{(more detail? - this is not quite correct)}
+	The pathfinding and fixed point traversal methods are simply implemented by calls to the appropriate generic algorithms using the interpreted findPairs function as the search function.
 
 
 \section{PostgreSQL backend}
@@ -991,22 +1017,48 @@ WITH RECURSIVE VIEW_CTE AS
 
 The next collection of CTEs select the valid instances of each relation from the relation tables.
 
-\diagramNeeded{Example of relation selection}
+\begin{framed}
+\begin{verbatim}
+WITH	Relation0 AS (SELECT left_id, right_id 
+					FROM REL_0_0 JOIN VIEW_CTE ON REL_0_0.CommitId = VIEW_CTE.CommitId)
+\end{verbatim}
+\end{framed}
 
-We then select the valid instances from auxiliary queries we use for \mathName{$Id_A$} queries.
+We then select the valid instances from the auxiliary tables the values we use for \mathName{$Id_A$} queries.
 
-\diagramNeeded{Example of table selection}
+\begin{framed}
+\begin{verbatim}
+AuxTable2 AS (SELECT DISTINCT obj_id AS left_id, obj_id AS right_id FROM AUXUSERSPACE_People_0 JOIN VIEW_CTE ON AUXUSERSPACE_People_0.CommitId = VIEW_CTE.CommitId)
+\end{verbatim}
+\end{framed}
 
 We then create CTEs for any repeated subqueries (ie those used by \mathName{FixedPoint}, \mathName{Exactly}, and \mathName{Upto})
 
-\diagramNeeded{Example of repeated CTE}
+\begin{framed}
+\begin{verbatim}
+View1 AS (SELECT * FROM Relation0),
+\end{verbatim}
+\end{framed}
 
 We then create a CTE for the main query, which exposes a \codeName{leftId} and \codeName{rightId}  column
 
-\diagramNeeded{Example of main query}
+\begin{framed}
+\begin{verbatim}
+main_query AS (SELECT left_id, right_id FROM View3 )
+\end{verbatim}
+\end{framed}
 
 Finally, we join the main query CTE to queries to extract the left and rights .
-\diagramNeeded{Example of extraction}
+\begin{framed}
+\begin{verbatim}
+(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0
+	FROM (
+		(USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id)
+		JOIN USERSPACE_People_0 AS right_table
+		ON right_id = right_table.obj_id)
+)
+\end{verbatim}
+\end{framed}
 
 The \codeName{main} query itself is built compositionally, in that each subquery exposes a \codeName{leftId} and \codeName{rightId},  allowing queries to be composed to form larger queries in a standard form. A full query might look like this:
 	\todo{Colour code this query, make it fit}
@@ -1032,7 +1084,6 @@ WITH RECURSIVE
 		JOIN USERSPACE_People_0 AS right_table
 		ON right_id = right_table.obj_id)
 	)
-
 \end{verbatim}
 \end{framed}
 	\subsection{Monadic Compilation}
@@ -1184,7 +1235,7 @@ The original LMDB backend implementation executed queries in much the same way a
 	A common performance issue in the previous implementation was that of redundancy and lack of general common subexpression elimination (CSE). When a common sub expression is repeated outside of an \codeName{Upto} or \codeName{Exactly} block, then it is repeatedly recalculated, leading to poor performance. In addition, there is lots of redundancy exposed by the above \codeName{FindFrom} optimisation. Consider calculation $R join (S join T)$. If a node $n$ appears in the results of $S(m)$, $S(m')$ for distinct $\opRule{(?, m)}{A, B}{R}$, $\opRule{(?, m')}{A, B}{R}$ ($m$, $m'$ are right hand results of R), then $T(n)$ is computed redundantly in the overall calculation. These issues of redundancy can be solved using a combination of global CSE and memoization.
 
 		\paragraph{The Memoisation Problem}
-		When looking at a graph data structure, memoization is harder than when looking to optimise pure functions. To optimise a pure function $f\colon A \Rightarrow B$, we only need to store a hash table \codeName{Map[A, B]}. To compute $f(a)$, we simply look up $a$ in the map. If it is in the map, we return the mapped value else, we call $f$, and add the result to the map before returning. In a large graph, computing and storing all pairs generated by a query is extremely wasteful, since many of those pairs might never be used (effectively, we would have ignored the left-optimisation). Conversely, memoizing the full left-optimised function, $interpret(Q)\colon Set[A] \Rightarrow Set[(A, B)]$ is also wasteful, since there may be overlap in the sets used as keys. Instead, we memoise the \codeName{FindFrom} function of a query, \todo{get this findfrom to be verbatim}$findFrom(Q)\colon A \Rightarrow Set[B]$, and reconstruct results from the pairs. This allows for the best overlap.
+		When looking at a graph data structure, memoization is harder than when looking to optimise pure functions. To optimise a pure function $f\colon A \Rightarrow B$, we only need to store a hash table \codeName{Map[A, B]}. To compute $f(a)$, we simply look up $a$ in the map. If it is in the map, we return the mapped value else, we call $f$, and add the result to the map before returning. In a large graph, computing and storing all pairs generated by a query is extremely wasteful, since many of those pairs might never be used (effectively, we would have ignored the left-optimisation). Conversely, memoizing the full left-optimised function, $interpret(Q)\colon Set[A] \Rightarrow Set[(A, B)]$ is also wasteful, since there may be overlap in the sets used as keys. Instead, we memoise the \codeName{FindFrom} function of a query, $findFrom(Q)\colon A \Rightarrow Set[B]$, and reconstruct results from the pairs. This allows for the best overlap.
 
 To make the best use of memoization, and to overusing memory by memoizing the same query twice, we need to also apply CSE to group together instances of the same query.
 
@@ -1222,7 +1273,14 @@ Despite these optimisations, there are still sources of redundancy.
 
 		\paragraph{Index Building}
 			Firstly, the original CSE implementation uses the excessively generic join function to join result sets. This function wastes time by computing an index map on every call. So instead we can change the definition of a \codeName{Retriever}'s public functions to mitigate the need to build indices.
-			\todo{new retriever trait}
+			\begin{framed}
+			\begin{verbatim}
+			trait RelationRetriever extends Logged {
+  def find(from: Set[ObjId]): LMDBEither[Map[ObjId, Set[ObjId]]]
+  def findFrom(from: ObjId): LMDBEither[Set[ObjId]]
+}
+			\end{verbatim}
+			\end{framed}
 			Indeed, the function to join a pair of retrievers becomes a simpler \codeName{flatmap} of one map to another. Functions such as the \codeName{union} and \codeName{intersection} of retrievers also become simpler, \note{(see impl.lmdb.fastjoins.retrievers.RelationRetriever.RelationRetrieverOps)}
 
 		\paragraph{Exactly}
@@ -1233,10 +1291,33 @@ Despite these optimisations, there are still sources of redundancy.
 		
 		As joins over the set of results of query form a \mathName{Monoid} \todo{Link to appendix}, we can use associativity to change the order in which the joins are evaluated, aiming for as much reuse as possible. This can be done in a manner similar to binary exponentiation \toReference{(http://computingonline.net/computing/article/viewFile/229/204)}.
 
-We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. \diagramNeeded{Diagram showing join structure;} \todo{Algorithm}
+We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. \diagramNeeded{Diagram showing join structure;} 
+
+\begin{framed}
+\begin{verbatim}
+    def exactly(n: Int): RelationRetriever = repeat(n, outer, IdRetriever)
+
+    private def repeat(
+        n: Int,
+        acc: RelationRetriever,
+        res: RelationRetriever
+    ): RelationRetriever = if (n > 0) {
+      val newRes = if((n & 1) == 1)  (res join acc) else res
+      val newAcc = acc join acc
+      repeat(n >> 1, newAcc, newRes)
+    } else res
+\end{verbatim}
+\end{framed}
 
 		\paragraph{Upto Optimisation}
-			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$} \todo{Proof in appendix}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
+			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$} \todo{link to Proof in appendix}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
+			
+			\begin{framed}
+			\begin{verbatim}			
+    def upto(n: Int): RelationRetriever =
+        repeat(n, outer or IdRetriever, IdRetriever)
+			\end{verbatim}
+			\end{framed}
 
 
 
