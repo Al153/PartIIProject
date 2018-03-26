@@ -1,7 +1,7 @@
 \BOOKMARK [0][-]{chapter.1}{Introduction}{}% 1
 \BOOKMARK [1][-]{section.1.1}{Progress}{chapter.1}% 2
-\BOOKMARK [1][-]{section.1.2}{Motivations}{chapter.1}% 3
-\BOOKMARK [1][-]{section.1.3}{Type safety}{chapter.1}% 4
+\BOOKMARK [1][-]{section.1.2}{Motivation}{chapter.1}% 3
+\BOOKMARK [1][-]{section.1.3}{Type Safety}{chapter.1}% 4
 \BOOKMARK [0][-]{chapter.2}{Preparation}{}% 5
 \BOOKMARK [1][-]{section.2.1}{Existing Graph Databases}{chapter.2}% 6
 \BOOKMARK [2][-]{subsection.2.1.1}{Classes of Database}{section.2.1}% 7
@@ -10,16 +10,16 @@
 \BOOKMARK [2][-]{subsection.2.1.4}{Query Languages}{section.2.1}% 10
 \BOOKMARK [1][-]{section.2.2}{Immutability}{chapter.2}% 11
 \BOOKMARK [1][-]{section.2.3}{Query Language}{chapter.2}% 12
-\BOOKMARK [2][-]{subsection.2.3.1}{DSL Syntax}{section.2.3}% 13
+\BOOKMARK [2][-]{subsection.2.3.1}{Domain Specific Language Syntax}{section.2.3}% 13
 \BOOKMARK [2][-]{subsection.2.3.2}{Semantic Definitions}{section.2.3}% 14
 \BOOKMARK [2][-]{subsection.2.3.3}{Typing}{section.2.3}% 15
 \BOOKMARK [2][-]{subsection.2.3.4}{Semantics}{section.2.3}% 16
 \BOOKMARK [2][-]{subsection.2.3.5}{Commands}{section.2.3}% 17
 \BOOKMARK [1][-]{section.2.4}{Languages and Libraries Used}{chapter.2}% 18
 \BOOKMARK [1][-]{section.2.5}{Software Engineering}{chapter.2}% 19
-\BOOKMARK [2][-]{subsection.2.5.1}{Front End}{section.2.5}% 20
-\BOOKMARK [2][-]{subsection.2.5.2}{Middle End}{section.2.5}% 21
-\BOOKMARK [2][-]{subsection.2.5.3}{Back End}{section.2.5}% 22
+\BOOKMARK [2][-]{subsection.2.5.1}{Front-End}{section.2.5}% 20
+\BOOKMARK [2][-]{subsection.2.5.2}{Middle-End}{section.2.5}% 21
+\BOOKMARK [2][-]{subsection.2.5.3}{Back-End}{section.2.5}% 22
 \BOOKMARK [1][-]{section.2.6}{Scala Techniques}{chapter.2}% 23
 \BOOKMARK [2][-]{subsection.2.6.1}{Type Enrichment}{section.2.6}% 24
 \BOOKMARK [2][-]{subsection.2.6.2}{Implicit Parameters}{section.2.6}% 25

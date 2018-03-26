@@ -1,7 +1,7 @@
 \contentsline {chapter}{\numberline {1}Introduction}{11}{chapter.1}
 \contentsline {section}{\numberline {1.1}Progress}{11}{section.1.1}
-\contentsline {section}{\numberline {1.2}Motivations}{11}{section.1.2}
-\contentsline {section}{\numberline {1.3}Type safety}{11}{section.1.3}
+\contentsline {section}{\numberline {1.2}Motivation}{11}{section.1.2}
+\contentsline {section}{\numberline {1.3}Type Safety}{11}{section.1.3}
 \contentsline {chapter}{\numberline {2}Preparation}{13}{chapter.2}
 \contentsline {section}{\numberline {2.1}Existing Graph Databases}{13}{section.2.1}
 \contentsline {subsection}{\numberline {2.1.1}Classes of Database}{13}{subsection.2.1.1}
@@ -10,40 +10,40 @@
 \contentsline {subsection}{\numberline {2.1.4}Query Languages}{14}{subsection.2.1.4}
 \contentsline {section}{\numberline {2.2}Immutability}{14}{section.2.2}
 \contentsline {section}{\numberline {2.3}Query Language}{14}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}DSL Syntax}{14}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.1}Domain Specific Language Syntax}{14}{subsection.2.3.1}
 \contentsline {subsection}{\numberline {2.3.2}Semantic Definitions}{15}{subsection.2.3.2}
-\contentsline {paragraph}{FindPair queries}{16}{equation.2.3.1}
+\contentsline {paragraph}{FindPair queries}{15}{equation.2.3.1}
 \contentsline {paragraph}{FindSingle queries}{16}{equation.2.3.2}
 \contentsline {paragraph}{Other Definitions}{16}{section*.11}
 \contentsline {subparagraph}{Object Types}{16}{section*.12}
 \contentsline {subparagraph}{Named relations}{16}{section*.13}
-\contentsline {subparagraph}{Findables}{17}{section*.14}
-\contentsline {subparagraph}{A schema,}{17}{section*.15}
+\contentsline {subparagraph}{Findables}{16}{section*.14}
+\contentsline {subparagraph}{A schema,}{16}{section*.15}
 \contentsline {subparagraph}{A view,}{17}{section*.16}
 \contentsline {subsection}{\numberline {2.3.3}Typing}{17}{subsection.2.3.3}
-\contentsline {subsection}{\numberline {2.3.4}Semantics}{19}{subsection.2.3.4}
+\contentsline {subsection}{\numberline {2.3.4}Semantics}{18}{subsection.2.3.4}
 \contentsline {paragraph}{Operational Semantics}{19}{section*.17}
-\contentsline {paragraph}{Denotational Semantics}{21}{section*.18}
-\contentsline {subsection}{\numberline {2.3.5}Commands}{23}{subsection.2.3.5}
-\contentsline {section}{\numberline {2.4}Languages and Libraries Used}{23}{section.2.4}
-\contentsline {paragraph}{Scala}{23}{section*.19}
-\contentsline {paragraph}{Scala Build Tool}{23}{section*.20}
+\contentsline {paragraph}{Denotational Semantics}{20}{section*.18}
+\contentsline {subsection}{\numberline {2.3.5}Commands}{22}{subsection.2.3.5}
+\contentsline {section}{\numberline {2.4}Languages and Libraries Used}{22}{section.2.4}
+\contentsline {paragraph}{Scala}{22}{section*.19}
+\contentsline {paragraph}{Scala Build Tool}{22}{section*.20}
 \contentsline {paragraph}{PostgreSQL}{23}{section*.21}
 \contentsline {paragraph}{LMDB}{23}{section*.22}
-\contentsline {paragraph}{Scalaz}{24}{section*.23}
-\contentsline {paragraph}{JDBC}{24}{section*.24}
-\contentsline {paragraph}{LMDBJava}{24}{section*.25}
-\contentsline {paragraph}{Junit}{24}{section*.26}
-\contentsline {paragraph}{SLF4J}{24}{section*.27}
-\contentsline {paragraph}{Spray-JSON}{24}{section*.28}
-\contentsline {paragraph}{Python}{24}{section*.29}
-\contentsline {section}{\numberline {2.5}Software Engineering}{24}{section.2.5}
-\contentsline {subsection}{\numberline {2.5.1}Front End}{24}{subsection.2.5.1}
-\contentsline {subsection}{\numberline {2.5.2}Middle End}{24}{subsection.2.5.2}
-\contentsline {subsection}{\numberline {2.5.3}Back End}{24}{subsection.2.5.3}
-\contentsline {section}{\numberline {2.6}Scala Techniques}{25}{section.2.6}
-\contentsline {subsection}{\numberline {2.6.1}Type Enrichment}{25}{subsection.2.6.1}
-\contentsline {subsection}{\numberline {2.6.2}Implicit Parameters}{25}{subsection.2.6.2}
+\contentsline {paragraph}{Scalaz}{23}{section*.23}
+\contentsline {paragraph}{JDBC}{23}{section*.24}
+\contentsline {paragraph}{LMDBJava}{23}{section*.25}
+\contentsline {paragraph}{Junit}{23}{section*.26}
+\contentsline {paragraph}{SLF4J}{23}{section*.27}
+\contentsline {paragraph}{Spray-JSON}{23}{section*.28}
+\contentsline {paragraph}{Python}{23}{section*.29}
+\contentsline {section}{\numberline {2.5}Software Engineering}{23}{section.2.5}
+\contentsline {subsection}{\numberline {2.5.1}Front-End}{23}{subsection.2.5.1}
+\contentsline {subsection}{\numberline {2.5.2}Middle-End}{23}{subsection.2.5.2}
+\contentsline {subsection}{\numberline {2.5.3}Back-End}{24}{subsection.2.5.3}
+\contentsline {section}{\numberline {2.6}Scala Techniques}{24}{section.2.6}
+\contentsline {subsection}{\numberline {2.6.1}Type Enrichment}{24}{subsection.2.6.1}
+\contentsline {subsection}{\numberline {2.6.2}Implicit Parameters}{24}{subsection.2.6.2}
 \contentsline {subsection}{\numberline {2.6.3}Typeclass Pattern}{26}{subsection.2.6.3}
 \contentsline {chapter}{\numberline {3}Implementation}{29}{chapter.3}
 \contentsline {section}{\numberline {3.1}Note on Purity and Concurrency}{29}{section.3.1}
