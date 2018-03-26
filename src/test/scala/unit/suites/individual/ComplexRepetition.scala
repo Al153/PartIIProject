@@ -55,7 +55,7 @@ trait ComplexRepetition[E1 <: E] { self: HasBackend[E1] =>
     using(instance) {
       for {
         _ <- setupPath
-        res1 <- findPairs(Knows * (3 ++) )
+        res1 <- findPairs(Knows * (3 ++))
         res2 <- findPairs(Knows * (3 ++))
         _ <- assertEqOp(expectedPairs, res1, "Exactly (all pairs)")
         _ <- assertEqOp(expectedPairs, res2, "Exactly (distinct)")

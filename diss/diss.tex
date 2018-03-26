@@ -13,6 +13,11 @@
 \usepackage{breqn}
 \usepackage{framed}
 
+\usepackage{booktabs}
+\usepackage{tikz}
+
+\usetikzlibrary{arrows,positioning,fit,shapes,calc}
+
 %Highlighter commands. most need to be properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \newcommand\codeName[1]{\textcolor{blue}{#1}}
@@ -35,9 +40,12 @@
  	\hline
  		Iterations & \multicolumn{2}{|c|}{#2} \\
  	\hline
- 		Queries & \multicolumn{2}{|c|}{#3} \\
- 	\hline
- 		implementation   	& 	time (ms) & /optimised \\
+ 		Queries & \multicolumn{2}{|c|}{
+ 		\begin{tabular}{@{}c@{}}
+			#3 		
+ 		\end{tabular}
+ 	} \\ 	\hline
+ 		implementation   	& 	time (ms) & /optimised \\ \hline
 		#4
  	\hline
 	\end{tabular}
@@ -104,7 +112,7 @@ St John's College \\[5mm]
 \chapter*{Proforma}
 
 {\large
-\begin{tabular}{ll}
+\begin{tabular}{p{5cm}p{10cm}}
 Name:               & \bf Alexander Taylor                       \\
 College:            & \bf St John's College                     \\
 Project Title:      & \bf \projectTitle  \\
@@ -176,7 +184,7 @@ There exist several attempts to make access to relational databases purely funct
 
 
 \section{Type safety}
-When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Breaches of  type safety in typical programs include exceptions (These are inherently not type safe in scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to functions without wrapping or tagging them in more specific types, and unmarshalling data from type-erased sources. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
+When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Breaches of  type safety in typical programs include exceptions (These are inherently not type safe in Scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to functions without wrapping or tagging them in more specific types, and unmarshalling data from type-erased sources. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
 By this definition, accessing an external, imperative database from Scala is not type-safe. The database will have some collection of error modes that often manifest as exceptions and typically stores data in a type-erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern-match-able type hierarchy, a DSL that is type checked at compile time by the Scala type checker, and safe, typeclass based marshalling.
 
 \chapter{Preparation}
@@ -871,8 +879,7 @@ In order to build the database structures the backends need a definitive collect
 	For the sake of simplicity, I have only implemented findables which test if fields of objects match particular values. This allows us to look for specific objects or match particular fields. This also makes indexing easier to implement.
 	
 \section{Query ADT}
-	\todo{This feels like it needs rewriting}
-The ADTs described in the preparation section \todo{link}	are implemented in Scala each by a pair of ADTs: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they lookup. Using this parameterisation, I have encoded the type of the typed ADTs such that the Scala compiler checks the typing of the any generated query and does type inference for us, according to the type rules of the query language. \todo{Link to Appendix "The definitions of these types can be found in the appendix..."} The only rules that cannot be checked at compile time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{Id}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile time without dependent types.  These typed ADTs are erased,  with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a runtime error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
+The intermediate representation terms described in the preparation section \todo{link}	are implemented in Scala by a pair of ADT hierachies: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they lookup. Using this parameterisation, I have encoded in type of the ADTs the inductive type rules in the semantics such that the Scala compiler checks the type of any generated query and does type inference for us. \todo{Link to Appendix "The definitions of these types can be found in the appendix..."} The only rules that cannot be checked at compile time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{$Id_A$}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile time without dependent types.  The typed ADTs are erased, with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a runtime error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
 	
 \section{Commands}
 As specified in the previous chapter, each backend needs to implement five commands: 
@@ -1424,23 +1431,42 @@ Typically, the CSE optimisations alone do not provide a statistically significan
 			
 			\diagramNeeded{Graph}
 			
-\resultTable{Redundancy}{4 each}{\todo{queries}}{ \reference   	& 	381,972 & 1\\
+\resultTable{Redundancy}{4 each}{
+\texttt{KevinBacon >> coactor}\\
+\texttt{KevinBacon >> (coactor -->--> (coactor -->--> coactor))}\\
+\texttt{KevinBacon >> (coactor -->--> (coactor -->--> (coactor -->--> 	coactor)))}\\
+
+Where
+
+\texttt{def coactor = ActsIn --><-- ActsIn}
+}{ \reference   	& 	381,972 & 1\\
  \cse 			&   379,280 & 0.993 \\
  \batched 		&	9,318,741 & 24.4 \\
  \postgres    	&	Did not finish & Did not finish \\
- } 
+} 
 
 		\paragraph{Conjunctions and Disjunctions}
 	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
 				\diagramNeeded{Graph}
-\resultTable{Conjunctions}{40 each}{\todo{queries}}{ 
+\resultTable{Conjunctions}{40 each}{
+\texttt{coactorWith(KevinBacon))}       \\
+\texttt{coactorWith(KevinBacon) \& coactorWith(TomCruise))}\\
+\texttt{coactorWith(KevinBacon) \& coactorWith(TomCruise) \& coactorWith(TomHanks))}\\
+Where\\
+\texttt{def coactorWith(a: Person) = ActsIn --> (a >> ActsIn) <-- ActsIn} \\
+}{ 
  \reference 			&   879,984 & 1 \\
  \cse 					&	827,734 & 0.941	\\
  \batched 				&   791,678 & 0.900 \\
  \postgres    			&	106,165 & 0.121 \\
- }
+}
 				\diagramNeeded{Graph}
-	\resultTable{Disjunctions}{40 each}{\todo{queries}}{ 
+	\resultTable{Disjunctions}{40 each}{\texttt{coactorWith(KevinBacon))}       \\
+\texttt{coactorWith(KevinBacon) | coactorWith(TomCruise))}\\
+\texttt{coactorWith(KevinBacon) | coactorWith(TomCruise) | coactorWith(TomHanks))}\\
+Where\\
+\texttt{def coactorWith(a: Person) = ActsIn --> (a >> ActsIn) <-- ActsIn} \\
+}{ 
  \reference 			&   853,664 & 1 \\
  \cse 					&	824,799 & 0.966	\\
  \batched				&   800,455 & 0.938 \\
@@ -1452,7 +1478,11 @@ Typically, the CSE optimisations alone do not provide a statistically significan
 			\subparagraph{Exactly Test}
 			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join optimisations in the optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
 						\diagramNeeded{Graph}
-	\resultTable{Exactly}{50}{\todo{queries}}{ 
+	\resultTable{Exactly}{50}{
+	\texttt{TomHanks >> (}\\
+	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10)}	\\
+	\texttt{)}
+}{ 
  \reference 			&  	1,752 	& 1 \\
  \cse 					&	1,798 	& 1.03	\\
  \batched				&   1,513 	& 0.834 \\
@@ -1460,10 +1490,9 @@ Typically, the CSE optimisations alone do not provide a statistically significan
  }	
 			\subparagraph{Exactly Pairs}
 This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} query over the small movies database. Since this test involves keeping track of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations based on generic algorithm. Postgres also performs well in this test.
-			
-
 			\diagramNeeded{Graph}
-	\resultTable{ExactlyPairs}{50}{\todo{queries}}{ 
+	\resultTable{ExactlyPairs}{50}{
+	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10))}}{ 
  \reference 			&  	83,269 		& 1 \\
  \cse 					&	1,792,388 	& 21.5 \\
  \batched				&   1,787,390 	& 21.5 \\
@@ -1475,7 +1504,9 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			
 				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides significant speed-ups, such as 225x on the other LMDB backends and 1.5x over postgres.
 						\diagramNeeded{Graph}
-				\resultTable{Upto}{10}{\todo{queries}}{ 
+				\resultTable{Upto}{10}{
+				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> index.i)}
+}{ 
  \reference 			&  	126,448 	& 1 \\
  \cse 					&	28,491,910 	& 225 \\
  \batched				&   28,423,658 	& 225 \\
@@ -1485,7 +1516,8 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			
 				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance.
 			\diagramNeeded{Graph}
-				\resultTable{Upto}{10}{\todo{queries}}{ 
+				\resultTable{Upto}{10}{
+				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> (index.i \% 10))}}{ 
  \reference 			&  	1,059,091 	& 1 \\
  \postgres    			&	1,557,314 	& 1.47 \\
  }	
@@ -1493,7 +1525,10 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			\paragraph{JoinSpeed}
 				This test is  to demonstrate the cost of joins, we interleave queries that calculate two subqueries and then combine them using, firstly, a relatively fast And and, secondly, instead, a higher complexity join. In theory, the difference between these two types of queries should give us an idea of the cost of a join.
 			\diagramNeeded{Graph}
-			\resultTable{Join Speed}{150 each}{\todo{queries}}{
+			\resultTable{Join Speed}{150 each}{
+			\texttt{(ActsIn --><-- ActsIn) \& (ActsIn --><-- ActsIn)}\\
+\texttt{(ActsIn --><-- ActsIn) -->--> (ActsIn --><-- ActsIn)}
+			}{
 			\reference   	& 	368,320 & 1 	\\
  			\cse 			&   525,992 & 1.43   	\\
 			\batched 		&	543,909 & 1.48	\\
@@ -1572,7 +1607,6 @@ To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \sups
 \end{minipage}
 
 \prevdepth\tpd
-
 
 \chapter{Correspondence of operational and denotational semantics}
 \todo{neaten}
