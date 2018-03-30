@@ -11,12 +11,12 @@
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usepackage{breqn}
+\usepackage{float}
 \usepackage{framed}
 
-\usepackage{booktabs}
-\usepackage{tikz}
 
-\usetikzlibrary{arrows,positioning,fit,shapes,calc}
+\usepackage{svg}
+\usepackage{booktabs}
 
 %Highlighter commands. most need to be properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
@@ -83,6 +83,7 @@
 
 \renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
                                         % more readable
+
 
 \begin{document}
 
@@ -167,63 +168,64 @@ extent for a comparable purpose.
 
 \pagestyle{headings}
 
-\todo{introduce and explain use of scala}\\
-\todo{what kind of language is Neo4j - pattern matching against graphs}\\
 \todo{storage space of views - same as a write ahead log?}\\
 \todo{references between sections}\\
-\todo{why do current systems use dynamic schema?}\\
-\todo{edge labelled graphs}\\
 \todo{urls to footnotes + biblio}\\
-\todo{intro sentences to sections}\\
-\todo{explanation of attempts}\\
-\todo{Query language summary}\\
-\todo{languages and libaries prose needed}\\
-\todo{software engineering subsections => paragraphs}\\
 \todo{pink book, software licenses}\\
 \todo{requirements analysis}\\
 \todo{starting point}\\
+\todo{rework of performance test analysis}\\
 
 \chapter{Introduction}
-This project has been to build a new graph database management system. written in a purely functional style in the language Scala. I have successfully built a modular, composable read-oriented DBMS which has a range of commands and a domain-specific query language for reads. 
-\section{Progress}
+In recent years, alternatives to the relational database model employed by SQL are receiving increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
+	
+	As the usage of functional languages for real-world code grows, there is an increasing need to integrate common patterns into the functional paradigm. Access to databases in one such example that requires solving. Frequently, when a functional program requires access to a database, such access is implemented ad-hoc for the specific usage case. For example, a program may be set up to read trade data from a database in a finance firm. This approach reduces generality and limits the kinds of abstractions that may be used. For example, the above usage case might only support specific schema required for the types representing the kinds trades that might appear; the wrapper used for the trading system could not be used to access a database containing a social network. In addition to this, while read only databases are trivially purely functional data-structures, it is harder to achieve referential transparency when writes are included into the database specification. This is because most database systems use imperative semantics to best make use of the hardware upon which they are implemented.
 
-I have achieved all of my initial success criteria, written several extensions (writes, an extra back-end, and optimisations to the back-end), and achieved performance comparable to and sometimes exceeding that of postgreSQL across a range of benchmarks.
+	There has been some exploration into generalised libraries and wrappers for accessing databases in a purely functional way. These may allow a means to construct SQL queries in a type-safe manner (\toReference{https://hackage.haskell.org/package/haskelldb}), or provide manipulation of the database’s state in a referentially transparent manner (\toReference{http://www.bcs.org/upload/pdf/ewic_dp95_paper14.pdf}) . However, they are typically aimed at relational (SQL) databases and do not allow safe generalisation over the types stored in the database.
 
-\section{Motivation}
-
-Graph databases becoming of more interest recently, as the relational model of data is found not to match certain datasets of interest, such as social networks.
-
-Similarly, purely functional, strongly typed programming is also progressing from a research interest to a serious paradigm used in industry. This is especially the case in fields where the ability to rapidly produce high quality code which has a high probability of correctness is vital, such as in automated trading. In such cases, an advanced type system can be used to make guarantees about the behaviour of the program at runtime and enhances the ability to find bugs at compile-time rather than in the field, while the purely functional paradigm allows code to be written far more expressively and concisely than in lower-level languages.
-
-There exist several attempts to make access to relational databases purely functional or monadic in nature, but there is very little application to  graph databases.
-    
-    \toReference{https://hackage.haskell.org/package/haskelldb
-		  http://www.bcs.org/upload/pdf/ewic_dp95_paper14.pdf}
-
-
-\section{Type Safety}
-When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Breaches of  type safety in typical programs include exceptions (These are inherently not type safe in Scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to functions without wrapping or tagging them in more specific types, and unmarshalling data from type-erased sources. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
-By this definition, accessing an external, imperative database from Scala is not type-safe. The database will have some collection of error modes that often manifest as exceptions and typically stores data in a type-erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile-time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern-match-able type hierarchy, a DSL that is type checked at compile-time by the Scala type checker, and safe, typeclass based marshalling.
+In this dissertation, I introduce a general, performant, graph database system, written in Scala, that exposes its underlying graph as a purely functional data-structure. Furthermore, it allows for tighter integration into the client application by allowing the application programmer to store their own types in the database, hence reducing the need for marshalling and unmarshalling. Queries constructed using the library are type-checked by the Scala compiler at compile-time, and execute according to a concrete semantics. In addition to these features, the system is constructed in a modular fashion, allowing for the back-end implementation technologies to be interchanged and the domain specific query language to be extended. My initial goals were to build a read-only database with these features and a single back-end which translates the submitted queries to SQL. However, I have significantly exceeded these goals by adding referentially transparent write operations to the database and writing several variations on a back-end which stores the graph using the LMDB key-value datastore.
 
 \chapter{Preparation}
 
-\section{Existing Graph Databases}
-\subsection{Classes of Database}
-Existing graph databases typically fall into two classes: property graphs and edge labelled graphs. \toReference{https://arxiv.org/pdf/1610.06264.pdf} . Edge labelled graphs typically store only a label on each edge, whereas property graphs can store more attributes on edges and are hence close to relational databases. Edge labelled graphs can be more succinctly modelled mathematically, since they can be represented purely using mathematical relations. Edge labelled graphs also lead to a cleaner syntax (see the DSL syntax subsection of the query language section). Finally, any data expressible using a property graph can be represented using an edge labelled graph by introducing additional nodes to hold attributes.
+This chapter discusses the early stages of the project. Once I had settled on a definition of type-safety and settled on using the Scala language for the project, I carried out a brief survey of graph database technologies to construct the language of queries that I intended to implement. Following this, I devised a set of semantics and constructed a system architecture.
 
-\diagramNeeded{Insert and acknowledge edge-labelled vs property graph examples in GDrive}
+\section{The Scala Programming Language}
+I quickly decided to use Scala for this project. Scala is a JVM based object oriented and functional language. It provides a very advanced type system, allowing for complex abstractions to be built safely. Furthermore, due to its inter-operability with Java, the latter's libraries can be called from Scala, giving an advantage over other comparable languages such as Haskell and Ocaml, especially when there is a need to take advantage of low-level functionality. Finally, I was also familiar with some of Scala's more advanced features from previous experience.
+
+\section{Definition of Type-Safety}
+When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Breaches of  type safety in typical programs include exceptions (These are inherently not type safe in Scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to functions without wrapping or tagging them in more specific types, and unmarshalling data from type-erased sources. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
+By this definition, accessing an external, imperative database from Scala is not type-safe. The database will have some collection of error modes that often manifest as exceptions and typically stores data in a type-erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile-time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern-match-able type hierarchy, a DSL that is type checked at compile-time by the Scala type checker, and safe, typeclass based marshalling.
+
+
+\section{Existing Graph Databases}
+This section gives a brief introduction into the main characteristics and classifications of existing graph databases.
+\subsection{Classes of Database}
+Existing graph databases typically fall into two classes: property graphs and edge-labelled (EL) graphs. \toReference{https://arxiv.org/pdf/1610.06264.pdf} . EL graphs typically store only a label on each edge, whereas property graphs can store more attributes on edges and are hence closer semantically to relational databases. EL graphs can be more succinctly modelled mathematically, since they can be represented purely using mathematical relations; they also lead to a cleaner syntax (see the DSL syntax subsection of the query language section). Finally, any data expressible using a property graph can be represented using an EL graph by introducing additional nodes to hold attributes.
+
+\diagramNeeded{Insert and acknowledge edge-labelled vs property graph examples from GDrive}
 
 \subsection{Schema}
-Current graph database systems often do not have rigid schema. \toReference{https://arxiv.org/pdf/1602.00503.pdf, introduction} Instead, they use dynamic schema. This requires additional typing checks at run-time. This also fails to fit into our definition of type safety, since we have no guarantees about any objects extracted from the database. I have instead opted for a rigid schema which is built using Scala objects and is checked by the Scala compiler at compile-time.
+Current graph database systems often do not have rigid schema. \toReference{https://arxiv.org/pdf/1602.00503.pdf, introduction} Instead, they use dynamic schema. This provides more flexibility in the shape of data that can be stored in the database; it also allows the types of nodes stored to evolve over time. The downside of this is that it requires additional typing checks at run-time. This also fails to fit into our definition of type safety, since we have no guarantees about any objects extracted from the database. I have instead opted for a rigid schema which is built using Scala objects and is checked by the Scala compiler at compile-time.
+
 \subsection{Mutability}
-Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user has impose extra constraints, such as adding time-stamps to the schema of  nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID transactions. I decided to introduce immutable data structures  to the database, which gives us ACID properties effectively for free. This is explained in section \ref{immutability}.
+Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user has impose extra constraints, such as adding time-stamps to the schema of  nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID transactions. I decided to introduce immutable data structures  to the database, which yields ACID properties effectively for free. This is explained in section \ref{immutability}.
 \subsection{Query Languages}
-Typically, database systems have their own query language, such as cypher for Neo4j and gremlin. In most cases, theses are used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query that a given program could generate is valid is intractable to undecidable for non-trivial programs. I decided to embed the query language in the host language. This allows the query language's type system to be checked by the host compiler, so we can get much stronger guarantees about program correctness. \toReference{links to cypher and gremlin}
+Typically, database systems have their own query language, the most ubiquitous of which is Neo4j's language, Cypher. This provides ML-style pattern matching of queries against the stored graph, allowing the user to extract arbitrary fields from nodes. In most cases, theses are used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query a given program could generate is valid is intractable to undecidable for non-trivial programs. I decided to embed the query language in the host language. This allows the query language's type system to be checked by the host compiler, so we can get much stronger guarantees about program correctness. \toReference{links to cypher and gremlin}
 
 \section{Immutability}\label{immutability}
-In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. \diagramNeeded{Read/Write diagram}
+In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. 
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/readsWrites.png}
+  \caption{\todo{Placeholder image till I get a nicer one} an example of reads and writes to an initial view.}
+  \label{fig:Architecture}
+\end{figure}
 
 \section{Query Language}
+
+In this next section, I shall define the query language that I constructed and introduce a set of semantics for evaluating queries.
+
 \subsection{Domain Specific Language Syntax}
 I spent some time iterating over a DSL syntax and how I wanted queries to look and be structured. My goals were to have a highly composable and expressive, yet small language. At first I experimented with a Neo4j-style language, with pattern matching syntax, an example of which is below. The query takes a number of fields to fill in, in this case a pair of actors, and finds all valid ways to fill them in subject to the graph constraints.
 \begin{framed}
@@ -464,41 +466,46 @@ write(rs, v) = &v\left[A \mapsto v_{table}(A) \cup \setComp{a_i}{0 < i \leqslant
 \end{split}
 \end{equation}
 
+\subsection{Summary}
+To summarise, this past section defines a query DSL, a type system for checking validity of queries, and a set of semantics for executing queries. Furthermore, I have then defined a set of commands which allow queries to executed and views to be generated.
+
 
 \section{Languages and Libraries Used}
-\paragraph{Scala} An object-oriented, functional JVM languages interoperable with Java. I chose Scala for its familiarity, advanced type system, ability to use Java libraries, and ease of deployment across many systems. \toReference{https://github.com/tperrigo/Scala-type-system/wiki/Scala-Type-System-Overview}
+In addition to Scala, I have made use of several libraries and tools. Some were used for the actual construction of the project, whereas others were used for auxiliary tasks such as testing and debugging or  generating datasets.
 
-\paragraph{Scala Build Tool} A package manager and build tool for Scala.
+\begin{itemize}
+\item[\textbf{SBT}] Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries.
 \toReference{https://www.Scala-sbt.org/}
-\paragraph{PostgreSQL}  An open source, multi platform, performant SQL implementation.
+\item[\textbf{PostgreSQL}] An open-source, multi-platform SQL implementation.
 \toReference{https://www.postgresql.org/}
-\paragraph{LMDB} An open source, highly optimised key-value datastore.
+\item[\textbf{LMDB}] An open source, highly optimised key-value datastore.
 \toReference{https://symas.com/lmdb/}
-\paragraph{Scalaz} A library for Scala providing typeclasses and syntax to aid advanced functional programming. \toReference{https://github.com/Scalaz/Scalaz}
-\paragraph{JDBC} Java's standard library support for SQL connections. Used to interact with a postgres database.
+\item[\textbf{Scalaz}] A library for Scala providing typeclasses and syntax to aid advanced functional programming. \toReference{https://github.com/Scalaz/Scalaz}
+\item[\textbf{JDBC}] Java's standard library support for SQL connections. Used to interact with a postgres database.
 \toReference{http://www.oracle.com/technetwork/java/javase/jdbc/index.html}
-\paragraph{LMDBJava} A JNI library allowing access to the LMDB datastore. 
+\item[\textbf{LMDBJava}] A JNI library allowing access to the LMDB datastore. Previously, I experimented with another library, LMDBJni. However, upon discovery of a bug in the JNI code, I switched to LMDBJava.
 \toReference{https://github.com/lmdbjava/lmdbjava}
-\paragraph{Junit} A unit testing library for JVM languages.
+\item[\textbf{Junit}] A unit testing library for JVM languages.
 \toReference{https://junit.org/junit5/}
-\paragraph{SLF4J} A logging library for JVM languages
+\item[\textbf{SLF4J}] A logging library for JVM languages
 \toReference{https://www.slf4j.org/}
-\paragraph{Spray-JSON} A JSON library for Scala, used to generate benchmarking datasets.
+\item[\textbf{Spray-JSON}] A JSON library for Scala, used to generate benchmarking datasets.
 \toReference{https://github.com/spray/spray-json}
-\paragraph{Python} Used to generate test datasets.
+\item[\textbf{Python}] A scripting language used to generate test datasets.
 \toReference{https://www.python.org/}
+
+\end{itemize}
 
 
 \section{Software Engineering}
-The system was designed to be as modular and re-implementable as possible.
 
-\diagramNeeded{Figure from Google drive: the architecture map}
-\subsection{Front-End}
-The front-end mostly consists of interfaces and syntax for building queries and the schema for the database.
-\subsection{Middle-End}
-The front-end's DSL translates into the underlying typed ADT. This then has its compile-time type information erased to become an un-typed query ADT, which is easier and cleaner to interpret.
-\subsection{Back-End}
-Finally, there are three interfaces that a back-end system must implement: DBBackend, DBInstance and DBExecutor. These specify a root back-end object that opens an instance which represents a database connection. Each DBInstance has an executor that allows us to execute commands
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/Architecture.png}
+  \caption{A map of the architecture of the system}
+  \label{fig:Architecture}
+\end{figure}
+The system was designed to be as modular and re-implementable as possible. To this end, it consists of several interchangeable components; a map of this is provided in figure \ref{fig:Architecture}. The front-end mostly consists of interfaces and syntax for building queries and the schema for the database. The front-end's DSL translates into the underlying typed ADT. This then has its compile-time type information erased to become an un-typed query ADT, which is easier and cleaner to interpret. Finally, there are three interfaces that a back-end system must implement: DBBackend, DBInstance and DBExecutor. These specify a root back-end object that opens an instance which represents a database connection. Each DBInstance has an executor that allows us to execute commands. The results of these commands are then un-erased to return them as the correct type.
 
 \section{Scala Techniques}
 I have made use of several advanced programming techniques which are specific to the Scala language.
@@ -661,6 +668,8 @@ It is clear that these patterns allow for very expressive structures and abstrac
 
 
 \chapter{Implementation}
+
+In this section, I shall first focus on common techniques when building the database, then explain construction of the front- and middle-ends. After this, I shall look at common structures shared by the various backend implementations and finally, I shall conclude with an examination of each of the backend implementations that I have written. 
 \section{Note on Purity and Concurrency}
 All of the back-ends aim to preserve the global immutability of the database. The immutable semantics of the database also mean that queries generally do not interfere with each other. This means that we can avoid keeping locks or creating large transactions. Hence, the backends do not require much work to maintain correct concurrency.
 \section{Functional Programming Techniques}
@@ -1294,7 +1303,6 @@ We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n
 \section{Unit Tests}
 The correctness of each backend is tested using a suite of 45 unit tests which verify adherence to semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again.
 \section{Performance Tests}
-	\subsection{Introduction}
 	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation. The LMDB implementation was able to do indexing faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses are the same.
 	\subsection{Hardware}
 	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the backends ran off of an SSD.
