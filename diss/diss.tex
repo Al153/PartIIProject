@@ -27,7 +27,7 @@
 \newcommand\note[1]{\textcolor{cyan}{#1}}
 \newcommand\mathName[1]{\textcolor{pink}{#1}}
 
-\newcommand{\reference}{RefImpl}
+\newcommand{\reference}{LMDBOptimised}
 \newcommand{\batched}{LMDBatched}
 \newcommand{\cse}{LMDBCSE}
 \newcommand{\postgres}{Postgres}
@@ -873,10 +873,23 @@ During construction of the database, several common patterns of problems emerged
 	The first set of generic algorithms to look at are the \codeName{SimpleFixedPointTraversal} algorithms. These compute the repetitions of a function for execution of the \codeName{FixedPoint}, \codeName{Upto}, and \codeName{Exactly} expressions of the ADT. They are labelled as "Simple" because they do the search from a single root. They carry out search mutably, and convert their output to an immutable set upon returning.
 	
 		\paragraph{Exactly}
-The simplest algorithm is for computing \codeName{Exactly} query nodes. Here, we simply expand a fringe set of values outwards, by applying the search step to every value in the fringe to get the new fringe. We also memoise the search step function in the case of repetitions. After the required number of repetitions, the remaining fringe is returned. \diagramNeeded{(Diagram showing expanding fringe)}
-    
+The simplest algorithm is for computing \codeName{Exactly} query nodes. Here, we simply expand a fringe set of values outwards, by applying the search step to every value in the fringe to get the new fringe. We also memoise the search step function in the case of repetitions. After the required number of repetitions, the remaining fringe is returned.
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/Exactly.png}
+  \caption{Execution of a simple \codeName{Exactly} query}
+  \label{fig:ExactlySingle}
+\end{figure}
     		\paragraph{Upto}
 The next algorithm is for computing \codeName{Upto}. This is computed in a similar way by flat-mapping the functions over the fringe repeatedly to calculate an expanding fringe. The major differences here are that we keep an accumulator of all the found values. When a new fringe is calculated, we subtract the accumulator set from it to reduce the number of nodes that need to be searched to those that have not yet been searched, and then union the remaining fringe with the accumulator to get the new accumulator. After the required number of repetitions, the accumulator is returned. \diagramNeeded{diagram}
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/Upto.png}
+  \caption{Execution of a simple \codeName{Upto} query}
+  \label{fig:UptoSingle}
+\end{figure}
 	
 		\paragraph{FixedPoint}
 The  final algorithm is to calculate \codeName{FixedPoint}. This works slightly differently. As before, we keep an accumulator of reached nodes, but unlike before, the generation number of each node is not important, only that a node is reachable is important. Hence, the fringe is a queue rather than a set, and we iterate until the fringe is empty. In each iteration, we pop off the top value of the fringe queue, compute all immediately reachable nodes. This reachable set is diffed (define diff) with the accumulator to find the newly reached nodes. These are now added to the fringe queue and the accumulator. When the fringe is empty, we return the accumulator.
@@ -1388,12 +1401,9 @@ The objects in the database are as follows:
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
-		\todo{This needs to be more specific, rewrite}
-		An overall view of the results is that, as might be expected, the SQL implementation is the fastest, with the most aggressively optimised LMDB typically performing the closest in speed to SQL, \todo{calculate precise values} though occasionally beating SQL's performance by up to 150\%. Due to a high overhead of initiating individual queries, the SQL instance performed appalling on pathfinding queries. The LMDB optimisations worked very effectively where they were hypothesised to, such as queries with repeated joins and those which made use of \mathName{Exactly} and \mathName{Upto}, yielding orders of magnitude speedup. However, in some tests, the optimisations yielded overheads slowing down performance, especially those queries which make use of \mathName{FindFrom} rather than finding pairs.
+		An overall view of the results is that, as might be expected, the SQL implementation is the fastest over short, indexing heavy, queries, with the most aggressively optimised LMDB implementation typically performing slightly worse than less aggressively optimised LMDB implementations due to the overheads of optimisation. However, when queries expose the redundancies noted in the preceding sections, significant speed ups can be seen, both over the other LMDB implementations and over SQL. This can particularly be seen in the cases of \codeName{FindPair} transitive queries.
 
-Typically, the CSE optimisations alone do not provide a statistically significant speed up, or even slow down operations, however the optimisations also applied to joins and transitive queries do often show a large speedup. 
-
-		The pathfinding implementation, for simplicity, sends queries at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched, but this complicates the SQL implementation significantly (clearing up on error becomes a lot harder). Hence, I am ignoring the pathfinding tests for the purpose of backend comparison.
+		A point to note is that I am ignoring evaluation of pathfinding queries. For simplicity, the pathfinding implementation re-evaluates the underlying search function query at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched, but this complicates the SQL implementation significantly (clearing up on error becomes a lot harder). Hence, I am ignoring the pathfinding tests for the purpose of backend comparison.
 
 
 		\paragraph{Redundancy}
@@ -1416,7 +1426,7 @@ Where
 } 
 
 		\paragraph{Conjunctions and Disjunctions}
-	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
+	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by Postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
 				\diagramNeeded{Graph}
 \resultTable{Conjunctions}{40 each}{
 \texttt{coactorWith(KevinBacon))}       \\
