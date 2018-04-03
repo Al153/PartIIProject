@@ -1,21 +1,23 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces \leavevmode {\color {red}Placeholder image till I get a nicer one} an example of reads and writes to an initial view.}}{15}{figure.2.1}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces A map of the architecture of the system}}{25}{figure.2.2}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces \leavevmode {\color {red}Placeholder image till I get a nicer one} an example of reads and writes to an initial view.}}{16}{figure.2.1}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces A map of the architecture of the system}}{26}{figure.2.2}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Execution of a simple \leavevmode {\color {blue}Exactly} query}}{37}{figure.3.1}
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Execution of a simple \leavevmode {\color {blue}Upto} query}}{38}{figure.3.2}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Execution of a simple \texttt {Exactly} query}}{37}{figure.3.1}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Execution of a simple \texttt {Upto} query}}{38}{figure.3.2}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Execution of an \texttt {Exactly} query from multiple roots}}{39}{figure.3.3}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Execution of an \texttt {Upto} query from multiple roots}}{40}{figure.3.4}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{52}{figure.4.1}
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for conjunction queries}}{53}{figure.4.2}
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for disjunction queries}}{54}{figure.4.3}
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \leavevmode {\color {blue}Exactly} queries}}{55}{figure.4.4}
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \leavevmode {\color {blue}Exactly} queries}}{56}{figure.4.5}
-\contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \leavevmode {\color {blue}FindPair} queries}}{57}{figure.4.6}
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \leavevmode {\color {blue}Upto} queries}}{58}{figure.4.7}
-\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \leavevmode {\color {blue}Upto} queries}}{59}{figure.4.8}
-\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for large \leavevmode {\color {blue}Upto} queries}}{60}{figure.4.9}
-\contentsline {figure}{\numberline {4.10}{\ignorespaces Read performance for Join-Speed queries}}{61}{figure.4.10}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{54}{figure.4.1}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for conjunction queries}}{55}{figure.4.2}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for disjunction queries}}{56}{figure.4.3}
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt {Exactly} queries}}{57}{figure.4.4}
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt {Exactly} queries}}{58}{figure.4.5}
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt {FindPair} queries}}{59}{figure.4.6}
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt {Upto} queries}}{60}{figure.4.7}
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt {Upto} queries}}{61}{figure.4.8}
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for large \texttt {Upto} queries}}{62}{figure.4.9}
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Read performance for Join-Speed queries}}{63}{figure.4.10}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

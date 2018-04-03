@@ -18,7 +18,7 @@
 \BOOKMARK [1][-]{section.2.6}{Languages and Libraries Used}{chapter.2}% 18
 \BOOKMARK [1][-]{section.2.7}{Software Engineering}{chapter.2}% 19
 \BOOKMARK [1][-]{section.2.8}{Scala Techniques}{chapter.2}% 20
-\BOOKMARK [2][-]{subsection.2.8.1}{Type Enrichment}{section.2.8}% 21
+\BOOKMARK [2][-]{subsection.2.8.1}{type-enrichment}{section.2.8}% 21
 \BOOKMARK [2][-]{subsection.2.8.2}{Implicit Parameters}{section.2.8}% 22
 \BOOKMARK [2][-]{subsection.2.8.3}{Typeclass Pattern}{section.2.8}% 23
 \BOOKMARK [0][-]{chapter.3}{Implementation}{}% 24

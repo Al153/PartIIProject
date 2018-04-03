@@ -1,3 +1,60 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{10}
+
+\bibitem{HaskellDB}
+{HaskellDB}: A library of combinators for generating and executing sql
+  statements.
+\newblock \url{https://hackage.haskell.org/package/haskelldb}.
+\newblock Accessed: 2018-04-03.
+
+\bibitem{IMDB}
+{Large IMDB database}.
+\newblock
+  \url{https://github.com/arangodb/example-datasets/tree/master/Graphs/IMDB}.
+
+\bibitem{TMDB5000}
+{TMDB 5000 Movie Dataset}.
+\newblock \url{https://www.kaggle.com/tmdb/tmdb-movie-metadata}.
+
+\bibitem{UFC}
+{UFC Fights Data 1993 - 2/23/2016}.
+\newblock \url{https://www.kaggle.com/cformey24/ufc-fights-data-1993-2232016}.
+
+\bibitem{QueryLanguageSchema}
+R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
+  D.~{Vrgoc}.
+\newblock {Foundations of Modern Query Languages for Graph Databases;
+  Introduction}.
+\newblock {\em ArXiv e-prints}, October 2016.
+\newblock Provided by the SAO/NASA Astrophysics Data System.
+
+\bibitem{QueryLanguageFoundations}
+R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
+  D.~{Vrgoc}.
+\newblock {Foundations of Modern Query Languages for Graph Databases; Section
+  2}.
+\newblock {\em ArXiv e-prints}, October 2016.
+\newblock Provided by the SAO/NASA Astrophysics Data System.
+
+\bibitem{CTEs}
+Manuela Horvat and Daniel Stuparu.
+\newblock Common table expression - with statement.
+\newblock 01 2008.
+
+\bibitem{HashJoins}
+M.~H.~{Eich} P.~{Mishra}.
+\newblock Join processing in relational databases; section 2.3.
+\newblock \url{http://www.csd.uoc.gr/~hy460/pdf/p63-mishra.pdf}.
+\newblock Accessed: 2018-04-03.
+
+\bibitem{ExceptionMonad}
+{University of Glasgow} P.~{Wadler}.
+\newblock Monads for functional programming; section 2.2.
+\newblock \url{https://hackage.haskell.org/package/haskelldb}.
+\newblock Accessed: 2018-04-03.
+
+\bibitem{DBStates}
+{Professor C.J. van Rijsbergen}, editor.
+\newblock {\em Database States in Lazy Functional Programming Languages:
+  Imperative Update and Lazy Retrieval}, 1995.
 
 \end{thebibliography}
