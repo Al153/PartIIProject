@@ -24,7 +24,6 @@
 \newcommand\codeName[1]{\texttt{#1}}
 \newcommand\term[1]{\textcolor{purple}{#1}}
 \newcommand\crossRefNeeded[1]{\textcolor{green}{#1}}
-\newcommand\diagramNeeded[1]{\textcolor{orange}{#1}}
 \newcommand\note[1]{\textcolor{cyan}{#1}}
 \newcommand\mathName[1]{\textcolor{pink}{#1}}
 
@@ -199,7 +198,21 @@ This section gives a brief introduction into the main characteristics and classi
 \subsection{Classes of Database}
 Existing graph databases typically fall into two classes: property graphs and edge-labelled (EL) graphs \cite{QueryLanguageFoundations}. EL graphs typically store only a label on each edge, whereas property graphs can store more attributes on edges and are hence closer semantically to relational databases. EL graphs can be more succinctly modelled mathematically, since they can be represented purely using mathematical relations; they also lead to a cleaner syntax (see the DSL syntax subsection of the query language section). Finally, any data expressible using a property graph can be represented using an EL graph by introducing additional nodes to hold attributes.
 
-\diagramNeeded{Insert and acknowledge edge-labelled vs property graph examples from GDrive}
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/ELGraph.png}
+  \caption{An edge-labelled graph encoding information about actors that have acted in movies under different
+roles \cite{ELGraphExample}. \todo{Tim and Rob, is using this figure and the next from another paper allowed if correctly cited?}}
+  \label{fig:ELGraph}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/PropertyGraph.png}
+  \caption{An edge-labelled graph encoding information about actors that have acted in movies under different
+roles \cite{PropertyGraphExample}}
+  \label{fig:PropertyGraph}
+\end{figure}
 
 \subsection{Schema}
 Current graph database systems often do not have rigid schema \cite{QueryLanguageSchema}. Instead, they use dynamic schema. This provides more flexibility in the shape of data that can be stored in the database; it also allows the types of nodes stored to evolve over time. The downside of this is that it requires additional typing checks at run-time. This also fails to fit into our definition of type-safety, since we have no guarantees about any objects extracted from the database. I have instead opted for a rigid schema which is built using Scala objects and is checked by the Scala compiler at compile-time.
@@ -215,7 +228,7 @@ In order to implement immutability, I needed a way of creating an immutable snap
 \begin{figure}[ht]
 \centering
   \includegraphics[width=\textwidth]{figs/readsWrites.png}
-  \caption{\todo{Placeholder image till I get a nicer one} an example of reads and writes to an initial view.}
+  \caption{An example of reads and writes to an initial view. Separate reads and writes do not interfere with each other.}
   \label{fig:ReadsWrites}
 \end{figure}
 
@@ -776,10 +789,10 @@ trait HasRecovery[E] {
 	\end{verbatim}
 \end{framed}
 
-The underlying future is kept private, and can only be accessed via the run method, which calls the recover method on any errors (tail recursively, so any exceptions thrown during execution are also handled). By this construction \todo{appendix} we ensure all non-fatal error cases are contained in a type-safe way.
+The underlying future is kept private, and can only be accessed via the run method, which calls the recover method on any errors (tail recursively, so any exceptions thrown during execution are also handled). By this construction \crossRefNeeded{appendix} we ensure all non-fatal error cases are contained in a type-safe way.
 
 	\subsection{Operation Monad}
-	As stated, \todo{Can I link to it?} typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
+	As stated, \crossRefNeeded{Can I link to it?} typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
 
 	
 	\subsection{Local and Global State}
@@ -806,7 +819,7 @@ sealed trait SchemaObject[A] {
 	
 	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These simplify the construction of a type-class instance to marshalling values of the object type to tuples of  \codeName{Storable}"  (read: primitive) types.
 	
-	\todo{To go in the appendix: The definition of a schema object subclass}
+	\crossRefNeeded{To go in the appendix: The definition of a schema object subclass}
 	
 	\subsection{DBObjects}
 	
@@ -847,7 +860,7 @@ In order to build the database structures the backends need a definitive collect
 	For the sake of simplicity, I have only implemented findables which test if fields of objects match particular values. This allows us to look for specific objects or match particular fields. This also makes indexing easier to implement.
 	
 \section{Query ADT}
-The intermediate representation terms described in the preparation section \todo{link}	are implemented in Scala by a pair of ADT hierachies: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they look up. Using this parameterisation, I have encoded in type of the ADTs the inductive type rules in the semantics such that the Scala compiler checks the type of any generated query and does type inference for us. \todo{Link to Appendix "The definitions of these types can be found in the appendix..."} The only rules that cannot be checked at compile-time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{$Id_A$}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile-time without dependent types.  The typed ADTs are erased, with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a run-time error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
+The intermediate representation terms described in the preparation section \crossRefNeeded{link}	are implemented in Scala by a pair of ADT hierachies: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they look up. Using this parameterisation, I have encoded in type of the ADTs the inductive type rules in the semantics such that the Scala compiler checks the type of any generated query and does type inference for us. \crossRefNeeded{Link to Appendix "The definitions of these types can be found in the appendix..."} The only rules that cannot be checked at compile-time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{$Id_A$}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile-time without dependent types.  The typed ADTs are erased, with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a run-time error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
 	
 \section{Commands}
 As specified in the previous chapter, each backend needs to implement five commands: 
@@ -860,7 +873,7 @@ As specified in the previous chapter, each backend needs to implement five comma
 \end{itemize}
 Each command should return an \codeName{Operation} of the correct type.
 \section{DSL}
-The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.Scala} in the appendix for examples of DSL). \todo{Put in appendix}
+The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.Scala} in the appendix for examples of DSL). \crossRefNeeded{Put in appendix}
 
 \section{Common Generic Algorithms}
 During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different backends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
@@ -954,19 +967,32 @@ In the memory backend, as will be explained later, views are easy implement as a
 The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages or libraries as in the SQL and LMDB backends.)
 	\subsection{Table Structure}
 	A memory instance stores a concurrent map of \codeName{ViewId} to \codeName{MemoryTree}, which itself is a map of \codeName{TableName} (derived from the \codeName{SchemaDescription}) to \codeName{MemoryTable}. There is a \codeName{MemoryTable} for each object class in the \codeName{SchemaDescription}. A \codeName{MemoryTable} provides lookups using maps for \codeName{DBObjects} and \codeName{Findable}s, in the form of an index to set of objects for each column value. These lookups return objects containing a \codeName{DBObject} and the outgoing and incoming relations for the object, indexed by \codeName{RelationName}. 
-	\diagramNeeded{Diagram of View => Tree(TableName => Table(Index => Object)) }
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/MemoryHierarchy.png}
+  \caption{The lookup procedure for objects in the memory implementation}
+  \label{fig:MemoryHierarchy}
+\end{figure}
 
 	
 	\subsection{Reads}
-Reads occur by simply walking over the ADTs recursively, following the denotational semantics \todo{Link to appendix}. The only real departures from the denotational semantics are the Left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables).
+Reads occur by simply walking over the ADTs recursively, following the denotational semantics \crossRefNeeded{Link to appendix}. The only real departures from the denotational semantics are the Left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables).
 	
 	\subsection{Left Optimisation}
-	One of the few optimisations here is the Left optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of maybe a few dozen unique rightmost values to a large query with several million unique leftmost values. The pairs of the right relation only need to be joined if their leftmost value is in the set of rightmost values of the left relation. Hence it makes sense to pre-limit our search to pairs with leftmost values in the right most value. \diagramNeeded{(Diagram showing redundant calculations in the join)}. This pattern also makes an appearance in the original LMDB implementation.
+	One of the few optimisations here is the Left optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of maybe a few dozen unique rightmost values to a large query with several million unique leftmost values. The pairs of the right relation only need to be joined if their leftmost value is in the set of rightmost values of the left relation. Hence it makes sense to pre-limit our search to pairs with leftmost values in the right most value. 
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{figs/LeftHandOptimisation.png}
+	\caption{Joining a large right hand side to a small left hand side without pruning the right hand side search results in redundant calculations. \todo{Rob, Tim, Would it be better to give explicit result tables? Does this figure make sense?}}
+	\label{fig:LeftHandOptimisation}
+\end{figure}
+This pattern also makes an appearance in the original LMDB implementation.
 	\subsection{Writes}
 	Thanks to Scala's immutable collections library, updating the database is fairly easy When inserting a collection of relations, we simply add, relation by relation, each object in the relation, if it does not exist, and update the outgoing and incoming relation map of each object. This update creates new immutable object tables and a new memory tree. This is stored to the map of \codeName{ViewId}  to \codeName{MemoryTree} as a new view.
 
 	\subsection{Storage}
-	Objects are stored as \codeName{DBObject}s in wrapper \codeName{MemoryObject}s. \codeName{MemoryObject}s  are hashed and compared by their \codeName{DBObject}s. \diagramNeeded{Memory object diagram}
+	Objects are stored as \codeName{DBObject}s ad their incoming and outgoing relations in wrapper \codeName{MemoryObject}s. \codeName{MemoryObject}s  are hashed and compared by their \codeName{DBObject}s.
 	
 	\subsection{Mutability}
 	The only mutability in the Memory implementation is for the views counter and the views lookup table. Access is kept transactional using a lock.
@@ -1087,7 +1113,7 @@ WITH RECURSIVE
 \end{verbatim}
 \end{framed}
 	\subsection{Monadic Compilation}
-	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \todo{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \todo{format diagrams here}
+	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \crossRefNeeded{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \todo{format diagrams here}
 	
 	\begin{framed}
 	\begin{verbatim}
@@ -1284,14 +1310,27 @@ Despite these optimisations, there are still sources of redundancy.
 			Indeed, the function to join a pair of retrievers becomes a simpler \codeName{flatmap} of one map to another. Functions such as the \codeName{union} and \codeName{intersection} of retrievers also become simpler, \note{(see impl.lmdb.fastjoins.retrievers.RelationRetriever.RelationRetrieverOps)}
 
 		\paragraph{Exactly}
-		This implementation also explores other formulations of the \mathName{Exactly(n, P)} query. Exactly effectively joins together n repetitions of the underlying query in a linear fashion. This makes relatively poor reuse of the join function, since each join has different operand subqueries, so it cannot be memoised. This formulation does make good reuse of \mathName{P}, however.
+		This implementation also explores other formulations of the \mathName{Exactly(n, P)} query. Exactly effectively joins together n repetitions of the underlying query in a sequential fashion. This makes relatively poor reuse of the join function, since each join has different operand subqueries, so it cannot be memoised. This formulation does make good reuse of \mathName{P}, however.
 		
-		\diagramNeeded{Diagram showing n joins of P, linear}
-		
-		
-		As joins over the set of results of query form a \mathName{Monoid} \todo{Link to appendix}, we can use associativity to change the order in which the joins are evaluated, aiming for as much reuse as possible. This can be done in a manner similar to square-and-multiply exponentiation.
 
-We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. \diagramNeeded{Diagram showing join structure;} 
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/SequentialJoins.png}
+  \caption{Sequential joins provide little common substructure to eliminate.}
+  \label{fig:SequentialJoins}
+\end{figure}
+		
+		
+		As joins over the set of results of query form a \mathName{Monoid} \crossRefNeeded{Link to appendix}, we can use associativity to change the order in which the joins are evaluated, aiming for as much reuse as possible. This can be done in a manner similar to square-and-multiply exponentiation.
+
+We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. 
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figs/CommonJoins.png}
+  \caption{By reordering joins, we gain significant common substructure to eliminate.}
+  \label{fig:CommonJoins}
+\end{figure}
 
 \begin{framed}
 \begin{verbatim}
@@ -1310,7 +1349,7 @@ We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n
 \end{framed}
 
 		\paragraph{Upto Optimisation}
-			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$} \todo{link to Proof in appendix}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
+			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$} \crossRefNeeded{link to Proof in appendix}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
 			
 			\begin{framed}
 			\begin{verbatim}			
@@ -1997,7 +2036,7 @@ so we have $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (
 
 $$\square$$
 
-\chapter{Joins on $\query$ as a monoid}
+\chapter{Joins on $\queryT{A}$ as a monoid}
 
 In order to justify some of our optimisations, we need to know certain properties of join denotation.
 
@@ -2005,7 +2044,7 @@ Firstly, we want to define establish closure and associatiavity of the $join$ fu
 
 We want to define these for queryable subsets of a view $v \in View_{\Sigma}$
 \begin{equation}
-	Query(v) = \setComp{s}{\exists P, A, B. s = \deno{P} \wedge \typeRule{P}{A, B}}
+	(v) = \setComp{s}{\exists P, A, B. s = \deno{P} \wedge \typeRule{P}{A, B}}
 \end{equation}
 
 \section{Lemma: Join is closed on $\query$}
@@ -2091,8 +2130,6 @@ Firstly, writing $p$ for $\deno{P}$ and with the binary representation of $n = \
 					& = \prod_i {p^{b_i * 2^i} }
 \end{split}
 \end{equation}
-
-Todo: join distributes over and and or
 
 \section{Joins distribute over Or}
 

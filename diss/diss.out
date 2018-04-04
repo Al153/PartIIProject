@@ -82,7 +82,7 @@
 \BOOKMARK [0][-]{chapter*.60}{Appendix}{}% 82
 \BOOKMARK [0][-]{appendix.A}{The Domain closure\(A, v\)}{}% 83
 \BOOKMARK [0][-]{appendix.B}{Correspondence of operational and denotational semantics}{}% 84
-\BOOKMARK [0][-]{appendix.C}{Joins on Query\(v\) as a monoid}{}% 85
+\BOOKMARK [0][-]{appendix.C}{Joins on QueryA\(v\) as a monoid}{}% 85
 \BOOKMARK [1][-]{section.C.1}{Lemma: Join is closed on Query\(v\)}{appendix.C}% 86
 \BOOKMARK [1][-]{section.C.2}{Lemma: Join is associative on Query\(v\)}{appendix.C}% 87
 \BOOKMARK [1][-]{section.C.3}{Joins on QueryA\(v\) as a monoid}{appendix.C}% 88

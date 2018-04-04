@@ -19,6 +19,22 @@
 {UFC Fights Data 1993 - 2/23/2016}.
 \newblock \url{https://www.kaggle.com/cformey24/ufc-fights-data-1993-2232016}.
 
+\bibitem{ELGraphExample}
+R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
+  D.~{Vrgoc}.
+\newblock {Foundations of Modern Query Languages for Graph Databases; Figure
+  2}.
+\newblock {\em ArXiv e-prints}, October 2016.
+\newblock Provided by the SAO/NASA Astrophysics Data System.
+
+\bibitem{PropertyGraphExample}
+R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
+  D.~{Vrgoc}.
+\newblock {Foundations of Modern Query Languages for Graph Databases; Figure
+  3}.
+\newblock {\em ArXiv e-prints}, October 2016.
+\newblock Provided by the SAO/NASA Astrophysics Data System.
+
 \bibitem{QueryLanguageSchema}
 R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
   D.~{Vrgoc}.
