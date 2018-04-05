@@ -93,3 +93,9 @@
 \BOOKMARK [0][-]{appendix.E}{Denotational Semantics Based Memory Implementation}{}% 93
 \BOOKMARK [1][-]{section.E.1}{FindPairs}{appendix.E}% 94
 \BOOKMARK [1][-]{section.E.2}{FindSingle}{appendix.E}% 95
+\BOOKMARK [0][-]{appendix.F}{DSL Examples}{}% 96
+\BOOKMARK [1][-]{section.F.1}{Simple Transitive Queries}{appendix.F}% 97
+\BOOKMARK [1][-]{section.F.2}{FindSingle queries}{appendix.F}% 98
+\BOOKMARK [1][-]{section.F.3}{Conjunction and Intersection}{appendix.F}% 99
+\BOOKMARK [1][-]{section.F.4}{Repetition}{appendix.F}% 100
+\BOOKMARK [0][-]{appendix.G}{Example of SchemaObject implementation}{}% 101

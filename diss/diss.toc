@@ -179,3 +179,9 @@
 \contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{89}{appendix.E}
 \contentsline {section}{\numberline {E.1}FindPairs}{89}{section.E.1}
 \contentsline {section}{\numberline {E.2}FindSingle}{90}{section.E.2}
+\contentsline {chapter}{\numberline {F}DSL Examples}{93}{appendix.F}
+\contentsline {section}{\numberline {F.1}Simple Transitive Queries}{93}{section.F.1}
+\contentsline {section}{\numberline {F.2}FindSingle queries}{93}{section.F.2}
+\contentsline {section}{\numberline {F.3}Conjunction and Intersection}{94}{section.F.3}
+\contentsline {section}{\numberline {F.4}Repetition}{95}{section.F.4}
+\contentsline {chapter}{\numberline {G}Example of SchemaObject implementation}{97}{appendix.G}

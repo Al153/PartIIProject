@@ -90,12 +90,14 @@ trait RelationSyntax {
   }
 
   implicit class SymmetricQueryOps[A](u: FindPairAble[A, A])(implicit sa: SchemaObject[A]) {
-    def *(n: Int): FindPair[A, A] = Exactly(n, u.toFindPair)
+    def *(n: Int): FindPair[A, A] = createExactly(n)
 
     def * (r: Repetition): FindPair[A, A] = r match {
-      case BetweenRange(lo, hi) => Chain(Exactly(lo, u.toFindPair), Upto(hi - lo, u.toFindPair))
-      case UptoRange(n) => Upto(n, u.toFindPair)(sa)
-      case AtleastRange(n) => if (n == 0) FixedPoint(u.toFindPair) else Chain(Exactly(n, u.toFindPair), FixedPoint(u.toFindPair))
+      case BetweenRange(lo, hi) => Chain(createExactly(lo), createUpto(hi - lo))
+      case UptoRange(n) => createUpto(n)
+      case AtleastRange(n) =>
+        if (n == 0) FixedPoint(u.toFindPair)
+        else Chain(createExactly(n), FixedPoint(u.toFindPair))
     }
 
     def ** : FindPair[A, A] = FixedPoint(u.toFindPair)(sa)
@@ -103,6 +105,15 @@ trait RelationSyntax {
     def ++ : FindPair[A, A] = Chain(u.toFindPair, FixedPoint(u.toFindPair))
 
     def ? : FindPair[A, A] = Upto(1, u.toFindPair)(sa)
+
+    private def createExactly(n: Int): FindPair[A, A] =
+      if (n >= 0) Exactly(n, u.toFindPair)
+      else Exactly(-n, u.toFindPair.reverse)
+
+
+    private def createUpto(n: Int): FindPair[A, A] =
+      if (n >= 0) Upto(n, u.toFindPair)
+      else Exactly(-n, u.toFindPair.reverse)
   }
 
 

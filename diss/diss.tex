@@ -23,7 +23,6 @@
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \newcommand\codeName[1]{\texttt{#1}}
 \newcommand\term[1]{\textcolor{purple}{#1}}
-\newcommand\crossRefNeeded[1]{\textcolor{green}{#1}}
 \newcommand\note[1]{\textcolor{cyan}{#1}}
 \newcommand\mathName[1]{\textcolor{pink}{#1}}
 
@@ -258,8 +257,8 @@ val coactor = ActsIn --><-- ActsIn
 \note{Find two actors such they both act in the same movie}
 \end{framed}
 
-This is much more readable and concise. With this syntax, and the assumption that \codeName{ActsIn} relates \codeName{Actors} to \codeName{Movies}, Scala's typesystem can infer that \codeName{coactor} relates \codeName{Actors} to other \codeName{Actors}. There is also syntax for repetitions, intersections and unions. \crossRefNeeded{Examples in the appendix}
-\subsection{Semantic Definitions}
+This is much more readable and concise. With this syntax, and the assumption that \codeName{ActsIn} relates \codeName{Actors} to \codeName{Movies}, Scala's typesystem can infer that \codeName{coactor} relates \codeName{Actors} to other \codeName{Actors}. There is also syntax for repetitions, intersections and unions. Examples of this syntax can be seen in appendix \ref{DSLExamples}.
+\subsection{Semantic Definitions}\label{ADTDef}
 To correctly implement the DSL, we need to mathematically model its operation. Hence, the above DSL queries should correspond to an intermediate representation. I have picked a set of expression constructors to do this. These fall into two kinds: \codeName{FindPair} and \codeName{FindSingle}, indicating whether they return pairs or individual values.
 
 \paragraph{FindPair queries}
@@ -448,7 +447,7 @@ with the following definitions:
 \[ filterLeft(p, s) = \setComp{(a, b) \in p}{a \in s}\]
 \[ filterRight(p, s) = \setComp{(a, b) \in p}{b \in s}\]
     
-   I have also proved in the appendix the correspondence of these two formulations of semantics.
+   I have also proved in appendix \ref{DenoOper} the correspondence of these two formulations of semantics.
 \subsection{Commands}
 In addition to the query construction language, there are five commands which make use of the queries.
 
@@ -708,8 +707,6 @@ object Example {
 }
 \end{verbatim}
 
-\todo{\crossRefNeeded{Do I want to link to this instead?}}
-
 To define a monadic compiler, we define a recursive function which chains state monad objects together.
 
 {\renewcommand{\baselinestretch}{0.8}\small
@@ -788,10 +785,10 @@ trait HasRecovery[E] {
 	\end{verbatim}
 \end{framed}
 
-The underlying future is kept private, and can only be accessed via the run method, which calls the recover method on any errors (tail recursively, so any exceptions thrown during execution are also handled). By this construction \crossRefNeeded{appendix} we ensure all non-fatal error cases are contained in a type-safe way.
+The underlying future is kept private, and can only be accessed via the run method, which calls the recover method on any errors (tail recursively, so any exceptions thrown during execution are also handled). By this construction, we ensure all non-fatal error cases are contained in a type-safe way.
 
 	\subsection{Operation Monad}
-	As stated, \crossRefNeeded{Can I link to it?} typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
+	As stated in section \ref{immutability}, typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
 
 	
 	\subsection{Local and Global State}
@@ -816,9 +813,7 @@ sealed trait SchemaObject[A] {
 		
 	\end{framed}
 	
-	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These simplify the construction of a type-class instance to marshalling values of the object type to tuples of  \codeName{Storable}"  (read: primitive) types.
-	
-	\crossRefNeeded{To go in the appendix: The definition of a schema object subclass}
+	\codeName{SchemaObject} is sealed, so can only be implemented by implementing one of its subclasses. Currently, for the sake of simplicity, there are five: \codeName{SchemaObject0} .. \codeName{SchemaObject4}, with the number indicating the number of underlying database fields required. These simplify the construction of a type-class instance to marshalling values of the object type to tuples of  \codeName{Storable}, primitive types. Examples can be seen in appendix \ref{SchemaObjectDemo}
 	
 	\subsection{DBObjects}
 	
@@ -859,7 +854,7 @@ In order to build the database structures the backends need a definitive collect
 	For the sake of simplicity, I have only implemented findables which test if fields of objects match particular values. This allows us to look for specific objects or match particular fields. This also makes indexing easier to implement.
 	
 \section{Query ADT}
-The intermediate representation terms described in the preparation section \crossRefNeeded{link}	are implemented in Scala by a pair of ADT hierachies: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they look up. Using this parameterisation, I have encoded in type of the ADTs the inductive type rules in the semantics such that the Scala compiler checks the type of any generated query and does type inference for us. \crossRefNeeded{Link to Appendix "The definitions of these types can be found in the appendix..."} The only rules that cannot be checked at compile-time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{$Id_A$}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile-time without dependent types.  The typed ADTs are erased, with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a run-time error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
+The intermediate representation terms described in  section \ref{ADTDef} are implemented in Scala by a pair of ADT hierachies: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they look up. Using this parameterisation, I have encoded in type of the ADTs the inductive type rules in the semantics such that the Scala compiler checks the type of any generated query and does type inference for us. The definitions of these Scala classes can be found in appendix \ref{ScalaADT} The only rules that cannot be checked at compile-time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{$Id_A$}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile-time without dependent types.  The typed ADTs are erased, with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a run-time error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
 	
 \section{Commands}
 As specified in the previous chapter, each backend needs to implement five commands: 
@@ -872,7 +867,7 @@ As specified in the previous chapter, each backend needs to implement five comma
 \end{itemize}
 Each command should return an \codeName{Operation} of the correct type.
 \section{DSL}
-The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. (See \codeName{RelationSyntax.Scala} in the appendix for examples of DSL). \crossRefNeeded{Put in appendix}
+The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. Examples of the DSL can be seen in appendix \ref{DSLExamples}
 
 \section{Common Generic Algorithms}
 During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different backends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
@@ -976,7 +971,7 @@ The first backend that I have implemented is a simple, naive memory-based backen
 
 	
 	\subsection{Reads}
-Reads occur by simply walking over the ADTs recursively, following the denotational semantics \crossRefNeeded{Link to appendix}. The only real departures from the denotational semantics are the Left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables).
+Reads occur by simply walking over the ADTs recursively, following the denotational semantics. The only real departures from the denotational semantics are the Left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables). This interpreter can be found in appendix \ref{MemoryInterpreter}.
 	
 	\subsection{Left Optimisation}
 	One of the few optimisations here is the Left optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of maybe a few dozen unique rightmost values to a large query with several million unique leftmost values. The pairs of the right relation only need to be joined if their leftmost value is in the set of rightmost values of the left relation. Hence it makes sense to pre-limit our search to pairs with leftmost values in the right most value. 
@@ -1112,9 +1107,9 @@ WITH RECURSIVE
 \end{verbatim}
 \end{framed}
 	\subsection{Monadic Compilation}
-	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation \crossRefNeeded{In appendix}, which maps one-to-one to SQL. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below \todo{name the figure}. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \todo{format diagrams here}
+	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation for each of the SQL fragments to be created. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \todo{format diagrams here}
 	
-	\begin{framed}
+\begin{framed}
 	\begin{verbatim}
 case class CompilationContext(
         varCount: Int, // Unique identifier for variable names
@@ -1125,7 +1120,8 @@ case class CompilationContext(
 )
 
 	\end{verbatim}
-	\end{framed}
+\end{framed}
+
 	\subsection{Writes}
 	There are several steps in the implementation of writes, though I have not expended  a great deal of effort making them fast. A significant part of this is the "insert or get" SQL query, which looks up an object in the relevant table, returning its \codeName{ObjectId} if it exists and creating the object and returning the new ID if it does not.
 	
@@ -1320,7 +1316,7 @@ Despite these optimisations, there are still sources of redundancy.
 \end{figure}
 		
 		
-		As joins over the set of results of query form a \mathName{Monoid} \crossRefNeeded{Link to appendix}, we can use associativity to change the order in which the joins are evaluated, aiming for as much reuse as possible. This can be done in a manner similar to square-and-multiply exponentiation.
+		As joins over the set of results of query form a \mathName{Monoid} (proven in \ref{MonoidJoins}), we can use associativity to change the order in which the joins are evaluated, aiming for as much reuse as possible. This can be done in a manner similar to square-and-multiply exponentiation.
 
 We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. 
 
@@ -1348,7 +1344,7 @@ We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n
 \end{framed}
 
 		\paragraph{Upto Optimisation}
-			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$} \crossRefNeeded{link to Proof in appendix}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
+			We can also re-formulate an \mathName{Upto(n, P)} as an \mathName{$Exactly(n, Or(P, Id_A))$}, proven in appendix \ref{UptoOpt}, and hence use the same optimisation as above on \mathName{Upto}.  The same cannot be said for \mathName{FixedPoint}, as we do not know statically at what point the underlying relation will converge, so cannot pick an n to compute \mathName{Upto(n, P)}.
 			
 			\begin{framed}
 			\begin{verbatim}			
@@ -1696,6 +1692,7 @@ To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \sups
 \prevdepth\tpd
 
 \chapter{Correspondence of operational and denotational semantics}
+\label{DenoOper}
 \todo{neaten}
 In order to use the denotational semantics to construct an interpreter or compiler we need to prove they are equivalent to the operational semantics. Namely:
 
@@ -2036,6 +2033,7 @@ so we have $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (
 $$\square$$
 
 \chapter{Joins on $\queryT{A}$ as a monoid}
+\label{MonoidJoins}
 
 In order to justify some of our optimisations, we need to know certain properties of join denotation.
 
@@ -2158,7 +2156,8 @@ Firstly, we have by inversion of the type rules for $Chain$ and $Or$ that:
 
 
 \section{$Upto(n, P)$ expressed as $Exactly(n, P')$}
-Thanks to the previous section, we can now rewrite the denotation of $upto$
+\label{UptoOpt}
+Thanks to the previous section, we can now rewrite the denotation of $upto$.
 
 \begin{equation}
 \label{UptoToExactly}
@@ -2191,7 +2190,7 @@ So
  \deno{Chain(R_1, And(R_2, R_3))} = \emptyset
 \end{equation}
  
-\chapter{Scala Algebraic Data Type Definitions}
+\chapter{Scala Algebraic Data Type Definitions}\label{ScalaADT}
 Here, I have attached the definitions of the Scala typed intermediate representation. Note how the use of generic type parameters causes the Scala level type checking to also do the query-language type checking and inference. Also note how the use of \codeName{SchemaObject[A]} implicit parameters forces membership of the type-class of types that can be stored in the database.
 \begin{framed}
 \begin{verbatim}
@@ -2367,6 +2366,7 @@ case class OrS[A](left: FindSingle[A], right: FindSingle[A])
 \end{framed}
 
 \chapter{Denotational Semantics Based Memory Implementation}
+\label{MemoryInterpreter}
 \section{FindPairs}
 The simplistic denotational semantics based Memory interpreter
 \begin{framed}
@@ -2481,6 +2481,171 @@ def findSingleSetImpl(
         r2 <- recurse(right)
       } yield r1 union r2
     }
+  }
+\end{verbatim}
+\end{framed}
+
+\chapter{DSL Examples}
+\label{DSLExamples}
+In this chapter, I demonstrate some simple DSL syntax and the AST produced. It assumes schema defining $\typeRule{Knows}{Person, Person}$ and $\typeRule{ActsIn}{Person, Movie}$
+\section{Simple Transitive Queries}
+Simple queries are constructed using arrow notation to chain together subqueries. To construct reversed queries, there is a simple reverse method to invert a query.
+
+\begin{framed}
+\begin{framed}
+\begin{verbatim}
+ 	Knows -->--> Knows 
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{Chain(Rel(Knows), Rel(Knows))}
+\end{framed}
+\end{framed}
+
+\begin{framed}
+
+When the same relation is joined reversed to itself, a distinct modifier is inserted.
+
+\begin{framed}
+\begin{verbatim}
+ 	ActsIn --><-- ActsIn
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{Distinct(Chain(Rel(ActsIn), RevRel(ActsIn)))}
+\end{framed}
+\end{framed}
+
+\section{FindSingle queries}
+Assuming \codeName{A} to be a query of the correct type, and Alice to be an object of type \codeName{Person}, we can form FindSingle queries. Objects with SchemaObject type-class definitions are implicitly cast to Findables using type-enrichment.
+\begin{framed}
+\begin{framed}
+\begin{verbatim}
+ 	Alice >> A
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{From(Find(Alice), A)}
+\end{framed}
+\end{framed}
+
+\section{Conjunction and Intersection}
+There exists simple syntax on both \codeName{FindSingle} and \codeName{FindPair} queries to form unions and intersections.
+Assuming $\typeRule{Directs}{Person, Movie}$ and Bob is a \codeName{Person}, we can form the following.
+
+\begin{framed}
+Intersection over \codeName{FindPair} queries:
+\begin{framed}
+\begin{verbatim}
+ 	ActsIn & Directs
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{And(Rel(ActsIn), Rel(Directs))}
+\end{framed}
+\end{framed}
+
+\begin{framed}
+Union over \codeName{FindSingle} queries: 
+\begin{framed}
+\begin{verbatim}
+ 	(Alice >> Knows)  | (Bob >> Knows)
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{OrS(From(Find(Alice), Rel(Knows)), From(Find(Bob), Rel(Knows)))}
+\end{framed}
+\end{framed}
+
+\begin{framed}
+\codeName{AndLeft} can be created using arrow syntax.
+\begin{framed}
+\begin{verbatim}
+ 	(Alice ->>- Knows)
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{AndLeft(Find(Alice), Rel(Knows))}
+\end{framed}
+\end{framed}
+
+
+
+\section{Repetition}
+Via type enrichment, queries relating the same type can be repeated using product syntax.
+
+\begin{framed}
+Exactly can be created simply.
+\begin{framed}
+\begin{verbatim}
+ 	Knows * 3
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{Exactly(3, Rel(Knows))}
+\end{framed}
+\end{framed}
+
+
+\begin{framed}
+More complex repetitions also have syntax.
+\begin{framed}
+\begin{verbatim}
+ 	Knows * (2 --> 4)
+\end{verbatim}
+\end{framed}
+Becomes
+\begin{framed}
+\codeName{Chain(Exactly(2, Rel(Knows)), Upto(2, Rel(Knows)))}
+\end{framed}
+\end{framed}
+
+Negative repetition ranges yield repetitions of the reversed relation.
+
+\chapter{Example of SchemaObject implementation}
+\label{SchemaObjectDemo}
+Here, I attach an example of a \codeName{SchemaObject} subclass. This is a semi-complete implementation of \codeName{SchemaObject}, which simplifes work of the schema designer, by reducing the number of methods to implement. Comments have been removed for conciseness. The full original code can be found under \codeName{core.user.schema.SchemaObject}.
+
+\begin{framed}
+\begin{verbatim}
+abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeable[A2]) extends SchemaObject[A] {
+  // Methods to design
+  def construct(a1: A1, a2: A2): A
+  override def name: TableName
+  def toTuple(a: A): SchemaObject[A] =>  DBTuple2[A, A1, A2]
+
+  // Predefined methods
+  final def any: Pattern[A] = Pattern2[A, A1, A2](name, this, None, None)
+  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+  final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
+  final override def fromRow(row: DBObject): ExtractError \/ A =
+    if (row.fields.length == 2) {
+      for {
+        a1 <- s1.get(row.fields(0))
+        a2 <- s2.get(row.fields(1))
+      } yield construct(a1, a2)
+    } else LengthMismatch(row.fields.length, 2).left
+  final def pattern(o1: Option[A1], o2: Option[A2]): Pattern2[A, A1, A2] = Pattern2[A, A1, A2](name, this, o1, o2)
+  final protected def buildDBTuple(a1: A1, a2: A2)(sa: SchemaObject[A])  = DBTuple2(sa.name, sa, a1, a2)
+
+}
+\end{verbatim}
+\end{framed}
+
+An example implementation might be the following.
+\begin{framed}
+\begin{verbatim}
+  implicit def movieSchema = new SchemaObject2[Movie, String, String] {
+    override def construct(name: String, language: String): Movie = Movie(name, language)
+    override def name: TableName = TableName("Movies")
+    override def toTuple(a: Movie): SchemaObject[Movie] => DBTuple2[Movie, String, String] = buildDBTuple(a.name, a.language)
   }
 \end{verbatim}
 \end{framed}
