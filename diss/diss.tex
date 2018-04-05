@@ -167,9 +167,7 @@ extent for a comparable purpose.
 
 \todo{storage space of views - same as a write ahead log?}\\
 \todo{references between sections}\\
-\todo{pink book, software licenses}\\
-\todo{requirements analysis}\\
-\todo{starting point}\\
+\todo{requirements analysis - is this required?}\\
 \todo{rework of performance test analysis}\\
 
 \chapter{Introduction}
@@ -480,29 +478,30 @@ write(rs, v) = &v\left[A \mapsto v_{table}(A) \cup \setComp{a_i}{0 < i \leqslant
 To summarise, this past section defines a query DSL, a type system for checking validity of queries, and a set of semantics for executing queries. Furthermore, I have then defined a set of commands which allow queries to executed and views to be generated.
 
 
-\section{Languages and Libraries Used}
-In addition to Scala, I have made use of several libraries and tools. Some were used for the actual construction of the project, whereas others were used for auxiliary tasks such as testing and debugging or  generating datasets.
+\section{Starting Point}
+In addition to Scala, I have made use of several libraries and tools, some of which were not forseen in my project proposal. Some were used for the actual construction of the project, whereas others were used for auxiliary tasks such as testing and debugging or  generating datasets. All of these tools have licenses allowing free usage (The exact license for each is given in the footnotes.) and no modifications to these libraries were performed.
 
 \begin{itemize}
-\item[\textbf{SBT}] Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries.
-\footnote{//www.Scala-sbt.org/}
-\item[\textbf{PostgreSQL}] An open-source, multi-platform SQL implementation.
-\footnote{//www.postgresql.org/}
-\item[\textbf{LMDB}] An open source, highly optimised key-value datastore.
-\footnote{//symas.com/lmdb/}
-\item[\textbf{Scalaz}] A library for Scala providing typeclasses and syntax to aid advanced functional programming. \footnote{https://github.com/Scalaz/Scalaz}
-\item[\textbf{JDBC}] Java's standard library support for SQL connections. Used to interact with a postgres database.
-\footnote{http://www.oracle.com/technetwork/java/javase/jdbc/index.html}
-\item[\textbf{LMDBJava}] A JNI library allowing access to the LMDB datastore. Previously, I experimented with another library, LMDBJni. However, upon discovery of a bug in the JNI code, I switched to LMDBJava.
-\footnote{//github.com/lmdbjava/lmdbjava}
-\item[\textbf{Junit}] A unit testing library for JVM languages.
-\footnote{https://junit.org/junit5/}
-\item[\textbf{SLF4J}] A logging library for JVM languages
-\footnote{https://www.slf4j.org/}
-\item[\textbf{Spray-JSON}] A JSON library for Scala, used to generate benchmarking datasets.
-\footnote{https://github.com/spray/spray-json}
-\item[\textbf{Python}] A scripting language used to generate test datasets.
-\footnote{https://www.python.org/}
+\item[\textbf{SBT}]\footnote{//www.Scala-sbt.org/} Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries. \footnote{https://github.com/sbt/sbt/blob/1.x/LICENSE}
+
+\item[\textbf{PostgreSQL}]\footnote{//www.postgresql.org/} An open-source, multi-platform SQL implementation.\footnote{https://opensource.org/licenses/postgresql}
+
+\item[\textbf{LMDB}]\footnote{//symas.com/lmdb/} An open source, highly optimised key-value datastore. \footnote{http://www.openldap.org/software/release/license.html}
+
+\item[\textbf{Scalaz}]\footnote{https://github.com/Scalaz/Scalaz} A library for Scala providing typeclasses and syntax to aid advanced functional programming.\footnote{https://github.com/scalaz/scalaz/blob/series/7.3.x/LICENSE.txt}
+
+\item[\textbf{JDBC}]\footnote{http://www.oracle.com/technetwork/java/javase/jdbc/index.html} Java's standard library support for SQL connections. Used to interact with a postgres database. I had originally planned to use the higher level wrapper scalikeJDBC,\footnote{http://scalikejdbc.org/} however, this did not allow such fine control over queries as I would have liked. \footnote{https://jdbc.postgresql.org/about/license.html}
+
+\item[\textbf{LMDBJava}]\footnote{//github.com/lmdbjava/lmdbjava} A JNI library allowing access to the LMDB datastore. Previously, I experimented with another library, LMDBJni. However, upon discovery of a bug in the JNI code, I switched to LMDBJava.\footnote{https://github.com/lmdbjava/lmdbjava/blob/master/LICENSE.txt}
+
+\item[\textbf{Junit}]\footnote{https://junit.org/junit5/} A unit testing library for JVM languages.\footnote{https://junit.org/junit4/license.html}
+
+\item[\textbf{SLF4J}]\footnote{https://www.slf4j.org/} A logging library for JVM languages. \footnote{https://www.slf4j.org/license.html}
+
+\item[\textbf{Spray-JSON}]\footnote{https://github.com/spray/spray-json} A JSON library for Scala, used to generate benchmarking datasets. \footnote{https://github.com/spray/spray-json/blob/master/LICENSE}
+
+\item[\textbf{Python}]\footnote{https://www.python.org/} A scripting language used to generate test datasets. \footnote{https://docs.python.org/3/license.html}
+
 
 \end{itemize}
 

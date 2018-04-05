@@ -25,11 +25,11 @@
 \contentsline {paragraph}{Denotational Semantics}{23}{section*.18}
 \contentsline {subsection}{\numberline {2.5.5}Commands}{24}{subsection.2.5.5}
 \contentsline {subsection}{\numberline {2.5.6}Summary}{25}{subsection.2.5.6}
-\contentsline {section}{\numberline {2.6}Languages and Libraries Used}{25}{section.2.6}
+\contentsline {section}{\numberline {2.6}Starting Point}{25}{section.2.6}
 \contentsline {section}{\numberline {2.7}Software Engineering}{26}{section.2.7}
-\contentsline {section}{\numberline {2.8}Scala Techniques}{27}{section.2.8}
-\contentsline {subsection}{\numberline {2.8.1}type-enrichment}{27}{subsection.2.8.1}
-\contentsline {subsection}{\numberline {2.8.2}Implicit Parameters}{27}{subsection.2.8.2}
+\contentsline {section}{\numberline {2.8}Scala Techniques}{26}{section.2.8}
+\contentsline {subsection}{\numberline {2.8.1}type-enrichment}{26}{subsection.2.8.1}
+\contentsline {subsection}{\numberline {2.8.2}Implicit Parameters}{28}{subsection.2.8.2}
 \contentsline {subsection}{\numberline {2.8.3}Typeclass Pattern}{29}{subsection.2.8.3}
 \contentsline {chapter}{\numberline {3}Implementation}{33}{chapter.3}
 \contentsline {section}{\numberline {3.1}Note on Purity and Concurrency}{33}{section.3.1}

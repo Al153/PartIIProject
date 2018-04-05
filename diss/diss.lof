@@ -2,8 +2,8 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {2.1}{\ignorespaces An edge-labelled graph encoding information about actors that have acted in movies under different roles \cite {ELGraphExample}. \leavevmode {\color {red}Tim and Rob, is using this figure and the next from another paper allowed if correctly cited?}}}{14}{figure.2.1}
 \contentsline {figure}{\numberline {2.2}{\ignorespaces An edge-labelled graph encoding information about actors that have acted in movies under different roles \cite {PropertyGraphExample}}}{15}{figure.2.2}
-\contentsline {figure}{\numberline {2.3}{\ignorespaces \leavevmode {\color {red}Placeholder image till I get a nicer one} an example of reads and writes to an initial view.}}{16}{figure.2.3}
-\contentsline {figure}{\numberline {2.4}{\ignorespaces A map of the architecture of the system}}{26}{figure.2.4}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces An example of reads and writes to an initial view. Separate reads and writes do not interfere with each other.}}{16}{figure.2.3}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces A map of the architecture of the system}}{27}{figure.2.4}
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {3.1}{\ignorespaces Execution of a simple \texttt {Exactly} query}}{39}{figure.3.1}
 \contentsline {figure}{\numberline {3.2}{\ignorespaces Execution of a simple \texttt {Upto} query}}{40}{figure.3.2}
