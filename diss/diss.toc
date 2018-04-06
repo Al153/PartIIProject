@@ -75,113 +75,116 @@
 \contentsline {paragraph}{Control Tables}{45}{section*.27}
 \contentsline {subsection}{\numberline {3.10.2}Query Structure}{46}{subsection.3.10.2}
 \contentsline {subsection}{\numberline {3.10.3}Monadic Compilation}{47}{subsection.3.10.3}
-\contentsline {subsection}{\numberline {3.10.4}Writes}{47}{subsection.3.10.4}
+\contentsline {subsection}{\numberline {3.10.4}Writes}{48}{subsection.3.10.4}
 \contentsline {subsection}{\numberline {3.10.5}Mutability}{48}{subsection.3.10.5}
 \contentsline {subsection}{\numberline {3.10.6}Pathfinding and Fixed Point Traversal}{48}{subsection.3.10.6}
-\contentsline {subsection}{\numberline {3.10.7}Object Storage}{48}{subsection.3.10.7}
-\contentsline {section}{\numberline {3.11}LMDB Backends}{48}{section.3.11}
-\contentsline {subsection}{\numberline {3.11.1}Common}{48}{subsection.3.11.1}
+\contentsline {subsection}{\numberline {3.10.7}Object Storage}{49}{subsection.3.10.7}
+\contentsline {section}{\numberline {3.11}LMDB Backends}{49}{section.3.11}
+\contentsline {subsection}{\numberline {3.11.1}Common}{49}{subsection.3.11.1}
 \contentsline {paragraph}{LMDB API}{49}{section*.28}
 \contentsline {subparagraph}{Terminology}{49}{section*.29}
 \contentsline {subparagraph}{Transactions}{49}{section*.30}
 \contentsline {subparagraph}{JVM API}{49}{section*.31}
 \contentsline {paragraph}{Storage and Keys}{49}{section*.32}
-\contentsline {paragraph}{Table Structure}{49}{section*.33}
-\contentsline {paragraph}{Writes}{50}{section*.34}
-\contentsline {subsection}{\numberline {3.11.2}Original LMDB Implementation}{50}{subsection.3.11.2}
+\contentsline {paragraph}{Table Structure}{50}{section*.33}
+\contentsline {paragraph}{Writes}{51}{section*.34}
+\contentsline {subsection}{\numberline {3.11.2}Original LMDB Implementation}{51}{subsection.3.11.2}
 \contentsline {subsection}{\numberline {3.11.3}Batched}{51}{subsection.3.11.3}
 \contentsline {paragraph}{Read Batching}{51}{section*.35}
 \contentsline {paragraph}{Pre-Caching}{51}{section*.36}
 \contentsline {paragraph}{FindFrom}{51}{section*.37}
-\contentsline {subsection}{\numberline {3.11.4}Common Subexpression Elimination}{51}{subsection.3.11.4}
-\contentsline {paragraph}{The Memoisation Problem}{51}{section*.38}
-\contentsline {paragraph}{Retrievers}{51}{section*.39}
+\contentsline {subsection}{\numberline {3.11.4}Common Subexpression Elimination}{52}{subsection.3.11.4}
+\contentsline {paragraph}{The Memoisation Problem}{52}{section*.38}
+\contentsline {paragraph}{Retrievers}{52}{section*.39}
 \contentsline {paragraph}{Monadic Compilation}{52}{section*.40}
-\contentsline {subsection}{\numberline {3.11.5}Complex Common Subexpression Elimination}{52}{subsection.3.11.5}
-\contentsline {paragraph}{Index Building}{52}{section*.41}
-\contentsline {paragraph}{Exactly}{52}{section*.42}
-\contentsline {paragraph}{Upto Optimisation}{53}{section*.43}
-\contentsline {chapter}{\numberline {4}Evaluation}{55}{chapter.4}
-\contentsline {section}{\numberline {4.1}Unit Tests}{55}{section.4.1}
-\contentsline {section}{\numberline {4.2}Performance Tests}{55}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}Hardware}{55}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Datasets}{55}{subsection.4.2.2}
-\contentsline {paragraph}{IMDB and TMDB}{55}{section*.44}
-\contentsline {paragraph}{Objects}{56}{section*.45}
-\contentsline {paragraph}{Relations}{56}{section*.46}
-\contentsline {paragraph}{UFC}{56}{section*.47}
-\contentsline {paragraph}{Objects}{56}{section*.48}
-\contentsline {paragraph}{Relations}{56}{section*.49}
-\contentsline {subsection}{\numberline {4.2.3}Test Harness}{56}{subsection.4.2.3}
-\contentsline {subsection}{\numberline {4.2.4}Results}{57}{subsection.4.2.4}
-\contentsline {paragraph}{Overall Picture}{57}{section*.50}
-\contentsline {paragraph}{Redundancy}{57}{section*.51}
-\contentsline {paragraph}{Conjunctions and Disjunctions}{57}{section*.52}
-\contentsline {paragraph}{Tests that involve repetitions}{58}{section*.53}
-\contentsline {subparagraph}{Exactly Test}{58}{section*.54}
-\contentsline {subparagraph}{Exactly Pairs}{59}{section*.55}
-\contentsline {subparagraph}{UptoTest}{60}{section*.56}
-\contentsline {subparagraph}{UptoLarge}{61}{section*.57}
-\contentsline {paragraph}{JoinSpeed}{61}{section*.58}
-\contentsline {paragraph}{Closing Thoughts}{62}{section*.59}
-\contentsline {chapter}{\numberline {5}Conclusion}{69}{chapter.5}
-\contentsline {section}{\numberline {5.1}Successes}{69}{section.5.1}
-\contentsline {section}{\numberline {5.2}Further extensions}{69}{section.5.2}
-\contentsline {section}{\numberline {5.3}Lessons learned}{69}{section.5.3}
-\contentsline {section}{\numberline {5.4}Concluding Thoughts}{69}{section.5.4}
-\contentsline {chapter}{Bibliography}{69}{section.5.4}
-\contentsline {chapter}{Appendix}{71}{chapter*.60}
-\contentsline {chapter}{\numberline {A}The Domain closure(A, v)}{73}{appendix.A}
-\contentsline {paragraph}{$closure(A, v)$ is a domain}{73}{section*.61}
-\contentsline {paragraph}{proof:}{73}{section*.62}
-\contentsline {chapter}{\numberline {B}Correspondence of operational and denotational semantics}{75}{appendix.B}
-\contentsline {paragraph}{Case $S = AndS(S', S'')$}{75}{equation.B.0.1}
-\contentsline {paragraph}{Case $S = OrS(S', S'')$}{75}{equation.B.0.2}
-\contentsline {paragraph}{Case $S = From(S', P)$}{75}{equation.B.0.3}
-\contentsline {paragraph}{Case $S = Find(f)$}{76}{equation.B.0.4}
-\contentsline {paragraph}{Case $P = Rel(r)$}{76}{equation.B.0.5}
-\contentsline {paragraph}{Case $P = RevRel(r)$}{76}{equation.B.0.6}
-\contentsline {paragraph}{Case $P = Id_A$}{76}{equation.B.0.7}
-\contentsline {paragraph}{Case $P = Chain(P', Q)$}{76}{section*.70}
-\contentsline {paragraph}{Case $P = And(P', Q)$}{76}{equation.B.0.9}
-\contentsline {paragraph}{Case $P = Or(P', Q)$}{76}{equation.B.0.10}
-\contentsline {paragraph}{Case $P = AndLeft(P', S)$}{76}{equation.B.0.11}
-\contentsline {paragraph}{Case $P = AndRight(P', S)$}{77}{equation.B.0.12}
-\contentsline {paragraph}{Case $P = Distinct(P')$}{77}{equation.B.0.13}
-\contentsline {paragraph}{Case $P = Exactly(n, P')$}{77}{section*.76}
-\contentsline {paragraph}{Case $Exactly(0, P'):$}{77}{section*.77}
-\contentsline {paragraph}{Case $Exactly(n+1, P')$, assuming $\Phi (\Sigma , Exactly(n, P'), A, A)$:}{77}{section*.78}
-\contentsline {paragraph}{Case $P = Upto(n, P')$}{77}{section*.79}
-\contentsline {paragraph}{Case $Upto(0, P')$}{78}{equation.B.0.21}
-\contentsline {paragraph}{Case $Upto(n+1, P')$}{78}{equation.B.0.22}
-\contentsline {paragraph}{case $P = FixedPoint(P')$}{78}{section*.82}
-\contentsline {paragraph}{Lemma: f is continuous in the domain $closure(A, v)$}{78}{section*.83}
-\contentsline {paragraph}{Firstly, f is monotonous.}{78}{section*.84}
-\contentsline {paragraph}{Secondly, $f$ preserves the $lub$s of chains.}{78}{section*.85}
-\contentsline {paragraph}{Lemma $(a, b) \triangleleft _{(A, A), v} FixedPoint(P') \Leftrightarrow \exists n. (a, b) \in f^n(\bot )$}{79}{section*.86}
-\contentsline {paragraph}{Case $(a,b) \triangleleft _{A, A, v} Id_A$:\\}{79}{section*.87}
-\contentsline {paragraph}{Case $(a, b) \triangleleft _{(A,A), v} P' \wedge (b, c) \triangleleft _{(A,A), v} FixedPoint(P')\\ $}{79}{section*.88}
-\contentsline {paragraph}{Case $(a, b) \in \bot $}{79}{equation.B.0.28}
-\contentsline {paragraph}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{79}{equation.B.0.29}
-\contentsline {chapter}{\numberline {C}Joins on $Query_{A}(v)$ as a monoid}{81}{appendix.C}
-\contentsline {section}{\numberline {C.1}Lemma: Join is closed on $Query(v)$}{81}{section.C.1}
-\contentsline {paragraph}{Case $B \neq C$}{81}{section*.91}
-\contentsline {paragraph}{Case $B = C$}{81}{section*.92}
-\contentsline {section}{\numberline {C.2}Lemma: Join is associative on $Query(v)$}{81}{section.C.2}
-\contentsline {paragraph}{Case $B \neq C$}{81}{section*.93}
-\contentsline {paragraph}{Case $D \neq E$}{82}{section*.94}
-\contentsline {paragraph}{Case $B = C$ and $D = E$}{82}{section*.95}
-\contentsline {section}{\numberline {C.3}Joins on $Query_{A}(v)$ as a monoid}{82}{section.C.3}
-\contentsline {section}{\numberline {C.4}Joins distribute over Or}{82}{section.C.4}
-\contentsline {section}{\numberline {C.5}$Upto(n, P)$ expressed as $Exactly(n, P')$}{83}{section.C.5}
-\contentsline {section}{\numberline {C.6}Joins do not distribute over And}{83}{section.C.6}
-\contentsline {chapter}{\numberline {D}Scala Algebraic Data Type Definitions}{85}{appendix.D}
-\contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{89}{appendix.E}
-\contentsline {section}{\numberline {E.1}FindPairs}{89}{section.E.1}
-\contentsline {section}{\numberline {E.2}FindSingle}{90}{section.E.2}
-\contentsline {chapter}{\numberline {F}DSL Examples}{93}{appendix.F}
-\contentsline {section}{\numberline {F.1}Simple Transitive Queries}{93}{section.F.1}
-\contentsline {section}{\numberline {F.2}FindSingle queries}{93}{section.F.2}
-\contentsline {section}{\numberline {F.3}Conjunction and Intersection}{94}{section.F.3}
-\contentsline {section}{\numberline {F.4}Repetition}{95}{section.F.4}
-\contentsline {chapter}{\numberline {G}Example of SchemaObject implementation}{97}{appendix.G}
+\contentsline {subsection}{\numberline {3.11.5}Complex Common Subexpression Elimination}{53}{subsection.3.11.5}
+\contentsline {paragraph}{Index Building}{53}{section*.41}
+\contentsline {paragraph}{Exactly}{53}{section*.42}
+\contentsline {paragraph}{Upto Optimisation}{54}{section*.43}
+\contentsline {chapter}{\numberline {4}Evaluation}{57}{chapter.4}
+\contentsline {section}{\numberline {4.1}Unit Tests}{57}{section.4.1}
+\contentsline {section}{\numberline {4.2}Performance Tests}{57}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Hardware}{57}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}Datasets}{57}{subsection.4.2.2}
+\contentsline {paragraph}{IMDB and TMDB}{57}{section*.44}
+\contentsline {paragraph}{Objects}{58}{section*.45}
+\contentsline {paragraph}{Relations}{58}{section*.46}
+\contentsline {paragraph}{UFC}{58}{section*.47}
+\contentsline {paragraph}{Objects}{58}{section*.48}
+\contentsline {paragraph}{Relations}{58}{section*.49}
+\contentsline {subsection}{\numberline {4.2.3}Test Harness}{59}{subsection.4.2.3}
+\contentsline {subsection}{\numberline {4.2.4}Results}{59}{subsection.4.2.4}
+\contentsline {paragraph}{Overall Picture}{59}{section*.50}
+\contentsline {paragraph}{Redundancy}{59}{section*.51}
+\contentsline {paragraph}{Conjunctions and Disjunctions}{59}{section*.52}
+\contentsline {paragraph}{Tests that involve repetitions}{61}{section*.53}
+\contentsline {subparagraph}{Exactly Test}{62}{section*.54}
+\contentsline {subparagraph}{Exactly Pairs}{62}{section*.55}
+\contentsline {subparagraph}{UptoTest}{63}{section*.56}
+\contentsline {subparagraph}{UptoLarge}{64}{section*.57}
+\contentsline {paragraph}{JoinSpeed}{64}{section*.58}
+\contentsline {paragraph}{Closing Thoughts}{65}{section*.59}
+\contentsline {chapter}{\numberline {5}Conclusion}{71}{chapter.5}
+\contentsline {section}{\numberline {5.1}Successes}{71}{section.5.1}
+\contentsline {section}{\numberline {5.2}Further extensions}{71}{section.5.2}
+\contentsline {section}{\numberline {5.3}Lessons learned}{71}{section.5.3}
+\contentsline {section}{\numberline {5.4}Concluding Thoughts}{71}{section.5.4}
+\contentsline {chapter}{Bibliography}{71}{section.5.4}
+\contentsline {chapter}{Appendix}{73}{chapter*.60}
+\contentsline {chapter}{\numberline {A}The Domain closure(A, v)}{75}{appendix.A}
+\contentsline {paragraph}{$closure(A, v)$ is a domain}{75}{section*.61}
+\contentsline {paragraph}{proof:}{75}{section*.62}
+\contentsline {chapter}{\numberline {B}Correspondence of operational and denotational semantics}{77}{appendix.B}
+\contentsline {paragraph}{Proof: }{77}{section*.63}
+\contentsline {paragraph}{FindSingle Queries:}{77}{section*.64}
+\contentsline {subparagraph}{$S = AndS(S', S'')$}{77}{equation.B.0.1}
+\contentsline {subparagraph}{Case $S = OrS(S', S'')$}{77}{equation.B.0.2}
+\contentsline {subparagraph}{Case $S = From(S', P)$}{77}{equation.B.0.3}
+\contentsline {subparagraph}{Case $S = Find(f)$}{78}{equation.B.0.4}
+\contentsline {paragraph}{FindPair Queries:}{78}{section*.69}
+\contentsline {subparagraph}{Case $P = Rel(r)$}{78}{equation.B.0.5}
+\contentsline {subparagraph}{Case $P = RevRel(r)$}{78}{equation.B.0.6}
+\contentsline {subparagraph}{Case $P = Id_A$}{78}{equation.B.0.7}
+\contentsline {subparagraph}{Case $P = Chain(P', Q)$}{78}{section*.73}
+\contentsline {subparagraph}{Case $P = And(P', Q)$}{78}{equation.B.0.9}
+\contentsline {subparagraph}{Case $P = Or(P', Q)$}{78}{equation.B.0.10}
+\contentsline {subparagraph}{Case $P = AndLeft(P', S)$}{79}{equation.B.0.11}
+\contentsline {subparagraph}{Case $P = AndRight(P', S)$}{79}{equation.B.0.12}
+\contentsline {subparagraph}{Case $P = Distinct(P')$}{79}{equation.B.0.13}
+\contentsline {subparagraph}{Case $P = Exactly(n, P')$}{79}{section*.79}
+\contentsline {subparagraph}{Case $Exactly(0, P'):$}{79}{section*.80}
+\contentsline {subparagraph}{Case $Exactly(n+1, P')$, assuming $\Phi (\Sigma , Exactly(n, P'), A, A)$:}{79}{section*.81}
+\contentsline {subparagraph}{Case $P = Upto(n, P')$}{80}{section*.82}
+\contentsline {subparagraph}{Case $Upto(0, P')$}{80}{equation.B.0.21}
+\contentsline {subparagraph}{Case $Upto(n+1, P')$}{80}{equation.B.0.22}
+\contentsline {subparagraph}{case $P = FixedPoint(P')$}{80}{section*.85}
+\contentsline {subparagraph}{Lemma: f is continuous in the domain $closure(A, v)$}{80}{section*.86}
+\contentsline {subparagraph}{Firstly, f is monotonous.}{80}{section*.87}
+\contentsline {subparagraph}{Secondly, $f$ preserves the $lub$s of chains.}{81}{section*.88}
+\contentsline {subparagraph}{Lemma $(a, b) \triangleleft _{(A, A), v} FixedPoint(P') \Leftrightarrow \exists n. (a, b) \in f^n(\bot )$}{81}{section*.89}
+\contentsline {subparagraph}{Case $(a,b) \triangleleft _{A, A, v} Id_A$:\\}{81}{section*.90}
+\contentsline {subparagraph}{Case $(a, b) \triangleleft _{(A,A), v} P' \wedge (b, c) \triangleleft _{(A,A), v} FixedPoint(P')\\ $}{81}{section*.91}
+\contentsline {subparagraph}{Case $(a, b) \in \bot $}{82}{equation.B.0.28}
+\contentsline {subparagraph}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{82}{equation.B.0.29}
+\contentsline {chapter}{\numberline {C}Properties of the Join Denotation}{83}{appendix.C}
+\contentsline {section}{\numberline {C.1}Join as a monoid operation}{83}{section.C.1}
+\contentsline {subsection}{\numberline {C.1.1}Join is closed on $Query_{A}(v)$}{83}{subsection.C.1.1}
+\contentsline {paragraph}{Proof:}{83}{section*.94}
+\contentsline {subsection}{\numberline {C.1.2}Lemma: Join is associative on $Query_{A}(v)$}{83}{subsection.C.1.2}
+\contentsline {paragraph}{Proof:}{83}{section*.95}
+\contentsline {subsection}{\numberline {C.1.3}${\bf [\tmspace -\thinmuskip {.1667em}[}Id_A{\bf ]\tmspace -\thinmuskip {.1667em}]}(v)$ As an Identity of Join}{84}{subsection.C.1.3}
+\contentsline {paragraph}{Proof:}{84}{section*.96}
+\contentsline {section}{\numberline {C.2}Usages of Join as a Monoid}{84}{section.C.2}
+\contentsline {section}{\numberline {C.3}Joins distribute over Or}{84}{section.C.3}
+\contentsline {section}{\numberline {C.4}$Upto(n, P)$ expressed as $Exactly(n, P')$}{85}{section.C.4}
+\contentsline {section}{\numberline {C.5}Joins do not distribute over And}{85}{section.C.5}
+\contentsline {chapter}{\numberline {D}Scala Algebraic Data Type Definitions}{87}{appendix.D}
+\contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{91}{appendix.E}
+\contentsline {section}{\numberline {E.1}FindPairs}{91}{section.E.1}
+\contentsline {section}{\numberline {E.2}FindSingle}{92}{section.E.2}
+\contentsline {chapter}{\numberline {F}DSL Examples}{95}{appendix.F}
+\contentsline {section}{\numberline {F.1}Simple Transitive Queries}{95}{section.F.1}
+\contentsline {section}{\numberline {F.2}FindSingle queries}{95}{section.F.2}
+\contentsline {section}{\numberline {F.3}Conjunction and Intersection}{96}{section.F.3}
+\contentsline {section}{\numberline {F.4}Repetition}{97}{section.F.4}
+\contentsline {chapter}{\numberline {G}Example of SchemaObject implementation}{99}{appendix.G}

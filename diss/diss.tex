@@ -22,8 +22,8 @@
 %Highlighter commands. most need to be properly defined.
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \newcommand\codeName[1]{\texttt{#1}}
-\newcommand\term[1]{\textcolor{purple}{#1}}
-\newcommand\note[1]{\textcolor{cyan}{#1}}
+\newcommand\term[1]{\texttt{#1}}
+\newcommand\note[1]{\textit{#1}}
 \newcommand\mathName[1]{\textcolor{pink}{#1}}
 
 \newcommand{\reference}{LMDBOptimised}
@@ -164,8 +164,6 @@ extent for a comparable purpose.
 
 \pagestyle{headings}
 
-\todo{storage space of views - same as a write ahead log?}\\
-\todo{references between sections}\\
 \todo{requirements analysis - is this required?}\\
 \todo{rework of performance test analysis}\\
 
@@ -220,7 +218,7 @@ Current graph databases tend to be mutable. In order to express concepts that re
 Typically, database systems have their own query language, the most ubiquitous of which is Neo4j's language, Cypher \footnote{https://neo4j.com/docs/developer-manual/current/cypher/}. This provides ML-style pattern matching of queries against the stored graph, allowing the user to extract arbitrary fields from nodes. In most cases, theses are used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query a given program could generate is valid is intractable to undecidable for non-trivial programs. I decided to embed the query language in the host language. This allows the query language's type system to be checked by the host compiler, so we can get much stronger guarantees about program correctness.
 
 \section{Immutability}\label{immutability}
-In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. 
+In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. By utilising structure sharing, the impact of storing views can be mitigated.
 
 \begin{figure}[ht]
 \centering
@@ -451,13 +449,14 @@ with the following definitions:
 \subsection{Commands}
 In addition to the query construction language, there are five commands which make use of the queries.
 
-\todo{format this correctly}
 \[\label{CommandSemantics}
 \begin{split}
 findPairs(P, v) &= \deno{P}\\
 find(S, v) &=  \deno{S}\\
-shortestPath(a, a', P, v) &= \mbox{Shortest path from $a$ to $a'$ in the graph defined by $\deno{P}$}\\
-allShortestPaths(a, P, v) &= \mbox{The shortest path to each element reachable from $a$ in the graph defined by $\deno{P}$}\\
+shortestPath(a, a', P, v) &= \mbox{An \codeName{Option} of Shortest path, if it exists, from $a$ to $a'$}\\
+& \indent \mbox{in the graph defined by $\deno{P}$}\\
+allShortestPaths(a, P, v) &= \mbox{The set of the shortest path to each element reachable}\\
+ & \indent \mbox{from $a$ in the graph defined by $\deno{P}$}\\
 \end{split}\]
 
 The definition of the write command is slightly more complicated. It needs to return an updated view with its look up functions now returning the inserted objects. Write takes a collection, $rs$, of correctly typed named relations instances.
@@ -636,12 +635,14 @@ object Instances {
 
     implicit def ListMonoid[A] = new Monoid[List[A]] {
             override val id: List[A] = List()
-            override def op(a1: List[A], a2:  List[A):  List[A= a1 ++ a2
+            override def op(a1: List[A], a2:  List[A]):  List[A] =
+                a1 ++ a2
       }
  
 
-    implicit def PairMonoid[A, B](implicit MA: Monoid[A], MB: Monoid[B]) =
-     new Monoid[(A, B)]{
+    implicit def PairMonoid[A, B](
+        implicit MA: Monoid[A], MB: Monoid[B]
+    ) = new Monoid[(A, B)]{
       override val id: (A, B) = (MA.id, MB.id)
       override def op(p: (A, B), q: (A, B)) =
       	(MA.op(p._1, q._1), MB.op(p._2, q._2))
@@ -838,8 +839,9 @@ type DBCell -> DBInt of Int
 	    
 \begin{framed}
 \begin{verbatim}
-abstract class Relation[A, B](implicit val sa: SchemaObject[A], val sb: SchemaObject[B])
-   extends FindPairAble[A, B]
+abstract class Relation[A, B](
+    implicit val sa: SchemaObject[A], val sb: SchemaObject[B]
+)extends FindPairAble[A, B]
 \end{verbatim}
 \end{framed}
 
@@ -1025,97 +1027,153 @@ Upon completion of the initial memory backend, I started work on a PostgreSQL ba
 		\end{center}
 		\note{Note: Object-, Left-, and Right- Ids are foreign keys to the \codeName{ObjectTable}'s ObjectId column.}
 	\subsection{Query Structure}
-	n order to manage the complexity of queries, I have made use of SQL’s Common Table Expressions feature. CTEs act like let expressions in ML \cite{CTEs}.
-
-	The first CTE we use selects all the valid CommitIds.
+	In order to manage the complexity of queries, I have made use of SQL’s Common Table Expressions feature. CTEs act like let expressions in ML \cite{CTEs}.
+	
+In this example, I give the compiled result of 
 \begin{framed}
-	\begin{verbatim}
-WITH RECURSIVE VIEW_CTE AS 
-	(SELECT $commitId FROM $viewTable WHERE $viewId = $id)
-	\end{verbatim}
+\begin{verbatim}
+FixedPoint(Rel(Knows))
+\end{verbatim}
+\end{framed}
+
+	The first CTE used selects all the valid CommitIds.
+\begin{framed}
+\noindent
+\textcolor{red}{
+\mbox{\texttt{WITH RECURSIVE VIEW_CTE AS }}\\
+\mbox{\texttt{~~(SELECT \$commitId FROM \$viewTable WHERE \$viewId = \$id)}}
+}
 \end{framed}
 
 The next collection of CTEs select the valid instances of each relation from the relation tables.
 
 \begin{framed}
-\begin{verbatim}
-WITH	Relation0 AS (SELECT left_id, right_id 
-					FROM REL_0_0 JOIN VIEW_CTE ON REL_0_0.CommitId = VIEW_CTE.CommitId)
-\end{verbatim}
+\noindent
+\textcolor{blue}{
+\mbox{\texttt{WITH	Relation0 AS (SELECT left_id, right_id}}\\
+\mbox{\texttt{FROM REL_0_0 JOIN VIEW_CTE ON REL_0_0.CommitId = VIEW_CTE.CommitId)}}
+}
 \end{framed}
 
-We then select the valid instances from the auxiliary tables the values we use for \mathName{$Id_A$} queries.
+Valid instances are selected from the auxiliary tables to be returned from \mathName{$Id_A$} queries.
 
 \begin{framed}
-\begin{verbatim}
-AuxTable2 AS (SELECT DISTINCT obj_id AS left_id, obj_id AS right_id FROM AUXUSERSPACE_People_0 JOIN VIEW_CTE ON AUXUSERSPACE_People_0.CommitId = VIEW_CTE.CommitId)
-\end{verbatim}
-\end{framed}
-
-We then create CTEs for any repeated subqueries (ie those used by \mathName{FixedPoint}, \mathName{Exactly}, and \mathName{Upto})
-
-\begin{framed}
-\begin{verbatim}
-View1 AS (SELECT * FROM Relation0),
-\end{verbatim}
-\end{framed}
-
-We then create a CTE for the main query, which exposes a \codeName{leftId} and \codeName{rightId}  column
-
-\begin{framed}
-\begin{verbatim}
-main_query AS (SELECT left_id, right_id FROM View3 )
-\end{verbatim}
-\end{framed}
-
-Finally, we join the main query CTE to queries to extract the left and rights .
-\begin{framed}
-\begin{verbatim}
-(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0
-	FROM (
-		(USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id)
-		JOIN USERSPACE_People_0 AS right_table
-		ON right_id = right_table.obj_id)
+\noindent
+\textcolor{green}{
+\mbox{\texttt{AuxTable2 AS (}}\\
+\mbox{\texttt{~~SELECT DISTINCT obj_id AS left_id, obj_id AS right_id}}\\
+\mbox{\texttt{~~FROM AUXUSERSPACE_People_0 JOIN VIEW_CTE}}\\
+\mbox{\texttt{~~ON AUXUSERSPACE_People_0.CommitId = VIEW_CTE.CommitId}}\\
 )
-\end{verbatim}
+}
 \end{framed}
+
+CTEs are then created for any repeated subqueries (i.e. those used by \mathName{FixedPoint}, \mathName{Exactly}, and \mathName{Upto})
+
+\begin{framed}
+\textcolor{brown}{
+\texttt{View1 AS (SELECT * FROM Relation0)}
+}
+\end{framed}
+
+Repetitive queries are built using inbuilt SQL constructs.
+\begin{framed}
+\noindent
+\textcolor{orange}{
+\mbox{\texttt{~~View3 AS (}}\\
+\mbox{\texttt{~~~~(SELECT left_id, right_id FROM AuxTable2 )}}\\
+\mbox{\texttt{~~~~UNION}}\\
+\mbox{\texttt{~~~~SELECT View3.left_id AS left_id, View1.right_id AS right_id}}\\
+\mbox{\texttt{~~~~FROM}}\\
+\mbox{\texttt{~~~~View3 INNER JOIN View1 ON View3.right_id = View1.left_id}}\\
+\mbox{\texttt{~~),}}\\
+}
+\end{framed}
+
+A CTE is created for the main query, which exposes a \codeName{leftId} and \codeName{rightId}  column
+
+\begin{framed}
+\textcolor{cyan}{
+\texttt{main_query AS (SELECT left_id, right_id FROM View3 )}
+}
+\end{framed}
+
+Finally, the main query CTE is joined to fragments which extract the left and rights .
+\begin{framed}
+\noindent
+\mbox{\texttt{(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0}}\\
+\mbox{\texttt{FROM (}}\\
+\mbox{\texttt{~~(}}\\
+\mbox{\texttt{~~~~USERSPACE_People_0 AS left_table}}\\
+\mbox{\texttt{~~~~JOIN main_query}}\\
+\mbox{\texttt{~~~~ON left_table.obj_id = main_query.left_id}}\\
+\mbox{\texttt{~~)}}\\
+\mbox{\texttt{~~JOIN USERSPACE_People_0 AS right_table}}\\
+\mbox{\texttt{~~ON right_id = right_table.obj_id)}}\\
+\mbox{\texttt{)}}\\\end{framed}
 
 The \codeName{main} query itself is built compositionally, in that each subquery exposes a \codeName{leftId} and \codeName{rightId},  allowing queries to be composed to form larger queries in a standard form. A full query might look like this:
-	\todo{Colour code this query, make it fit}
+
 \begin{framed}
-\begin{verbatim}
-WITH RECURSIVE
-	VIEW_CTE AS (SELECT CommitId FROM VIEWS_TABLE WHERE ViewId = 1),
-	Relation0 AS (SELECT left_id, right_id 
-					FROM REL_0_0 JOIN VIEW_CTE ON REL_0_0.CommitId = VIEW_CTE.CommitId),
-	AuxTable2 AS (SELECT DISTINCT obj_id AS left_id, obj_id AS right_id FROM AUXUSERSPACE_People_0 JOIN VIEW_CTE ON AUXUSERSPACE_People_0.CommitId = VIEW_CTE.CommitId),
-	View1 AS (SELECT * FROM Relation0),
-	View3 AS (
-		(SELECT left_id, right_id FROM AuxTable2 )
-		UNION
-		SELECT View3.left_id AS left_id, View1.right_id AS right_id
-		FROM
-			View3 INNER JOIN View1 ON View3.right_id = View1.left_id
-	),
-	main_query AS (SELECT left_id, right_id FROM View3 )
-(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0
-	FROM (
-		(USERSPACE_People_0 AS left_table JOIN main_query ON left_table.obj_id = main_query.left_id)
-		JOIN USERSPACE_People_0 AS right_table
-		ON right_id = right_table.obj_id)
-	)
-\end{verbatim}
+\noindent
+\textcolor{red}{
+\mbox{\texttt{WITH RECURSIVE}}\\
+\mbox{\texttt{~~VIEW_CTE AS (SELECT CommitId FROM VIEWS_TABLE WHERE ViewId = 1),}}\\
+}
+\textcolor{blue}{
+\mbox{\texttt{~~Relation0 AS (SELECT left_id, right_id}}\\
+\mbox{\texttt{~~~~FROM REL_0_0 JOIN VIEW_CTE ON REL_0_0.CommitId = VIEW_CTE.CommitId}}\\
+\mbox{\texttt{~~),}}\\
+}
+\textcolor{green}{
+\mbox{\texttt{~~AuxTable2 AS (}}\\
+\mbox{\texttt{~~~~SELECT DISTINCT obj_id AS left_id, obj_id AS right_id}}\\
+\mbox{\texttt{~~~~FROM AUXUSERSPACE_People_0}}\\
+\mbox{\texttt{~~~~JOIN VIEW_CTE}}\\
+\mbox{\texttt{~~~~ON AUXUSERSPACE_People_0.CommitId = VIEW_CTE.CommitId}}\\
+\mbox{\texttt{~~),}}\\}
+\textcolor{brown}{
+\mbox{\texttt{~~View1 AS (SELECT * FROM Relation0),}}\\
+}
+\textcolor{orange}{
+\mbox{\texttt{~~View3 AS (}}\\
+\mbox{\texttt{~~~~(SELECT left_id, right_id FROM AuxTable2 )}}\\
+\mbox{\texttt{~~~~UNION}}\\
+\mbox{\texttt{~~~~SELECT View3.left_id AS left_id, View1.right_id AS right_id}}\\
+\mbox{\texttt{~~~~FROM}}\\
+\mbox{\texttt{~~~~View3 INNER JOIN View1 ON View3.right_id = View1.left_id}}\\
+\mbox{\texttt{~~),}}\\
+}
+\textcolor{cyan}{
+\mbox{\texttt{~~main_query AS (SELECT left_id, right_id FROM View3 )}}\\
+}
+\mbox{\texttt{(SELECT left_table.col_0 AS left_col_0, right_table.col_0 AS right_col_0}}\\
+\mbox{\texttt{FROM (}}\\
+\mbox{\texttt{~~(}}\\
+\mbox{\texttt{~~~~USERSPACE_People_0 AS left_table}}\\
+\mbox{\texttt{~~~~JOIN main_query}}\\
+\mbox{\texttt{~~~~ON left_table.obj_id = main_query.left_id}}\\
+\mbox{\texttt{~~)}}\\
+\mbox{\texttt{~~JOIN USERSPACE_People_0 AS right_table}}\\
+\mbox{\texttt{~~ON right_id = right_table.obj_id)}}\\
+\mbox{\texttt{)}}\\
+	
 \end{framed}
 	\subsection{Monadic Compilation}
-	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation for each of the SQL fragments to be created. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects. \todo{format diagrams here}
+	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation for each of the SQL fragments to be created. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described above. The compiler state is shown below. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects.
 	
 \begin{framed}
 	\begin{verbatim}
 case class CompilationContext(
-        varCount: Int, // Unique identifier for variable names
-        relations: Map[ErasedRelationAttributes, VarName], // Relations used by the query
-        requiredTables: Map[TableName, VarName], // tables needed for Findables in the query
-	    requiredAuxTables: Map[TableName, VarName], // the aux (commit) tables needed for the query
+            // Unique identifier for variable names
+        varCount: Int,
+            // Relations used by the query
+        relations: Map[ErasedRelationAttributes, VarName], 
+            // tables needed for Findables in the query
+        requiredTables: Map[TableName, VarName],
+            // the aux (commit) tables needed for the query
+        requiredAuxTables: Map[TableName, VarName],
+            // Expressions to be repeated over (e.g. by Upto)
         commonSubExpressions: Map[SubExpression, VarName]
 )
 
@@ -1125,15 +1183,21 @@ case class CompilationContext(
 	\subsection{Writes}
 	There are several steps in the implementation of writes, though I have not expended  a great deal of effort making them fast. A significant part of this is the "insert or get" SQL query, which looks up an object in the relevant table, returning its \codeName{ObjectId} if it exists and creating the object and returning the new ID if it does not.
 	
-	\begin{framed}
-		\begin{verbatim}
-WITH insertOrGetTemp AS (
-  INSERT INTO $objectTable ($columnNames)
-  SELECT $values WHERE NOT EXISTS (SELECT 0 FROM $objectTable WHERE $ValueConditions)
-  RETURNING $objId
-) SELECT * FROM insertOrGetTemp  UNION ALL (SELECT $objId FROM $name WHERE $ValueConditions)
-		\end{verbatim}
-	\end{framed}
+\begin{framed}
+\noindent
+\mbox{\texttt{WITH insertOrGetTemp AS (}}\\
+\mbox{\texttt{~~INSERT INTO \$objectTable (\$columnNames)}}\\
+\mbox{\texttt{~~SELECT \$values WHERE NOT EXISTS (}}\\
+\mbox{\texttt{~~~~SELECT 0 FROM }}\\
+\mbox{\texttt{~~~~\$objectTable WHERE \$ValueConditions}}\\
+\mbox{\texttt{~~) RETURNING \$objId}}\\
+\mbox{\texttt{) SELECT * FROM}}\\
+\mbox{\texttt{~~insertOrGetTemp  }}\\
+\mbox{\texttt{~~~~UNION ALL (}}\\
+\mbox{\texttt{~~~~~~SELECT \$objId FROM \$name}}\\
+\mbox{\texttt{~~~~~~WHERE \$ValueConditions}}\\
+\mbox{\texttt{~~~~)}}\\
+\end{framed}
 	
 	We create a new view and commit, then we run a memoised \codeName{InsertOrGet} over all the leftmost objects to be inserted, then all the right objects to be inserted, yielding tagged relations between \codeName{ObjectIds}. For each inserted relation, the existing relation instances are removed from those to insert, and the remaining inserted to the relevant \codeName{RelationTable} with the correct \codeName{CommitId}. The auxiliary tables are now updated and, on success, the views table is updated.
 
@@ -1438,7 +1502,7 @@ The objects in the database are as follows:
 	\end{tabular}
 \end{center}
 		
-		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. \todo{Size of graph.}
+		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. The graph has 1562 nodes and 3571 \codeName{Beat} relations.
 	\subsection{Test Harness}
 	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate backends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included.
 	
@@ -1450,12 +1514,14 @@ The objects in the database are as follows:
 
 
 		\paragraph{Redundancy}
-			This test is to demonstrate the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \note{DISTINCT} modifier of queries, and ends up running out of temporary space on this query.
+			This test is to demonstrate the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, and ends up running out of temporary space on this query.
 				
 \resultTable{Redundancy}{4 each}{
-\texttt{KevinBacon >> coactor}\\
-\texttt{KevinBacon >> (coactor -->--> (coactor -->--> coactor))}\\
-\texttt{KevinBacon >> (coactor -->--> (coactor -->--> (coactor -->--> 	coactor)))}\\
+\texttt{KevinBacon >> coactor;}\\\\
+\texttt{KevinBacon >> (coactor -->--> (}\\
+\texttt{coactor -->--> coactor));}\\\\
+\texttt{KevinBacon >> (coactor -->--> ( }\\
+\texttt{coactor -->--> (coactor -->--> 	coactor)));}\\\\
 
 Where
 
@@ -1477,9 +1543,9 @@ Where
 	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by Postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
 
 \resultTable{Conjunctions}{40 each}{
-\texttt{coactorWith(KevinBacon))}       \\
-\texttt{coactorWith(KevinBacon) \& coactorWith(TomCruise))}\\
-\texttt{coactorWith(KevinBacon) \& coactorWith(TomCruise) \& coactorWith(TomHanks))}\\
+\texttt{(coactorWith(KevinBacon));}\\\\
+\texttt{(coactorWith(KevinBacon) \& coactorWith(TomCruise));}\\\\
+\texttt{(coactorWith(KevinBacon) \& coactorWith(TomCruise) \& }\\\texttt{coactorWith(TomHanks));}\\\\
 Where\\
 \texttt{def coactorWith(a: Person) = ActsIn --> (a >> ActsIn) <-- ActsIn} \\
 }{ 
@@ -1495,9 +1561,9 @@ Where\\
   \label{fig:ConjunctionResults}
 \end{figure}
 
-					\resultTable{Disjunctions}{40 each}{\texttt{coactorWith(KevinBacon))}       \\
-\texttt{coactorWith(KevinBacon) | coactorWith(TomCruise))}\\
-\texttt{coactorWith(KevinBacon) | coactorWith(TomCruise) | coactorWith(TomHanks))}\\
+					\resultTable{Disjunctions}{40 each}{\texttt{(coactorWith(KevinBacon));} \\\\
+\texttt{(coactorWith(KevinBacon) | coactorWith(TomCruise));}\\\\
+\texttt{(coactorWith(KevinBacon) | coactorWith(TomCruise) |}\\\texttt{coactorWith(TomHanks));}\\\\
 Where\\
 \texttt{def coactorWith(a: Person) = ActsIn --> (a >> ActsIn) <-- ActsIn} \\
 }{ 
@@ -1521,7 +1587,7 @@ Where\\
 			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join optimisations in the optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
 	\resultTable{Exactly}{50}{
 	\texttt{TomHanks >> (}\\
-	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10)}	\\
+	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10);}	\\
 	\texttt{)}
 }{ 
  \reference 			&  	1,752 	& 1 \\
@@ -1546,7 +1612,7 @@ Where\\
 			\subparagraph{Exactly Pairs}
 This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} query over the small movies database. Since this test involves keeping track of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations based on generic algorithm. Postgres also performs well in this test, will minimal slowdown from the find single queries. The LMDB implementations, however, do experience a slowdown.
 	\resultTable{ExactlyPairs}{50}{
-	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10))}}{ 
+	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10));}}{ 
  \reference 			&  	83,269 		& 1 \\
  \cse 					&	1,792,388 	& 21.5 \\
  \batched				&   1,787,390 	& 21.5 \\
@@ -1564,7 +1630,7 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			
 				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides significant speed-ups, such as 225x on the other LMDB backends and 1.5x over postgres.
 				\resultTable{Upto}{10}{
-				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> index.i)}
+				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> index.i);}
 }{ 
  \reference 			&  	126,448 	& 1 \\
  \cse 					&	28,491,910 	& 225 \\
@@ -1589,7 +1655,9 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			
 				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance.
 				\resultTable{Upto}{10}{
-				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> (index.i \% 10))}}{ 
+				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
+				\texttt{0 --> (index.i \% 10)}\\
+				\texttt{);}}{ 
  \reference 			&  	1,059,091 	& 1 \\
  \postgres    			&	1,557,314 	& 1.47 \\
  }
@@ -1604,8 +1672,8 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			\paragraph{JoinSpeed}
 				This test is  to demonstrate the cost of joins, we interleave queries that calculate two subqueries and then combine them using, firstly, a relatively fast And and, secondly, instead, a higher complexity join. In theory, the difference between these two types of queries should give us an idea of the cost of a join.
 			\resultTable{Join Speed}{150 each}{
-			\texttt{(ActsIn --><-- ActsIn) \& (ActsIn --><-- ActsIn)}\\
-\texttt{(ActsIn --><-- ActsIn) -->--> (ActsIn --><-- ActsIn)}
+			\texttt{(ActsIn --><-- ActsIn) \& (ActsIn --><-- ActsIn);}\\\\
+\texttt{(ActsIn --><-- ActsIn) -->--> (ActsIn --><-- ActsIn);}
 			}{
 			\reference   	& 	368,320 & 1 	\\
  			\cse 			&   525,992 & 1.43   	\\
@@ -1618,7 +1686,8 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
   \caption{Read performance for Join-Speed queries}
   \label{fig:JoinSpeedResults}
 \end{figure}
-						\todo{More detail}
+						\
+	{More detail}
 			\paragraph{Closing Thoughts}
 			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. An option to produce a performant back-end might be to produce heuristics for estimating graph density and the relative performance of the various LMDB backends upon it to create an adaptive backend. Since all the LMDB backends use the same underlying database format (indeed the code for constructing and writing to the database remains the same), a backend could choose at query time which strategy it wants to use to execute each individual query.
 
@@ -1693,35 +1762,32 @@ To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \sups
 
 \chapter{Correspondence of operational and denotational semantics}
 \label{DenoOper}
-\todo{neaten}
-In order to use the denotational semantics to construct an interpreter or compiler we need to prove they are equivalent to the operational semantics. Namely:
+In order to use the denotational semantics to construct an interpreter or compiler, we need to prove they are equivalent to the operational semantics. Namely:
 
 For any pair query $P$, schema $\Sigma$ and $View_{\Sigma}$ $v$:
-$$
+\[
 \typeRule{P}{(A, B)}\Rightarrow \opRule{(a, b}{(A, B)}{P} \Leftrightarrow \denoRule{(a, b)}{P})
-$$
+\]
 
 And for any single query $S$, schema $\Sigma$ and $View_{\Sigma}$ $v$: 
-$$
+\[
 \typeRule{S}{A}\Rightarrow \opRule{(a}{A}{S} \Leftrightarrow \denoRule{a}{S})
-$$
+\]
 
-In order to prove these two propositions, we define two induction hypotheses
-
-
-
-$$
+\paragraph{Proof: }In order to prove these two propositions, we define two induction hypotheses
+\[
 \phiRule{P}{A}{B} \Leftrightarrow (\typeRule{P}{(A, B)} \Rightarrow \forall v \in View_{\Sigma}, (a, b) \in A \times B. (\opRule{(a, b)}{(A, B)}{P}) \Leftrightarrow \denoRule{(a, b)}{P})))
-$$
+\]
 
-$$
+\[
 \psiRule{S}{A} \Leftrightarrow (\typeRule{S}{A} \Rightarrow \forall v \in View_{\Sigma}, a \in A. (\opRule{a}{A}{S}) \Leftrightarrow (\denoRule{a}{S}))
-$$
+\]
 
-Now we shall induct over the structures of $P$ and $S$ starting with the SingleQuery cases
+Now we shall induct over the structures of $P$ and $S$ starting with the \codeName{FindSingle} cases.
 
+\paragraph{FindSingle Queries:}
 
-\paragraph{Case $S = AndS(S', S'')$}
+\subparagraph{$S = AndS(S', S'')$}
 \begin{equation} \label{case AndS}
 \begin{split}
 \denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cap \deno{S''}) \\
@@ -1731,7 +1797,7 @@ Now we shall induct over the structures of $P$ and $S$ starting with the SingleQ
 \end{split}
 \end{equation}
 
-\paragraph{Case $S = OrS(S', S'')$}
+\subparagraph{Case $S = OrS(S', S'')$}
 \begin{equation} \label{case OrS}
 \begin{split}
 \denoRule{a}{S} & \Leftrightarrow a \in (\deno{S'} \cup \deno{S''}) \\
@@ -1741,7 +1807,7 @@ Now we shall induct over the structures of $P$ and $S$ starting with the SingleQ
 \end{split}
 \end{equation}
 
-\paragraph{Case $S = From(S', P)$}
+\subparagraph{Case $S = From(S', P)$}
 \begin{equation} \label{case From}
 \begin{split}
 \denoRule{b}{S} & \Leftrightarrow \exists a \in A. \indent (\denoRule{a}{S'} \wedge \denoRule{(a, b)}{\deno{P}}) \\
@@ -1750,7 +1816,7 @@ Now we shall induct over the structures of $P$ and $S$ starting with the SingleQ
 \end{split}
 \end{equation}
 
-\paragraph{Case $S = Find(f)$}
+\subparagraph{Case $S = Find(f)$}
 \begin{equation} \label{case Find}
 \begin{split}
 \denoRule{a}{S} & \Leftrightarrow a \in v(A) \wedge f(a) \downarrow True  \indent \mbox{ by inversion of the type rule (Find)}\\
@@ -1758,9 +1824,9 @@ Now we shall induct over the structures of $P$ and $S$ starting with the SingleQ
 \end{split}
 \end{equation}
 
-Now, looking at the FindPair queries
-
-\paragraph{Case $P = Rel(r)$}
+\paragraph{FindPair Queries:} Next, we look at the \codeName{FindPair} queries.
+\\
+\subparagraph{Case $P = Rel(r)$}
 \begin{equation} \label{case Rel}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in v(r)\\
@@ -1768,7 +1834,7 @@ Now, looking at the FindPair queries
 \end{split}
 \end{equation}
 
-\paragraph{Case $P = RevRel(r)$}
+\subparagraph{Case $P = RevRel(r)$}
 \begin{equation} \label{case RevRel}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (b, a) \in v(r)\\
@@ -1776,7 +1842,7 @@ Now, looking at the FindPair queries
 \end{split}
 \end{equation}
 
-\paragraph{Case $P = Id_A$}
+\subparagraph{Case $P = Id_A$}
 \begin{equation} \label{case Id_A}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow a \in v(A) \wedge a = b\\
@@ -1784,8 +1850,8 @@ Now, looking at the FindPair queries
 \end{split}
 \end{equation}
 
-\paragraph{Case $P = Chain(P', Q)$}
-$\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} \Leftrightarrow \exists B. \indent\typeRule{P'}{(A, B)} \wedge \typeRule{Q}{(B, C)}$
+\subparagraph{Case $P = Chain(P', Q)$}
+$\\ \indent$We have by inversion of the (Chain) type rule \[\typeRule{P}{(A, C)} \Leftrightarrow \exists B. \indent\typeRule{P'}{(A, B)} \wedge \typeRule{Q}{(B, C)}\]
 
 \begin{equation} \label{case Chain(P', Q)}
 \begin{split}
@@ -1796,7 +1862,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 \end{split}
 \end{equation}
 
-\paragraph{Case $P = And(P', Q)$}
+\subparagraph{Case $P = And(P', Q)$}
 \begin{equation} \label{case And(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cap \deno{Q})\\
@@ -1806,7 +1872,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 \end{split}
 \end{equation}
 
-\paragraph{Case $P = Or(P', Q)$}
+\subparagraph{Case $P = Or(P', Q)$}
 \begin{equation} \label{case Or(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow (a, b) \in (\deno{P'} \cup \deno{Q})\\
@@ -1815,7 +1881,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Or(P', Q)} \mbox{ by inversion of (Or1), (Or2)}\\\end{split}
 \end{equation}
 
-\paragraph{Case $P = AndLeft(P', S)$}
+\subparagraph{Case $P = AndLeft(P', S)$}
 \begin{equation} \label{case AndLeft(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{a}{S}\\
@@ -1823,7 +1889,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndLeft(P', S)} \mbox{ by inversion of (AndLeft)}\\\end{split}
 \end{equation}
 
-\paragraph{Case $P = AndRight(P', S)$}
+\subparagraph{Case $P = AndRight(P', S)$}
 \begin{equation} \label{case AndRight(P', Q)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge \denoRule{b}{S}\\
@@ -1831,7 +1897,7 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{AndRight(P', S)} \mbox{ by inversion of (AndRight)}\\\end{split}
 \end{equation}
 
-\paragraph{Case $P = Distinct(P')$}
+\subparagraph{Case $P = Distinct(P')$}
 \begin{equation} \label{case Distinct(P)}
 \begin{split}
 \denoRule{(a, b)}{P} & \Leftrightarrow \denoRule{(a, b)}{P'} \wedge a \neq b \\
@@ -1839,11 +1905,11 @@ $\\ \indent$We have by inversion of the (Chain) type rule $\typeRule{P}{(A, C)} 
 					& \Leftrightarrow \opRule{(a, b)}{(A, B)}{Distinct(P')} \mbox{ by inversion of (AndRight)}\\\end{split}
 \end{equation}
 
-\paragraph{Case $P = Exactly(n, P')$}
+\subparagraph{Case $P = Exactly(n, P')$}
 $\\ \indent$We have by inversion of the (Exactly) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 \begin{equation}
-\label{fDef}
+\label{fDefExactly}
 \mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs))$}\end{equation}
 $$\mbox{then}$$
 \begin{equation} \label{case Exactly(n, P)}\denoRule{(a, b)}{P} \Leftrightarrow (a, b) \in  f^n \deno{Id_A}\end{equation}
@@ -1852,9 +1918,9 @@ $$\mbox{hence it suffices to prove}$$
 \label{exactly Deno} (a, b)\in f^n \deno{Id_A} \Leftrightarrow \opRule{(a, b)}{(A, A)}{Exactly(n, P')}
 \end{equation}
 
-\paragraph{Case $Exactly(0, P'):$}
+\subparagraph{Case $Exactly(0, P'):$}
 $$f^0\deno{Id_A} = \deno{Id_A}$$
-$$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
+$$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$},$$
 \begin{equation}
 \begin{split}
 (a, b) \in f^0\deno{Id_A} & \Leftrightarrow \denoRule{(a,b)}{Id_A}\\
@@ -1863,7 +1929,7 @@ $$\mbox{so by $\phiRule{(a, b)}{A, A)}{Id_A}$}$$
 \end{split}
 \end{equation}
 
-\paragraph{Case $Exactly(n+1, P')$, assuming $\phiRule{Exactly(n, P')}{A}{A}$:}
+\subparagraph{Case $Exactly(n+1, P')$, assuming $\phiRule{Exactly(n, P')}{A}{A}$:}
 $$f^{n+1}\deno{Id_A} = f(f^n(\deno{Id_A}))$$
 $$\mbox{so by $\phiRule{Exactly(n, P')}{A}{A}$}$$
 \begin{equation}
@@ -1874,11 +1940,11 @@ $$\mbox{so by $\phiRule{Exactly(n, P')}{A}{A}$}$$
 \end{split}
 \end{equation}
 
-\paragraph{Case $P = Upto(n, P')$}
+\subparagraph{Case $P = Upto(n, P')$}
 $\\ \indent$We have by inversion of the (Upto) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 \begin{equation}
-\label{fDef}
+\label{fDefUpto}
 \mbox{let $f = (\lambda pairs. join(\deno{P'}, pairs) \cup pairs)$}\end{equation}
 $$\mbox{then}$$
 
@@ -1887,7 +1953,7 @@ $$\mbox{then}$$
 \mbox{We now case split on n}
 \end{equation}
 
-\paragraph{Case $Upto(0, P')$}
+\subparagraph{Case $Upto(0, P')$}
 
 \begin{equation}
 \begin{split}
@@ -1898,7 +1964,7 @@ $$\mbox{then}$$
 \end{split}
 \end{equation}
 
-\paragraph{Case $Upto(n+1, P')$}
+\subparagraph{Case $Upto(n+1, P')$}
 
 \begin{equation}
 \begin{split}
@@ -1912,7 +1978,7 @@ $$\mbox{then}$$
 \end{equation}
 
 
-\paragraph{case $P = FixedPoint(P')$}
+\subparagraph{case $P = FixedPoint(P')$}
 $\\ \indent$We have by inversion of the (FixedPoint) type rule $\typeRule{P}{(A, A)} \wedge \typeRule{P'}{(A, A)}$
 
 \begin{equation}
@@ -1922,9 +1988,9 @@ $$\mbox{then}$$
 $$
 \deno{P} = fix(f) \mbox{   In the domain $\clos$}\\
 $$
-\paragraph{Lemma:  f is continuous in the domain $\clos$}
+\subparagraph{Lemma:  f is continuous in the domain $\clos$}
 \setlength{\leftskip}{1cm}
-\paragraph{Firstly, f is monotonous.} $\\ $
+\subparagraph{Firstly, f is monotonous.} $\\ $
 Let $x \subseteq y$
 \begin{equation}
 \label{continuousLemma}
@@ -1939,7 +2005,7 @@ Let $x \subseteq y$
 
 
 \setlength{\leftskip}{1cm}
-\paragraph{Secondly, $f$ preserves the $lub$s of chains.} $\\ $
+\subparagraph{Secondly, $f$ preserves the $lub$s of chains.} $\\ $
 $\indent\indent$ Consider a chain $x1 \subseteq x2 \subseteq ... $ in $\clos$
 Since $\clos$ is a domain, the $lub$, $\bigcup_nx_n$ is also in $\clos$
 
@@ -1978,7 +2044,7 @@ Now, by Tarski's fixed point theorem
 $$\deno{FixedPoint(P')} = fix(f) = \bigsqcup_nf^n(\bot)$$
 
 
-\paragraph{Lemma $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$}
+\subparagraph{Lemma $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot)$}
 
 Firstly, in the forwards direction, $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Rightarrow \exists n. (a, b) \in f^n(\bot)$
 
@@ -1986,11 +2052,11 @@ By inversion of the operational rules (FixedPoint0), (FixedPoint n) and $\opRule
 
 
 
-\paragraph{Case $\opRule{(a,b)}{A, A}{Id_A}$:\\}
+\subparagraph{Case $\opRule{(a,b)}{A, A}{Id_A}$:\\}
 by $\phiRule{Id_A}{A}{A}, \denoRule{(a, b)}{Id_A} = \bot$\\so $n = 0$
 
 
-\paragraph{Case $\opRule{(a, b)}{(A,A)}{P'} \wedge \opRule{(b, c)}{(A,A)}{FixedPoint(P')}\\ $}
+\subparagraph{Case $\opRule{(a, b)}{(A,A)}{P'} \wedge \opRule{(b, c)}{(A,A)}{FixedPoint(P')}\\ $}
 (hence $\opRule{(a, c)}{(A, A)}{FixedPoint(P')}$)
 
 by $\phiRule{P'}{A}{A}, and \opRule{(b,c)}{(A,A)}{FixedPoint(P')}$
@@ -2007,7 +2073,7 @@ To go the other way, we need to prove $(a, b) \in \bigsqcup_nf^n(\bot) \Rightarr
 
 $(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either:
 
-\paragraph{Case $(a, b) \in \bot$}
+\subparagraph{Case $(a, b) \in \bot$}
 \begin{equation}
 \label{Case Bottom}
 \begin{split}
@@ -2017,7 +2083,7 @@ $(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either:
 \end{split}
 \end{equation}
 
-\paragraph{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bot))$}
+\subparagraph{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot) \wedge \neg ((a, b) \in f^n(\bot))$}
 \begin{equation}
 \label{Case n+1}
 \begin{split}
@@ -2028,73 +2094,39 @@ $(a, b) \in \bigsqcup_n f^n(\bot)$ Means that either:
 \end{split}
 \end{equation}
 
-so we have $\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot) \Leftrightarrow \denoRule{(a, b)}{FixedPoin(P')}$
+so we have \[\opRule{(a, b)}{(A, A)}{FixedPoint(P')} \Leftrightarrow \exists n. (a, b) \in f^n(\bot) \Leftrightarrow \denoRule{(a, b)}{FixedPoin(P')}\]
 
 $$\square$$
 
-\chapter{Joins on $\queryT{A}$ as a monoid}
+\chapter{Properties of the Join Denotation}
 \label{MonoidJoins}
 
-In order to justify some of our optimisations, we need to know certain properties of join denotation.
+In order to justify some of our optimisations, we need to know certain properties of the \mathName{join} function defined in the denotational semantics. 
 
-Firstly, we want to define establish closure and associatiavity of the $join$ function defined in the denotational semantics.
+\section{Join as a monoid operation}
+Firstly, we want to define a set over which the monoid operates. For the sake of this proof, we use the set of subsets of a given view, $v \in View_{\Sigma}$ that are the results of a correctly typed query that relates a given object type, $A$, to itself.
 
-We want to define these for queryable subsets of a view $v \in View_{\Sigma}$
 \begin{equation}
-	(v) = \setComp{s}{\exists P, A, B. s = \deno{P} \wedge \typeRule{P}{A, B}}
+	\queryT{A} = \setComp{s}{\exists P.\indent s = \deno{P} \wedge \typeRule{P}{A, A}}
 \end{equation}
 
-\section{Lemma: Join is closed on $\query$}
-Proof:
-For $s, t \in Query(v)$ there exists $P, Q, A, B, C, D$ such that $\typeRule{P}{A, B}$ and $\typeRule{Q}{C, D}$ hold and $s = \deno{P} \wedge t = \deno{Q}$
+\subsection{Join is closed on $\queryT{A}$}
+\paragraph{Proof:}For $s, t \in \queryT{A}$ there exists $P, Q$ such that $\typeRule{P}{A, A}$ and $\typeRule{Q}{A, A}$ hold and $s = \deno{P} \wedge t = \deno{Q}$
 
-\paragraph{Case $B \neq C$}
-	Then the join is empty, since no $b \in B = c \in C$, so 
-	\begin{equation}
-		join(\deno{P},\deno{Q}) = \emptyset = \deno{Distinct(Id_T)}
-	\end{equation}
-	For some type $T \in \Sigma$ (We know $\Sigma$ at least one type, since the typings of $P$ and $Q$ hold.)
-
- 
-\paragraph{Case $B = C$}
-	Then the join is not empty.
-	By the correspondence of denotational and operational semantics, we have
+By the correspondence of denotational and operational semantics, we have
 	\begin{equation}
 		join(\deno{P}, \deno{Q}) = \deno{Chain(P, Q)}
 	\end{equation}
 	
 	with the following typing
 	\begin{equation}
-	\typeRule{Chain(P, Q)}{A, D}
+	\typeRule{Chain(P, Q)}{A, A}
 	\end{equation}
 	 
-\section{Lemma: Join is associative on $\query$}
-Proof: For $r, s, t \in \query$ there exist queries $P, Q, R$ and object types $A, B, C, D, E, F$ such that $\typeRule{P}{A, B}$, $\typeRule{Q}{C, D}$, and $\typeRule{R}{E, F}$  hold and $r = \deno{P} \wedge s = \deno{Q} \wedge t = \deno{R}$
+\subsection{Lemma: Join is associative on $\queryT{A}$}
+\paragraph{Proof:} For $r, s, t \in \queryT{A}$ there exist queries $P, Q, R$ such that $\typeRule{P}{A, A}$, $\typeRule{Q}{A, A}$, and $\typeRule{R}{A, A}$  hold and $r = \deno{P} \wedge s = \deno{Q} \wedge t = \deno{R}$
 \\We want to prove that $join(r, join(s, t)) = join(join(r, s), t)$
-\paragraph{Case $B \neq C$}
-	Then 
-	\begin{equation}\label{Case B != C}
-	\begin{split}
-		join(r, join(s, t)) & = join(r, u) \mbox{ For some $u$, either $u = \emptyset$ or $u$ has a left type of $C$}\\
-							& = \emptyset \mbox{ hence equals the empty set}\\
-							& = join(\emptyset, t)\\
-							& = join(join(r, s), t) \\
-	\end{split}
-	\end{equation}
-	
-\paragraph{Case $D \neq E$}
-Then similarly
-	\begin{equation}\label{Case D != E}
-	\begin{split}
-		join(join(r, s), t) & = join(u, t) \mbox{ For some $u$, either $u = \emptyset$ or $u$ has a right type of $D$}\\
-							& = \emptyset \mbox{ hence equals the empty set}\\
-							& = join(r, \emptyset)\\
-							& = join(r, join(s, t)) \\
-	\end{split}
-	\end{equation}
-	
-\paragraph{Case $B = C$ and $D = E$}
-Then
+
 \begin{equation}\label{Well typed}
 \begin{split}
 (a, f) \in join(r, join(s, t)) & \Leftrightarrow (a, f) \in join(\deno{P}, join(\deno{Q},\deno{R}))\\
@@ -2107,17 +2139,42 @@ Then
 \end{split}
 \end{equation}
 
-Hence $\query$ is a monoid with $join$. However, it doesn't particularly stick to a nice typescheme.
-	
-\section{Joins on $\queryT{A}$ as a monoid}
-If we now take the more useful subset $\queryT{A}$ of $\query$
+So we have \[ join(r, join(s, t)) = join(join(r, s), t) \] as required.
 
+\subsection{$\deno{Id_A}$ As an Identity of Join}
+
+The set $Id = \deno{Id_A}$ is a member of the set $\queryT{A}$ by definition and the (Id) type rule. It is also the identity element of the \mathName{join} function.
+
+\paragraph{Proof:} Firstly, by definition
+\[ id = \setComp{(a, a)}{a \in v(A)}\]
+
+By joinin this with any given set, $s$, we have
 \begin{equation}
-\queryT{A} = \setComp{s \subseteq A \times A}{\exists P. \typeRule{P}{A, A} \wedge s = \deno{P}}
+\label{LeftID}
+\begin{split}
+join(id, s) & = \setComp{(a, c)}{\exists b. (a, b) \in id \wedge (b, c) \in s}\\
+            & = \setComp{(a, c)}{(a, c) \in s} \mbox{Since $(a, b) \in id$ implies $b = a$}\\
+            & = s
+\end{split}
 \end{equation}
 
-Trivially, from the above, $join$ over $\queryT{A}$ also forms a monoid.
+Similarly
 
+\begin{equation}
+\label{RightID}
+\begin{split}
+join(s, id) & = \setComp{(a, c)}{\exists b. (a, b) \in s \wedge (b, c) \in id}\\
+            & = \setComp{(a, b)}{(a, b) \in s} \mbox{Since $(b, c) \in id$ implies $b = c$}\\
+            & = s
+\end{split}
+\end{equation}
+
+
+
+Hence $\queryT{A}$ is a monoid with $join$. 
+	
+\section{Usages of Join as a Monoid}
+\label{exactlyOpt}
 This enables several optimisations.
 
 Firstly, writing $p$ for $\deno{P}$ and with the binary representation of $n = \sum_i{b_i * 2^{i}}$
@@ -2129,8 +2186,7 @@ Firstly, writing $p$ for $\deno{P}$ and with the binary representation of $n = \
 \end{equation}
 
 \section{Joins distribute over Or}
-
-It is useful to know how $join$ interacts with other queries. Specifically we can do some re-writing if it is the case that join distributes over $Or$
+It is useful to know how $join$ interacts with other queries. Specifically we can do some re-writing if it is the case that join distributes over $Or$. 
 
 \begin{equation}
 \deno{Chain(P, Or(Q, R))} = \deno{Or(Chain(P,Q), Chain(P, R))}
@@ -2144,7 +2200,7 @@ Firstly, we have by inversion of the type rules for $Chain$ and $Or$ that:
 									   & \Leftrightarrow \typeRule{Or(Chain(P,Q), Chain(P, R))}{A, C}\\
 \end{split}
 \end{equation}
-
+From the denotations of $Chain$ and $Or$, we have
 \begin{equation}\label{denotationalEquality}
 \begin{split}
 \deno{Chain(P, Or(Q, R))} & = \setComp{(a, c)}{\exists b. \denoRule{(a, b)}{P} \wedge (b,c) \in (\deno{Q} \cup \deno{R}})\\
@@ -2153,6 +2209,8 @@ Firstly, we have by inversion of the type rules for $Chain$ and $Or$ that:
 						 & = \deno{Or(Chain(P, Q), Chain(P, R))}
 \end{split}
 \end{equation}
+
+As required.
 
 
 \section{$Upto(n, P)$ expressed as $Exactly(n, P')$}
@@ -2168,7 +2226,7 @@ Thanks to the previous section, we can now rewrite the denotation of $upto$.
 \end{split}
 \end{equation}
 
-This means that we can evaluate $Upto$ queries as $Exactly$ queries, and apply the binary-representation driven construction above to evaluate queries using fewer unique joins.
+This means that we can evaluate $Upto$ queries as $Exactly$ queries, and apply the binary-representation construction in section \ref{exactlyOpt} to evaluate queries using fewer unique joins.
 
 
 \section{Joins do not distribute over And}
