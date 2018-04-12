@@ -1,29 +1,29 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces An edge-labelled graph encoding information about actors that have acted in movies under different roles \cite {ELGraphExample}. \leavevmode {\color {red}Tim and Rob, is using this figure and the next from another paper allowed if correctly cited?}}}{14}{figure.2.1}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces An edge-labelled graph encoding information about actors that have acted in movies under different roles \cite {PropertyGraphExample}}}{15}{figure.2.2}
-\contentsline {figure}{\numberline {2.3}{\ignorespaces An example of reads and writes to an initial view. Separate reads and writes do not interfere with each other.}}{16}{figure.2.3}
-\contentsline {figure}{\numberline {2.4}{\ignorespaces A map of the architecture of the system}}{27}{figure.2.4}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces An edge-labelled graph encoding information about actors that have acted in movies under different roles \cite {ELGraphExample}. \leavevmode {\color {red}Tim and Rob, is using this figure and the next from another paper allowed if correctly cited?}}}{16}{figure.2.1}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces An edge-labelled graph encoding information about actors that have acted in movies under different roles \cite {PropertyGraphExample}}}{17}{figure.2.2}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces An example of reads and writes to an initial view. Separate reads and writes do not interfere with each other.}}{18}{figure.2.3}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces A map of the architecture of the system}}{29}{figure.2.4}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Execution of a simple \texttt {Exactly} query}}{39}{figure.3.1}
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Execution of a simple \texttt {Upto} query}}{40}{figure.3.2}
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Execution of an \texttt {Exactly} query from multiple roots}}{41}{figure.3.3}
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Execution of an \texttt {Upto} query from multiple roots}}{42}{figure.3.4}
-\contentsline {figure}{\numberline {3.5}{\ignorespaces The lookup procedure for objects in the memory implementation}}{43}{figure.3.5}
-\contentsline {figure}{\numberline {3.6}{\ignorespaces Joining a large right hand side to a small left hand side without pruning the right hand side search results in redundant calculations. \leavevmode {\color {red}Rob, Tim, Would it be better to give explicit result tables? Does this figure make sense?}}}{44}{figure.3.6}
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Sequential joins provide little common substructure to eliminate.}}{53}{figure.3.7}
-\contentsline {figure}{\numberline {3.8}{\ignorespaces By reordering joins, we gain significant common substructure to eliminate.}}{54}{figure.3.8}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Execution of a simple \texttt {Exactly} query}}{40}{figure.3.1}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Execution of a simple \texttt {Upto} query}}{41}{figure.3.2}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Execution of an \texttt {Exactly} query from multiple roots}}{42}{figure.3.3}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Execution of an \texttt {Upto} query from multiple roots}}{43}{figure.3.4}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces The lookup procedure for objects in the memory implementation}}{45}{figure.3.5}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Joining a large right hand side to a small left hand side without pruning the right hand side search results in redundant calculations. \leavevmode {\color {red}Rob, Tim, Would it be better to give explicit result tables? Does this figure make sense?}}}{46}{figure.3.6}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Sequential joins provide little common substructure to eliminate.}}{59}{figure.3.7}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces By reordering joins, we gain significant common substructure to eliminate.}}{60}{figure.3.8}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{60}{figure.4.1}
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for conjunction queries}}{61}{figure.4.2}
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for disjunction queries}}{62}{figure.4.3}
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt {Exactly} queries}}{63}{figure.4.4}
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt {Exactly} queries}}{64}{figure.4.5}
-\contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt {FindPair} queries}}{65}{figure.4.6}
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt {Upto} queries}}{66}{figure.4.7}
-\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt {Upto} queries}}{67}{figure.4.8}
-\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for large \texttt {Upto} queries}}{68}{figure.4.9}
-\contentsline {figure}{\numberline {4.10}{\ignorespaces Read performance for Join-Speed queries}}{69}{figure.4.10}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{65}{figure.4.1}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for conjunction queries}}{66}{figure.4.2}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for disjunction queries}}{67}{figure.4.3}
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt {Exactly} queries}}{68}{figure.4.4}
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt {Exactly} queries}}{69}{figure.4.5}
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt {FindPair} queries}}{70}{figure.4.6}
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt {Upto} queries}}{71}{figure.4.7}
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt {Upto} queries}}{72}{figure.4.8}
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for large \texttt {Upto} queries}}{73}{figure.4.9}
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Read performance for Join-Speed queries}}{74}{figure.4.10}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
