@@ -23,14 +23,10 @@
 
 Todo:
 
-Introduction: 
-"are receiving" or "have received"? 
-
 Do you motivate the interest in graph databases in this first few sentences? Might you open by describing the weakness/limitations of the SQL approach?
 
 "For example, a program may be set up to read trade data from a database in a finance firm." - could this contain a little more information, hinting why this approach is limiting? I know you go on to describe but it good perhaps be clearer. Is it simply that the wrapper is a rigid interface to the underlying database? 
 
-p.13 "(These" should this be capitalized? Moreover, it is probably better to break this long sentence up anyway.
 
 Figure 2.1
 I would quickly redraw this if you can't obtain it as a vector graphic (sometime you can extract a figure from the PDF?).
@@ -44,25 +40,13 @@ Looking at your Bibliography, I would try to ensure that full references are use
 
 Even reference 12 looks short, e.g. who was the publisher?
 
-p.25 - Is this list of tools better given in a table? (it doesn't have to have lines around the cells). At the moment some of the names overflow into the left margin.
-
 Chapter 3. - Implementation
-
-p.34 The line spacing is wrong from 3.2.2. onwards for some reason?
-
-p.35 "we're" -> "we are"
 
 p.50/51 has this table got a label? 
 p.58 looks a little odd to me as again the tables are not labelled.
 
 Ok there are lots, chat to Tim about this. Normally, we don't rely on tables/figures being in-line.
 
-Figure 4.6 needs tidying, Y-label currently obscured. 
-
-5.1 "work in areas" -> "work in the areas of" ?
-"tests and tweaks" sounds too informal.
-
-You use "finance firms" throughout, is there a better phrase? 
 \end{comment}
 
 \newcommand\todo[1]{\textcolor{red}{#1}}
@@ -215,7 +199,7 @@ extent for a comparable purpose.
 \todo{rework of performance test analysis}\\
 
 \chapter{Introduction}
-In recent years, alternatives to the relational database model employed by SQL are receiving increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
+In recent years, alternatives to the relational database model employed by SQL have received increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
 	
 	As the usage of functional languages for real-world code grows, there is an increasing need to integrate common patterns into the functional paradigm. Access to databases in one such example that requires solving. Frequently, when a functional program requires access to a database, such access is implemented ad-hoc for the specific usage case. For example, a program may be set up to read trade data from a database in a finance firm. This approach reduces generality and limits the kinds of abstractions that may be used. For example, the above usage case might only support specific schema required for the types representing the kinds trades that might appear; the wrapper used for the trading system could not be used to access a database containing a social network. In addition to this, while read only databases are trivially purely functional data-structures, it is harder to achieve referential transparency when writes are included into the database specification. This is because most database systems use imperative semantics to best make use of the hardware upon which they are implemented.
 
@@ -231,7 +215,7 @@ This chapter discusses the early stages of the project. Once I had settled on a 
 I quickly decided to use Scala for this project. Scala is a JVM based object oriented and functional language. It provides a very advanced type system, allowing for complex abstractions to be built safely. Furthermore, due to its inter-operability with Java, the latter's libraries can be called from Scala, giving an advantage over other comparable languages such as Haskell and Ocaml, especially when there is a need to take advantage of low-level functionality. Finally, I was also familiar with some of Scala's more advanced features from previous experience.
 
 \section{Definition of Type-Safety}
-When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. Breaches of  type safety in typical programs include exceptions (These are inherently not type safe in Scala, since exceptions are unchecked), the usage of primitive data types where specific values are expected, such as passing strings to functions without wrapping or tagging them in more specific types, and unmarshalling data from type-erased sources. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
+When we talk about type safety, we mean to say that a correctly typed program will not produce run-time errors of a given class. One breach of  type safety in typical programs is the use of unchecked exceptions; the overuse of primititve types as parameters to functions, especially strings; and unmarshalling data from type-erased sources, such as http message bodies. If we do not know whether we should expect a value to be an integer or a string and we try to read it as an integer, there is a chance to throw an exception. 
 By this definition, accessing an external, imperative database from Scala is not type-safe. The database will have some collection of error modes that often manifest as exceptions and typically stores data in a type-erased form that needs to be unmarshalled. Finally, queries to external database systems are typically constructed as a primitive string that cannot be checked automatically at compile-time. This project addresses these issues by using carefully constructed result container types to correctly handle error cases, including arbitrary exceptions using a pattern-match-able type hierarchy, a DSL that is type checked at compile-time by the Scala type checker, and safe, typeclass based marshalling.
 
 
@@ -528,31 +512,31 @@ To summarise, this past section defines a query DSL, a type system for checking 
 
 
 \section{Starting Point}
-In addition to Scala, I have made use of several libraries and tools, some of which were not forseen in my project proposal. Some were used for the actual construction of the project, whereas others were used for auxiliary tasks such as testing and debugging or  generating datasets. All of these tools have licenses allowing free usage (The exact license for each is given in the footnotes.) and no modifications to these libraries were performed.
+In addition to Scala, I have made use of several libraries and tools, some of which were not forseen in my project proposal. Some were used for the actual construction of the project, whereas others were used for auxiliary tasks such as testing and debugging or  generating datasets. All of these tools have licenses allowing free usage (The exact license for each is given in the footnotes.) and no modifications to these libraries were performed.\\
 
-\begin{itemize}
-\item[\textbf{SBT}]\footnote{//www.Scala-sbt.org/} Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries. \footnote{https://github.com/sbt/sbt/blob/1.x/LICENSE}
+\begin{tabular}{p{4cm}p{11cm}}
+\textbf{SBT}\footnote{//www.Scala-sbt.org/} & Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries. \footnote{https://github.com/sbt/sbt/blob/1.x/LICENSE}\\
+\\
+\textbf{PostgreSQL}\footnote{//www.postgresql.org/} & An open-source, multi-platform SQL implementation.\footnote{https://opensource.org/licenses/postgresql}\\\\
 
-\item[\textbf{PostgreSQL}]\footnote{//www.postgresql.org/} An open-source, multi-platform SQL implementation.\footnote{https://opensource.org/licenses/postgresql}
+\textbf{LMDB}\footnote{//symas.com/lmdb/}&An open source, highly optimised key-value datastore. \footnote{http://www.openldap.org/software/release/license.html}\\\\
 
-\item[\textbf{LMDB}]\footnote{//symas.com/lmdb/} An open source, highly optimised key-value datastore. \footnote{http://www.openldap.org/software/release/license.html}
+\textbf{Scalaz}\footnote{https://github.com/Scalaz/Scalaz} & A library for Scala providing typeclasses and syntax to aid advanced functional programming.\footnote{https://github.com/scalaz/scalaz/blob/series/7.3.x/LICENSE.txt} \\\\
 
-\item[\textbf{Scalaz}]\footnote{https://github.com/Scalaz/Scalaz} A library for Scala providing typeclasses and syntax to aid advanced functional programming.\footnote{https://github.com/scalaz/scalaz/blob/series/7.3.x/LICENSE.txt}
+\textbf{JDBC}\footnote{http://www.oracle.com/technetwork/java/javase/jdbc/index.html} & Java's standard library support for SQL connections. Used to interact with a postgres database. I had originally planned to use the higher level wrapper scalikeJDBC,\footnote{http://scalikejdbc.org/} however, this did not allow such fine control over queries as I would have liked. \footnote{https://jdbc.postgresql.org/about/license.html}\\\\
 
-\item[\textbf{JDBC}]\footnote{http://www.oracle.com/technetwork/java/javase/jdbc/index.html} Java's standard library support for SQL connections. Used to interact with a postgres database. I had originally planned to use the higher level wrapper scalikeJDBC,\footnote{http://scalikejdbc.org/} however, this did not allow such fine control over queries as I would have liked. \footnote{https://jdbc.postgresql.org/about/license.html}
+\textbf{LMDBJava}\footnote{//github.com/lmdbjava/lmdbjava} & A JNI library allowing access to the LMDB datastore. Previously, I experimented with another library, LMDBJni. However, upon discovery of a bug in the JNI code, I switched to LMDBJava.\footnote{https://github.com/lmdbjava/lmdbjava/blob/master/LICENSE.txt}\\\\
 
-\item[\textbf{LMDBJava}]\footnote{//github.com/lmdbjava/lmdbjava} A JNI library allowing access to the LMDB datastore. Previously, I experimented with another library, LMDBJni. However, upon discovery of a bug in the JNI code, I switched to LMDBJava.\footnote{https://github.com/lmdbjava/lmdbjava/blob/master/LICENSE.txt}
+\textbf{Junit}\footnote{https://junit.org/junit5/} & A unit testing library for JVM languages.\footnote{https://junit.org/junit4/license.html}\\\\
 
-\item[\textbf{Junit}]\footnote{https://junit.org/junit5/} A unit testing library for JVM languages.\footnote{https://junit.org/junit4/license.html}
+\textbf{SLF4J}\footnote{https://www.slf4j.org/} & A logging library for JVM languages. \footnote{https://www.slf4j.org/license.html} \\\\
 
-\item[\textbf{SLF4J}]\footnote{https://www.slf4j.org/} A logging library for JVM languages. \footnote{https://www.slf4j.org/license.html}
+\textbf{Spray-JSON}\footnote{https://github.com/spray/spray-json}& A JSON library for Scala, used to generate benchmarking datasets. \footnote{https://github.com/spray/spray-json/blob/master/LICENSE} \\\\
 
-\item[\textbf{Spray-JSON}]\footnote{https://github.com/spray/spray-json} A JSON library for Scala, used to generate benchmarking datasets. \footnote{https://github.com/spray/spray-json/blob/master/LICENSE}
+\textbf{Python}\footnote{https://www.python.org/} & A scripting language used to generate test datasets. \footnote{https://docs.python.org/3/license.html}
+\\\\
 
-\item[\textbf{Python}]\footnote{https://www.python.org/} A scripting language used to generate test datasets. \footnote{https://docs.python.org/3/license.html}
-
-
-\end{itemize}
+\end{tabular}
 
 
 \section{Software Engineering}
@@ -851,7 +835,7 @@ def evalAndPrint(e: Expr): NoError \/ String =
 \end{framed}
 
 
-Typically, we're dealing with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the Scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we're interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
+Typically, we deal with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the Scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we are interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1042,7 +1026,7 @@ I have implemented a simple hash-join \cite{HashJoins}. This operates by first a
 \renewcommand{\baselinestretch}{1.1}
 
 \section{Views and Commits}
-In the memory backend, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other backends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that with the operation monad model, each view only has one direct predecessor, forming a tree where we're only interested in the path back to the root from a given node. From this insight, we can think of each new view only needing to store a difference against its parent. Since the current design of the database only allows the addition of values and not deletion, this difference is only going to be positive. Hence, we can store all the added values between two views in a container called a \codeName{Commit}. As an optimisation, we can disregard the parent view, and simply store each view as a collection of its commits. This would also allow us to implement deletion if desired. This would be done by removing commits in a view that are to be modified, and replacing them with a new commit containing the contents of those commits, excluding the deleted values.
+In the memory backend, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other backends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that with the operation monad model, each view only has one direct predecessor, forming a tree where we are only interested in the path back to the root from a given node. From this insight, we can think of each new view only needing to store a difference against its parent. Since the current design of the database only allows the addition of values and not deletion, this difference is only going to be positive. Hence, we can store all the added values between two views in a container called a \codeName{Commit}. As an optimisation, we can disregard the parent view, and simply store each view as a collection of its commits. This would also allow us to implement deletion if desired. This would be done by removing commits in a view that are to be modified, and replacing them with a new commit containing the contents of those commits, excluding the deleted values.
 
 \section{Memory Backend}
 The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages or libraries as in the SQL and LMDB backends.)
@@ -1413,7 +1397,7 @@ The original LMDB backend implementation executed queries in much the same way a
 		The result of executing a \codeName{FindSingle} is constant throughout the whole query, so by lifting out and pre-emptively executing any \codeName{FindSingle}s, we speed up execution by removing redundancy. More importantly, this helps enable the next operation.
 		
 		\paragraph{FindFrom}
-		For the pathfinding commands, the transitive queries and \codeName{From} \codeName{FindSingle} query, we're not actually interested in finding all pairs matching a query, or interested in which pairs are related, but actually the reachability function \codeName{$A \Rightarrow Set[B]$} (this is a kleisli arrow), which takes a node and finds the directly reachable neighbours. Since we do not have to do any bookwork to maintain the left hand side of any relation, this greatly simplifies our search. Hence, in these cases, we interpret the query using a new \codeName{FindFrom} method, which is an alternative interpreter. For example, joins now become a concatenation of these arrows (\codeName{flatMap}  in Scala parlance), \codeName{Id} becomes the return function \codeName{($x \Rightarrow Set(x)$)}, \codeName{Distinct} becomes set subtraction as opposed to calling the \codeName{Set.filter} function, and, finally, we can make use of the \codeName{SimpleFixedPointTraversal} algorithms described above. The pre-caching above is useful here, since due to the \codeName{flatMap}s, the computation of \codeName{FindSingle}s would be repeated many times otherwise.
+		For the pathfinding commands, the transitive queries and \codeName{From} \codeName{FindSingle} query, we are not actually interested in finding all pairs matching a query, or interested in which pairs are related, but actually the reachability function \codeName{$A \Rightarrow Set[B]$} (this is a kleisli arrow), which takes a node and finds the directly reachable neighbours. Since we do not have to do any bookwork to maintain the left hand side of any relation, this greatly simplifies our search. Hence, in these cases, we interpret the query using a new \codeName{FindFrom} method, which is an alternative interpreter. For example, joins now become a concatenation of these arrows (\codeName{flatMap}  in Scala parlance), \codeName{Id} becomes the return function \codeName{($x \Rightarrow Set(x)$)}, \codeName{Distinct} becomes set subtraction as opposed to calling the \codeName{Set.filter} function, and, finally, we can make use of the \codeName{SimpleFixedPointTraversal} algorithms described above. The pre-caching above is useful here, since due to the \codeName{flatMap}s, the computation of \codeName{FindSingle}s would be repeated many times otherwise.
 
 	\subsection{Common Subexpression Elimination}
 	\note{impl.lmdb.cse}
@@ -1732,7 +1716,7 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/ExactlyPairs.png}
+  \includegraphics[width= 0.9 \textwidth]{scripts/ExactlyPairs.png}
   \caption{Read performance for exactly \codeName{FindPair} queries}
   \label{fig:ExactlyPairsResults}
 \end{figure}
@@ -1806,7 +1790,7 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 \chapter{Conclusion}
 
 \section{Successes}
-To the best of my knowledge, the graph database system I have built over the last seven months is one of the, if not the, first explicitly purely functional graph database systems in existence. This project is a demonstration that complex, performant software projects can be built using purely functional languages, whilst keeping the benefits of strong type systems. I feel that despite having written the project in Scala, a high level, often inefficient language I have achieved an acceptable level of performance for graph traversal. Although the system would need significant work in areas of security, networked access, and tests and tweaks on real world use cases to become commercially viable, it would be interesting to see if companies known for their use of functional programming, especially finance firms, might find use cases for graph databases
+To the best of my knowledge, the graph database system I have built over the last seven months is one of the, if not the, first explicitly purely functional graph database systems in existence. This project is a demonstration that complex, performant software projects can be built using purely functional languages, whilst keeping the benefits of strong type systems. I feel that despite having written the project in Scala, a high level, often inefficient language I have achieved an acceptable level of performance for graph traversal. Although the system would need significant work in the areas of security, networked access, and tuning to real-world use cases to become commercially viable, it stands as a solid prototype for potential future systems.
 
 \section{Further extensions}
 Interesting extensions to the core project that, given more time, I would have been interested to explore include

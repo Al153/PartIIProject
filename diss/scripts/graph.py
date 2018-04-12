@@ -128,7 +128,8 @@ class TestResult(object):
 		plt.savefig(self.name + "Log.png")
 
 if __name__ == '__main__':
-
+	from matplotlib import rcParams
+	rcParams.update({'figure.autolayout': True})
 
 	redundancy = TestResult("Redundancy", ref = 381972, cse = 379280, batched = 9318741)
 	conjunctions = TestResult("Conjunctions", ref = 879984, cse = 827734, batched = 791678, postgres = 106165)

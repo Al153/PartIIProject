@@ -4,8 +4,9 @@ Database file #1: diss.bib
 Warning--string name "springer" is undefined
 --line 14 of file diss.bib
 Warning--to sort, need author or key in HaskellDB
+Warning--to sort, need author or key in DBStates
 Warning--to sort, need author or key in TMDB5000
 Warning--to sort, need author or key in IMDB
 Warning--to sort, need author or key in UFC
-Warning--empty journal in CTEs
-(There were 6 warnings)
+Warning--empty author in DBStates
+(There were 7 warnings)

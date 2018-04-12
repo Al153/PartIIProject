@@ -19,42 +19,44 @@
 {UFC Fights Data 1993 - 2/23/2016}.
 \newblock \url{https://www.kaggle.com/cformey24/ufc-fights-data-1993-2232016}.
 
+\bibitem{DBStates}
+Database states in lazy functional programming languages: Imperative update and
+  lazy retrieval.
+\newblock In {Professor C.J. van Rijsbergen}, editor, {\em Proceedings of the
+  Fifth International Workshop on Database Programming Languages ( Gubbio,
+  Umbria, Italy, 6-8 September 1995)}, 1995.
+
 \bibitem{ELGraphExample}
-R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
-  D.~{Vrgoc}.
-\newblock {Foundations of Modern Query Languages for Graph Databases; Figure
-  2}.
-\newblock {\em ArXiv e-prints}, October 2016.
-\newblock Provided by the SAO/NASA Astrophysics Data System.
+Renzo Angles, Marcelo Arenas, Pablo Barcel\'{o}, Aidan Hogan, Juan Reutter, and
+  Domagoj Vrgo\v{c}.
+\newblock Foundations of modern query languages for graph databases; figure 2.
+\newblock {\em ACM Comput. Surv.}, 50(5):68:1--68:40, September 2017.
 
 \bibitem{PropertyGraphExample}
-R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
-  D.~{Vrgoc}.
-\newblock {Foundations of Modern Query Languages for Graph Databases; Figure
-  3}.
-\newblock {\em ArXiv e-prints}, October 2016.
-\newblock Provided by the SAO/NASA Astrophysics Data System.
+Renzo Angles, Marcelo Arenas, Pablo Barcel\'{o}, Aidan Hogan, Juan Reutter, and
+  Domagoj Vrgo\v{c}.
+\newblock Foundations of modern query languages for graph databases; figure 3.
+\newblock {\em ACM Comput. Surv.}, 50(5):68:1--68:40, September 2017.
 
 \bibitem{QueryLanguageSchema}
-R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
-  D.~{Vrgoc}.
-\newblock {Foundations of Modern Query Languages for Graph Databases;
-  Introduction}.
-\newblock {\em ArXiv e-prints}, October 2016.
-\newblock Provided by the SAO/NASA Astrophysics Data System.
+Renzo Angles, Marcelo Arenas, Pablo Barcel\'{o}, Aidan Hogan, Juan Reutter, and
+  Domagoj Vrgo\v{c}.
+\newblock Foundations of modern query languages for graph databases;
+  introduction.
+\newblock {\em ACM Comput. Surv.}, 50(5):68:1--68:40, September 2017.
 
 \bibitem{QueryLanguageFoundations}
-R.~{Angles}, M.~{Arenas}, P.~{Barcelo}, A.~{Hogan}, J.~{Reutter}, and
-  D.~{Vrgoc}.
-\newblock {Foundations of Modern Query Languages for Graph Databases; Section
-  2}.
-\newblock {\em ArXiv e-prints}, October 2016.
-\newblock Provided by the SAO/NASA Astrophysics Data System.
+Renzo Angles, Marcelo Arenas, Pablo Barcel\'{o}, Aidan Hogan, Juan Reutter, and
+  Domagoj Vrgo\v{c}.
+\newblock Foundations of modern query languages for graph databases; section 2.
+\newblock {\em ACM Comput. Surv.}, 50(5):68:1--68:40, September 2017.
 
 \bibitem{CTEs}
 Manuela Horvat and Daniel Stuparu.
 \newblock Common table expression - with statement.
-\newblock 01 2008.
+\newblock
+  \url{https://www.researchgate.net/publication/242270488_Common_Table_Expression_-_WITH_Statement},
+  01 2008.
 
 \bibitem{HashJoins}
 M.~H.~{Eich} P.~{Mishra}.
@@ -65,12 +67,8 @@ M.~H.~{Eich} P.~{Mishra}.
 \bibitem{ExceptionMonad}
 {University of Glasgow} P.~{Wadler}.
 \newblock Monads for functional programming; section 2.2.
-\newblock \url{https://hackage.haskell.org/package/haskelldb}.
+\newblock
+  \url{http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf}.
 \newblock Accessed: 2018-04-03.
-
-\bibitem{DBStates}
-{Professor C.J. van Rijsbergen}, editor.
-\newblock {\em Database States in Lazy Functional Programming Languages:
-  Imperative Update and Lazy Retrieval}, 1995.
 
 \end{thebibliography}
