@@ -12,8 +12,129 @@
 \usepackage{breqn}
 \usepackage{float}
 \usepackage{framed}
+\usepackage{tikz}
 
 \usepackage{natbib}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Imports and commands for drawing graphs, reproduced from ELGraphExample
+% \usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{automata}
+\usetikzlibrary{chains}
+\usetikzlibrary{arrows}
+\usetikzlibrary{calc}
+\usepackage{url}
+\usepackage{amsmath} 
+\usepackage{subfigure} 
+\usepackage{upquote}
+\usepackage{multirow}
+
+
+\newcommand{\np}{{\sc NP}\xspace}
+\newcommand{\exptime}{{\sc EXPTIME}\xspace}
+\newcommand{\pspace}{{\sc PSPACE}\xspace}
+
+\newcommand{\uri}[1]{\text{\scriptsize {\tt\vphantom{yI}#1}}}% version for use in graphs
+
+
+\newcommand{\urie}[1]{\uri{#1\,=\,}}
+
+\newcommand{\ttt}[1]{{\texttt{#1}}} % tt font in text
+
+\newcommand{\uriq}[1]{\uri{#1}}% version with quotes for use in graphs
+
+
+\newcommand{\appex}[1]{{\color{green}#1}} % text that will have to change if
+                                         % we move examples to appendix
+
+
+
+
+\newcommand{\al}[2]{
+\addtolength{\jot}{-1ex} % row spacing
+\begin{minipage}{#1} 
+\vspace{1pt}
+\begin{center}
+$\begin{aligned}
+#2
+\end{aligned}$
+\end{center}
+\end{minipage}
+\addtolength{\jot}{1em} % reset
+}
+
+\newcommand{\alt}[2]{
+\addtolength{\jot}{-1ex} % row spacing
+\begin{minipage}{#1} 
+\vspace{2pt}
+\begin{center}
+$\begin{aligned}
+#2
+\end{aligned}$
+\end{center}
+\end{minipage}% reset
+}
+
+\usetikzlibrary{arrows,positioning,backgrounds} 
+\tikzset{
+    rt/.style={
+		rectangle,
+		fill = white,
+		draw=black, 
+		text centered,
+		inner sep=0.5ex
+		},
+    rtt/.style={ %tighter version
+    	rt,
+    	inner sep=0.1ex
+    	},
+    ert/.style={ %edge box
+     	rt,
+     	dashed
+     	}, 
+    ertt/.style={ %edge box, tighter
+        rtt,
+        dashed
+        }, 
+    rect/.style={ % rounded prop graph boxes
+        rectangle,
+        fill = white,
+        rounded corners,
+        draw=black, 
+        text centered,
+        inner sep=0.8ex
+        },
+    rectw/.style={
+        rect,
+        draw=white
+        },
+    erect/.style={ %edge rect, unfortunate name
+    	rect,
+    	dashed
+    	},
+    erectw/.style={ %edge rectw
+     	rectw,
+     	dashed
+     	},
+    arrout/.style={
+           ->,
+           -latex,
+           },
+    arrin/.style={
+           <-,
+           latex-,
+           },
+    arrb/.style={
+           <->,
+           >=latex,
+           }
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
 
 
 \usepackage{svg}
@@ -23,18 +144,8 @@
 
 Todo:
 
-Do you motivate the interest in graph databases in this first few sentences? Might you open by describing the weakness/limitations of the SQL approach?
-
-"For example, a program may be set up to read trade data from a database in a finance firm." - could this contain a little more information, hinting why this approach is limiting? I know you go on to describe but it good perhaps be clearer. Is it simply that the wrapper is a rigid interface to the underlying database? 
-
-
-Figure 2.1
-I would quickly redraw this if you can't obtain it as a vector graphic (sometime you can extract a figure from the PDF?).
-
 p.16 Figure 2.3 again this looks like a bitmap and needs tidying (removal of white space and centering etc.).
 (Many of the figures looks like bitmaps, e.g. 3.7, perhaps it is my PDF viewer? how are you importing them?) 
-
-I might be tempted to use the phrase "reproduced from Angles et al[5]"
 
 Chapter 3. - Implementation
 
@@ -195,9 +306,9 @@ extent for a comparable purpose.
 \todo{rework of performance test analysis}\\
 
 \chapter{Introduction}
-In recent years, alternatives to the relational database model employed by SQL have received increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
+In recent years, alternatives to the relational database model employed by SQL have received increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. SQL is ill-optimised, both in syntax and execution, for highly transitive graph oriented queries. Join syntax, while general, is clunky and SQL lacks the ability to easily specify and perform the repetition based queries often used in graph applications. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
 	
-	As the usage of functional languages for real-world code grows, there is an increasing need to integrate common patterns into the functional paradigm. Access to databases in one such example that requires solving. Frequently, when a functional program requires access to a database, such access is implemented ad-hoc for the specific usage case. For example, a program may be set up to read trade data from a database in a finance firm. This approach reduces generality and limits the kinds of abstractions that may be used. For example, the above usage case might only support specific schema required for the types representing the kinds trades that might appear; the wrapper used for the trading system could not be used to access a database containing a social network. In addition to this, while read only databases are trivially purely functional data-structures, it is harder to achieve referential transparency when writes are included into the database specification. This is because most database systems use imperative semantics to best make use of the hardware upon which they are implemented.
+	As the usage of functional languages for real-world code grows, there is an increasing need to integrate common patterns into the functional paradigm. Access to databases in one such example that requires solving. Frequently, when a functional program requires access to a database, such access is implemented ad-hoc for the specific usage case. For example, a rigid wrapper may be set up to read trade data from a database in a finance firm. This approach reduces generality and limits the kinds of abstractions that may be used. For example, the wrapper might only support the specific schema required for the types representing the kinds trades that might appear; the wrapper used for the trading system could not be used to access a database containing a social network. In addition to this, while read-only databases are trivially purely functional data-structures, it is harder to achieve referential transparency when updates are included into the database specification. This is because most database systems use imperative semantics to best make use of the hardware upon which they are implemented.
 
 	There has been some exploration into generalised libraries and wrappers for accessing databases in a purely functional way. These may allow a means to construct SQL queries in a type-safe manner \cite{HaskellDB}, or provide manipulation of the database’s state in a referentially transparent manner \cite{DBStates}. However, they are typically aimed at relational (SQL) databases and do not allow safe generalisation over the types stored in the database.
 
@@ -221,20 +332,158 @@ This section gives a brief introduction into the main characteristics and classi
 Existing graph databases typically fall into two classes: property graphs and edge-labelled (EL) graphs \cite{QueryLanguageFoundations}. EL graphs typically store only a label on each edge, whereas property graphs can store more attributes on edges and are hence closer semantically to relational databases. EL graphs can be more succinctly modelled mathematically, since they can be represented purely using mathematical relations; they also lead to a cleaner syntax (see the DSL syntax subsection of the query language section). Finally, any data expressible using a property graph can be represented using an EL graph by introducing additional nodes to hold attributes.
 
 \begin{figure}[ht]
-\centering
-  \includegraphics[width=\textwidth]{figs/ELGraph.png}
-  \caption{An edge-labelled graph encoding information about actors that have acted in movies under different
-roles \cite{ELGraphExample}. \todo{Tim and Rob, is using this figure and the next from another paper allowed if correctly cited?}}
+	\begin{center}
+		\begin{tikzpicture}
+		
+		%%%%% node n1 
+		\node[rtt] (n1) {
+			\al{60pt}{ 
+				\uriq{Peter Sellers}}};
+		
+		%%%%% node n2 	
+		\node[rtt,above=0.9cm of n1,xshift=3.5cm] (n2) {
+			\al{65pt}{ 
+				\uriq{Lionel Mandrake}}};	
+		
+		%%%%% edge e1
+		\draw[arrout] (n1) to 
+		node[ertt] (e1) 
+		{\al{40pt}{
+				\uri{plays}}}
+		(n2);
+		
+		%%%%% node n3 	
+		\node[rtt,below=0.9cm of n1,xshift=3.5cm] (n3) {
+			\al{65pt}{ 
+				\uriq{Merkin Muffley}}};	
+		
+		%%%%% edge e2
+		\draw[arrout] (n1) to 
+		node[ertt] (e2) 
+		{\al{40pt}{
+				\uri{plays}}}
+		(n3);
+		
+		%%%%% node n4 
+		\node[rtt,right=5cm of n1] (n4) {
+			\al{60pt}{ 
+				\uriq{Dr. Strangelove}}};    
+		
+		%%%%% edge e3
+		\draw[arrout] (n2) to 
+		node[ertt] (e3) 
+		{\al{40pt}{
+				\uri{movie}}}
+		(n4);
+		
+		%%%%% edge e4
+		\draw[arrout] (n3) to 
+		node[ertt] (e4) 
+		{\al{40pt}{
+				\uri{movie}}}
+		(n4);
+		
+		%%%%% node n5 
+		\node[rtt,right=4cm of n2] (n5) {
+			\al{60pt}{ 
+				\uriq{18 minutes}}};
+		
+		%%%%% node n6 
+		\node[rtt,right=4cm of n3] (n6) {
+			\al{60pt}{ 
+				\uriq{34 minutes}}};
+		
+		%%%%% edge e5
+		\draw[arrout] (n2) to 
+		node[ertt] (e5) 
+		{\al{40pt}{
+				\uri{screentime}}}
+		(n5);
+		
+		%%%%% edge e6
+		\draw[arrout] (n3) to 
+		node[ertt] (e6) 
+		{\al{40pt}{
+				\uri{screentime}}}
+		(n6); 
+		\end{tikzpicture}
+	\end{center}
+
+\caption{An example of an edge-labelled graph. Reproduced from Angles et al \cite{ELGraphExample}.}
   \label{fig:ELGraph}
 \end{figure}
 
 \begin{figure}[ht]
-\centering
-  \includegraphics[width=\textwidth]{figs/PropertyGraph.png}
-  \caption{An edge-labelled graph encoding information about actors that have acted in movies under different
-roles \cite{PropertyGraphExample}}
+\begin{center}
+
+\begin{tikzpicture}
+%%%%% node n1 
+\node[rect] (n1) {
+\alt{84pt}{
+\urie{name} \uriq{Clint Eastwood}\\
+\urie{gender} \uriq{male}}};
+
+%%%%% label of n1
+\node[rt] (ln1) at (n1.north) {\uri{$n_1$ : Person}};
+
+%%%%% node n2
+\node[rect, right=2.6cm of n1] (n2) {
+\alt{66pt}{ 
+\urie{title} & \uriq{Unforgiven}}};
+
+
+
+%%%%% label of n2
+\node[rt] (ln2) at (n2.north) {\uri{$n_2$ : Movie}};
+
+%%%%% edge e1
+\draw[arrout, bend left=10] (n1) to 
+node[above, erect] (e1) {
+\alt{50pt}{
+\urie{role} \uriq{Bill}\\
+\urie{ref} \uriq{IMDb}}}
+(n2);
+
+
+
+%%%%% label of e1
+\node[ert] (le1) at (e1.north) {\uri{$e_1$ : acts\_in}};
+
+%%%%% edge e2
+\draw[arrout, bend right=10] (n1) to 
+node[below, ert] (e2) {\uri{$e_2$ : directs}}
+(n2);
+
+%%%%% node n3
+\node[rect, right=2.8cm of n2] (n3) {
+\noindent
+\alt{70pt}{
+\urie{name} \uriq{Anna Levine}\\
+\urie{gender} \uriq{female}}};
+
+%%%%% label of n3
+\node[rt] (ln3) at (n3.north) {\uri{$n_3$ : Person}};
+
+%%%%% edge e3
+\draw[arrin] (n2) to
+node[above, erect] (e3) 
+{
+\alt{50pt}{
+\urie{role} & \uriq{Delilah}\\
+\urie{ref} & \uriq{IMDb}}}
+(n3);
+
+%%%%% label of e3
+\node[ert] (le3) at (e3.north) {\uri{$e_3$ : acts\_in}};
+
+\end{tikzpicture}
+
+\end{center}
+\caption{An example of a property graph. Reproduced from Angles et al \cite{PropertyGraphExample}}
   \label{fig:PropertyGraph}
 \end{figure}
+
+
 
 \subsection{Schema}
 Current graph database systems often do not have rigid schema \cite{QueryLanguageSchema}. Instead, they use dynamic schema. This provides more flexibility in the shape of data that can be stored in the database; it also allows the types of nodes stored to evolve over time. The downside of this is that it requires additional typing checks at run-time. This also fails to fit into our definition of type-safety, since we have no guarantees about any objects extracted from the database. I have instead opted for a rigid schema which is built using Scala objects and is checked by the Scala compiler at compile-time.
@@ -248,9 +497,11 @@ Typically, database systems have their own query language, the most ubiquitous o
 In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. By utilising structure sharing, the impact of storing views can be mitigated.
 
 \begin{figure}[ht]
-\centering
-  \includegraphics[width=\textwidth]{figs/readsWrites.png}
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/readsWrites2.png}
   \caption{An example of reads and writes to an initial view. Separate reads and writes do not interfere with each other.}
+
+\end{center}
   \label{fig:ReadsWrites}
 \end{figure}
 
@@ -2064,8 +2315,10 @@ $$\mbox{then}$$
 \denoRule{(a,b)}{Upto(m + 1, P')} & \Leftrightarrow (a, b) \in f^{m+1} \deno{Id_A} \\
 							  & \Leftrightarrow (a, b) \in (join(\deno{P'}, f^{m} \deno{Id_A}) \cup f^{m} \deno{Id_A})\\ 
 							  & \Leftrightarrow (a, b) \in join(\deno{P'}, \deno{Upto(m, P)}) \vee (a, b) \in \deno{Upto(m, P')}\\ 
-							  & \Leftrightarrow (\exists a'.\denoRule{(a, a')}{P'} \wedge \denoRule{(a', b)}{Upto(m, P')}) \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
-							  & \Leftrightarrow (\exists a'.\opRule{(a, a')}{(A, A)}{P'} \wedge \opRule{(a', b)}{(A, A)}{Upto(m, P')}) \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
+							  & \Leftrightarrow (\exists a'.\denoRule{(a, a')}{P'} \wedge \denoRule{(a', b)}{Upto(m, P')}) \\
+							  & \indent \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
+							  & \Leftrightarrow (\exists a'.\opRule{(a, a')}{(A, A)}{P'} \wedge \opRule{(a', b)}{(A, A)}{Upto(m, P')}) \\
+							  & \indent \vee \opRule{(a, b)}{(A, A)}{Upto(m, P')}\\ 
 							  & \Leftrightarrow \opRule{(a, b)}{(A, A)}{Upto(m+1, P')}\mbox{   by (Upto n+1), (Upto n)}
 \end{split}
 \end{equation}
