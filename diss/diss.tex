@@ -36,10 +36,6 @@ p.16 Figure 2.3 again this looks like a bitmap and needs tidying (removal of whi
 
 I might be tempted to use the phrase "reproduced from Angles et al[5]"
 
-Looking at your Bibliography, I would try to ensure that full references are used rather than pointers to web-pages and ArXiv, i.e. if papers have been published at conferences or in journals reference these.
-
-Even reference 12 looks short, e.g. who was the publisher?
-
 Chapter 3. - Implementation
 
 p.50/51 has this table got a label? 
@@ -473,7 +469,7 @@ And similarly with single queries
 &\deno{OrS(S, S')} = \deno{S} \cup \deno{S'} \\[3ex]
 \end{align}
 with the following definitions:
-\[ swap(s) = \setComp{(b,a)}{(a, b) \i s}\]
+\[ swap(s) = \setComp{(b,a)}{(a, b) \in s}\]
 \[ dup(s) = \setComp{(a,a)}{a \in s}\]
 \[ join(p, q) = \setComp{(a, c)}{ \exists b. (a, b) \in p \wedge (b, c) \in q}\]
 \[ distinct(s) = \setComp{(a, b) \in s} { a \neq b} \]
@@ -1642,7 +1638,8 @@ Where
 \texttt{(coactorWith(KevinBacon) \& coactorWith(TomCruise));}\\\\
 \texttt{(coactorWith(KevinBacon) \& coactorWith(TomCruise) \& }\\\texttt{coactorWith(TomHanks));}\\\\
 Where\\
-\texttt{def coactorWith(a: Person) = ActsIn --> (a >> ActsIn) <-- ActsIn} \\
+\texttt{def coactorWith(a: Person) = }\\
+\texttt{ActsIn --> (a >> ActsIn) <-- ActsIn} \\
 }{ 
  \reference 			&   879,984 & 1 \\
  \cse 					&	827,734 & 0.941	\\
@@ -1660,7 +1657,8 @@ Where\\
 \texttt{(coactorWith(KevinBacon) | coactorWith(TomCruise));}\\\\
 \texttt{(coactorWith(KevinBacon) | coactorWith(TomCruise) |}\\\texttt{coactorWith(TomHanks));}\\\\
 Where\\
-\texttt{def coactorWith(a: Person) = ActsIn --> (a >> ActsIn) <-- ActsIn} \\
+\texttt{def coactorWith(a: Person) = }\\ 
+\texttt{ActsIn --> (a >> ActsIn) <-- ActsIn} \\
 }{ 
  \reference 			&   853,664 & 1 \\
  \cse 					&	824,799 & 0.966	\\
@@ -1725,7 +1723,8 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			
 				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides significant speed-ups, such as 225x on the other LMDB backends and 1.5x over postgres.
 				\resultTable{Upto}{10}{
-				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(0 --> index.i);}
+				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
+				\texttt{0 --> index.i);}
 }{ 
  \reference 			&  	126,448 	& 1 \\
  \cse 					&	28,491,910 	& 225 \\
@@ -2297,8 +2296,9 @@ Firstly, we have by inversion of the type rules for $Chain$ and $Or$ that:
 From the denotations of $Chain$ and $Or$, we have
 \begin{equation}\label{denotationalEquality}
 \begin{split}
-\deno{Chain(P, Or(Q, R))} & = \setComp{(a, c)}{\exists b. \denoRule{(a, b)}{P} \wedge (b,c) \in (\deno{Q} \cup \deno{R}})\\
-						 & = \setComp{(a, c)}{\exists b. (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{Q}) \vee (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{R})}\\
+\deno{Chain(P, Or(Q, R))} & = \setComp{(a, c)}{\exists b. \denoRule{(a, b)}{P} \wedge (b,c) \in (\deno{Q} \cup \deno{R})}\\
+						 & = \left\lbrace(a, c) \mid \exists b. (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{Q}) \right.\\
+						 & \left.\indent \vee (\denoRule{(a, b)}{P} \wedge \denoRule{(b,c)}{R}) \right\rbrace \\
 						 & = \deno{Chain(P, Q)} \cup \deno{Chain(P, R)}\\
 						 & = \deno{Or(Chain(P, Q), Chain(P, R))}
 \end{split}
@@ -2315,7 +2315,8 @@ Thanks to the previous section, we can now rewrite the denotation of $upto$.
 \label{UptoToExactly}
 \begin{split}
 \deno{Upto(n, P)} & = (\lambda pairs. join(\deno{P}, pairs) \cup pairs)^n \deno{Id_A}\\
-				  & = (\lambda pairs. join(\deno{P} \cup \deno{Id_A}, pairs)^n \deno{Id_A} \mbox{ Since $Id_A$ is the identity of join}\\
+& = (\lambda pairs. join(\deno{P}, pairs) \cup join(\deno{Id_A}, pairs))^n \deno{Id_A}\\
+				  & = (\lambda pairs. join(\deno{P} \cup \deno{Id_A}, pairs)^n \deno{Id_A}\\
 				  & = \deno{Exactly(n, Or(P, Id_A))}
 \end{split}
 \end{equation}
@@ -2790,15 +2791,20 @@ Here, I attach an example of a \codeName{SchemaObject} subclass. This is a semi-
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
 \begin{verbatim}
-abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeable[A2]) extends SchemaObject[A] {
+abstract class SchemaObject2[A, A1, A2](
+  implicit s1: Storeable[A1],
+           s2: Storeable[A2]
+) extends SchemaObject[A] {
   // Methods to design
   def construct(a1: A1, a2: A2): A
   override def name: TableName
   def toTuple(a: A): SchemaObject[A] =>  DBTuple2[A, A1, A2]
 
   // Predefined methods
-  final def any: Pattern[A] = Pattern2[A, A1, A2](name, this, None, None)
-  final override def schemaComponents: Vector[SchemaComponent] = any.toSchemaComponent
+  final def any: Pattern[A] =
+    Pattern2[A, A1, A2](name, this, None, None)
+  final override def schemaComponents: Vector[SchemaComponent] = 
+    any.toSchemaComponent
   final override def findable(a: A): DBTuple[A] = toTuple(a)(this)
   final override def fromRow(row: DBObject): ExtractError \/ A =
     if (row.fields.length == 2) {
@@ -2807,8 +2813,15 @@ abstract class SchemaObject2[A, A1, A2](implicit s1: Storeable[A1], s2: Storeabl
         a2 <- s2.get(row.fields(1))
       } yield construct(a1, a2)
     } else LengthMismatch(row.fields.length, 2).left
-  final def pattern(o1: Option[A1], o2: Option[A2]): Pattern2[A, A1, A2] = Pattern2[A, A1, A2](name, this, o1, o2)
-  final protected def buildDBTuple(a1: A1, a2: A2)(sa: SchemaObject[A])  = DBTuple2(sa.name, sa, a1, a2)
+  final def pattern(
+    o1: Option[A1],
+    o2: Option[A2]
+  ): Pattern2[A, A1, A2] =
+    Pattern2[A, A1, A2](name, this, o1, o2)
+  final protected def buildDBTuple(a1: A1, a2: A2)(
+    sa: SchemaObject[A]
+  ) =
+    DBTuple2(sa.name, sa, a1, a2)
 }
 \end{verbatim}
 \end{framed}
@@ -2818,10 +2831,13 @@ An example implementation might be the following.
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
 \begin{verbatim}
-  implicit def movieSchema = new SchemaObject2[Movie, String, String] {
-    override def construct(name: String, language: String): Movie = Movie(name, language)
-    override def name: TableName = TableName("Movies")
-    override def toTuple(a: Movie): SchemaObject[Movie] => DBTuple2[Movie, String, String] = buildDBTuple(a.name, a.language)
+implicit def movieSchema = new SchemaObject2[Movie, String, String] {
+  override def construct(name: String, language: String): Movie =
+    Movie(name, language)
+  override def name: TableName = TableName("Movies")
+  override def toTuple(a: Movie):
+    SchemaObject[Movie] => DBTuple2[Movie, String, String] =
+      buildDBTuple(a.name, a.language)
   }
 \end{verbatim}
 \end{framed}
