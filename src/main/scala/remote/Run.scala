@@ -19,8 +19,8 @@ object Run {
       None
     )
 
-    // tester.runTest(Conjunctions)
-    // tester.runTest(Disjunctions)
+    // tester.runTest(Intersections)
+    // tester.runTest(Unions)
     tester.runTest(ExactlyPairs)
     // tester.runTest(ExactlyTest)
     /*

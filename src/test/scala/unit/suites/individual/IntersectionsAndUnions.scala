@@ -11,15 +11,15 @@ import scalaz._, Scalaz._
 
 import scala.concurrent.ExecutionContext
 
-trait IntersectionsAndDisjunctions[E1 <: E] { self: HasBackend[E1] =>
+trait IntersectionsAndUnions[E1 <: E] { self: HasBackend[E1] =>
 
   /**
-    * Test that Intersections and disjunctions work
+    * Test that Intersections and unions work
     */
 
 
   @Test
-  def IntersectionsAndDisjunctions(): Unit = runTest { implicit instance =>
+  def intersectionsAndUnions(): Unit = runTest { implicit instance =>
     val expectedUnion = Set(
       Alice -> Charlie,
       Alice -> Charlie,

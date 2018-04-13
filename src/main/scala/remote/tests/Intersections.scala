@@ -13,12 +13,12 @@ import remote.util.{TestIndex, TestName, TestSpec}
 
 import scala.concurrent.ExecutionContext
 
-object Disjunctions extends TestSpec[Set[(Person, Person)]]{
-  override def testName: TestName = "Disjunctions".test
+object Intersections extends TestSpec[Set[(Person, Person)]]{
+  override def testName: TestName = "Intersections".test
 
   override def batchSize: TestIndex = 120.tests
 
-  override  def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
+  override def setup[ThisE <: E](d: DBInstance[ThisE])(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Unit] =
     using(d){
       DBBuilder.buildDB("imdb/large")(d)
     }
@@ -26,13 +26,13 @@ object Disjunctions extends TestSpec[Set[(Person, Person)]]{
   private def coactorWith(a: Person) =
     ActsIn --> (a >> ActsIn) <-- ActsIn
 
-  override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE], ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] = {
+  override def test[ThisE <: E](d: DBInstance[ThisE])(index: TestIndex)(implicit R: HasRecovery[ThisE],ec: ExecutionContext): ConstrainedFuture[ThisE, Set[(Person, Person)]] = {
     implicit val inst = d
     readDefault(d) {
       (index.i % 3) match {
         case 0 => findPairs(coactorWith(KevinBacon))
-        case 1 => findPairs(coactorWith(KevinBacon) | coactorWith(TomCruise))
-        case _ => findPairs(coactorWith(KevinBacon) | coactorWith(TomCruise) | coactorWith(TomHanks))
+        case 1 => findPairs(coactorWith(KevinBacon) & coactorWith(TomCruise))
+        case _ => findPairs(coactorWith(KevinBacon) & coactorWith(TomCruise) & coactorWith(TomHanks))
       }
     }
   }

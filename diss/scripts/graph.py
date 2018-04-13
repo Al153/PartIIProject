@@ -127,13 +127,30 @@ class TestResult(object):
 		#autolabel(rects, ax)
 		plt.savefig(self.name + "Log.png")
 
+def plotBimodal(cv):
+	fig, ax = plt.subplots()
+	data = [633,633,641,639,637,634,625,642,629,641,640,629,2177,686,624,632,624,651,628,631,637,626,639,634,623,628,2456,668,646,646,636,2606,632,640,627,630,643,640,658,648,633,625,628,624,634,654,630,638,633,640,2422,635,630,625,629,2636,623,625,631,646,648,626,645,642,625,632,626,630,628,633,631,636,641,669,627,626,632,670,681,692,626,634,632,634,2191,624,629,631,636,2484,627,638,633,626,2532,628,627,635,631,2611,628,627,628,662,705,633,622,625,636,664,624,636,624,624,635,640,631,628,643,626,628,650,632,626,631,622,639,629,627,640,626,635,625,681,625,632,634,633,631,626,624,639,647,2615,627,636,647,625,2383,634]
+	import numpy as np
+	from scipy.stats import gaussian_kde
+	density = gaussian_kde(data)
+	xs = np.linspace(0,3000,1000)
+	density.covariance_factor = lambda : cv
+	density._compute_covariance()
+	plt.plot(xs,density(xs))
+	ax.set_ylabel("Density")
+	ax.set_xlabel("JoinSpeed 'And' query Latency (ms)")
+	ax.set_title("Latency Density for LMDB Optimised")
+	plt.savefig("LatencyDensity.png")
+
+
+
 if __name__ == '__main__':
 	from matplotlib import rcParams
 	rcParams.update({'figure.autolayout': True})
 
 	redundancy = TestResult("Redundancy", ref = 381972, cse = 379280, batched = 9318741)
-	conjunctions = TestResult("Conjunctions", ref = 879984, cse = 827734, batched = 791678, postgres = 106165)
-	disjunctions = TestResult("disjunctions", ref = 853664, cse = 824799, batched = 800455, postgres = 112488)
+	conjunctions = TestResult("Intersections", ref = 879984, cse = 827734, batched = 791678, postgres = 106165)
+	disjunctions = TestResult("Unions", ref = 853664, cse = 824799, batched = 800455, postgres = 112488)
 	exactly = TestResult("ExactlyTest", ref = 1752, cse = 1798, batched = 1513, postgres = 102461)
 	exactlyPairs = TestResult("ExactlyPairs", ref = 83269, cse = 1792388, batched = 1787390, postgres = 107797)
 	upto = TestResult("Upto", ref = 126448, cse = 28491910, batched = 28423658, postgres = 197880)
@@ -152,3 +169,5 @@ if __name__ == '__main__':
 	upto.plotLog()
 	uptoLarge.plot()
 	joinSpeed.plot()
+
+	plotBimodal(0.05)

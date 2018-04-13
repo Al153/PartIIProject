@@ -8,7 +8,7 @@ import unit.suites.individual._
   */
 trait FullSuite[E1 <: E] extends HasBackend[E1]
   with Duplicates[E1]
-  with IntersectionsAndDisjunctions[E1]
+  with IntersectionsAndUnions[E1]
   with ReadWrite[E1]
   with Transitive[E1]
   with Repetition[E1]

@@ -15,15 +15,16 @@
 \contentsline {figure}{\numberline {3.8}{\ignorespaces By reordering joins, we gain significant common substructure to eliminate.}}{60}{figure.3.8}
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{65}{figure.4.1}
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for conjunction queries}}{66}{figure.4.2}
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for disjunction queries}}{67}{figure.4.3}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for intersection queries}}{66}{figure.4.2}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for union queries}}{67}{figure.4.3}
 \contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt {Exactly} queries}}{68}{figure.4.4}
 \contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt {Exactly} queries}}{69}{figure.4.5}
 \contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt {FindPair} queries}}{70}{figure.4.6}
 \contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt {Upto} queries}}{71}{figure.4.7}
 \contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt {Upto} queries}}{72}{figure.4.8}
 \contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for large \texttt {Upto} queries}}{73}{figure.4.9}
-\contentsline {figure}{\numberline {4.10}{\ignorespaces Read performance for Join-Speed queries}}{74}{figure.4.10}
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Overall read performance for Join-Speed queries}}{74}{figure.4.10}
+\contentsline {figure}{\numberline {4.11}{\ignorespaces The distribution of values for the \textit {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. }}{75}{figure.4.11}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

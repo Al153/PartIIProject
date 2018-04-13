@@ -160,7 +160,7 @@ Ok there are lots, chat to Tim about this. Normally, we don't rely on tables/fig
 \newcommand\codeName[1]{\texttt{#1}}
 \newcommand\term[1]{\texttt{#1}}
 \newcommand\note[1]{\textit{#1}}
-\newcommand\mathName[1]{\textcolor{pink}{#1}}
+\newcommand\mathName[1]{\textit{#1}}
 
 \newcommand{\reference}{LMDBOptimised}
 \newcommand{\batched}{LMDBatched}
@@ -186,6 +186,26 @@ Ok there are lots, chat to Tim about this. Normally, we don't rely on tables/fig
 	\end{tabular}
 \end{center}
 
+}
+
+\newcommand{\jsTable}[4]{
+\begin{center}
+	\begin{tabular}{ |p{3cm}||p{3cm}|p{4cm}||p{2cm}|  }
+ 	\hline
+ 		Name & \multicolumn{3}{|c|}{#1} \\
+ 	\hline
+ 		Iterations & \multicolumn{3}{|c|}{#2} \\
+ 	\hline
+ 		Queries & \multicolumn{3}{|c|}{
+ 		\begin{tabular}{@{}c@{}}
+			#3 		
+ 		\end{tabular}
+ 	} \\ 	\hline
+ 		implementation & 	median \codeName{And} (ms) & median \codeName{Join} (ms) & Ratio\\ \hline
+		#4
+ 	\hline
+	\end{tabular}
+\end{center}
 }
 
 \newcommand\either[0]{\textbackslash/}
@@ -1763,9 +1783,9 @@ private def repeat(
 
 \chapter{Evaluation}
 \section{Unit Tests}
-The correctness of each backend is tested using a suite of 45 unit tests which verify adherence to semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again.
+The correctness of each backend is tested using a suite of 45 unit tests which verify adherence to the specified semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again. These tests provide good evidence that all the implemented backends are correct in the small.
 \section{Performance Tests}
-	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation. The LMDB implementation was able to do indexing faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses are the same.
+	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation, which shares the same interpreter model. The LMDB implementation was able to index faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses for interpretation are the same.
 	\subsection{Hardware}
 	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the backends ran off of an SSD.
 	\todo{Oslo Specs}
@@ -1846,17 +1866,17 @@ The objects in the database are as follows:
 		
 		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. The graph has 1562 nodes and 3571 \codeName{Beat} relations.
 	\subsection{Test Harness}
-	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate backends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included.
+	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate backends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics.
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
-		An overall view of the results is that, as might be expected, the SQL implementation is the fastest over short, indexing heavy, queries, with the most aggressively optimised LMDB implementation typically performing slightly worse than less aggressively optimised LMDB implementations due to the overheads of optimisation. However, when queries expose the redundancies noted in the preceding sections, significant speed ups can be seen, both over the other LMDB implementations and over SQL. This can particularly be seen in the cases of \codeName{FindPair} transitive queries.
+		An overall view of the results is that, as might be expected, the SQL implementation is the fastest over short, indexing heavy, queries. The most aggressively optimised LMDB implementation typically performing slightly worse than those with fewer optimisations over these queries. This likely due to the overheads of generating the memo. However, when longer graph queries expose the redundancies noted in the preceding sections, speed ups of orders of magnitude can be seen over both the other LMDB implementations and over SQL. This can particularly be seen in the cases of \codeName{FindPair} transitive queries.
 
-		A point to note is that I am ignoring evaluation of pathfinding queries. For simplicity, the pathfinding implementation re-evaluates the underlying search function query at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched, but this complicates the SQL implementation significantly (clearing up on error becomes a lot harder). Hence, I am ignoring the pathfinding tests for the purpose of backend comparison.
+		A point to note is that I am ignoring evaluation of pathfinding queries. For simplicity, the pathfinding implementation re-evaluates the underlying step function query at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched. However, this would complicate the SQL implementation, since clearing up on error would require validating state. Hence, I am ignoring the pathfinding tests for the purpose of backend comparison.
 
 
-		\paragraph{Redundancy}
-			This test is to demonstrate the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, and ends up running out of temporary space on this query.
+\paragraph{Redundancy}
+This first test demonstrates the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, Hence it ends up running out of temporary disk space on this query.
 				
 \resultTable{Redundancy}{4 each}{
 \texttt{KevinBacon >> coactor;}\\\\
@@ -1881,10 +1901,10 @@ Where
   \label{fig:RedundancyResult}
 \end{figure}
 
-		\paragraph{Conjunctions and Disjunctions}
-	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The postgres implementation significantly outperformed all LMDB implementations, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reason for this is that there is still not a large amount of redundancy exposed by the underlying sub queries, and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by Postgres. In addition, constructing a conjunction and disjunction over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
+		\paragraph{Intersections and Unions}
+	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The Postgres implementation comfortably outperformed all LMDB implementations across this index-heavy test, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reasons for this are that the redundancy exposed by the underlying sub queries is limited and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by Postgres. In addition, constructing an intersection and union over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
 
-\resultTable{Conjunctions}{40 each}{
+\resultTable{Intersections}{40 each}{
 \texttt{(coactorWith(KevinBacon));}\\\\
 \texttt{(coactorWith(KevinBacon) \& coactorWith(TomCruise));}\\\\
 \texttt{(coactorWith(KevinBacon) \& coactorWith(TomCruise) \& }\\\texttt{coactorWith(TomHanks));}\\\\
@@ -1899,12 +1919,12 @@ Where\\
 }
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/Conjunctions.png}
-  \caption{Read performance for conjunction queries}
-  \label{fig:ConjunctionResults}
+  \includegraphics[width=\textwidth]{scripts/Intersections.png}
+  \caption{Read performance for intersection queries}
+  \label{fig:IntersectionResults}
 \end{figure}
 
-					\resultTable{Disjunctions}{40 each}{\texttt{(coactorWith(KevinBacon));} \\\\
+					\resultTable{Unions}{40 each}{\texttt{(coactorWith(KevinBacon));} \\\\
 \texttt{(coactorWith(KevinBacon) | coactorWith(TomCruise));}\\\\
 \texttt{(coactorWith(KevinBacon) | coactorWith(TomCruise) |}\\\texttt{coactorWith(TomHanks));}\\\\
 Where\\
@@ -1919,16 +1939,16 @@ Where\\
  
  \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/Disjunctions.png}
-  \caption{Read performance for disjunction queries}
-  \label{fig:DisjunctionResults}
+  \includegraphics[width=\textwidth]{scripts/Unions.png}
+  \caption{Read performance for union queries}
+  \label{fig:UnionResults}
 \end{figure}
 
 		\paragraph{Tests that involve repetitions}
-		These are a suite of benchmarks for testing the optimisations and performance on repetitive queries. A general overview is that the join-reordering optimisations strongly sped up benchmarks which ran \codeName{FindPairs} queries, but in \codeName{FindSingles} queries, the overhead of this formulation did not compete as strongly with the fast \codeName{SimpleFixedPointTraversal} methods. SQL performed strongly in \mathName{Upto} queries which use built in, optimised, recursive CTEs to calculate results, but less strongly in \mathName{Exactly} queries which do not have a built-in formulation.
+		These are a suite of benchmarks for testing the optimisations and performance on repetitive queries. A general overview is that the join-reordering optimisations strongly sped up benchmarks which ran \codeName{FindPair} queries. However, in \codeName{FindSingle} queries this formulation did not compete as strongly with the fast \codeName{SimpleFixedPointTraversal} methods. SQL performed strongly in \mathName{Upto} queries which use built in, optimised, recursive CTEs to calculate results, but less strongly in \mathName{Exactly} queries which do not have a built-in formulation.
 
 			\subparagraph{Exactly Test}
-			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join optimisations in the optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
+			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join reordering in the mpst optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
 	\resultTable{Exactly}{50}{
 	\texttt{TomHanks >> (}\\
 	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10);}	\\
@@ -1954,7 +1974,7 @@ Where\\
   \label{fig:ExactlyTestLog}
 \end{figure}
 			\subparagraph{Exactly Pairs}
-This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} query over the small movies database. Since this test involves keeping track of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations based on generic algorithm. Postgres also performs well in this test, will minimal slowdown from the find single queries. The LMDB implementations, however, do experience a slowdown.
+This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly} query over the small movies database. Since this test involves bookkeeping of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations which use the generic algorithm. Postgres also performs well in this test, showing minimal slowdown from the \codeName{FindSingle}queries. The LMDB implementations, however, do experience a slowdown from \codeName{FindPair}.
 	\resultTable{ExactlyPairs}{50}{
 	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10));}}{ 
  \reference 			&  	83,269 		& 1 \\
@@ -1971,8 +1991,7 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 \end{figure}
 
 			\subparagraph{UptoTest}
-			
-				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides significant speed-ups, such as 225x on the other LMDB backends and 1.5x over postgres.
+				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides a significant speed-up, such as 225x on the other LMDB backends and 1.5x over Postgres.
 				\resultTable{Upto}{10}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> index.i);}
@@ -1999,7 +2018,7 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 			\subparagraph{UptoLarge}
 			
 				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance.
-				\resultTable{Upto}{10}{
+				\resultTable{Upto}{100}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> (index.i \% 10)}\\
 				\texttt{);}}{ 
@@ -2015,25 +2034,34 @@ This test instead runs a \codeName{FindPair} variable length \mathName{Exactly} 
 \end{figure}
 	
 			\paragraph{JoinSpeed}
-				This test is  to demonstrate the cost of joins, we interleave queries that calculate two subqueries and then combine them using, firstly, a relatively fast And and, secondly, instead, a higher complexity join. In theory, the difference between these two types of queries should give us an idea of the cost of a join.
-			\resultTable{Join Speed}{150 each}{
+				This test is  to demonstrate the cost of joins. We interleave queries that calculate two subqueries and then combine them. For half of the queries, the \codeName{And} operator is used, which is assumed to be fast. For the other half, a \codeName{Chain} is used. In theory, the difference between these two types of queries should give us an idea of the cost of a join.
+			\jsTable{Join Speed}{150 each}{
 			\texttt{(ActsIn --><-- ActsIn) \& (ActsIn --><-- ActsIn);}\\\\
 \texttt{(ActsIn --><-- ActsIn) -->--> (ActsIn --><-- ActsIn);}
 			}{
-			\reference   	& 	368,320 & 1 	\\
- 			\cse 			&   525,992 & 1.43   	\\
-			\batched 		&	543,909 & 1.48	\\
-			\postgres    	&	289,352 & 0.786	\\}
+			\reference   	& 	633 & 1,443 & 2.28 	\\
+ 			\cse 			&   884 & 2,285 & 2.58   	\\
+			\batched 		&	953 & 2,028 & 2.12	\\
+			\postgres    	&	345 & 1,557 & 4.51	\\}
 			
 \begin{figure}[ht]
 \centering
   \includegraphics[width=\textwidth]{scripts/JoinSpeed.png}
-  \caption{Read performance for Join-Speed queries}
+  \caption{Overall read performance for Join-Speed queries}
   \label{fig:JoinSpeedResults}
 \end{figure}
-						\todo{More detail}
+There are some things to note from these figures. Firstly, around 7\% of the LMDB times are consistently around 1000-2000ms larger than the rest of the values. This can be seen in figure \ref{fig:LatencyDensity}. I have yet been unable to determine if this is is due to the LMDB datastore itself or if there is another background task interfering. As a result of this bimodal distribution, erroneously large standard deviation values occured. Hence, I have used the median latencies of queries instead of mean.
+
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=\textwidth]{scripts/LatencyDensity.png}
+  \caption{The distribution of values for the \mathName{And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. }
+  \label{fig:LatencyDensity}
+\end{figure}
+
+The data suggests that Postgres can execute index and intersection queries very quickly but suffers when join queries are used. The join-optimised LMDB implementation shows itself again to be the best at removing redundancy among the LMDB implementations.
 			\paragraph{Closing Thoughts}
-			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. An option to produce a performant back-end might be to produce heuristics for estimating graph density and the relative performance of the various LMDB backends upon it to create an adaptive backend. Since all the LMDB backends use the same underlying database format (indeed the code for constructing and writing to the database remains the same), a backend could choose at query time which strategy it wants to use to execute each individual query.
+			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. The results lend themselves to the idea of constructing an adaptive backend that chooses its interpretation strategy based on heuristics of the performance of given queries. These performance statistics also show that specialised graph engines can easily outstrip the performance of generalised relational databases over particular queries within the domain.
 
 
 	
@@ -2046,13 +2074,13 @@ To the best of my knowledge, the graph database system I have built over the las
 Interesting extensions to the core project that, given more time, I would have been interested to explore include
 \begin{itemize}
  \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by how large the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
- \item The implementation of deletions and garbage collection of unused views of the database. Garbage collection in particular might be difficult, as the database is not required to store any state about client instances.
+ \item The implementation of deletions and garbage collection of unused views in the database. Garbage collection in particular might be difficult, as the database is not required to store any state about client instances.
  \item Exploration of  improvement of the schema system using a dependent types library, such as shapeless.
  \item Rewriting the lowest layer of the LMDB backends' interpreters in C or another low level language to extract maximum performance from the LMDB system, without having to construct Scala collections at every step.
 \end{itemize}
 
 \section{Lessons learned}
-	In hindsight, I might aimed to build a narrower project, focusing on a single backend and comparing  performance against a widely used graph database such as Neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and really digging down to extract all redundancy.
+	With hindsight, I might aimed to build a narrower project, focusing on a single backend and comparing  performance against a widely used graph database such as Neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and truly digging down to exploit all redundancy.
 
 \section{Concluding Thoughts}
 I hope for another chance to explore this space as I feel there are still many areas worth investigating.
@@ -2957,7 +2985,7 @@ Becomes
 \end{framed}
 \renewcommand{\baselinestretch}{1.1}
 
-\section{Conjunction and Intersection}
+\section{Union and Intersection}
 There exists simple syntax on both \codeName{FindSingle} and \codeName{FindPair} queries to form unions and intersections.
 Assuming $\typeRule{Directs}{Person, Movie}$ and Bob is a \codeName{Person}, we can form the following.
 
