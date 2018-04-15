@@ -272,7 +272,7 @@ Name:               & \bf Alexander Taylor                       \\
 College:            & \bf St John's College                     \\
 Project Title:      & \bf \projectTitle  \\
 Examination:        & \bf Computer Science Tripos -- Part II, June 2018  \\
-Word Count:         & \bf   \\
+Word Count:         & \bf \todo{todo}   \\
 Project Originator: & Adapted from a project proposal by Dr Eiko Yoneki                    \\
 Supervisor:         & Dr Timothy Jones                    \\ 
 \end{tabular}
@@ -2046,11 +2046,11 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 			
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/JoinSpeed.png}
+  \includegraphics[width=\textwidth]{scripts/joinspeedComp.png}
   \caption{Overall read performance for Join-Speed queries}
   \label{fig:JoinSpeedResults}
 \end{figure}
-There are some things to note from these figures. Firstly, around 7\% of the LMDB times are consistently around 1000-2000ms larger than the rest of the values. This can be seen in figure \ref{fig:LatencyDensity}. I have yet been unable to determine if this is is due to the LMDB datastore itself or if there is another background task interfering. As a result of this bimodal distribution, erroneously large standard deviation values occured. Hence, I have used the median latencies of queries instead of mean.
+There are some things to note from these figures. Firstly, around 7\% of the LMDB times are consistently around 1000-2000ms larger than the rest of the values. This can be seen in figure \ref{fig:LatencyDensity}. I have yet been unable to determine if this is is due to the LMDB datastore itself or if there is another background task interfering. As a result of this bimodal distribution, erroneously large standard deviation values occured. Hence, I have used the median latencies of queries instead of mean. The data suggests that Postgres can execute index and intersection queries very quickly but suffers when join queries are used. The join-optimised LMDB implementation shows itself again to be the best at removing redundancy among the LMDB implementations.
 
 \begin{figure}[ht]
 \centering
@@ -2059,7 +2059,7 @@ There are some things to note from these figures. Firstly, around 7\% of the LMD
   \label{fig:LatencyDensity}
 \end{figure}
 
-The data suggests that Postgres can execute index and intersection queries very quickly but suffers when join queries are used. The join-optimised LMDB implementation shows itself again to be the best at removing redundancy among the LMDB implementations.
+
 			\paragraph{Closing Thoughts}
 			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. The results lend themselves to the idea of constructing an adaptive backend that chooses its interpretation strategy based on heuristics of the performance of given queries. These performance statistics also show that specialised graph engines can easily outstrip the performance of generalised relational databases over particular queries within the domain.
 

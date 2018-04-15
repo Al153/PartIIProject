@@ -142,6 +142,25 @@ def plotBimodal(cv):
 	ax.set_title("Latency Density for LMDB Optimised")
 	plt.savefig("LatencyDensity.png")
 
+def plotJoinSpeed(ref, cse, batched, postgres):
+	fig, ax = plt.subplots()
+	names = ["Ref (And)", "Ref (Join)" , "CSE (And)", "CSE(Join)", "Batched (And)", "Batched (Join)", "Postgres (And)", "Postgres (Join)"]
+	values = ref + cse  + batched + postgres
+	colours = "rrggccbb"
+	ind = np.arange(len(names))
+	width = 0.35
+	rects = ax.bar(ind, values, width, color='r')
+	ax.set_ylabel("Median Time to Execute")
+	ax.set_title("Back-End performance on JoinSpeed queries")
+	ax.set_xticks(ind + width/2)
+	ax.set_xticklabels(names)
+	plt.xticks(rotation=45)
+
+	for i in range(len(colours)):
+		rects[i].set_color(colours[i])
+		#autolabel(rects, ax)
+	plt.savefig("joinspeedComp.png")
+
 
 
 if __name__ == '__main__':
@@ -171,3 +190,5 @@ if __name__ == '__main__':
 	joinSpeed.plot()
 
 	plotBimodal(0.05)
+
+	plotJoinSpeed([633, 1443], [884, 2285], [953, 2028], [345, 1557])
