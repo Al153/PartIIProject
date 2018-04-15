@@ -64,8 +64,8 @@
 \BOOKMARK [2][-]{subsection.3.11.1}{Common}{section.3.11}% 64
 \BOOKMARK [2][-]{subsection.3.11.2}{Original LMDB Implementation}{section.3.11}% 65
 \BOOKMARK [2][-]{subsection.3.11.3}{Batched}{section.3.11}% 66
-\BOOKMARK [2][-]{subsection.3.11.4}{Common Subexpression Elimination}{section.3.11}% 67
-\BOOKMARK [2][-]{subsection.3.11.5}{Complex Common Subexpression Elimination}{section.3.11}% 68
+\BOOKMARK [2][-]{subsection.3.11.4}{Common Sub-Expression Elimination}{section.3.11}% 67
+\BOOKMARK [2][-]{subsection.3.11.5}{Complex Common sub-expression Elimination}{section.3.11}% 68
 \BOOKMARK [0][-]{chapter.4}{Evaluation}{}% 69
 \BOOKMARK [1][-]{section.4.1}{Unit Tests}{chapter.4}% 70
 \BOOKMARK [1][-]{section.4.2}{Performance Tests}{chapter.4}% 71
