@@ -67,8 +67,8 @@
 \contentsline {subsection}{\numberline {3.9.4}Writes}{46}{subsection.3.9.4}
 \contentsline {subsection}{\numberline {3.9.5}Storage}{46}{subsection.3.9.5}
 \contentsline {subsection}{\numberline {3.9.6}Mutability}{46}{subsection.3.9.6}
-\contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{47}{subsection.3.9.7}
-\contentsline {section}{\numberline {3.10}PostgreSQL backend}{47}{section.3.10}
+\contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{46}{subsection.3.9.7}
+\contentsline {section}{\numberline {3.10}PostgreSQL backend}{46}{section.3.10}
 \contentsline {subsection}{\numberline {3.10.1}Table Structure}{47}{subsection.3.10.1}
 \contentsline {paragraph}{Control Tables}{47}{section*.25}
 \contentsline {paragraph}{Schema defined Tables}{47}{section*.26}

@@ -1265,7 +1265,7 @@ Finally, the FixedPoint take a departure from the parallel implementations above
 \[
 A\mbox{ }join\mbox{ }B = \setComp{(a, c)}{\exists b. (a, b) \in A \wedge (b, c) \in B}
 \]	
-I have implemented a simple hash-join \cite{HashJoins}. This operates by first assuming that the size of distinct leftmost elements in the right set is smaller (known to be a subset of, due to the left-optimisation of backends) than the rightmost elements of the left set. We then build a mutable map to index leftmost values to rightmost values. We then traverse the left set and for each pair generate all new joined pairs, using a \codeName{flatmap} to collect the values into one set. An issue with this approach is that we have to build the index upon each join call, an issue that is addressed later.
+I have implemented a simple hash-join\cite{HashJoins}. This operates by first assuming that the size of distinct left-most elements in the right set is smaller (it is infact known to be a subset due to the left-optimisation of backends) than the right-most elements of the left set. Next we build a hash-map index of the right set. We then traverse the left set, looking up right-most-values in the index, to complete the join. An issue with this approach, addressed later, is that we have to build the index upon each \codeName{join} call.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1293,7 +1293,7 @@ I have implemented a simple hash-join \cite{HashJoins}. This operates by first a
 \renewcommand{\baselinestretch}{1.1}
 
 \section{Views and Commits}
-In the memory backend, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other backends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that with the operation monad model, each view only has one direct predecessor, forming a tree where we are only interested in the path back to the root from a given node. From this insight, we can think of each new view only needing to store a difference against its parent. Since the current design of the database only allows the addition of values and not deletion, this difference is only going to be positive. Hence, we can store all the added values between two views in a container called a \codeName{Commit}. As an optimisation, we can disregard the parent view, and simply store each view as a collection of its commits. This would also allow us to implement deletion if desired. This would be done by removing commits in a view that are to be modified, and replacing them with a new commit containing the contents of those commits, excluding the deleted values.
+In the memory back-end, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other back-ends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that within the operation monad model, each view only has one direct predecessor. We can think of the database as a tree of views with edges representing the successor relation. The path from the root view to a given view can be seen as the operations that generated the view. In this model, if the parent is known, then a child may be defined by the differences between the two. As the database only allows for updates and not deletions, this difference will always be a collection of relations and objects that were added. This collection can be wrapped up in a container called a \codeName{Commit}. At this point, we can disgard the ancestors of a view and see a view as the collection of commits that generated it. This model also allows deletions and overwrites if desired; a commit containing deleted values may be replaced with a new commit which differs only by ot including the deleted values.
 
 \section{Memory Backend}
 The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages or libraries as in the SQL and LMDB backends.)
@@ -1309,14 +1309,51 @@ The first backend that I have implemented is a simple, naive memory-based backen
 
 	
 	\subsection{Reads}
-Reads occur by simply walking over the ADTs recursively, following the denotational semantics. The only real departures from the denotational semantics are the Left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables). This interpreter can be found in appendix \ref{MemoryInterpreter}.
+Reads occur by simply walking over the ADT recursively, following the denotational semantics. The only real departures from the denotational semantics are the left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables). This interpreter can be found in appendix \ref{MemoryInterpreter}.
 	
 	\subsection{Left Optimisation}
-	One of the few optimisations here is the Left optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of maybe a few dozen unique rightmost values to a large query with several million unique leftmost values. The pairs of the right relation only need to be joined if their leftmost value is in the set of rightmost values of the left relation. Hence it makes sense to pre-limit our search to pairs with leftmost values in the right most value. 
+	One of the few optimisations here is the left-optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of a few dozen unique right-most values to a large query with several million unique left-most values. The pairs of the right relation only need to be joined if their left-most value is in the set of right-most values of the left relation. Hence it makes sense to limit our search to pairs with left-most values that have been seen as right-most values of the previous query. 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=\textwidth]{figs/LeftHandOptimisation.png}
-	\caption{Joining a large right hand side to a small left hand side without pruning the right hand side search results in redundant calculations. \todo{Rob, Tim, Would it be better to give explicit result tables? Does this figure make sense?}}
+	\begin{tabular}{p{5cm}p{5cm}p{5cm}}
+	\begin{tabular}{|p{1cm}|p{1cm}|}
+	    \hline
+	    A & B \\ \hline
+		1 & 1 \\
+		2 & 3 \\ \hline
+	\end{tabular} & 	\begin{tabular}{|p{1cm}|p{1cm}|}
+		\hline
+		B & C \\ \hline
+		1 & 4 \\
+		2 & 3 \\
+		3 & 5 \\
+		4 & 6 \\
+		7 & 8 \\\hline
+		
+	\end{tabular} & 	\begin{tabular}{|p{1cm}|p{1cm}|}
+		\hline A & C \\ \hline
+		1 & 4 \\
+		2 & 5 \\ \hline
+	\end{tabular} \\
+	
+	Results of a small query. & A larger query. & Join of the queries.
+	\\
+     & 	\begin{tabular}{|p{1cm}|p{1cm}|}
+		\hline
+		B & C \\ \hline
+		1 & 4 \\
+		3 & 5 \\\hline
+		
+	\end{tabular} & 	\begin{tabular}{|p{1cm}|p{1cm}|}
+		\hline A & C \\ \hline
+		1 & 4 \\
+		2 & 5 \\ \hline
+	\end{tabular} \\
+	
+	& The large query, left-optimised. & Join of the queries is unaffected.	
+	
+	\end{tabular}	
+	\caption{Joining a large right-hand-side to a small left-hand-side without pruning the search of the right-hand-side results in redundant calculations.}
 	\label{fig:LeftHandOptimisation}
 \end{figure}
 This pattern also makes an appearance in the original LMDB implementation.

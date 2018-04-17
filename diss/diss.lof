@@ -10,7 +10,7 @@
 \contentsline {figure}{\numberline {3.3}{\ignorespaces Execution of an \texttt {Exactly} query from multiple roots}}{42}{figure.3.3}
 \contentsline {figure}{\numberline {3.4}{\ignorespaces Execution of an \texttt {Upto} query from multiple roots}}{43}{figure.3.4}
 \contentsline {figure}{\numberline {3.5}{\ignorespaces The lookup procedure for objects in the memory implementation}}{45}{figure.3.5}
-\contentsline {figure}{\numberline {3.6}{\ignorespaces Joining a large right hand side to a small left hand side without pruning the right hand side search results in redundant calculations. \leavevmode {\color {red}Rob, Tim, Would it be better to give explicit result tables? Does this figure make sense?}}}{46}{figure.3.6}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Joining a large right-hand-side to a small left-hand-side without pruning the search of the right-hand-side results in redundant calculations.}}{46}{figure.3.6}
 \contentsline {figure}{\numberline {3.7}{\ignorespaces Sequential joins provide little common substructure to eliminate.}}{59}{figure.3.7}
 \contentsline {figure}{\numberline {3.8}{\ignorespaces By reordering joins, we gain significant common substructure to eliminate.}}{60}{figure.3.8}
 \addvspace {10\p@ }
