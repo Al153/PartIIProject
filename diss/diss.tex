@@ -1312,7 +1312,7 @@ The first backend that I have implemented is a simple, naive memory-based backen
 Reads occur by simply walking over the ADT recursively, following the denotational semantics. The only real departures from the denotational semantics are the left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables). This interpreter can be found in appendix \ref{MemoryInterpreter}.
 	
 	\subsection{Left Optimisation}
-	One of the few optimisations here is the left-optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of a few dozen unique right-most values to a large query with several million unique left-most values. The pairs of the right relation only need to be joined if their left-most value is in the set of right-most values of the left relation. Hence it makes sense to limit our search to pairs with left-most values that have been seen as right-most values of the previous query. 
+	One of the few optimisations here is the left-optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of a few dozen unique right-most values to a large query with several million unique left-most values. The pairs of the right relation only occur in the resulting join if their left-most value is in the set of right-most values of the left relation. Hence pairs which do not have a correct left-most value need not be computed, greatly pruning the search of more complex queries.
 \begin{figure}[ht]
 	\centering
 	\begin{tabular}{p{5cm}p{5cm}p{5cm}}
@@ -1361,7 +1361,7 @@ This pattern also makes an appearance in the original LMDB implementation.
 	Thanks to Scala's immutable collections library, updating the database is fairly easy When inserting a collection of relations, we simply add, relation by relation, each object in the relation, if it does not exist, and update the outgoing and incoming relation map of each object. This update creates new immutable object tables and a new memory tree. This is stored to the map of \codeName{ViewId}  to \codeName{MemoryTree} as a new view.
 
 	\subsection{Storage}
-	Objects are stored as \codeName{DBObject}s ad their incoming and outgoing relations in wrapper \codeName{MemoryObject}s. \codeName{MemoryObject}s  are hashed and compared by their \codeName{DBObject}s.
+	Objects are stored as \codeName{DBObject}s and their incoming and outgoing relations in wrapper \codeName{MemoryObject}s. \codeName{MemoryObject}s  are hashed and compared by their \codeName{DBObject}s.
 	
 	\subsection{Mutability}
 	The only mutability in the Memory implementation is for the views counter and the views lookup table. Access is kept transactional using a lock.
@@ -1823,7 +1823,12 @@ The correctness of each backend is tested using a suite of 45 unit tests which v
 	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation, which shares the same interpreter model. The LMDB implementation was able to index faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses for interpretation are the same.
 	\subsection{Hardware}
 	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the backends ran off of an SSD.
-	\todo{Oslo Specs}
+\\\\	\begin{tabular}{|p{5cm}p{10cm}|}
+	\hline
+		Processor : & 2x OPTERON 16-CORE 6376 \\
+		Memory : & 8x 16G DDR3 1600 ECC Reg Server memory\\
+	\hline
+	\end{tabular}
 	\subsection{Datasets}
 	To evaluate tests on non-trivial examples, I sought to construct datasets over which large queries were feasible.
 

@@ -68,7 +68,7 @@
 \contentsline {subsection}{\numberline {3.9.5}Storage}{46}{subsection.3.9.5}
 \contentsline {subsection}{\numberline {3.9.6}Mutability}{46}{subsection.3.9.6}
 \contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{46}{subsection.3.9.7}
-\contentsline {section}{\numberline {3.10}PostgreSQL backend}{46}{section.3.10}
+\contentsline {section}{\numberline {3.10}PostgreSQL backend}{47}{section.3.10}
 \contentsline {subsection}{\numberline {3.10.1}Table Structure}{47}{subsection.3.10.1}
 \contentsline {paragraph}{Control Tables}{47}{section*.25}
 \contentsline {paragraph}{Schema defined Tables}{47}{section*.26}
@@ -105,24 +105,24 @@
 \contentsline {section}{\numberline {4.1}Unit Tests}{61}{section.4.1}
 \contentsline {section}{\numberline {4.2}Performance Tests}{61}{section.4.2}
 \contentsline {subsection}{\numberline {4.2.1}Hardware}{61}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Datasets}{61}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.2}Datasets}{62}{subsection.4.2.2}
 \contentsline {paragraph}{IMDB and TMDB}{62}{section*.44}
 \contentsline {paragraph}{Objects}{62}{section*.45}
 \contentsline {paragraph}{Relations}{62}{section*.46}
-\contentsline {paragraph}{UFC}{62}{section*.47}
+\contentsline {paragraph}{UFC}{63}{section*.47}
 \contentsline {paragraph}{Objects}{63}{section*.48}
 \contentsline {paragraph}{Relations}{63}{section*.49}
 \contentsline {subsection}{\numberline {4.2.3}Test Harness}{63}{subsection.4.2.3}
-\contentsline {subsection}{\numberline {4.2.4}Results}{63}{subsection.4.2.4}
-\contentsline {paragraph}{Overall Picture}{63}{section*.50}
+\contentsline {subsection}{\numberline {4.2.4}Results}{64}{subsection.4.2.4}
+\contentsline {paragraph}{Overall Picture}{64}{section*.50}
 \contentsline {paragraph}{Redundancy}{64}{section*.51}
-\contentsline {paragraph}{Intersections and Unions}{64}{section*.52}
-\contentsline {paragraph}{Tests that involve repetitions}{67}{section*.53}
-\contentsline {subparagraph}{Exactly Test}{67}{section*.54}
+\contentsline {paragraph}{Intersections and Unions}{65}{section*.52}
+\contentsline {paragraph}{Tests that involve repetitions}{68}{section*.53}
+\contentsline {subparagraph}{Exactly Test}{68}{section*.54}
 \contentsline {subparagraph}{Exactly Pairs}{68}{section*.55}
 \contentsline {subparagraph}{UptoTest}{69}{section*.56}
-\contentsline {subparagraph}{UptoLarge}{70}{section*.57}
-\contentsline {paragraph}{JoinSpeed}{71}{section*.58}
+\contentsline {subparagraph}{UptoLarge}{69}{section*.57}
+\contentsline {paragraph}{JoinSpeed}{70}{section*.58}
 \contentsline {paragraph}{Closing Thoughts}{72}{section*.59}
 \contentsline {chapter}{\numberline {5}Conclusion}{77}{chapter.5}
 \contentsline {section}{\numberline {5.1}Successes}{77}{section.5.1}
