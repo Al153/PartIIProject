@@ -44,7 +44,7 @@
 \BOOKMARK [2][-]{subsection.3.7.3}{Pathfinding}{section.3.7}% 44
 \BOOKMARK [2][-]{subsection.3.7.4}{Joins}{section.3.7}% 45
 \BOOKMARK [1][-]{section.3.8}{Views and Commits}{chapter.3}% 46
-\BOOKMARK [1][-]{section.3.9}{Memory Backend}{chapter.3}% 47
+\BOOKMARK [1][-]{section.3.9}{Memory Back-end}{chapter.3}% 47
 \BOOKMARK [2][-]{subsection.3.9.1}{Table Structure}{section.3.9}% 48
 \BOOKMARK [2][-]{subsection.3.9.2}{Reads}{section.3.9}% 49
 \BOOKMARK [2][-]{subsection.3.9.3}{Left Optimisation}{section.3.9}% 50
@@ -52,7 +52,7 @@
 \BOOKMARK [2][-]{subsection.3.9.5}{Storage}{section.3.9}% 52
 \BOOKMARK [2][-]{subsection.3.9.6}{Mutability}{section.3.9}% 53
 \BOOKMARK [2][-]{subsection.3.9.7}{Pathfinding and fixed point traversal}{section.3.9}% 54
-\BOOKMARK [1][-]{section.3.10}{PostgreSQL backend}{chapter.3}% 55
+\BOOKMARK [1][-]{section.3.10}{PostgreSQL back-end}{chapter.3}% 55
 \BOOKMARK [2][-]{subsection.3.10.1}{Table Structure}{section.3.10}% 56
 \BOOKMARK [2][-]{subsection.3.10.2}{Query Structure}{section.3.10}% 57
 \BOOKMARK [2][-]{subsection.3.10.3}{Monadic Compilation}{section.3.10}% 58
@@ -60,7 +60,7 @@
 \BOOKMARK [2][-]{subsection.3.10.5}{Mutability}{section.3.10}% 60
 \BOOKMARK [2][-]{subsection.3.10.6}{Pathfinding and Fixed Point Traversal}{section.3.10}% 61
 \BOOKMARK [2][-]{subsection.3.10.7}{Object Storage}{section.3.10}% 62
-\BOOKMARK [1][-]{section.3.11}{LMDB Backends}{chapter.3}% 63
+\BOOKMARK [1][-]{section.3.11}{LMDB Back-ends}{chapter.3}% 63
 \BOOKMARK [2][-]{subsection.3.11.1}{Common}{section.3.11}% 64
 \BOOKMARK [2][-]{subsection.3.11.2}{Original LMDB Implementation}{section.3.11}% 65
 \BOOKMARK [2][-]{subsection.3.11.3}{Batched}{section.3.11}% 66

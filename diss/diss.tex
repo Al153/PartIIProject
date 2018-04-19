@@ -994,12 +994,12 @@ It is clear that these patterns allow for very expressive structures and abstrac
 
 \chapter{Implementation}
 
-In this section, I shall first focus on common techniques when building the database, then explain construction of the front- and middle-ends. After this, I shall look at common structures shared by the various backend implementations and finally, I shall conclude with an examination of each of the backend implementations that I have written. 
+In this section, I shall first focus on common techniques when building the database, then explain construction of the front- and middle-ends. After this, I shall look at common structures shared by the various back-end implementations and finally, I shall conclude with an examination of each of the back-end implementations that I have written. 
 \section{Note on Purity and Concurrency}
-All of the back-ends aim to preserve the global immutability of the database. The immutable semantics of the database also mean that queries generally do not interfere with each other. This means that we can avoid keeping locks or creating large transactions. Hence, the backends do not require much work to maintain correct concurrency.
+All of the back-ends aim to preserve the global immutability of the database. The immutable semantics of the database also mean that queries generally do not interfere with each other. This means that we can avoid keeping locks or creating large transactions. Hence, the back-ends do not require much work to maintain correct concurrency.
 \section{Functional Programming Techniques}
 	\subsection{Monadic Compilation}\label{MonadicCompilation}
-	At several points in building a backend, it becomes necessary to transform one algebraic type to another. This is typically done by walking over a tree, whilst keeping some mutable state representing parts of the tree that are relevant. One example is converting an intermediate representation to SQL output code. Here, we may want to extract common sub-expressions into a dictionary, or pick out all the database tables that need to be accessed by the query. This can be encoded by folding a State Monad instance over the tree.
+	At several points in building a back-end, it becomes necessary to transform one algebraic type to another. This is typically done by walking over a tree, whilst keeping some mutable state representing parts of the tree that are relevant. One example is converting an intermediate representation to SQL output code. Here, we may want to extract common sub-expressions into a dictionary, or pick out all the database tables that need to be accessed by the query. This can be encoded by folding a State Monad instance over the tree.
 
 The state monad is an abstraction over functions that chain an immutable state through successive computations.
 
@@ -1147,7 +1147,7 @@ sealed trait SchemaObject[A] {
 	
 	\subsection{DBObjects}
 	
-	To store objects in the database under various backends, we need to have a type erased (at compile-time, but not run-time) version of the objects. Once we have a primitive representation of an object from the \codeName{SchemaObject}, we can fully unerase it by converting it to a \codeName{DBObject}. A \codeName{DBObject} is simply a collection of type tagged fields (\codeName{DBCell}). These can now be easily inserted or retrieved from a database.
+	To store objects in the database under various back-ends, we need to have a type erased (at compile-time, but not run-time) version of the objects. Once we have a primitive representation of an object from the \codeName{SchemaObject}, we can fully unerase it by converting it to a \codeName{DBObject}. A \codeName{DBObject} is simply a collection of type tagged fields (\codeName{DBCell}). These can now be easily inserted or retrieved from a database.
 	
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1184,7 +1184,7 @@ abstract class Relation[A, B](
 	
 	\subsection{SchemaDescription}
 	
-In order to build the database structures the backends need a definitive collection of schema to include. This is performed using a \codeName{SchemaDescription} object, which simply holds a collection of \codeName{SchemaObjects} and \codeName{Relations} which need to be used by the database.	
+In order to build the database structures the back-ends need a definitive collection of schema to include. This is performed using a \codeName{SchemaDescription} object, which simply holds a collection of \codeName{SchemaObjects} and \codeName{Relations} which need to be used by the database.	
 	
 	\subsection{Findables}
 	For the sake of simplicity, I have only implemented findables which test if fields of objects match particular values. This allows us to look for specific objects or match particular fields. This also makes indexing easier to implement.
@@ -1193,7 +1193,7 @@ In order to build the database structures the backends need a definitive collect
 The intermediate representation terms described in  section \ref{ADTDef} are implemented in Scala by a pair of ADT hierachies: a typed and type-erased equivalent for each. The typed ADTs are parameterised by the object types which they look up. Using this parameterisation, I have encoded in type of the ADTs the inductive type rules in the semantics such that the Scala compiler checks the type of any generated query and does type inference for us. The definitions of these Scala classes can be found in appendix \ref{ScalaADT} The only rules that cannot be checked at compile-time are whether the schema description contains the relation in instances of the (\codeName{Rel}) rule, the type \codeName{A} for the (\codeName{$Id_A$}) rule, and the (\codeName{Find}) rule, as we cannot predict the contents of the SchemaDescription at compile-time without dependent types.  The typed ADTs are erased, with respect to a schema,  into their unsafe equivalents in order to be executed. If an AST node makes reference to a non-existent table or relation, a run-time error is created in the \codeName{Either} return type. The constructors of the type-erased ADT nodes are private to the enclosing package, meaning that they can only be created by erasing a typed ADT.
 	
 \section{Commands}
-As specified in the previous chapter, each backend needs to implement five commands: 
+As specified in the previous chapter, each back-end needs to implement five commands: 
 \begin{itemize}
 \item \codeName{find(S): Operation[E, Set[A]]}
 \item \codeName{findPairs(P): Operation[E, Set[(A, B)]]}
@@ -1206,7 +1206,7 @@ Each command should return an \codeName{Operation} of the correct type.
 The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. Examples of the DSL can be seen in appendix \ref{DSLExamples}
 
 \section{Common Generic Algorithms}
-During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different backends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
+During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different back-ends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
 
 
 	\subsection{Simple Traversal}\ref{SimpleFixedPoint}
@@ -1261,11 +1261,11 @@ Finally, the FixedPoint take a departure from the parallel implementations above
 	The \codeName{ShortestPath} and \codeName{AllShortestPaths} commands require us to search a subgraph generated by a relation. Since all edges have unit weight, the pathfinding algorithm reduces to breadth-first-search, which I have implemented in an imperative format while wrapping up error cases in an Either. These functions take, as a parameter, the search step \codeName{ A\ $\Rightarrow$ E \either Set[A]} which represents the edges going out of a node. 
 	
 	\subsection{Joins}
-	The problem of joining two sets of pairs based on shared intermediate values is a requirement for any backend. 
+	The problem of joining two sets of pairs based on shared intermediate values is a requirement for any back-end. 
 \[
 A\mbox{ }join\mbox{ }B = \setComp{(a, c)}{\exists b. (a, b) \in A \wedge (b, c) \in B}
 \]	
-I have implemented a simple hash-join\cite{HashJoins}. This operates by first assuming that the size of distinct left-most elements in the right set is smaller (it is infact known to be a subset due to the left-optimisation of backends) than the right-most elements of the left set. Next we build a hash-map index of the right set. We then traverse the left set, looking up right-most-values in the index, to complete the join. An issue with this approach, addressed later, is that we have to build the index upon each \codeName{join} call.
+I have implemented a simple hash-join\cite{HashJoins}. This operates by first assuming that the size of distinct left-most elements in the right set is smaller (it is infact known to be a subset due to the left-optimisation of back-ends) than the right-most elements of the left set. Next we build a hash-map index of the right set. We then traverse the left set, looking up right-most-values in the index, to complete the join. An issue with this approach, addressed later, is that we have to build the index upon each \codeName{join} call.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1295,8 +1295,8 @@ I have implemented a simple hash-join\cite{HashJoins}. This operates by first as
 \section{Views and Commits}
 In the memory back-end, as will be explained later, views are easy implement as a map of \codeName{ViewId} to \codeName{MemoryTree} and simply updating the \codeName{MemoryTree}, allowing Scala's immutable collections to handle sharing of data in an efficient way. In the other back-ends, backed by non-functional technologies, we need other methods of sharing and inserting to immutable structures. A first observation is that within the operation monad model, each view only has one direct predecessor. We can think of the database as a tree of views with edges representing the successor relation. The path from the root view to a given view can be seen as the operations that generated the view. In this model, if the parent is known, then a child may be defined by the differences between the two. As the database only allows for updates and not deletions, this difference will always be a collection of relations and objects that were added. This collection can be wrapped up in a container called a \codeName{Commit}. At this point, we can disgard the ancestors of a view and see a view as the collection of commits that generated it. This model also allows deletions and overwrites if desired; a commit containing deleted values may be replaced with a new commit which differs only by ot including the deleted values.
 
-\section{Memory Backend}
-The first backend that I have implemented is a simple, naive memory-based backend. This backend follows the denotational semantics, and makes very few attempts to improve performance. This backend serves as a test-bench backend, used to create unit tests to test other backends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages or libraries as in the SQL and LMDB backends.)
+\section{Memory Back-end}
+The first back-end that I have implemented is a simple, naive memory-based back-end. This back-end follows the denotational semantics, and makes very few attempts to improve performance. This back-end serves as a test-bench back-end, used to create unit tests to test other back-ends. It also allowed me to practice implementation of type erasure and unerasure according to the schema in a controllable environment (that is, without interference from other languages or libraries as in the SQL and LMDB back-ends.)
 	\subsection{Table Structure}
 	A memory instance stores a concurrent map of \codeName{ViewId} to \codeName{MemoryTree}, which itself is a map of \codeName{TableName} (derived from the \codeName{SchemaDescription}) to \codeName{MemoryTable}. There is a \codeName{MemoryTable} for each object class in the \codeName{SchemaDescription}. A \codeName{MemoryTable} provides lookups using maps for \codeName{DBObjects} and \codeName{Findable}s, in the form of an index to set of objects for each column value. These lookups return objects containing a \codeName{DBObject} and the outgoing and incoming relations for the object, indexed by \codeName{RelationName}. 
 
@@ -1370,8 +1370,8 @@ This pattern also makes an appearance in the original LMDB implementation.
 	The pathfinding and fixed point traversal methods are simply implemented by calls to the appropriate generic algorithms using the interpreted findPairs function as the search function.
 
 
-\section{PostgreSQL backend}
-Upon completion of the initial memory backend, I started work on a PostgreSQL based backend. This compiles the ADT intermediate representation into SQL queries that are then executed by a Postgres database.
+\section{PostgreSQL back-end}
+Upon completion of the initial memory back-end, I started work on a PostgreSQL based back-end. This compiles the ADT intermediate representation into SQL queries that are then executed by a Postgres database.
 
 	\subsection{Table Structure}
 	The construction of the underlying database uses several SQL tables. These can be partitioned into a set of control tables that will be present in all database instances and a set  of schema defined tables.
@@ -1584,7 +1584,7 @@ case class CompilationContext(
 	We create a new view and commit, then we run a memoised \codeName{InsertOrGet} over all the leftmost objects to be inserted, then all the right objects to be inserted, yielding tagged relations between \codeName{ObjectIds}. For each inserted relation, the existing relation instances are removed from those to insert, and the remaining inserted to the relevant \codeName{RelationTable} with the correct \codeName{CommitId}. The auxiliary tables are now updated and, on success, the views table is updated.
 
 	\subsection{Mutability}
-	As with the memory backend, all mutability except for the availability of views and the default view is hidden from the user. The SQL backend uses commits to manage view mutability.
+	As with the memory back-end, all mutability except for the availability of views and the default view is hidden from the user. The SQL back-end uses commits to manage view mutability.
 	\subsection{Pathfinding and Fixed Point Traversal}
 Pathfinding is implemented by constructing an SQL query to generate right-hand-side \codeName{ObjectIds} for a relation given a left-hand-side \codeName{ObjectId}. This query is used as the search function for the generic pathfinding algorithms. Once paths have been found, their \codeName{ObjectIds} are looked up in the database to find the full values along each path.
 
@@ -1613,18 +1613,18 @@ Fixed point traversal and repetitions are done natively in SQL. \codeName{FixedP
 	\subsection{Object Storage}
 	Objects are stored as in the appropriate \codeName{ObjectTable} in a manner derived from the \codeName{DBObject} of each object. Each \codeName{DBCell} is converted to appropriate SQL type.
 
-\section{LMDB Backends}
-The final family of backends are the LMDB backends. LMDB is a lightweight, efficient memory mapped file based Key-Value datastore. \footnote{https://symas.com/lmdb/}.
+\section{LMDB Back-ends}
+The final family of back-ends are the LMDB back-ends. LMDB is a lightweight, efficient memory mapped file based Key-Value datastore. \footnote{https://symas.com/lmdb/}.
 
 	\subsection{Common}
-	Although I have written several versions of the LMDB backend, there are several over-arching similarities.
+	Although I have written several versions of the LMDB back-end, there are several over-arching similarities.
 		\paragraph{LMDB API}
 			\subparagraph{Terminology}
 			LMDB terminology differs slightly from that of more mainstream systems. What would be called a database in SQL is known as an \term{Env} and a table known as a \term{DBI}.
 			\subparagraph{Transactions}
 				LMDB's transactional model differs from more traditional systems. In short, we need to create a transaction to do read but not write to the database. This stems from LMDB delegating as much work as possible to the OS kernel's memory-mapped file system. All writes are immediately written to the database, whereas starting a read transaction gives a view of the \term{Env} as it was at the start of  the transaction, ensuring that concurrent writes do not affect what is read from the database. Writes may be included in transactions to allow atomic get-and-sets. In practice, the transactions used are very short lived.
 			\subparagraph{JVM API}
-			The LMDB backend uses the \codeName{LMDBJava} API \footnote{//github.com/lmdbjava/lmdbjava} to allow access to an LMDB Database from JVM languages (such as Scala). For each \term{DBI}, we have a \codeName{ByteArray} to \codeName{ByteArray} key-value map, much like a \codeName{Map[Array[Byte], Array[Byte]]}.
+			The LMDB back-end uses the \codeName{LMDBJava} API \footnote{//github.com/lmdbjava/lmdbjava} to allow access to an LMDB Database from JVM languages (such as Scala). For each \term{DBI}, we have a \codeName{ByteArray} to \codeName{ByteArray} key-value map, much like a \codeName{Map[Array[Byte], Array[Byte]]}.
 			
 		\paragraph{Storage and Keys}
 			In order to write to the database using the LMDBJava API, we need to write the key and value to \codeName{ByteBuffer}s. To generify this process I have introduced two type-classes: \codeName{Keyable} and \codeName{Storable}.
@@ -1687,12 +1687,12 @@ For each \codeName{SchemaObject} in the \codeName{Schemadescription}, there exis
 	\subsection{Original LMDB Implementation}
 	\note{impl.lmdb.original}
 
-The original LMDB backend implementation executed queries in much the same way as the in-memory backend, the only difference being the flat LMDB table structure. Interpretation occurs by a very similar to function that of the memory backend, instead passing around a list of \codeName{Commit}s to search rather than the memory tree. At the end of a query's execution, the resulting \codeName{ObjectId}s are looked up in the relevant retrieval table to extract the actual objects which are converted into user objects. Pathfinding and the repetition operators are handled in the same way as the memory backend by calling the relevant generic algorithms.
+The original LMDB back-end implementation executed queries in much the same way as the in-memory back-end, the only difference being the flat LMDB table structure. Interpretation occurs by a very similar to function that of the memory back-end, instead passing around a list of \codeName{Commit}s to search rather than the memory tree. At the end of a query's execution, the resulting \codeName{ObjectId}s are looked up in the relevant retrieval table to extract the actual objects which are converted into user objects. Pathfinding and the repetition operators are handled in the same way as the memory back-end by calling the relevant generic algorithms.
  
 
 	\subsection{Batched}
 	\note{impl.lmdb.fast}
-	This is the first variant upon my simple original LMDB backend, it focuses on making small local optimisations rather than significant algorithmic changes.
+	This is the first variant upon my simple original LMDB back-end, it focuses on making small local optimisations rather than significant algorithmic changes.
 	
 		\paragraph{Read Batching}
 		Firstly, the original implementation made sub-optimal use of LMDB reads. For example, when extracting objects at the end of query execution, it would look up each object individually with its own read transaction. This is sped up by batching together reads from separate keys in the same transaction.
@@ -1818,11 +1818,11 @@ private def repeat(
 
 \chapter{Evaluation}
 \section{Unit Tests}
-The correctness of each backend is tested using a suite of 45 unit tests which verify adherence to the specified semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again. These tests provide good evidence that all the implemented backends are correct in the small.
+The correctness of each back-end is tested using a suite of 45 unit tests which verify adherence to the specified semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again. These tests provide good evidence that all the implemented back-ends are correct in the small.
 \section{Performance Tests}
-	In order to evaluate the effectiveness of the various optimisations to the LMDB backends described above, it was necessary to run performance tests over wide range of queries. The various LMDB backends were tested against each other as a control and particularly against the SQL backend as a standard to beat. The in-memory backend was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation, which shares the same interpreter model. The LMDB implementation was able to index faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses for interpretation are the same.
+	In order to evaluate the effectiveness of the various optimisations to the LMDB back-ends described above, it was necessary to run performance tests over wide range of queries. The various LMDB back-ends were tested against each other as a control and particularly against the SQL back-end as a standard to beat. The in-memory back-end was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation, which shares the same interpreter model. The LMDB implementation was able to index faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses for interpretation are the same.
 	\subsection{Hardware}
-	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the backends ran off of an SSD.
+	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the back-ends ran off of an SSD.
 \\\\	\begin{tabular}{|p{5cm}p{10cm}|}
 	\hline
 		Processor : & 2x OPTERON 16-CORE 6376 \\
@@ -1906,17 +1906,17 @@ The objects in the database are as follows:
 		
 		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. The graph has 1562 nodes and 3571 \codeName{Beat} relations.
 	\subsection{Test Harness}
-	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate backends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics.
+	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate back-ends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics.
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
 		An overall view of the results is that, as might be expected, the SQL implementation is the fastest over short, indexing heavy, queries. The most aggressively optimised LMDB implementation typically performing slightly worse than those with fewer optimisations over these queries. This likely due to the overheads of generating the memo. However, when longer graph queries expose the redundancies noted in the preceding sections, speed ups of orders of magnitude can be seen over both the other LMDB implementations and over SQL. This can particularly be seen in the cases of \codeName{FindPair} transitive queries.
 
-		A point to note is that I am ignoring evaluation of pathfinding queries. For simplicity, the pathfinding implementation re-evaluates the underlying step function query at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched. However, this would complicate the SQL implementation, since clearing up on error would require validating state. Hence, I am ignoring the pathfinding tests for the purpose of backend comparison.
+		A point to note is that I am ignoring evaluation of pathfinding queries. For simplicity, the pathfinding implementation re-evaluates the underlying step function query at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched. However, this would complicate the SQL implementation, since clearing up on error would require validating state. Hence, I am ignoring the pathfinding tests for the purpose of back-end comparison.
 
 
 \paragraph{Redundancy}
-This first test demonstrates the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB backend. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, Hence it ends up running out of temporary disk space on this query.
+This first test demonstrates the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB back-end. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, Hence it ends up running out of temporary disk space on this query.
 				
 \resultTable{Redundancy}{4 each}{
 \texttt{KevinBacon >> coactor;}\\\\
@@ -2031,7 +2031,7 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 \end{figure}
 
 			\subparagraph{UptoTest}
-				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB backend provides a significant speed-up, such as 225x on the other LMDB backends and 1.5x over Postgres.
+				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB back-end provides a significant speed-up, such as 225x on the other LMDB back-ends and 1.5x over Postgres.
 				\resultTable{Upto}{10}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> index.i);}
@@ -2101,7 +2101,7 @@ There are some things to note from these figures. Firstly, around 7\% of the LMD
 
 
 			\paragraph{Closing Thoughts}
-			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. The results lend themselves to the idea of constructing an adaptive backend that chooses its interpretation strategy based on heuristics of the performance of given queries. These performance statistics also show that specialised graph engines can easily outstrip the performance of generalised relational databases over particular queries within the domain.
+			These benchmarks provide some insights into the strengths and weaknesses of the various optimisations I have written. The results lend themselves to the idea of constructing an adaptive back-end that chooses its interpretation strategy based on heuristics of the performance of given queries. These performance statistics also show that specialised graph engines can easily outstrip the performance of generalised relational databases over particular queries within the domain.
 
 
 	
@@ -2116,11 +2116,11 @@ Interesting extensions to the core project that, given more time, I would have b
  \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by how large the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
  \item The implementation of deletions and garbage collection of unused views in the database. Garbage collection in particular might be difficult, as the database is not required to store any state about client instances.
  \item Exploration of  improvement of the schema system using a dependent types library, such as shapeless.
- \item Rewriting the lowest layer of the LMDB backends' interpreters in C or another low level language to extract maximum performance from the LMDB system, without having to construct Scala collections at every step.
+ \item Rewriting the lowest layer of the LMDB back-ends' interpreters in C or another low level language to extract maximum performance from the LMDB system, without having to construct Scala collections at every step.
 \end{itemize}
 
 \section{Lessons learned}
-	With hindsight, I might aimed to build a narrower project, focusing on a single backend and comparing  performance against a widely used graph database such as Neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and truly digging down to exploit all redundancy.
+	With hindsight, I might aimed to build a narrower project, focusing on a single back-end and comparing  performance against a widely used graph database such as Neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and truly digging down to exploit all redundancy.
 
 \section{Concluding Thoughts}
 I hope for another chance to explore this space as I feel there are still many areas worth investigating.

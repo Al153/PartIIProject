@@ -60,7 +60,7 @@
 \contentsline {subsection}{\numberline {3.7.3}Pathfinding}{42}{subsection.3.7.3}
 \contentsline {subsection}{\numberline {3.7.4}Joins}{42}{subsection.3.7.4}
 \contentsline {section}{\numberline {3.8}Views and Commits}{44}{section.3.8}
-\contentsline {section}{\numberline {3.9}Memory Backend}{44}{section.3.9}
+\contentsline {section}{\numberline {3.9}Memory Back-end}{44}{section.3.9}
 \contentsline {subsection}{\numberline {3.9.1}Table Structure}{44}{subsection.3.9.1}
 \contentsline {subsection}{\numberline {3.9.2}Reads}{45}{subsection.3.9.2}
 \contentsline {subsection}{\numberline {3.9.3}Left Optimisation}{45}{subsection.3.9.3}
@@ -68,7 +68,7 @@
 \contentsline {subsection}{\numberline {3.9.5}Storage}{46}{subsection.3.9.5}
 \contentsline {subsection}{\numberline {3.9.6}Mutability}{46}{subsection.3.9.6}
 \contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{46}{subsection.3.9.7}
-\contentsline {section}{\numberline {3.10}PostgreSQL backend}{47}{section.3.10}
+\contentsline {section}{\numberline {3.10}PostgreSQL back-end}{47}{section.3.10}
 \contentsline {subsection}{\numberline {3.10.1}Table Structure}{47}{subsection.3.10.1}
 \contentsline {paragraph}{Control Tables}{47}{section*.25}
 \contentsline {paragraph}{Schema defined Tables}{47}{section*.26}
@@ -79,7 +79,7 @@
 \contentsline {subsection}{\numberline {3.10.5}Mutability}{52}{subsection.3.10.5}
 \contentsline {subsection}{\numberline {3.10.6}Pathfinding and Fixed Point Traversal}{52}{subsection.3.10.6}
 \contentsline {subsection}{\numberline {3.10.7}Object Storage}{53}{subsection.3.10.7}
-\contentsline {section}{\numberline {3.11}LMDB Backends}{53}{section.3.11}
+\contentsline {section}{\numberline {3.11}LMDB Back-ends}{53}{section.3.11}
 \contentsline {subsection}{\numberline {3.11.1}Common}{53}{subsection.3.11.1}
 \contentsline {paragraph}{LMDB API}{53}{section*.28}
 \contentsline {subparagraph}{Terminology}{53}{section*.29}
