@@ -16,6 +16,24 @@
 
 \usepackage{natbib}
 
+\begin{comment}
+- Justify no error bars
+- Put in line graph of query size vs performance for some queries
+- Shrink graphs to get them closer to descriptive text
+- More references to graphs
+
+1) Shrink down graphs so that they don't end up being placed too far away from the text that describes them.
+
+2) Add references to the graphs.  At the moment, you have descriptive text for each one, but no link to the graph itself.  E.g. Figure xxx shows...  or As we see in figure xxx, ....
+
+3) At the moment all your graphs are a similar format - bar graphs for each of the backends you have.  Can you present some data in a different way?  One thing that springs to mind is that you have defined six different datasets, ranging in size.  Can you show a line graph for scaling performance across these (x-axis is dataset in increasing size, y-axis is performance, one line per backend)?  You don't have to do this for every experiment, but one or two.  That will help to make the evaluation a little more interesting for the reader and show evaluation of a different metric.
+
+4) You don't have error bars on your graphs.  I don't think you need them, but you probably should add a sentence or two justifying why they are not needed.
+
+5) Aesthetically, just spend a short amount of time on the graphs.  I would add grid lines, at least horizontally, and make sure the spacing is the same either side (e.g. you seem to have no space to the left of the first bar in each figure, but a little to the right of the final bar so I would add the same amount of space before the first).
+
+\end{comment}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1936,7 +1954,7 @@ Where
 
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/Redundancy.png}
+  \includegraphics[width=0.9\textwidth]{scripts/Redundancy.png}
   \caption{Read performance for redundancy queries}
   \label{fig:RedundancyResult}
 \end{figure}
@@ -1959,7 +1977,7 @@ Where\\
 }
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/Intersections.png}
+  \includegraphics[width=0.9\textwidth]{scripts/Intersections.png}
   \caption{Read performance for intersection queries}
   \label{fig:IntersectionResults}
 \end{figure}
@@ -1979,7 +1997,7 @@ Where\\
  
  \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/Unions.png}
+  \includegraphics[width=0.9\textwidth]{scripts/Unions.png}
   \caption{Read performance for union queries}
   \label{fig:UnionResults}
 \end{figure}
@@ -2002,14 +2020,14 @@ Where\\
  
  \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/ExactlyTest.png}
+  \includegraphics[width=0.9\textwidth]{scripts/ExactlyTest.png}
   \caption{Read performance for \codeName{Exactly} queries}
   \label{fig:ExactlyResults}
 \end{figure}
 
  \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/ExactlyTestLog.png}
+  \includegraphics[width=0.9\textwidth]{scripts/ExactlyTestLog.png}
   \caption{Log-Read performance for \codeName{Exactly} queries}
   \label{fig:ExactlyTestLog}
 \end{figure}
@@ -2044,14 +2062,14 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
  
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/Upto.png}
+  \includegraphics[width=0.9\textwidth]{scripts/Upto.png}
   \caption{Read performance for \codeName{Upto} queries}
   \label{fig:UptoTestResult}
 \end{figure}
 
  \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/UptoLog.png}
+  \includegraphics[width=0.9\textwidth]{scripts/UptoLog.png}
   \caption{Log-Read performance for \codeName{Upto} queries}
   \label{fig:UptoLogResult}
 \end{figure}
@@ -2068,7 +2086,7 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
  
  \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/UptoLarge.png}
+  \includegraphics[width=0.9\textwidth]{scripts/UptoLarge.png}
   \caption{Read performance for large \codeName{Upto} queries}
   \label{fig:UptoLargeResults}
 \end{figure}
@@ -2086,7 +2104,7 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 			
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/joinspeedComp.png}
+  \includegraphics[width=0.9\textwidth]{scripts/joinspeedComp.png}
   \caption{Overall read performance for Join-Speed queries}
   \label{fig:JoinSpeedResults}
 \end{figure}
@@ -2094,7 +2112,7 @@ There are some things to note from these figures. Firstly, around 7\% of the LMD
 
 \begin{figure}[ht]
 \centering
-  \includegraphics[width=\textwidth]{scripts/LatencyDensity.png}
+  \includegraphics[width=0.9\textwidth]{scripts/LatencyDensity.png}
   \caption{The distribution of values for the \mathName{And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. }
   \label{fig:LatencyDensity}
 \end{figure}

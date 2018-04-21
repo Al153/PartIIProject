@@ -105,9 +105,11 @@ class TestResult(object):
 		ax.set_title("Back-End Performance on  "+ self.name)
 		ax.set_xticks(ind + width/2)
 		ax.set_xticklabels(names)
+		ax.set_xlim(left=-0.25, right=max(ind)+0.75)
+		plt.grid(True)
 		for i in range(len(colours)):
 			rects[i].set_color(colours[i])
-		#autolabel(rects, ax)
+		
 		plt.savefig(self.name + ".png")
 
 	def plotLog(self):
@@ -121,6 +123,8 @@ class TestResult(object):
 		ax.set_title("Back-End Performance on  "+ self.name)
 		ax.set_xticks(ind + width/2)
 		ax.set_xticklabels(names)
+		ax.set_xlim(left=-0.25, right=max(ind)+0.75)
+		plt.grid(True)
 
 		for i in range(len(colours)):
 			rects[i].set_color(colours[i])
@@ -140,21 +144,27 @@ def plotBimodal(cv):
 	ax.set_ylabel("Density")
 	ax.set_xlabel("JoinSpeed 'And' query Latency (ms)")
 	ax.set_title("Latency Density for LMDB Optimised")
+
 	plt.savefig("LatencyDensity.png")
+
+
 
 def plotJoinSpeed(ref, cse, batched, postgres):
 	fig, ax = plt.subplots()
 	names = ["Ref (And)", "Ref (Join)" , "CSE (And)", "CSE(Join)", "Batched (And)", "Batched (Join)", "Postgres (And)", "Postgres (Join)"]
 	values = ref + cse  + batched + postgres
 	colours = "rrggccbb"
-	ind = np.arange(len(names))
+	ind = np.arange(len(names))+1
 	width = 0.35
 	rects = ax.bar(ind, values, width, color='r')
 	ax.set_ylabel("Median Time to Execute")
 	ax.set_title("Back-End performance on JoinSpeed queries")
 	ax.set_xticks(ind + width/2)
 	ax.set_xticklabels(names)
+	ax.set_xlim(left=0, right=max(ind)+0.75)
 	plt.xticks(rotation=45)
+
+	plt.grid(True)
 
 	for i in range(len(colours)):
 		rects[i].set_color(colours[i])
