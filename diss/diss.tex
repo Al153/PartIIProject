@@ -17,20 +17,21 @@
 \usepackage{natbib}
 
 \begin{comment}
-- Justify no error bars
+- reference exactly/upto illustrations from text
 - Put in line graph of query size vs performance for some queries
-- Shrink graphs to get them closer to descriptive text
 - More references to graphs
-
-1) Shrink down graphs so that they don't end up being placed too far away from the text that describes them.
 
 2) Add references to the graphs.  At the moment, you have descriptive text for each one, but no link to the graph itself.  E.g. Figure xxx shows...  or As we see in figure xxx, ....
 
 3) At the moment all your graphs are a similar format - bar graphs for each of the backends you have.  Can you present some data in a different way?  One thing that springs to mind is that you have defined six different datasets, ranging in size.  Can you show a line graph for scaling performance across these (x-axis is dataset in increasing size, y-axis is performance, one line per backend)?  You don't have to do this for every experiment, but one or two.  That will help to make the evaluation a little more interesting for the reader and show evaluation of a different metric.
 
-4) You don't have error bars on your graphs.  I don't think you need them, but you probably should add a sentence or two justifying why they are not needed.
 
-5) Aesthetically, just spend a short amount of time on the graphs.  I would add grid lines, at least horizontally, and make sure the spacing is the same either side (e.g. you seem to have no space to the left of the first bar in each figure, but a little to the right of the final bar so I would add the same amount of space before the first).
+- Software engineering - I think it would be good to briefly describe the way you worked - waterfall model or whatever you used - perhaps under the previous software engineering section.  You could also add in a requirements analysis for the different features you wanted to or had to include.
+
+- (implementation) - This chapter could do with a short summary to highlight key implementation points and link to the evaluation.
+
+- (Evaluation) - Reference result graphs
+- Describe test-table queries
 
 \end{comment}
 
@@ -157,22 +158,6 @@ $\begin{aligned}
 
 \usepackage{svg}
 \usepackage{booktabs}
-
-\begin{comment}
-
-Todo:
-
-p.16 Figure 2.3 again this looks like a bitmap and needs tidying (removal of white space and centering etc.).
-(Many of the figures looks like bitmaps, e.g. 3.7, perhaps it is my PDF viewer? how are you importing them?) 
-
-Chapter 3. - Implementation
-
-p.50/51 has this table got a label? 
-p.58 looks a little odd to me as again the tables are not labelled.
-
-Ok there are lots, chat to Tim about this. Normally, we don't rely on tables/figures being in-line.
-
-\end{comment}
 
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \newcommand\codeName[1]{\texttt{#1}}
@@ -346,7 +331,7 @@ extent for a comparable purpose.
 \chapter{Introduction}
 In recent years, alternatives to the relational database model employed by SQL have received increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. SQL is ill-optimised, both in syntax and execution, for highly transitive graph oriented queries. Join syntax, while general, is clunky and SQL lacks the ability to easily specify and perform the repetition based queries often used in graph applications. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
 	
-	As the usage of functional languages for real-world code grows, there is an increasing need to integrate common patterns into the functional paradigm. Access to databases in one such example that requires solving. Frequently, when a functional program requires access to a database, such access is implemented ad-hoc for the specific usage case. For example, a rigid wrapper may be set up to read trade data from a database in a finance firm. This approach reduces generality and limits the kinds of abstractions that may be used. For example, the wrapper might only support the specific schema required for the types representing the kinds trades that might appear; the wrapper used for the trading system could not be used to access a database containing a social network. In addition to this, while read-only databases are trivially purely functional data-structures, it is harder to achieve referential transparency when updates are included into the database specification. This is because most database systems use imperative semantics to best make use of the hardware upon which they are implemented.
+	As the usage of functional languages for real-world code grows, there is an increasing need to integrate common patterns into the functional paradigm. Access to databases is one such example that requires solving. Frequently, when a functional program requires access to a database, such access is implemented ad-hoc for the specific usage case. For example, a rigid wrapper may be set up to read trade data from a database in a finance firm. This approach reduces generality and limits the kinds of abstractions that may be used. For example, the wrapper might only support the specific schema required for the types representing the kinds of trade that might appear; the wrapper used for the trading system could not be used to access a database containing a social network. In addition to this, while read-only databases are trivially purely functional data-structures, it is harder to achieve referential transparency when updates are included into the database specification. This is because most database systems use imperative semantics to best make use of the hardware upon which they are implemented.
 
 	There has been some exploration into generalised libraries and wrappers for accessing databases in a purely functional way. These may allow a means to construct SQL queries in a type-safe manner \cite{HaskellDB}, or provide manipulation of the database’s state in a referentially transparent manner \cite{DBStates}. However, they are typically aimed at relational (SQL) databases and do not allow safe generalisation over the types stored in the database.
 
@@ -527,12 +512,12 @@ node[above, erect] (e3)
 Current graph database systems often do not have rigid schema \cite{QueryLanguageSchema}. Instead, they use dynamic schema. This provides more flexibility in the shape of data that can be stored in the database; it also allows the types of nodes stored to evolve over time. The downside of this is that it requires additional typing checks at run-time. This also fails to fit into our definition of type-safety, since we have no guarantees about any objects extracted from the database. I have instead opted for a rigid schema which is built using Scala objects and is checked by the Scala compiler at compile-time.
 
 \subsection{Mutability}
-Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user has impose extra constraints, such as adding time-stamps to the schema of  nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID transactions. I decided to introduce immutable data structures  to the database, which yields ACID properties effectively for free. This is explained in section \ref{immutability}.
+Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user must impose extra constraints, such as adding time-stamps to the schema of  nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID (Atomic, Consistent, Independent, and Durable) transactions. I decided to introduce immutable data structures  to the database, which yields ACID properties effectively for free. This is explained in section \ref{immutability}.
 \subsection{Query Languages}
 Typically, database systems have their own query language, the most ubiquitous of which is Neo4j's language, Cypher \footnote{https://neo4j.com/docs/developer-manual/current/cypher/}. This provides ML-style pattern matching of queries against the stored graph, allowing the user to extract arbitrary fields from nodes. In most cases, theses are used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query a given program could generate is valid is intractable to undecidable for non-trivial programs. I decided to embed the query language in the host language. This allows the query language's type system to be checked by the host compiler, so we can get much stronger guarantees about program correctness.
 
 \section{Immutability}\label{immutability}
-In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is done using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. By utilising structure sharing, the impact of storing views can be mitigated.
+In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is achieved using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. By utilising structure sharing, the impact of storing views can be mitigated.
 
 \begin{figure}[ht]
 \begin{center}
@@ -562,7 +547,7 @@ I spent some time iterating over a DSL syntax and how I wanted queries to look a
 \note{Find two actors such they both act in the same movie}
 \end{framed}
 \renewcommand{\baselinestretch}{1.1}
-This is fairly cluttered syntax and difficult to read. Further more, the Scala type inference system is fairly limited, meaning that users would frequently be required to insert type annotations in this syntax. It would also have been further complicated by adding the property graph features of Neo4j. Furthermore, we would not be able to easily and safely replicate Neo4j's ability to extract an arbitrary number of objects of different types from along a path defined by a query. Doing so would require use of structures such as heterogeneously typed lists.
+This is fairly cluttered syntax and difficult to read. Furthermore, the Scala type inference system is fairly limited, meaning that users would frequently be required to insert type annotations in this syntax. It would also have been further complicated by adding the property graph features of Neo4j. Furthermore, we would not be able to easily and safely replicate Neo4j's ability to extract an arbitrary number of objects of different types from along a path defined by a query. Doing so would require use of structures such as heterogeneously typed lists.
 
 As a result, I settled upon on an edge-labelled-relation-oriented approach which neatens the above query significantly.
 
@@ -793,7 +778,7 @@ write(rs, v) = &v\left[A \mapsto v_{table}(A) \cup \setComp{a_i}{0 < i \leqslant
 \end{equation}
 
 \subsection{Summary}
-To summarise, this past section defines a query DSL, a type system for checking validity of queries, and a set of semantics for executing queries. Furthermore, I have then defined a set of commands which allow queries to executed and views to be generated.
+To summarise, this past section defines a query DSL, a type system for checking validity of queries, and a set of semantics for executing queries. Furthermore, I have then defined a set of commands which allow queries to execute and views to be generated.
 
 
 \section{Starting Point}
@@ -837,7 +822,7 @@ The system was designed to be as modular and re-implementable as possible. To th
 \section{Scala Techniques}
 I have made use of several advanced programming techniques which are specific to the Scala language.
 
-\subsection{type-enrichment}
+\subsection{Type-Enrichment}
 The type-enrichment feature of the Scala language allows retroactive addition of methods to previously defined types. type-enrichment is performed by creating an implicit class, taking a single underlying value of some given type. The methods defined in the implicit class can now be called as if they were methods of the underlying class, provided the implicit class is in scope.
 
 \renewcommand{\baselinestretch}{0.8}
@@ -911,7 +896,7 @@ implicit def f(implicit a: A): B = ...
 When an implicit value of type A is available, then an implicit value of type B is also available.
 \end{framed}
 
-This can be made more interesting when we include parameterised generic types. This allows us to get the compiler to do work in the manner of an automated theorem prover (by the curry-howard correspondence) at compile-time.
+This can be made more interesting when we include parameterised generic types. This allows us to get the compiler to do work in the manner of an automated theorem prover (by the Curry-Howard correspondence) at compile-time.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1017,7 +1002,7 @@ In this section, I shall first focus on common techniques when building the data
 All of the back-ends aim to preserve the global immutability of the database. The immutable semantics of the database also mean that queries generally do not interfere with each other. This means that we can avoid keeping locks or creating large transactions. Hence, the back-ends do not require much work to maintain correct concurrency.
 \section{Functional Programming Techniques}
 	\subsection{Monadic Compilation}\label{MonadicCompilation}
-	At several points in building a back-end, it becomes necessary to transform one algebraic type to another. This is typically done by walking over a tree, whilst keeping some mutable state representing parts of the tree that are relevant. One example is converting an intermediate representation to SQL output code. Here, we may want to extract common sub-expressions into a dictionary, or pick out all the database tables that need to be accessed by the query. This can be encoded by folding a State Monad instance over the tree.
+	At several points in building a back-end, it becomes necessary to transform one algebraic type to another. This is typically performed by walking over a tree, whilst keeping some mutable state representing parts of the tree that are relevant. One example is converting an intermediate representation to SQL output code. Here, we may want to extract common sub-expressions into a dictionary, or pick out all the database tables that need to be accessed by the query. This can be encoded by folding a State Monad instance over the tree.
 
 The state monad is an abstraction over functions that chain an immutable state through successive computations.
 
@@ -1061,7 +1046,7 @@ def compile(adt: ADT): State[S, Res] = adt match {
 
 
 	\subsection{Constrained Future Monad}
-	Part of the goal of type-safety is the recovery of error cases. Typically, this would be done in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad \cite{ExceptionMonad}. In Scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile-time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the Scala compiler at run-time. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
+	Part of the goal of type-safety is the recovery of error cases. Typically, this would be handled in a JVM program through the use of exceptions. However the presence of unchecked exceptions on the Java platform makes it difficult to ensure that all error cases are accounted for. A more functional approach is the use of the exception monad \cite{ExceptionMonad}. In Scala, this manifests as the built in Try monad and Scalaz's \codeName{\either} (\codeName{Either}) monad. \codeName{Try[A]} has two case classes: \codeName{Failure(e: Throwable)} and \codeName{Success(a: A)}, while \codeName{E \either A} has the case classes \codeName{\eitherL(e: E)} and \codeName{\eitherR(a: A)} (\codeName{Left} and \codeName{Right}). Since \codeName{Try}'s failure case is the unsealed \codeName{Throwable} trait, we do not really have a way to ensure we have handled all error cases at compile-time, whereas \codeName{Either} has a parametrised error type, which can be a sealed type hierarchy, which is then checked by the Scala compiler at run-time. For example, consider the simple interpreter below. All error cases are proved to be handled by the type-system.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1120,7 +1105,7 @@ def evalAndPrint(e: Expr): NoError \/ String =
 \end{framed}
 
 
-Typically, we deal with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the Scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we are interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
+Typically, we deal with cases which might take a significant amount of time to return. So rather than using a simple \codeName{Either} monad, we lift it into an asynchrony monad. There are several options to choose from for an asynchrony monad. I chose the built in \codeName{Future} over more exotic alternatives, such as the Scalaz \codeName{Task}, since it is relatively widely used, and I have some familiarity with it from past projects. \codeName{Futures} also capture thrown unchecked exceptions, which makes handling them a little easier. Hence we are interested in passing around \codeName{Future[E \either A]} around, for a sealed type hierarchy \codeName{E}. There is also the issue of the Java libraries used (for SQL and LMDB access) throwing exceptions, and unexpected exceptions turning up in code. Fortunately, the  Future container catches these, acting like an asynchronous \codeName{Try[E \either A]}. This causes issues as we do not have the sealed trait property of errors as we have above. To solve this, I introduced the \codeName{ConstrainedFuture[E, A]} monad, which has the requirement that the error case type parameter \codeName{E} implements the \codeName{HasRecovery} typeclass for converting any \codeName{Throwable} to an \codeName{E}.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1135,7 +1120,7 @@ trait HasRecovery[E] {
 The underlying future is kept private, and can only be accessed via the run method, which calls the recover method on any errors (tail recursively, so any exceptions thrown during execution are also handled). By this construction, we ensure all non-fatal error cases are contained in a type-safe way.
 
 	\subsection{Operation Monad}
-	As stated in section \ref{immutability}, typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (To handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
+	As stated in section \ref{immutability}, typical database operations take a view as a parameter, inspect the view, return a value and may also insert a new view. This requires interplay between the \codeName{ConstrainedFuture} (to handle failure and asynchrony) and \codeName{State} (to chain together updates to the view representing current state) monads. Hence we use the \codeName{Operation[E, A]} monad, which wraps a function \codeName{$(ViewId \Rightarrow ConstrainedFuture[E, (ViewId, A)])$} in a similar way to how \codeName{State} monad chains together functions \codeName{$S \Rightarrow (S, A)$}. Each of the commands on a database yields an operation.
 
 	
 	\subsection{Local and Global State}
@@ -1183,7 +1168,7 @@ type DBCell -> DBInt of Int
 \renewcommand{\baselinestretch}{0.8}
 	
 	\subsection{Unerasure}
-	In order to correctly retrieve values from the database, we need to be able to undo the erasure process. This can be done using the unmarshalling methods derived from the \codeName{SchemaObject}  for an object type.
+	In order to correctly retrieve values from the database, we need to be able to undo the erasure process. This can be performed using the unmarshalling methods derived from the \codeName{SchemaObject}  for an object type.
 	\subsection{Relations}
 	    In order for type checking to work, relations need to have type parameters for the object types they link. Hence, to define relations in the schema, the user needs to define objects that extend the relation interface.
 	    
@@ -1250,10 +1235,10 @@ The next algorithm is for computing \codeName{Upto}. This is computed in a simil
 \end{figure}
 	
 		\paragraph{FixedPoint}
-The  final algorithm is to calculate \codeName{FixedPoint}. This works slightly differently. As before, we keep an accumulator of reached nodes, but unlike before, the generation number of each node is not important, only that a node is reachable is important. Hence, the fringe is a queue rather than a set, and we iterate until the fringe is empty. In each iteration, we pop off the top value of the fringe queue, compute all immediately reachable nodes. This reachable set is diffed (define diff) with the accumulator to find the newly reached nodes. These are now added to the fringe queue and the accumulator. When the fringe is empty, we return the accumulator.
+The  final algorithm is to calculate \codeName{FixedPoint}. This works slightly differently. As before, we keep an accumulator of reached nodes, but unlike before, the generation number of each node is not important, only that a node is reachable is important. Hence, the fringe is a queue rather than a set, and we iterate until the fringe is empty. In each iteration, we pop off the top value of the fringe queue, compute all immediately reachable nodes. The difference of this reachable set is taken with the accumulator to find the newly reached nodes. These are now added to the fringe queue and the accumulator. When the fringe is empty, we return the accumulator.
 	
 	\subsection{Full traversal}
-		The next set of algorithms build on the \codeName{SimpleFixedPoint} algorithms to return not just those nodes reachable from a single root, but the set of all reachable pairs with the left hand pair derived from a root set (using the left-hand optimisation). As such, the algorithms need to do some more work to reconstruct which nodes are reachable from each root, while still eliminating redundancies.
+		The next set of algorithms build on the \codeName{SimpleFixedPoint} algorithms to return not just those nodes reachable from a single root, but the set of all reachable pairs with the left hand pair derived from a root set (using the left-hand optimisation explained is section \ref{leftOpt}). As such, the algorithms need to do some more work to reconstruct which nodes are reachable from each root, while still eliminating redundancies.
 		\paragraph{Exactly}
 The first such algorithm is for computing \codeName{Exactly}. This is similar to the original version, except we now store a fringe for each root in a map of \codeName{Root => Set[Node]}. We also memoise the search function in a Map to avoid computing it redundantly. In each iteration, we simply expand the fringe for each root as before by mapping the fringe expansion loop body over the values of the fringe map. 
 
@@ -1265,7 +1250,7 @@ The first such algorithm is for computing \codeName{Exactly}. This is similar to
 \end{figure}
 		
 		\paragraph{Upto}
-The next algorithm is to compute \codeName{Upto}. This is again done like before, but with a map of root to accumulator set as the accumulator. As with \codeName{Exactly}, the fringes of each root are expanded simultaneously, sharing redundant results via the memo, while the accumulators are unioned with the fringe of the appropriate root with each iteration. \begin{figure}[ht]
+The next algorithm is to compute \codeName{Upto}. This is again accomplished like before, but with a map of root to accumulator set as the accumulator. As with \codeName{Exactly}, the fringes of each root are expanded simultaneously, sharing redundant results via the memo, while the accumulators are unioned with the fringe of the appropriate root with each iteration. \begin{figure}[ht]
 \centering
   \includegraphics[width=\textwidth]{figs/UptoPairs.png}
   \caption{Execution of an \codeName{Upto} query from multiple roots}
@@ -1283,7 +1268,7 @@ Finally, the FixedPoint take a departure from the parallel implementations above
 \[
 A\mbox{ }join\mbox{ }B = \setComp{(a, c)}{\exists b. (a, b) \in A \wedge (b, c) \in B}
 \]	
-I have implemented a simple hash-join\cite{HashJoins}. This operates by first assuming that the size of distinct left-most elements in the right set is smaller (it is infact known to be a subset due to the left-optimisation of back-ends) than the right-most elements of the left set. Next we build a hash-map index of the right set. We then traverse the left set, looking up right-most-values in the index, to complete the join. An issue with this approach, addressed later, is that we have to build the index upon each \codeName{join} call.
+I have implemented a simple hash-join\cite{HashJoins}. This operates by first assuming that the size of distinct left-most elements in the right set is smaller than the right-most elements of the left set. Next we build a hash-map index of the right set. We then traverse the left set, looking up right-most-values in the index, to complete the join. An issue with this approach, addressed later, is that we have to build the index upon each \codeName{join} call.
 
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1327,9 +1312,9 @@ The first back-end that I have implemented is a simple, naive memory-based back-
 
 	
 	\subsection{Reads}
-Reads occur by simply walking over the ADT recursively, following the denotational semantics. The only real departures from the denotational semantics are the left-optimisation and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables). This interpreter can be found in appendix \ref{MemoryInterpreter}.
+Reads occur by simply walking over the ADT recursively, following the denotational semantics. The only real departures from the denotational semantics are the left-optimisation (see section \ref{leftOpt}) and use of the generic fixed point algorithms to compute \codeName{Exactly(n, P)}, \codeName{Upto(n, P)}, and \codeName{FixedPoint(P)}. Results are also computed in the \codeName{Either} monad to allow for error checking (for cases such as missing tables). This interpreter can be found in appendix \ref{MemoryInterpreter}.
 	
-	\subsection{Left Optimisation}
+	\subsection{Left Optimisation}\label{leftOpt}
 	One of the few optimisations here is the left-optimisation. When we compute the result set of a \codeName{FindPair}, we pass in the subset of left hand side variables we want to compute from. This mostly has an effect when we compute joins (\codeName{Chain}s). Consider joining a query of a few dozen unique right-most values to a large query with several million unique left-most values. The pairs of the right relation only occur in the resulting join if their left-most value is in the set of right-most values of the left relation. Hence pairs which do not have a correct left-most value need not be computed, greatly pruning the search of more complex queries.
 \begin{figure}[ht]
 	\centering
@@ -1558,7 +1543,7 @@ The \codeName{main} query itself is built compositionally, in that each subquery
 	
 \end{framed}
 	\subsection{Monadic Compilation}
-	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation for each of the SQL fragments to be created. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described in section \ref{MonadicCompilation}. The compiler state is shown below. When the compilation is done, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects.
+	In order to generate these SQL queries, we need to convert the ADT query to a lower level intermediate representation for each of the SQL fragments to be created. While doing this, we need to gather and rename all of the relation and auxiliary tables that we extract from so that we can form the CTE queries, we also need to find repeated queries to hoist out. In order to do this, we use the monadic compiler pattern described in section \ref{MonadicCompilation}. The compiler state is shown below. When the compilation is complete, depending on the context of the command, we append different extraction queries. For find pairs we need to extract the fields of both the left hand side and the right hand side objects, whereas for pathfinding operations, we only need to extract the \codeName{ObjectId}s along the path as opposed to whole  objects.
 	
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1606,7 +1591,7 @@ case class CompilationContext(
 	\subsection{Pathfinding and Fixed Point Traversal}
 Pathfinding is implemented by constructing an SQL query to generate right-hand-side \codeName{ObjectIds} for a relation given a left-hand-side \codeName{ObjectId}. This query is used as the search function for the generic pathfinding algorithms. Once paths have been found, their \codeName{ObjectIds} are looked up in the database to find the full values along each path.
 
-Fixed point traversal and repetitions are done natively in SQL. \codeName{FixedPoint} and \codeName{Upto} are done using a recursive CTE, while \codeName{Exactly} is done by explicitly joining together the required number of repetitions of the sub-relation's query.	
+Fixed point traversal and repetitions are performed natively in SQL. \codeName{FixedPoint} and \codeName{Upto} are achieved using a recursive CTE, while \codeName{Exactly} is executed by explicitly joining together the required number of repetitions of the sub-relation's query.	
 
 \renewcommand{\baselinestretch}{0.8}
 	\begin{framed}
@@ -1745,7 +1730,7 @@ trait RelationRetriever extends Logged {
 	
 		
 		\paragraph{Monadic Compilation}
-		To avoid storing multiple \codeName{RelationRetriever}s for the same sub-expression, it is useful to reuse the same retriever for every occurrence of a subquery. Hence, an algorithm to construct a query should keep track of previously seen subqueries. This can be done using the monadic compilation pattern (Section \ref{MonadicCompilation}). The compilation state stores a hashmap of all the subtrees that have already been computed (Similarly to constructing a binary decision diagram in automated theorem proving). 
+		To avoid storing multiple \codeName{RelationRetriever}s for the same sub-expression, it is useful to reuse the same retriever for every occurrence of a subquery. Hence, an algorithm to construct a query should keep track of previously seen subqueries. This can be achieved using the monadic compilation pattern (Section \ref{MonadicCompilation}). The compilation state stores a hashmap of all the subtrees that have already been computed (Similarly to constructing a binary decision diagram in automated theorem proving). 
 		
 \renewcommand{\baselinestretch}{0.8}
 \begin{framed}
@@ -1791,7 +1776,7 @@ Despite these optimisations, there are still sources of redundancy.
 \end{figure}
 		
 		
-		As joins over the set of results of subqueries form a \mathName{Monoid} (proven in appendix \ref{MonoidJoins}), we associatively reorder the evaluation of \mathName{joins}, aiming for as much common substructure as possible. This can be done in a manner similar to square-and-multiply exponentiation.
+		As joins over the set of results of subqueries form a \mathName{Monoid} (proven in appendix \ref{MonoidJoins}), we associatively reorder the evaluation of \mathName{joins}, aiming for as much common substructure as possible. This can be performed in a manner similar to square-and-multiply exponentiation.
 
 We calculate retrievers for $P^{2^i}$ for each $i$ less than the bitlength of $n$. We then join the relevant retrievers to to get a retriever for $P^n$. This only uses $O(Log_2(n))$ distinct joins, and makes very good reuse of the join functions. 
 
@@ -1838,7 +1823,7 @@ private def repeat(
 \section{Unit Tests}
 The correctness of each back-end is tested using a suite of 45 unit tests which verify adherence to the specified semantics. These have  wide range, testing over all the commands, all the possible ADT nodes, and the correct usage and separation of views. I have been using the regression test model, in that discovering a non-trivial bug, I've written a test case to target that bug, ensuring that it is not leaked into production again. These tests provide good evidence that all the implemented back-ends are correct in the small.
 \section{Performance Tests}
-	In order to evaluate the effectiveness of the various optimisations to the LMDB back-ends described above, it was necessary to run performance tests over wide range of queries. The various LMDB back-ends were tested against each other as a control and particularly against the SQL back-end as a standard to beat. The in-memory back-end was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation, which shares the same interpreter model. The LMDB implementation was able to index faster than Scala's tree based hash maps, which are used by the in-memory implementation. Further more, the original LMDB implementation is typically around 3x slower than the batched version for most jobs, so we also omit it for most tests, since most of the algorithms it uses for interpretation are the same.
+	In order to evaluate the effectiveness of the various optimisations to the LMDB back-ends described above, it was necessary to run performance tests over wide range of queries. The various LMDB back-ends were tested against each other as a control and particularly against the SQL back-end as a standard to beat. The in-memory back-end was omitted as initial tests indicated that it runs with approximately the same algorithmic characteristics as the Original LMDB implementation, which shares the same interpreter model. The LMDB implementation was able to index faster than Scala's tree based hash maps, which are used by the in-memory implementation. Furthermore, the original LMDB implementation is typically around 3x slower than the batched version across a most tests, since a majority of the algorithms it uses for interpretation are the same.
 	\subsection{Hardware}
 	Tests were run on the oslo machine belonging to Timothy Jones' group. Its specifications are shown below. All of the back-ends ran off of an SSD.
 \\\\	\begin{tabular}{|p{5cm}p{10cm}|}
@@ -1924,13 +1909,14 @@ The objects in the database are as follows:
 		
 		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. The graph has 1562 nodes and 3571 \codeName{Beat} relations.
 	\subsection{Test Harness}
-	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual test instances must implement. Each Test must have a \codeName{setup} method and a \codeName{test} method which is run on a \codeName{DBInstance} with the test method indexed by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate back-ends (For example, those that might take too long on a large test.) The benchmarks that I have run test only the read speed. The time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics.
+	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual benchmark instances must implement. Each test must provide  \codeName{setup} and \codeName{test} methods which take a \codeName{DBInstance} parameter. The test method is further enumerated by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate back-ends, such as those that might take too long on a large data-set. The benchmarks that I have run test only the read speed; the time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics.
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
 		An overall view of the results is that, as might be expected, the SQL implementation is the fastest over short, indexing heavy, queries. The most aggressively optimised LMDB implementation typically performing slightly worse than those with fewer optimisations over these queries. This likely due to the overheads of generating the memo. However, when longer graph queries expose the redundancies noted in the preceding sections, speed ups of orders of magnitude can be seen over both the other LMDB implementations and over SQL. This can particularly be seen in the cases of \codeName{FindPair} transitive queries.
 
 		A point to note is that I am ignoring evaluation of pathfinding queries. For simplicity, the pathfinding implementation re-evaluates the underlying step function query at each stage of the breadth first search. This seems to particularly punish the SQL implementation, to the extent that it is around 2000x slower than the LMDB reference implementation. Stateful solutions to speed this up might include creating a temporary table in the database to store the subgraph being searched. However, this would complicate the SQL implementation, since clearing up on error would require validating state. Hence, I am ignoring the pathfinding tests for the purpose of back-end comparison.
+		As the differences in performance due to the features of different back-ends are relatively large and benchmarks test over a range of queries, I have ommitted error bars in performance result graphs.
 
 
 \paragraph{Redundancy}
@@ -2138,7 +2124,7 @@ Interesting extensions to the core project that, given more time, I would have b
 \end{itemize}
 
 \section{Lessons learned}
-	With hindsight, I might aimed to build a narrower project, focusing on a single back-end and comparing  performance against a widely used graph database such as Neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and truly digging down to exploit all redundancy.
+	With hindsight, I might have aimed to build a narrower project, focusing on a single back-end and comparing  performance against a widely used graph database such as Neo4j. Although I very much enjoyed the chance to build a large project in a purely functional style, implementing the large number of moving parts in the project distracted from implementing more interesting optimisations and truly digging down to exploit all redundancy.
 
 \section{Concluding Thoughts}
 I hope for another chance to explore this space as I feel there are still many areas worth investigating.
