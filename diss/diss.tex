@@ -20,9 +20,6 @@
 - Put in line graph of query size vs performance for some queries
 
 - You could also add in a requirements analysis for the different features you wanted to or had to include.
-
-- (implementation) - This chapter could do with a short summary to highlight key implementation points and link to the evaluation.
-
 \end{comment}
 
 
@@ -1811,7 +1808,8 @@ private def repeat(
 			\end{framed}
 			\renewcommand{\baselinestretch}{1.1}
 
-
+\section{Summary}
+This chapter has explained overarching programming techniques and how back-ends were constructed. Furthermore it introduces several optimisations to LMDB back-ends. The first is the simple left-optimisation which prunes search trees for queries which match a small proportion of the graph. The second is elementary CSE-elimination which we expect to provide a speed up over queries with common sub-structure. Finally there is the \codeName{Exactly} and \codeName{Upto} reformulation which ought to improve performance over transitive queries.
 
 \chapter{Evaluation}
 \section{Unit Tests}
