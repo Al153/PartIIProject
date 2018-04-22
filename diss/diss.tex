@@ -17,21 +17,11 @@
 \usepackage{natbib}
 
 \begin{comment}
-- reference exactly/upto illustrations from text
 - Put in line graph of query size vs performance for some queries
-- More references to graphs
 
-2) Add references to the graphs.  At the moment, you have descriptive text for each one, but no link to the graph itself.  E.g. Figure xxx shows...  or As we see in figure xxx, ....
-
-3) At the moment all your graphs are a similar format - bar graphs for each of the backends you have.  Can you present some data in a different way?  One thing that springs to mind is that you have defined six different datasets, ranging in size.  Can you show a line graph for scaling performance across these (x-axis is dataset in increasing size, y-axis is performance, one line per backend)?  You don't have to do this for every experiment, but one or two.  That will help to make the evaluation a little more interesting for the reader and show evaluation of a different metric.
-
-
-- Software engineering - I think it would be good to briefly describe the way you worked - waterfall model or whatever you used - perhaps under the previous software engineering section.  You could also add in a requirements analysis for the different features you wanted to or had to include.
+- You could also add in a requirements analysis for the different features you wanted to or had to include.
 
 - (implementation) - This chapter could do with a short summary to highlight key implementation points and link to the evaluation.
-
-- (Evaluation) - Reference result graphs
-- Describe test-table queries
 
 \end{comment}
 
@@ -819,6 +809,8 @@ In addition to Scala, I have made use of several libraries and tools, some of wh
 \end{figure}
 The system was designed to be as modular and re-implementable as possible. To this end, it consists of several interchangeable components; a map of this is provided in figure \ref{fig:Architecture}. The front-end mostly consists of interfaces and syntax for building queries and the schema for the database. The front-end's DSL translates into the underlying typed ADT. This then has its compile-time type information erased to become an un-typed query ADT, which is easier and cleaner to interpret. Finally, there are three interfaces that a back-end system must implement: DBBackend, DBInstance and DBExecutor. These specify a root back-end object that opens an instance which represents a database connection. Each DBInstance has an executor that allows us to execute commands. The results of these commands are then un-erased to return them as the correct type.
 
+I progressed through the project using an iterated waterfall method. Each time it came to add a new module, such as a back-end, I planned the overall execution method and storage structure, then wrote the interfaces for submodules. Next, I filled in the components and tested the new back-end against a growing set of unit and regression tests.
+
 \section{Scala Techniques}
 I have made use of several advanced programming techniques which are specific to the Scala language.
 
@@ -1212,11 +1204,11 @@ The DSL mostly consists of syntactic sugar to make queries easier to read. It is
 During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different back-ends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
 
 
-	\subsection{Simple Traversal}\ref{SimpleFixedPoint}
+	\subsection{Simple Traversal}\label{SimpleFixedPoint}
 	The first set of generic algorithms to look at are the \codeName{SimpleFixedPointTraversal} algorithms. These compute the repetitions of a function for execution of the \codeName{FixedPoint}, \codeName{Upto}, and \codeName{Exactly} expressions of the ADT. They are labelled as "Simple" because they do the search from a single root. They carry out search mutably, and convert their output to an immutable set upon returning.
 	
 		\paragraph{Exactly}
-The simplest algorithm is for computing \codeName{Exactly} query nodes. Here, we simply expand a fringe set of values outwards, by applying the search step to every value in the fringe to get the new fringe. We also memoise the search step function in the case of repetitions. After the required number of repetitions, the remaining fringe is returned.
+The simplest algorithm is for computing \codeName{Exactly} query nodes. Here, we simply expand a fringe set of values outwards, by applying the search step to every value in the fringe to get the new fringe. We also memoise the search step function in the case of repetitions. After the required number of repetitions, the remaining fringe is returned. An illustration can be found in \ref{fig:ExactlySingle}.
 
 \begin{figure}[ht]
 \centering
@@ -1225,7 +1217,7 @@ The simplest algorithm is for computing \codeName{Exactly} query nodes. Here, we
   \label{fig:ExactlySingle}
 \end{figure}
     		\paragraph{Upto}
-The next algorithm is for computing \codeName{Upto}. This is computed in a similar way by flat-mapping the functions over the fringe repeatedly to calculate an expanding fringe. The major differences here are that we keep an accumulator of all the found values. When a new fringe is calculated, we subtract the accumulator set from it to reduce the number of nodes that need to be searched to those that have not yet been searched, and then union the remaining fringe with the accumulator to get the new accumulator. After the required number of repetitions, the accumulator is returned.
+The next algorithm is for computing \codeName{Upto}. This is computed in a similar way by flat-mapping the functions over the fringe repeatedly to calculate an expanding fringe. The major differences here are that we keep an accumulator of all the found values. When a new fringe is calculated, we subtract the accumulator set from it to reduce the number of nodes that need to be searched to those that have not yet been searched, and then union the remaining fringe with the accumulator to get the new accumulator. After the required number of repetitions, the accumulator is returned. An illustration can be found in \ref{fig:UptoSingle}.
 
 \begin{figure}[ht]
 \centering
@@ -1240,7 +1232,7 @@ The  final algorithm is to calculate \codeName{FixedPoint}. This works slightly 
 	\subsection{Full traversal}
 		The next set of algorithms build on the \codeName{SimpleFixedPoint} algorithms to return not just those nodes reachable from a single root, but the set of all reachable pairs with the left hand pair derived from a root set (using the left-hand optimisation explained is section \ref{leftOpt}). As such, the algorithms need to do some more work to reconstruct which nodes are reachable from each root, while still eliminating redundancies.
 		\paragraph{Exactly}
-The first such algorithm is for computing \codeName{Exactly}. This is similar to the original version, except we now store a fringe for each root in a map of \codeName{Root => Set[Node]}. We also memoise the search function in a Map to avoid computing it redundantly. In each iteration, we simply expand the fringe for each root as before by mapping the fringe expansion loop body over the values of the fringe map. 
+The first such algorithm is for computing \codeName{Exactly}. This is similar to the original version, except we now store a fringe for each root in a map of \codeName{Root => Set[Node]}. We also memoise the search function in a Map to avoid computing it redundantly. In each iteration, we simply expand the fringe for each root as before by mapping the fringe expansion loop body over the values of the fringe map. An illustration can be found in \ref{fig:ExactlyPairs}.
 
 \begin{figure}[ht]
 \centering
@@ -1250,7 +1242,9 @@ The first such algorithm is for computing \codeName{Exactly}. This is similar to
 \end{figure}
 		
 		\paragraph{Upto}
-The next algorithm is to compute \codeName{Upto}. This is again accomplished like before, but with a map of root to accumulator set as the accumulator. As with \codeName{Exactly}, the fringes of each root are expanded simultaneously, sharing redundant results via the memo, while the accumulators are unioned with the fringe of the appropriate root with each iteration. \begin{figure}[ht]
+The next algorithm is to compute \codeName{Upto}. This is again accomplished like before, but with a map of root to accumulator set as the accumulator. As with \codeName{Exactly}, the fringes of each root are expanded simultaneously, sharing redundant results via the memo, while the accumulators are unioned with the fringe of the appropriate root with each iteration. An illustration can be found in \ref{fig:UptoPairs}.
+
+\begin{figure}[ht]
 \centering
   \includegraphics[width=\textwidth]{figs/UptoPairs.png}
   \caption{Execution of an \codeName{Upto} query from multiple roots}
@@ -1920,7 +1914,7 @@ The objects in the database are as follows:
 
 
 \paragraph{Redundancy}
-This first test demonstrates the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB back-end. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, Hence it ends up running out of temporary disk space on this query.
+This first test demonstrates the removal of redundancies in \codeName{FindSingle} commands. There is clearly a major increase in speed due to the introduction of CSE and memoisation. Since this is a \codeName{FindSingle} query, there is no usage of the optimised join formulations, so there is no speed gain by the most optimised LMDB back-end. Postgres fails to fully optimise away the redundancy, even with use of the \texttt{DISTINCT} modifier of queries, Hence it ends up running out of temporary disk space on this query. Results can be seen in figure \ref{fig:RedundancyResult}.
 				
 \resultTable{Redundancy}{4 each}{
 \texttt{KevinBacon >> coactor;}\\\\
@@ -1932,6 +1926,8 @@ This first test demonstrates the removal of redundancies in \codeName{FindSingle
 Where
 
 \texttt{def coactor = ActsIn --><-- ActsIn}
+
+\\Finds increasing order co-actors with Kevin Bacon
 }{ \reference   	& 	381,972 & 1\\
  \cse 			&   379,280 & 0.993 \\
  \batched 		&	9,318,741 & 24.4 \\
@@ -1946,7 +1942,7 @@ Where
 \end{figure}
 
 		\paragraph{Intersections and Unions}
-	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The Postgres implementation comfortably outperformed all LMDB implementations across this index-heavy test, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reasons for this are that the redundancy exposed by the underlying sub queries is limited and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by Postgres. In addition, constructing an intersection and union over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	
+	These two tests make use of the \mathName{And} and  \mathName{Or} operators to combine several subqueries with some underlying common structure. Both resulted in similar performance patterns. The Postgres implementation comfortably outperformed all LMDB implementations across this index-heavy test, while the CSE related optimisations appeared to add overheads greater than the redundancy they removed. I expect the reasons for this are that the redundancy exposed by the underlying sub queries is limited and that the implementation of unions and intersection in Scala sets is slower than the optimised C implementation used by Postgres. In addition, constructing an intersection and union over the memoisation in the LMDB implementation also adds some overhead and reduces locality of reference.	Results can be seen in figures \ref{fig:IntersectionResults} and \ref{fig:UnionResults}.
 
 \resultTable{Intersections}{40 each}{
 \texttt{(coactorWith(KevinBacon));}\\\\
@@ -1955,6 +1951,9 @@ Where
 Where\\
 \texttt{def coactorWith(a: Person) = }\\
 \texttt{ActsIn --> (a >> ActsIn) <-- ActsIn} \\
+
+\codeName{CoactorWith(a)} defines a relation between actors who are 
+\\ coactors in a movie that \codeName{a} also acted in.
 }{ 
  \reference 			&   879,984 & 1 \\
  \cse 					&	827,734 & 0.941	\\
@@ -1992,11 +1991,14 @@ Where\\
 		These are a suite of benchmarks for testing the optimisations and performance on repetitive queries. A general overview is that the join-reordering optimisations strongly sped up benchmarks which ran \codeName{FindPair} queries. However, in \codeName{FindSingle} queries this formulation did not compete as strongly with the fast \codeName{SimpleFixedPointTraversal} methods. SQL performed strongly in \mathName{Upto} queries which use built in, optimised, recursive CTEs to calculate results, but less strongly in \mathName{Exactly} queries which do not have a built-in formulation.
 
 			\subparagraph{Exactly Test}
-			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join reordering in the mpst optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins.
+			This test runs \codeName{FindSingle} \mathName{Exactly} queries of varying lengths over the small movies database. As explained, the \codeName{SimpleFixedPointTraversal} \codeName{exactly} method is faster than any gains by the join reordering in the mpst optimised LMDB version. Postgres also performed poorly due to the lack of a recursive CTE for self joins. See figures \ref{fig:ExactlyResults} and \ref{fig:ExactlyTestLog}.
 	\resultTable{Exactly}{50}{
 	\texttt{TomHanks >> (}\\
 	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10);}	\\
 	\texttt{)}
+	
+\\Finds higher order coactors of Tom Cruise over the subgraph
+\\of movies acted in by Kevin Bacon
 }{ 
  \reference 			&  	1,752 	& 1 \\
  \cse 					&	1,798 	& 1.03	\\
@@ -2018,9 +2020,13 @@ Where\\
   \label{fig:ExactlyTestLog}
 \end{figure}
 			\subparagraph{Exactly Pairs}
-This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly} query over the small movies database. Since this test involves bookkeeping of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations which use the generic algorithm. Postgres also performs well in this test, showing minimal slowdown from the \codeName{FindSingle}queries. The LMDB implementations, however, do experience a slowdown from \codeName{FindPair}.
+This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly} query over the small movies database. Since this test involves bookkeeping of the root for each pair found, the \mathName{Exactly}-optimised LMDB implementation significantly outperforms the other LMDB implementations which use the generic algorithm. Postgres also performs well in this test, showing minimal slowdown from the \codeName{FindSingle}queries. The LMDB implementations, however, do experience a slowdown from \codeName{FindPair}. See figure \ref{fig:ExactlyPairsResults}.
 	\resultTable{ExactlyPairs}{50}{
-	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10));}}{ 
+	\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn) * (index.i \% 10));}
+
+\\Finds higher order pairs of coactors over the subgraph
+\\of movies acted in by Kevin Bacon	
+	}{ 
  \reference 			&  	83,269 		& 1 \\
  \cse 					&	1,792,388 	& 21.5 \\
  \batched				&   1,787,390 	& 21.5 \\
@@ -2035,10 +2041,13 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 \end{figure}
 
 			\subparagraph{UptoTest}
-				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB back-end provides a significant speed-up, such as 225x on the other LMDB back-ends and 1.5x over Postgres.
+				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB back-end provides a significant speed-up, such as 225x on the other LMDB back-ends and 1.5x over Postgres. See figure \ref{fig:UptoTestResult}.
 				\resultTable{Upto}{10}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> index.i);}
+				
+\\Finds actors linked by up to \mathName{i} insances of the coactor 
+\\relationship in the subgraph of movies acted in by Kevin Bacon
 }{ 
  \reference 			&  	126,448 	& 1 \\
  \cse 					&	28,491,910 	& 225 \\
@@ -2061,7 +2070,7 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 \end{figure}
 			\subparagraph{UptoLarge}
 			
-				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance.
+				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance. These results can be seen in figure \ref{fig:UptoLargeResults}.
 				\resultTable{Upto}{100}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> (index.i \% 10)}\\
@@ -2078,7 +2087,7 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 \end{figure}
 	
 			\paragraph{JoinSpeed}
-				This test is  to demonstrate the cost of joins. We interleave queries that calculate two subqueries and then combine them. For half of the queries, the \codeName{And} operator is used, which is assumed to be fast. For the other half, a \codeName{Chain} is used. In theory, the difference between these two types of queries should give us an idea of the cost of a join.
+				This test is  to demonstrate the cost of joins. We interleave queries that calculate two subqueries and then combine them. For half of the queries, the \codeName{And} operator is used, which is assumed to be fast. For the other half, a \codeName{Chain} is used. In theory, the difference between these two types of queries should give us an idea of the cost of a join, as seen in figure \ref{fig:JoinSpeedResults}.
 			\jsTable{Join Speed}{150 each}{
 			\texttt{(ActsIn --><-- ActsIn) \& (ActsIn --><-- ActsIn);}\\\\
 \texttt{(ActsIn --><-- ActsIn) -->--> (ActsIn --><-- ActsIn);}
