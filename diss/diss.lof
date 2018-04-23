@@ -20,11 +20,14 @@
 \contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt {Exactly} queries\relax }}{69}{figure.caption.69}
 \contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt {Exactly} queries\relax }}{70}{figure.caption.70}
 \contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt {FindPair} queries\relax }}{71}{figure.caption.72}
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt {Upto} queries\relax }}{72}{figure.caption.74}
-\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt {Upto} queries\relax }}{73}{figure.caption.75}
-\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for large \texttt {Upto} queries\relax }}{74}{figure.caption.77}
-\contentsline {figure}{\numberline {4.10}{\ignorespaces Overall read performance for Join-Speed queries\relax }}{74}{figure.caption.79}
-\contentsline {figure}{\numberline {4.11}{\ignorespaces The distribution of values for the \textit {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. \relax }}{75}{figure.caption.80}
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt {Upto} queries.\relax }}{72}{figure.caption.74}
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt {Upto} queries.\relax }}{73}{figure.caption.75}
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for \texttt {Upto} queries with increasing \texttt {n}.\relax }}{74}{figure.caption.76}
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Log-Read performance for \texttt {Upto} queries with increasing \texttt {n}.\relax }}{74}{figure.caption.77}
+\contentsline {figure}{\numberline {4.11}{\ignorespaces Read performance for large \texttt {Upto} queries\relax }}{75}{figure.caption.79}
+\contentsline {figure}{\numberline {4.12}{\ignorespaces Read performance for large \texttt {Upto} queries with increasing n. Error bars are 1 standard deviation.\relax }}{75}{figure.caption.80}
+\contentsline {figure}{\numberline {4.13}{\ignorespaces Overall read performance for Join-Speed queries\relax }}{76}{figure.caption.82}
+\contentsline {figure}{\numberline {4.14}{\ignorespaces The distribution of values for the \textit {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. \relax }}{76}{figure.caption.83}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

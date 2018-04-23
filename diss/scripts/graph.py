@@ -154,13 +154,26 @@ class TrendResult(object):
 
 		return (names, values, colours)
 
-	def plot(self):
+	def plot(self, logCoeff = 0):
 		fig, ax = plt.subplots()
 		(names, values, colours) = self.__getValues()
 		width = 0.35
 		lines = []
 		for i in xrange(len(values)):
-			lines.append(ax.plot(values[i], colours[i], label = names[i]))
+			xs = list(values[i][0].keys())
+			ys = [values[i][0][j] for j in xs]
+			err = values[i][1]
+			if err:
+				errbars = [err[j] for j in xs]
+				lines.append(ax.plot(xs, ys, colours[i], label = names[i]))
+				plt.errorbar(xs, ys, yerr=errbars, linestyle="None")
+			else:
+				lines.append(ax.plot(xs, ys, colours[i], label = names[i]))
+		if logCoeff:
+			import math
+			xs = filter(lambda x: x > 0, list(values[0][0]))
+			ys = [math.log(x, 2)*logCoeff for x in xs]
+			lines.append(ax.plot(xs, ys, "k--", label = str(logCoeff)+"*log2(n)"))
 		ax.set_ylabel("Time to Execute (ms)")
 		ax.set_xlabel("Repetitions")
 		ax.set_title("Back-End Performance on  "+ self.name)
@@ -168,7 +181,71 @@ class TrendResult(object):
 		plt.legend()
 		plt.savefig(self.name + "Trend.png")
 
+        def plotLog(self):
+                fig, ax = plt.subplots()
+                (names, values, colours) = self.__getValues()
+                width = 0.35
+                lines = []
+		import math
+                for i in xrange(len(values)):
+                        xs = list(values[i][0].keys())
+                        ys = [math.log(values[i][0][j], 2) for j in xs]
+                        err = values[i][1]
+                        lines.append(ax.plot(xs, ys, colours[i], label = names[i]))
 
+                ax.set_ylabel("Log time to Execute")
+                ax.set_xlabel("Repetitions")
+                ax.set_title("Log Back-End Performance on  "+ self.name)
+                plt.grid(True)
+                plt.legend()
+                plt.savefig(self.name + "LogTrend.png")
+
+
+def mean(data):
+    """Return the sample arithmetic mean of data."""
+    n = len(data)
+    if n < 1:
+        raise ValueError('mean requires at least one data point')
+    return sum(data)/float(n)
+
+def _ss(data):
+    """Return sum of square deviations of sequence data."""
+    c = mean(data)
+    ss = sum((x-c)**2 for x in data)
+    return ss
+
+def stdev(data, ddof=0):
+    """Calculates the population standard deviation
+    by default; specify ddof=1 to compute the sample
+    standard deviation."""
+    n = len(data)
+    if n < 2:
+        raise ValueError('variance requires at least two data points')
+    ss = _ss(data)
+    pvar = ss/(n-ddof)
+    return pvar**0.5
+
+
+def getRegularTrendData(fname):
+	f = open(fname)
+	res = {}
+	for i, line in enumerate(f):
+		res[i+1] = int(line)
+	return (res, None)
+
+def getModularTrendData(fname, modulus):
+	f = open(fname)
+	res = {}
+	for i, line in enumerate(f):
+		i_mod = (i+1)%modulus
+		if (i_mod) in res:
+			res[i_mod].append(int(line))
+		else:
+			res[i_mod] = [int(line)]
+
+	values = {i:mean(l) for (i,l) in res.items()}
+	ebars = {i:stdev(l) for (i,l) in res.items()}
+	return (values, ebars)
 
 def plotBimodal(cv):
 	fig, ax = plt.subplots()
@@ -224,9 +301,17 @@ if __name__ == '__main__':
 	upto = TestResult("Upto", ref = 126448, cse = 28491910, batched = 28423658, postgres = 197880)
 	uptoLarge = TestResult("UptoLarge", ref = 1059091, postgres = 1557314)
 	joinSpeed = TestResult("JoinSpeed", ref = 368320, cse = 525992, batched = 543909, postgres = 289352)
-	
-	trendTest = TrendResult("test", ref = [1,2,3,4,5,6,7,8,9,10], cse = [1,1,2,3,5,8,13,21,34,55], postgres = [1,2,4,8,16,32,64,128,256,512])
-	
+	from os.path import join
+	uptoTrend = TrendResult("Upto",
+		ref =  getRegularTrendData(join("trends", "uptoRef.dat")),
+		cse =  getRegularTrendData(join("trends", "uptoCSE.dat")),
+		postgres =  getRegularTrendData(join("trends", "uptoSQL.dat")),
+		batched = getRegularTrendData(join("trends", "uptoBatched.dat"))
+	)
+	uptoLargeTrend = TrendResult("UptoLarge",
+                ref =  getModularTrendData(join("trends", "ULargeRef.dat"), 10),
+                postgres =  getModularTrendData(join("trends", "ULargeSQL.dat"), 10)
+	)
 	redundancy.plot()
 	conjunctions.plot()
 	disjunctions.plot()
@@ -239,8 +324,11 @@ if __name__ == '__main__':
 	uptoLarge.plot()
 	joinSpeed.plot()
 
+	uptoTrend.plot()
+	uptoTrend.plotLog()
+	uptoLargeTrend.plot(5500)
+
 	plotBimodal(0.05)
 
-	trendTest.plot()
 
 	plotJoinSpeed([633, 1443], [884, 2285], [953, 2028], [345, 1557])

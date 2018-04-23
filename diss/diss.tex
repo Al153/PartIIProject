@@ -1166,7 +1166,7 @@ sealed trait SchemaObject[A] {
 	\begin{verbatim}
 type DBObject = Vector[DBCell]
 
-type DBCell -> DBInt of Int 
+type DBCell = DBInt of Int 
 			| DBString of String
 			| DBBool of Boolean
 			| DBDouble of Double
@@ -1921,7 +1921,7 @@ The objects in the database are as follows:
 		
 		The \codeName{ShorterThan} and \codeName{LighterThan} relations produce extremely sparse graphs which take a long time to converge under transitive closure. The graph has 1562 nodes and 3571 \codeName{Beat} relations.
 	\subsection{Test Harness}
-	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual benchmark instances must implement. Each test must provide  \codeName{setup} and \codeName{test} methods which take a \codeName{DBInstance} parameter. The test method is further enumerated by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate back-ends, such as those that might take too long on a large data-set. The benchmarks that I have run test only the read speed; the time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics.
+	In order to run tests against each other, I have written a typesafe test harness to run on oslo. This standardises the interface that individual benchmark instances must implement. Each test must provide  \codeName{setup} and \codeName{test} methods which take a \codeName{DBInstance} parameter. The test method is further enumerated by a \codeName{TestIndex}. The test specification must give a maximum index and a mask to avoid running inappropriate back-ends, such as those that might take too long on a large data-set. The benchmarks that I have run test only the read speed; the time taken to construct the database is not included. Finally, the test harness compares the hash of the result of each query with that produced by the reference implementation, hence verifying that all implementations produce the same result. This provides good evidence that the implementations follow the same specified semantics. For the sake of the following tests, the \textbf{reference} implementation is the most optimised \textbf{LMDB Backend}.
 	
 	\subsection{Results}
 		\paragraph{Overall Picture}
@@ -2059,7 +2059,7 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
 \end{figure}
 
 			\subparagraph{UptoTest}
-				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the upto-optimisation of the final LMDB back-end provides a significant speed-up, such as 225x on the other LMDB back-ends and 1.5x over Postgres. See figure \ref{fig:UptoTestResult}.
+				This test runs \mathName{Upto} based \codeName{FindPair} queries over the large IMDB database. Here the \codeName{Upto}-optimisation of the final LMDB back-end provides a significant speed-up, such as 225x on the other LMDB back-ends and 1.5x over Postgres. See figure \ref{fig:UptoTestResult}.
 				\resultTable{Upto}{10}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> index.i);}
@@ -2071,24 +2071,41 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
  \cse 					&	28,491,910 	& 225 \\
  \batched				&   28,423,658 	& 225 \\
  \postgres    			&	197,880 	& 1.56 \\
- }	
+ }
+ 
+The effect of the \codeName{Upto}-optimisation can be seen further when we plot time to complete indivual queries of \codeName{Upto(n, P)} for increasing \mathName{n}. Trends from the same test-run can be seen in figures \ref{fig:UptoTrend} and \ref{fig:UptoLogTrend}.
  
 \begin{figure}[ht]
 \centering
   \includegraphics[width=0.9\textwidth]{scripts/Upto.png}
-  \caption{Read performance for \codeName{Upto} queries}
+  \caption{Read performance for \codeName{Upto} queries.}
   \label{fig:UptoTestResult}
 \end{figure}
 
  \begin{figure}[ht]
 \centering
   \includegraphics[width=0.9\textwidth]{scripts/UptoLog.png}
-  \caption{Log-Read performance for \codeName{Upto} queries}
+  \caption{Log-Read performance for \codeName{Upto} queries.}
   \label{fig:UptoLogResult}
+\end{figure}
+
+
+ \begin{figure}[ht]
+\centering
+  \includegraphics[width=0.9\textwidth]{scripts/UptoTrend.png}
+  \caption{Read performance for \codeName{Upto} queries with increasing \codeName{n}.}
+  \label{fig:UptoTrend}
+\end{figure}
+
+ \begin{figure}[ht]
+\centering
+  \includegraphics[width=0.9\textwidth]{scripts/UptoLogTrend.png}
+  \caption{Log-Read performance for \codeName{Upto} queries with increasing \codeName{n}.}
+  \label{fig:UptoLogTrend}
 \end{figure}
 			\subparagraph{UptoLarge}
 			
-				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance. These results can be seen in figure \ref{fig:UptoLargeResults}.
+				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance. These results can be seen in figure \ref{fig:UptoLargeResults}. Furthermore, plotting the results of individual queries (in figure \ref{fig:UptoLargeTrend} as before reveals that Postgres's implementation takes linear time to complete, versus log time for the reference implementation.
 				\resultTable{Upto}{100}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> (index.i \% 10)}\\
@@ -2102,6 +2119,13 @@ This test instead runs a \codeName{FindPair}, variable-length \mathName{Exactly}
   \includegraphics[width=0.9\textwidth]{scripts/UptoLarge.png}
   \caption{Read performance for large \codeName{Upto} queries}
   \label{fig:UptoLargeResults}
+\end{figure}
+
+ \begin{figure}[ht]
+\centering
+  \includegraphics[width=0.9\textwidth]{scripts/UptoLargeTrend.png}
+  \caption{Read performance for large \codeName{Upto} queries with increasing n. Error bars are 1 standard deviation.}
+  \label{fig:UptoLargeTrend}
 \end{figure}
 	
 			\paragraph{JoinSpeed}
