@@ -38,14 +38,14 @@ object IMDBSchema {
 
   implicit def placeSchema = new SchemaObject1[Place, String] {
     override def construct(a1: String): Place = Place(a1)
-    override def name: TableName = TableName("People")
+    override def name: TableName = TableName("Place")
     override def toTuple(a: Place): SchemaObject[Place] =>DBTuple1[Place, String] = buildDBTuple(a.name)
   }
 
 
   implicit def genreSchema = new SchemaObject1[Genre, String] {
     override def construct(a1: String): Genre = Genre(a1)
-    override def name: TableName = TableName("People")
+    override def name: TableName = TableName("Genre")
     override def toTuple(a: Genre): SchemaObject[Genre] => DBTuple1[Genre, String] = buildDBTuple(a.name)
   }
 

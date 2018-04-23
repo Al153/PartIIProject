@@ -1,0 +1,80 @@
+import scala.concurrent.ExecutionContext.Implicits.global
+import impl.lmdb.fastjoins._
+import core.user.dsl._
+import construction.imdb.IMDBSchema._
+import construction.imdb.DBBuilder._
+
+import java.io.File
+import core.utils._
+
+
+
+val location = new File("~/demoDB")
+val einstance = LMDB.open(DBDir(location.toPath, "", ""), schemaDescription)
+
+implicit val instance = einstance.toOption.get
+
+//////////////////////////////////////////////////////////////
+
+// To build db:
+
+val testJSON = "imdb/medium"
+val build = using(instance){ buildDB(testJSON)}
+
+build.run.onComplete{t => println(t)}
+build.run.onComplete{t => "DONE"}
+
+
+
+//////////////////////////////////////////////////////////////
+
+// Simple queries
+
+val coactor = ActsIn --><-- ActsIn
+val comovie = ActsIn <----> ActsIn
+
+
+readDefault(instance) {
+    for {
+           actors <- findPairs(coactor)
+           movies <- findPairs(comovie)
+    } yield {
+        println("Actors = " + actors.take(4).mkString("\n"))
+        println("Movies = " + movies.take(4).mkString("\n"))
+    }
+}
+
+// A repetition
+
+val KevinBacon = Person("Kevin Bacon")
+val actsWithKevinBacon = ActsIn -->(KevinBacon >> ActsIn)<-- ActsIn
+
+readDefault(instance) {
+    for {
+        ps <- findPairs(actsWithKevinBacon * 4)
+    } yield {
+        println("Actors = " + ps.take(4).mkString("\n"))
+    }
+}
+
+// Smallest bacon numbers
+
+readDefault(instance){
+   for {
+     paths <- allShortestPaths(KevinBacon, coactor)
+     baconNumbers = for {
+         path <- paths.toList.sortWith(_.length < _.length)
+     } yield (path.end, path.length)
+   } yield {println(baconNumbers.take(10).mkString("\n"))}
+}
+
+// largest bacon numbers
+
+readDefault(instance){
+   for {
+     paths <- allShortestPaths(KevinBacon, coactor)
+     baconNumbers = for {
+         path <- paths.toList.sortWith(_.length > _.length)
+     } yield (path.end, path.length)
+   } yield {println(baconNumbers.take(10).mkString("\n"))}
+}
