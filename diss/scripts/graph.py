@@ -2,27 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-# N = 5
-# men_means = (20, 35, 30, 35, 27)
-# men_std = (2, 3, 4, 1, 2)
-# 
-# ind = np.arange(N)  # the x locations for the groups
-# width = 0.35       # the width of the bars
-# 
-# fig, ax = plt.subplots()
-# rects1 = ax.bar(ind, men_means, width, color='r', yerr=men_std)
-# 
-# women_means = (25, 32, 34, 20, 25)
-# women_std = (3, 5, 2, 3, 3)
-# rects2 = ax.bar(ind + width, women_means, width, color='y', yerr=women_std)
-# 
-# # add some text for labels, title and axes ticks
-# ax.set_ylabel('Scores')
-# ax.set_title('Scores by group and gender')
-# ax.set_xticks(ind + width / 2)
-# ax.set_xticklabels(('G1', 'G2', 'G3', 'G4', 'G5'))
-# 
-# ax.legend((rects1[0], rects2[0]), ('Men', 'Women'))
+
 
 
 def autolabel(rects, ax):
@@ -34,11 +14,6 @@ def autolabel(rects, ax):
         ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
                 '%d' % int(height),
                 ha='center', va='bottom')
-
-# autolabel(rects1)
-# autolabel(rects2)
-# 
-# plt.show()
 
 ###########################################
 # Project data
@@ -109,7 +84,6 @@ class TestResult(object):
 		plt.grid(True)
 		for i in range(len(colours)):
 			rects[i].set_color(colours[i])
-		
 		plt.savefig(self.name + ".png")
 
 	def plotLog(self):
@@ -130,6 +104,71 @@ class TestResult(object):
 			rects[i].set_color(colours[i])
 		#autolabel(rects, ax)
 		plt.savefig(self.name + "Log.png")
+
+class TrendResult(object):
+	def __init__(self, name, ref, original = None, batched = None, cse = None, postgres = None):
+		super(TrendResult, self).__init__()
+		self.name = name
+		self.ref = ref
+		self.original = original
+		self.batched = batched
+		self.cse = cse
+		self.postgres = postgres
+
+		self.refName = "Reference"
+		self.cseName = "LMDB CSE"
+		self.postgresName = "Postgres"
+		self.batchedName = "LMDB Batched"
+		self.origName = "LMDB original"
+
+		self.refColour = 'ro-'
+		self.cseColour = 'gv-'
+		self.postgresColour = 'b^-'
+		self.batchedColour = 'cs-'
+		self.origColour = 'yp-'
+
+	def __getValues(self):
+		names = [self.refName]
+		values = [self.ref]
+		colours = [self.refColour]
+
+		if self.original != None:
+			names.append(self.origName)
+			values.append(self.original)
+			colours.append(self.origColour)
+
+		if self.batched != None:
+			names.append(self.batchedName)
+			values.append(self.batched)
+			colours.append(self.batchedColour)
+
+		if self.cse != None:
+			names.append(self.cseName)
+			values.append(self.cse)
+			colours.append(self.cseColour)
+
+		if self.postgres != None:
+			names.append(self.postgresName)
+			values.append(self.postgres)
+			colours.append(self.postgresColour)
+
+		return (names, values, colours)
+
+	def plot(self):
+		fig, ax = plt.subplots()
+		(names, values, colours) = self.__getValues()
+		width = 0.35
+		lines = []
+		for i in xrange(len(values)):
+			lines.append(ax.plot(values[i], colours[i], label = names[i]))
+		ax.set_ylabel("Time to Execute (ms)")
+		ax.set_xlabel("Repetitions")
+		ax.set_title("Back-End Performance on  "+ self.name)
+		plt.grid(True)
+		plt.legend()
+		plt.savefig(self.name + "Trend.png")
+
+
 
 def plotBimodal(cv):
 	fig, ax = plt.subplots()
@@ -186,6 +225,7 @@ if __name__ == '__main__':
 	uptoLarge = TestResult("UptoLarge", ref = 1059091, postgres = 1557314)
 	joinSpeed = TestResult("JoinSpeed", ref = 368320, cse = 525992, batched = 543909, postgres = 289352)
 	
+	trendTest = TrendResult("test", ref = [1,2,3,4,5,6,7,8,9,10], cse = [1,1,2,3,5,8,13,21,34,55], postgres = [1,2,4,8,16,32,64,128,256,512])
 	
 	redundancy.plot()
 	conjunctions.plot()
@@ -200,5 +240,7 @@ if __name__ == '__main__':
 	joinSpeed.plot()
 
 	plotBimodal(0.05)
+
+	trendTest.plot()
 
 	plotJoinSpeed([633, 1443], [884, 2285], [953, 2028], [345, 1557])
