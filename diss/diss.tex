@@ -2105,7 +2105,7 @@ The effect of the \codeName{Upto}-optimisation can be seen further when we plot 
 \end{figure}
 			\subparagraph{UptoLarge}
 			
-				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance. These results can be seen in figure \ref{fig:UptoLargeResults}. Furthermore, plotting the results of individual queries (in figure \ref{fig:UptoLargeTrend} as before reveals that Postgres's implementation takes linear time to complete, versus log time for the reference implementation.
+				Since the more naive LMDB instances took seven hours each to complete the above test, I re-ran the benchmark for only the reference and Postgres implementations for a longer period of time, yielding a similar ratio of performance. These results can be seen in figure \ref{fig:UptoLargeResults}. Furthermore, plotting the results of individual queries (in figure \ref{fig:UptoLargeTrend} as before reveals that Postgres's implementation takes linear time to complete, versus log time for the reference implementation. This makes sense, as the retriever structure built by the LMDB back-end has a depth that grows with the logarithm of the query parameter.
 				\resultTable{Upto}{100}{
 				\texttt{((ActsIn -->(KevinBacon >> ActsIn))<-- ActsIn).*(}\\
 				\texttt{0 --> (index.i \% 10)}\\
