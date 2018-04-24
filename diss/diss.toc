@@ -136,7 +136,7 @@
 \contentsline {chapter}{\numberline {A}The Domain closure(A, v)}{81}{appendix.A}
 \contentsline {paragraph}{$closure(A, v)$ is a domain}{81}{section*.86}
 \contentsline {paragraph}{proof:}{81}{section*.87}
-\contentsline {chapter}{\numberline {B}Correspondence of operational and denotational semantics}{83}{appendix.B}
+\contentsline {chapter}{\numberline {B}Correspondence of Operational and Denotational Semantics}{83}{appendix.B}
 \contentsline {paragraph}{Proof: }{83}{section*.88}
 \contentsline {paragraph}{FindSingle Queries:}{83}{section*.89}
 \contentsline {subparagraph}{$S = AndS(S', S'')$}{83}{equation.B.0.1}

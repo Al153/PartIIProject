@@ -16,12 +16,6 @@
 
 \usepackage{natbib}
 
-\begin{comment}
-- Put in line graph of query size vs performance for some queries
-\end{comment}
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Imports and commands for drawing graphs, reproduced from ELGraphExample
 \usepackage{amsmath}
@@ -305,8 +299,6 @@ extent for a comparable purpose.
 % now for the chapters
 
 \pagestyle{headings}
-
-\todo{Performance over query size graph}\\
 
 \chapter{Introduction}
 In recent years, alternatives to the relational database model employed by SQL have received increasing attention. One such model for data is that of graph databases, which allow queries to pattern match over the graph formed by relations between objects in the the database. SQL is ill-optimised, both in syntax and execution, for highly transitive graph oriented queries. Join syntax, while general, is clunky and SQL lacks the ability to easily specify and perform the repetition based queries often used in graph applications. Another trend in the industry is a move towards languages with purely functional, strongly typed features. Fields which require the ability to quickly produce non-trivial, correct code have seen the use of high level languages such as Haskell, Ocaml, and Scala progress from a research interest to a serious paradigm. In these use cases, such as automated trading and safety critical systems, an advanced type system is used to  make stronger guarantees about the runtime behaviour of the program and enhances the ability to find bugs at compile time than in more traditional imperative languages.
@@ -2227,7 +2219,7 @@ To prove it is a least upper bound, consider $y$ such that $(\forall i.) y \sups
 
 \prevdepth\tpd
 
-\chapter{Correspondence of operational and denotational semantics}
+\chapter{Correspondence of Operational and Denotational Semantics}
 \label{DenoOper}
 In order to use the denotational semantics to construct an interpreter or compiler, we need to prove they are equivalent to the operational semantics. Namely:
 
