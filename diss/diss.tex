@@ -622,7 +622,7 @@ Which means ``under the schema $\Sigma$, pair query $P$ returns a subset of $A \
 
 \[ \Sigma \vdash S \colon A \]
 
-Which means ``under the schema $\Sigma$ single query returns a subset of $A$''
+Which means ``under the schema $\Sigma$ single query returns a subset of $A$''\\
 
 The rules of the first kind are as follows
 
@@ -652,10 +652,10 @@ The rules for types of Single queries are similar:
 \end{align}
 
 \subsection{Semantics}
-    To fully define the query language, we need to define the semantics. I have defined two collections of semantics: operational style and denotational style.
+   To fully define the query language, we need to define the semantics. I have defined two collections of semantics: operational style and denotational style.
 \paragraph{Operational Semantics}   
 
-Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft_A Q$ to mean``a is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We're interested in forming a relation $a \triangleleft_A Q$ to mean``$a$ is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
 
 \begin{align}
 &\displaystyle\mbox{(Rel)}\frac{(a,b) \in v(r)}{\opRule{(a, b)}{(A, B)}{Rel(r)}} \\[3ex]
@@ -681,7 +681,7 @@ And the FindSingle rules
 
 \begin{align}
 &\displaystyle\mbox{(Find)}\frac{a \in v(A) \indent f(a)\downarrow True}{\opRule{a}{A}{Find(f)}} \\[3ex]
-&\displaystyle\mbox{(From)}\frac{\opRule{a}{A}{S} \indent \opRule{(a,b)}{)(A, B)}{P}}{\opRule{b}{A}{From(S, P)}} \\[3ex]
+&\displaystyle\mbox{(From)}\frac{\opRule{a}{A}{S} \indent \opRule{(a,b)}{(A, B)}{P}}{\opRule{b}{A}{From(S, P)}} \\[3ex]
 &\displaystyle\mbox{(AndS)}\frac{\opRule{a}{A}{S} \indent \opRule{a}{A}{S'}}{\opRule{a}{A}{And(S, S')}} \\[3ex]
 &\displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
 &\displaystyle\mbox{(OrS1)}\frac{\opRule{a}{A}{S'}}{\opRule{a}{A}{Or(S, S')}} \\[3ex]
@@ -1091,10 +1091,10 @@ def eval(e: Expr): Error \/ Int =
 		\begin{verbatim}
 def evalAndPrint(e: Expr): NoError \/ String = 
   eval(e) match {
-    case \/-(i) =>i.toString.right
+    case \/-(i) => i.toString.right
     case -\/(e) => e match {
-        case DivByZero => “division by zero”.right
-        case UnderFlow => “underflow”.right
+        case DivByZero => "division by zero".right
+        case UnderFlow => "underflow".right
     }
   }
 		\end{verbatim}
