@@ -21,17 +21,17 @@
 \contentsline {subparagraph}{A view,}{21}{section*.18}
 \contentsline {subsection}{\numberline {2.5.3}Typing}{21}{subsection.2.5.3}
 \contentsline {subsection}{\numberline {2.5.4}Semantics}{22}{subsection.2.5.4}
-\contentsline {paragraph}{Operational Semantics}{23}{section*.19}
+\contentsline {paragraph}{Operational Semantics}{22}{section*.19}
 \contentsline {paragraph}{Denotational Semantics}{24}{section*.20}
 \contentsline {subsection}{\numberline {2.5.5}Commands}{26}{subsection.2.5.5}
 \contentsline {subsection}{\numberline {2.5.6}Summary}{26}{subsection.2.5.6}
-\contentsline {section}{\numberline {2.6}Starting Point}{27}{section.2.6}
+\contentsline {section}{\numberline {2.6}Starting Point}{26}{section.2.6}
 \contentsline {section}{\numberline {2.7}Software Engineering}{28}{section.2.7}
 \contentsline {subsection}{\numberline {2.7.1}Requirements Analysis}{29}{subsection.2.7.1}
 \contentsline {section}{\numberline {2.8}Scala Techniques}{29}{section.2.8}
 \contentsline {subsection}{\numberline {2.8.1}Type-Enrichment}{29}{subsection.2.8.1}
 \contentsline {subsection}{\numberline {2.8.2}Implicit Parameters}{30}{subsection.2.8.2}
-\contentsline {subsection}{\numberline {2.8.3}Typeclass Pattern}{32}{subsection.2.8.3}
+\contentsline {subsection}{\numberline {2.8.3}Typeclass Pattern}{31}{subsection.2.8.3}
 \contentsline {chapter}{\numberline {3}Implementation}{35}{chapter.3}
 \contentsline {section}{\numberline {3.1}Note on Purity and Concurrency}{35}{section.3.1}
 \contentsline {section}{\numberline {3.2}Functional Programming Techniques}{35}{section.3.2}
@@ -69,7 +69,7 @@
 \contentsline {subsection}{\numberline {3.9.5}Storage}{48}{subsection.3.9.5}
 \contentsline {subsection}{\numberline {3.9.6}Mutability}{48}{subsection.3.9.6}
 \contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{48}{subsection.3.9.7}
-\contentsline {section}{\numberline {3.10}PostgreSQL back-end}{48}{section.3.10}
+\contentsline {section}{\numberline {3.10}PostgreSQL back-end}{49}{section.3.10}
 \contentsline {subsection}{\numberline {3.10.1}Table Structure}{49}{subsection.3.10.1}
 \contentsline {paragraph}{Control Tables}{49}{section*.34}
 \contentsline {paragraph}{Schema defined Tables}{49}{section*.35}
