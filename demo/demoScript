@@ -78,3 +78,13 @@ readDefault(instance){
      } yield (path.end, path.length)
    } yield {println(baconNumbers.take(10).mkString("\n"))}
 }
+
+
+
+/////////////////////////////////////////////
+readDefault(instance){
+  for {
+    _ <- insert(CompletedRelation(Person("Tim Jones"), ActsIn, Movie("Tripos", "C")))
+    r <- find(Person("Tim Jones") >> ActsIn)
+  } yield r
+}
