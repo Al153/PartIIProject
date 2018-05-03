@@ -2165,11 +2165,11 @@ There are some things to note from these figures. Firstly, around 7\% of the LMD
 To the best of my knowledge, the graph database system I have built over the last seven months is one of the, if not the, first explicitly purely functional graph database systems in existence. This project is a demonstration that complex, performant software projects can be built using purely functional languages, whilst keeping the benefits of strong type systems. I feel that despite having written the project in Scala, a high level, often inefficient language I have achieved an acceptable level of performance for graph traversal. Although the system would need significant work in the areas of security, networked access, and tuning to real-world use cases to become commercially viable, it stands as a solid prototype for potential future systems.
 
 \section{Further extensions}
-Interesting extensions to the core project that, given more time, I would have been interested to explore include
+Interesting extensions to the core project that, given more time, I would have been interested to explore include:
 \begin{itemize}
- \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by how large the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
+ \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by the size of the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
  \item The implementation of deletions and garbage collection of unused views in the database. Garbage collection in particular might be difficult, as the database is not required to store any state about client instances.
- \item Exploration of  improvement of the schema system using a dependent types library, such as shapeless.
+ \item Exploration of  improvement of the schema system using a dependent types library, such as \codeName{Shapeless}.
  \item Rewriting the lowest layer of the LMDB back-ends' interpreters in C or another low level language to extract maximum performance from the LMDB system, without having to construct Scala collections at every step.
 \end{itemize}
 
@@ -2193,7 +2193,7 @@ I hope for another chance to explore this space as I feel there are still many a
 \addcontentsline{toc}{chapter}{Appendix}
 \chapter{The Domain \clos}
 
-For the various semantics proofs it is necessary to define the Scott domain $\clos$ for some object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ such that $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$. From this point on, I shall use $x \subseteq y$ to mean $y \sqsubseteq x$.
+For the various semantics proofs it is necessary to define the Scott domain $\clos$ for some object type $A$ and $View_{\Sigma}$ $v$. This domain is the set of subsets $x$ such that $\deno{Id_A} \subseteq x \subseteq A \times A$ with bottom element $\bot = \deno{Id_A}$ and partial order $x \sqsubseteq y \Leftrightarrow x \subseteq y$. From this point on, I shall use $x \subseteq y$ to mean $y \sqsubseteq x$.\\\\
 
 \hfill\begin{minipage}{\dimexpr\textwidth-1cm}
 \paragraph{$\clos$ is a domain}
@@ -2616,7 +2616,7 @@ The set $Id = \deno{Id_A}$ is a member of the set $\queryT{A}$ by definition and
 \paragraph{Proof:} Firstly, by definition
 \[ id = \setComp{(a, a)}{a \in v(A)}\]
 
-By joinin this with any given set, $s$, we have
+By joining this with any given set, $s$, we have
 \begin{equation}
 \label{LeftID}
 \begin{split}
