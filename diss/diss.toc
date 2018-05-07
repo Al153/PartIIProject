@@ -1,192 +1,219 @@
 \contentsline {chapter}{\numberline {1}Introduction}{13}{chapter.1}
 \contentsline {chapter}{\numberline {2}Preparation}{15}{chapter.2}
-\contentsline {section}{\numberline {2.1}The Scala Programming Language}{15}{section.2.1}
-\contentsline {section}{\numberline {2.2}Definition of Type-Safety}{15}{section.2.2}
-\contentsline {section}{\numberline {2.3}Existing Graph Databases}{16}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}Classes of Database}{16}{subsection.2.3.1}
-\contentsline {subsection}{\numberline {2.3.2}Schema}{16}{subsection.2.3.2}
-\contentsline {subsection}{\numberline {2.3.3}Mutability}{17}{subsection.2.3.3}
-\contentsline {subsection}{\numberline {2.3.4}Query Languages}{17}{subsection.2.3.4}
-\contentsline {section}{\numberline {2.4}Immutability}{17}{section.2.4}
-\contentsline {section}{\numberline {2.5}Query Language}{17}{section.2.5}
-\contentsline {subsection}{\numberline {2.5.1}Domain Specific Language Syntax}{18}{subsection.2.5.1}
-\contentsline {subsection}{\numberline {2.5.2}Semantic Definitions}{19}{subsection.2.5.2}
-\contentsline {paragraph}{FindPair queries}{19}{equation.2.5.1}
-\contentsline {paragraph}{FindSingle queries}{20}{equation.2.5.2}
-\contentsline {paragraph}{Other Definitions}{20}{section*.10}
-\contentsline {subparagraph}{Object Types}{20}{section*.11}
-\contentsline {subparagraph}{Named relations}{20}{section*.12}
-\contentsline {subparagraph}{Findables}{20}{section*.13}
-\contentsline {subparagraph}{A schema,}{20}{section*.14}
-\contentsline {subparagraph}{A view,}{21}{section*.15}
-\contentsline {subsection}{\numberline {2.5.3}Typing}{21}{subsection.2.5.3}
-\contentsline {subsection}{\numberline {2.5.4}Semantics}{22}{subsection.2.5.4}
-\contentsline {paragraph}{Operational Semantics}{22}{section*.16}
-\contentsline {paragraph}{Denotational Semantics}{24}{section*.17}
-\contentsline {subsection}{\numberline {2.5.5}Commands}{26}{subsection.2.5.5}
-\contentsline {subsection}{\numberline {2.5.6}Summary}{26}{subsection.2.5.6}
-\contentsline {section}{\numberline {2.6}Starting Point}{26}{section.2.6}
-\contentsline {section}{\numberline {2.7}Software Engineering}{28}{section.2.7}
-\contentsline {subsection}{\numberline {2.7.1}Requirements Analysis}{29}{subsection.2.7.1}
-\contentsline {section}{\numberline {2.8}Scala Techniques}{29}{section.2.8}
-\contentsline {subsection}{\numberline {2.8.1}Type-Enrichment}{29}{subsection.2.8.1}
-\contentsline {subsection}{\numberline {2.8.2}Implicit Parameters}{30}{subsection.2.8.2}
-\contentsline {subsection}{\numberline {2.8.3}Typeclass Pattern}{31}{subsection.2.8.3}
+\contentsline {section}{The Scala Programming Language}{15}{section*.8}
+\contentsline {section}{Definition of Type-Safety}{15}{section*.9}
+\contentsline {section}{Existing Graph Databases}{16}{section*.10}
+\contentsline {subsection}{Classes of Database}{16}{section*.11}
+\contentsline {subsection}{Schema}{17}{section*.12}
+\contentsline {subsection}{Mutability}{17}{section*.13}
+\contentsline {subsection}{Query Languages}{17}{section*.14}
+\contentsline {section}{Immutability}{17}{section*.15}
+\contentsline {section}{Query Language}{18}{section*.16}
+\contentsline {subsection}{Domain Specific Language Syntax}{18}{section*.17}
+\contentsline {subsection}{Semantic Definitions}{19}{section*.18}
+\contentsline {paragraph}{FindPair queries}{19}{section*.19}
+\contentsline {paragraph}{FindSingle queries}{20}{section*.20}
+\contentsline {paragraph}{Other Definitions}{20}{section*.21}
+\contentsline {subparagraph}{Object Types}{20}{section*.22}
+\contentsline {subparagraph}{Named relations}{20}{section*.23}
+\contentsline {subparagraph}{Findables}{20}{section*.24}
+\contentsline {subparagraph}{A schema,}{20}{section*.25}
+\contentsline {subparagraph}{A view,}{21}{section*.26}
+\contentsline {subsection}{Typing}{21}{section*.27}
+\contentsline {subsection}{Semantics}{23}{section*.28}
+\contentsline {paragraph}{Operational Semantics}{23}{section*.29}
+\contentsline {paragraph}{Denotational Semantics}{24}{section*.30}
+\contentsline {subsection}{Commands}{26}{section*.31}
+\contentsline {subsection}{Summary}{27}{section*.32}
+\contentsline {section}{Starting Point}{27}{section*.33}
+\contentsline {section}{Software Engineering}{29}{section*.34}
+\contentsline {subsection}{Requirements Analysis}{30}{section*.35}
+\contentsline {section}{Scala Techniques}{30}{section*.36}
+\contentsline {subsection}{Type-Enrichment}{30}{section*.37}
+\contentsline {subsection}{Implicit Parameters}{31}{section*.38}
+\contentsline {subsection}{Typeclass Pattern}{32}{section*.39}
 \contentsline {chapter}{\numberline {3}Implementation}{35}{chapter.3}
-\contentsline {section}{\numberline {3.1}Note on Purity and Concurrency}{35}{section.3.1}
-\contentsline {section}{\numberline {3.2}Functional Programming Techniques}{35}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Monadic Compilation}{35}{subsection.3.2.1}
-\contentsline {subsection}{\numberline {3.2.2}Constrained Future Monad}{36}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}Operation Monad}{38}{subsection.3.2.3}
-\contentsline {subsection}{\numberline {3.2.4}Local and Global State}{38}{subsection.3.2.4}
-\contentsline {section}{\numberline {3.3}Schema Implementation}{38}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}Schema Hierarchy}{39}{subsection.3.3.1}
-\contentsline {subsection}{\numberline {3.3.2}DBObjects}{39}{subsection.3.3.2}
-\contentsline {subsection}{\numberline {3.3.3}Unerasure}{39}{subsection.3.3.3}
-\contentsline {subsection}{\numberline {3.3.4}Relations}{40}{subsection.3.3.4}
-\contentsline {subsection}{\numberline {3.3.5}SchemaDescription}{40}{subsection.3.3.5}
-\contentsline {subsection}{\numberline {3.3.6}Findables}{40}{subsection.3.3.6}
-\contentsline {section}{\numberline {3.4}Query ADT}{40}{section.3.4}
-\contentsline {section}{\numberline {3.5}Commands}{41}{section.3.5}
-\contentsline {section}{\numberline {3.6}DSL}{41}{section.3.6}
-\contentsline {section}{\numberline {3.7}Common Generic Algorithms}{41}{section.3.7}
-\contentsline {subsection}{\numberline {3.7.1}Simple Traversal}{41}{subsection.3.7.1}
-\contentsline {paragraph}{Exactly}{41}{section*.18}
-\contentsline {paragraph}{Upto}{42}{section*.19}
-\contentsline {paragraph}{FixedPoint}{42}{section*.20}
-\contentsline {subsection}{\numberline {3.7.2}Full traversal}{43}{subsection.3.7.2}
-\contentsline {paragraph}{Exactly}{43}{section*.21}
-\contentsline {paragraph}{Upto}{43}{section*.22}
-\contentsline {paragraph}{FixedPoint}{44}{section*.23}
-\contentsline {subsection}{\numberline {3.7.3}Pathfinding}{44}{subsection.3.7.3}
-\contentsline {subsection}{\numberline {3.7.4}Joins}{45}{subsection.3.7.4}
-\contentsline {section}{\numberline {3.8}Views and Commits}{46}{section.3.8}
-\contentsline {section}{\numberline {3.9}Memory Back-end}{46}{section.3.9}
-\contentsline {subsection}{\numberline {3.9.1}Table Structure}{46}{subsection.3.9.1}
-\contentsline {subsection}{\numberline {3.9.2}Reads}{47}{subsection.3.9.2}
-\contentsline {subsection}{\numberline {3.9.3}Left Optimisation}{47}{subsection.3.9.3}
-\contentsline {subsection}{\numberline {3.9.4}Writes}{48}{subsection.3.9.4}
-\contentsline {subsection}{\numberline {3.9.5}Storage}{48}{subsection.3.9.5}
-\contentsline {subsection}{\numberline {3.9.6}Mutability}{48}{subsection.3.9.6}
-\contentsline {subsection}{\numberline {3.9.7}Pathfinding and fixed point traversal}{49}{subsection.3.9.7}
-\contentsline {section}{\numberline {3.10}PostgreSQL back-end}{49}{section.3.10}
-\contentsline {subsection}{\numberline {3.10.1}Table Structure}{49}{subsection.3.10.1}
-\contentsline {paragraph}{Control Tables}{49}{section*.24}
-\contentsline {paragraph}{Schema defined Tables}{49}{section*.25}
-\contentsline {paragraph}{Control Tables}{49}{section*.26}
-\contentsline {subsection}{\numberline {3.10.2}Query Structure}{50}{subsection.3.10.2}
-\contentsline {subsection}{\numberline {3.10.3}Monadic Compilation}{53}{subsection.3.10.3}
-\contentsline {subsection}{\numberline {3.10.4}Writes}{53}{subsection.3.10.4}
-\contentsline {subsection}{\numberline {3.10.5}Mutability}{54}{subsection.3.10.5}
-\contentsline {subsection}{\numberline {3.10.6}Pathfinding and Fixed Point Traversal}{54}{subsection.3.10.6}
-\contentsline {subsection}{\numberline {3.10.7}Object Storage}{55}{subsection.3.10.7}
-\contentsline {section}{\numberline {3.11}LMDB Back-ends}{55}{section.3.11}
-\contentsline {subsection}{\numberline {3.11.1}Common}{55}{subsection.3.11.1}
-\contentsline {paragraph}{LMDB API}{55}{section*.27}
-\contentsline {subparagraph}{Terminology}{55}{section*.28}
-\contentsline {subparagraph}{Transactions}{55}{section*.29}
-\contentsline {subparagraph}{JVM API}{55}{section*.30}
-\contentsline {paragraph}{Storage and Keys}{55}{section*.31}
-\contentsline {paragraph}{Table Structure}{56}{section*.32}
-\contentsline {paragraph}{Writes}{58}{section*.33}
-\contentsline {subsection}{\numberline {3.11.2}Original LMDB Implementation}{58}{subsection.3.11.2}
-\contentsline {subsection}{\numberline {3.11.3}Batched}{58}{subsection.3.11.3}
-\contentsline {paragraph}{Read Batching}{58}{section*.34}
-\contentsline {paragraph}{Pre-Caching}{58}{section*.35}
-\contentsline {paragraph}{FindFrom}{58}{section*.36}
-\contentsline {subsection}{\numberline {3.11.4}Common Sub-Expression Elimination}{59}{subsection.3.11.4}
-\contentsline {paragraph}{The Memoisation Problem}{59}{section*.37}
-\contentsline {paragraph}{Retrievers}{59}{section*.38}
-\contentsline {paragraph}{Monadic Compilation}{60}{section*.39}
-\contentsline {subsection}{\numberline {3.11.5}Complex Common sub-expression Elimination}{60}{subsection.3.11.5}
-\contentsline {paragraph}{Index Building}{60}{section*.40}
-\contentsline {paragraph}{Exactly}{60}{section*.41}
-\contentsline {paragraph}{Upto Optimisation}{62}{section*.42}
-\contentsline {section}{\numberline {3.12}Summary}{62}{section.3.12}
+\contentsline {section}{Note on Purity and Concurrency}{35}{section*.40}
+\contentsline {section}{Functional Programming Techniques}{35}{section*.41}
+\contentsline {subsection}{Monadic Compilation}{35}{section*.42}
+\contentsline {subsection}{Constrained Future Monad}{36}{section*.43}
+\contentsline {subsection}{Operation Monad}{38}{section*.44}
+\contentsline {subsection}{Local and Global State}{38}{section*.45}
+\contentsline {section}{Schema Implementation}{38}{section*.46}
+\contentsline {subsection}{Schema Hierarchy}{39}{section*.47}
+\contentsline {subsection}{DBObjects}{39}{section*.48}
+\contentsline {subsection}{Unerasure}{39}{section*.49}
+\contentsline {subsection}{Relations}{40}{section*.50}
+\contentsline {subsection}{SchemaDescription}{40}{section*.51}
+\contentsline {subsection}{Findables}{40}{section*.52}
+\contentsline {section}{Query ADT}{40}{section*.53}
+\contentsline {section}{Commands}{41}{section*.54}
+\contentsline {section}{DSL}{41}{section*.55}
+\contentsline {section}{Common Generic Algorithms}{41}{section*.56}
+\contentsline {subsection}{Simple Traversal}{41}{section*.57}
+\contentsline {paragraph}{Exactly}{41}{section*.58}
+\contentsline {paragraph}{Upto}{42}{section*.59}
+\contentsline {paragraph}{FixedPoint}{42}{section*.60}
+\contentsline {subsection}{Full traversal}{43}{section*.61}
+\contentsline {paragraph}{Exactly}{43}{section*.62}
+\contentsline {paragraph}{Upto}{44}{section*.63}
+\contentsline {paragraph}{FixedPoint}{44}{section*.64}
+\contentsline {subsection}{Pathfinding}{44}{section*.65}
+\contentsline {subsection}{Joins}{45}{section*.66}
+\contentsline {section}{Views and Commits}{46}{section*.67}
+\contentsline {section}{Memory Back-end}{46}{section*.68}
+\contentsline {subsection}{Table Structure}{47}{section*.69}
+\contentsline {subsection}{Reads}{47}{section*.70}
+\contentsline {subsection}{Left Optimisation}{48}{section*.71}
+\contentsline {subsection}{Writes}{48}{section*.72}
+\contentsline {subsection}{Storage}{49}{section*.73}
+\contentsline {subsection}{Mutability}{49}{section*.74}
+\contentsline {subsection}{Pathfinding and fixed point traversal}{49}{section*.75}
+\contentsline {section}{PostgreSQL back-end}{49}{section*.76}
+\contentsline {subsection}{Table Structure}{49}{section*.77}
+\contentsline {paragraph}{Control Tables}{49}{section*.78}
+\contentsline {paragraph}{Schema defined Tables}{50}{section*.79}
+\contentsline {paragraph}{Control Tables}{50}{section*.80}
+\contentsline {subsection}{Query Structure}{51}{section*.81}
+\contentsline {subsection}{Monadic Compilation}{54}{section*.82}
+\contentsline {subsection}{Writes}{54}{section*.83}
+\contentsline {subsection}{Mutability}{55}{section*.84}
+\contentsline {subsection}{Pathfinding and Fixed Point Traversal}{55}{section*.85}
+\contentsline {subsection}{Object Storage}{56}{section*.86}
+\contentsline {section}{LMDB Back-ends}{56}{section*.87}
+\contentsline {subsection}{Common}{56}{section*.88}
+\contentsline {paragraph}{LMDB API}{56}{section*.89}
+\contentsline {subparagraph}{Terminology}{56}{section*.90}
+\contentsline {subparagraph}{Transactions}{56}{section*.91}
+\contentsline {subparagraph}{JVM API}{56}{section*.92}
+\contentsline {paragraph}{Storage and Keys}{56}{section*.93}
+\contentsline {paragraph}{Table Structure}{57}{section*.94}
+\contentsline {paragraph}{Writes}{59}{section*.95}
+\contentsline {subsection}{Original LMDB Implementation}{59}{section*.96}
+\contentsline {subsection}{Batched}{59}{section*.97}
+\contentsline {paragraph}{Read Batching}{59}{section*.98}
+\contentsline {paragraph}{Pre-Caching}{59}{section*.99}
+\contentsline {paragraph}{FindFrom}{59}{section*.100}
+\contentsline {subsection}{Common Sub-Expression Elimination}{60}{section*.101}
+\contentsline {paragraph}{The Memoisation Problem}{60}{section*.102}
+\contentsline {paragraph}{Retrievers}{60}{section*.103}
+\contentsline {paragraph}{Monadic Compilation}{61}{section*.104}
+\contentsline {subsection}{Complex Common sub-expression Elimination}{61}{section*.105}
+\contentsline {paragraph}{Index Building}{61}{section*.106}
+\contentsline {paragraph}{Exactly}{62}{section*.107}
+\contentsline {paragraph}{Upto Optimisation}{63}{section*.108}
+\contentsline {section}{Summary}{64}{section*.109}
 \contentsline {chapter}{\numberline {4}Evaluation}{65}{chapter.4}
-\contentsline {section}{\numberline {4.1}Unit Tests}{65}{section.4.1}
-\contentsline {section}{\numberline {4.2}Performance Tests}{65}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}Hardware}{65}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Datasets}{66}{subsection.4.2.2}
-\contentsline {paragraph}{IMDB and TMDB}{66}{section*.43}
-\contentsline {paragraph}{Objects}{66}{section*.44}
-\contentsline {paragraph}{Relations}{66}{section*.45}
-\contentsline {paragraph}{UFC}{67}{section*.46}
-\contentsline {paragraph}{Objects}{67}{section*.47}
-\contentsline {paragraph}{Relations}{67}{section*.48}
-\contentsline {subsection}{\numberline {4.2.3}Test Harness}{67}{subsection.4.2.3}
-\contentsline {subsection}{\numberline {4.2.4}Results}{68}{subsection.4.2.4}
-\contentsline {paragraph}{Overall Picture}{68}{section*.49}
-\contentsline {paragraph}{Redundancy}{68}{section*.50}
-\contentsline {paragraph}{Intersections and Unions}{69}{section*.51}
-\contentsline {paragraph}{Tests that involve repetitions}{71}{section*.52}
-\contentsline {subparagraph}{Exactly Test}{71}{section*.53}
-\contentsline {subparagraph}{Exactly Pairs}{72}{section*.54}
-\contentsline {subparagraph}{UptoTest}{73}{section*.55}
-\contentsline {subparagraph}{UptoLarge}{74}{section*.56}
-\contentsline {paragraph}{JoinSpeed}{75}{section*.57}
-\contentsline {paragraph}{Closing Thoughts}{77}{section*.58}
+\contentsline {section}{Unit Tests}{65}{section*.110}
+\contentsline {section}{Performance Tests}{65}{section*.111}
+\contentsline {subsection}{Hardware}{65}{section*.112}
+\contentsline {subsection}{Datasets}{66}{section*.113}
+\contentsline {paragraph}{IMDB and TMDB}{66}{section*.114}
+\contentsline {paragraph}{Objects}{66}{section*.115}
+\contentsline {paragraph}{Relations}{67}{section*.116}
+\contentsline {paragraph}{UFC}{67}{section*.117}
+\contentsline {paragraph}{Objects}{67}{section*.118}
+\contentsline {paragraph}{Relations}{67}{section*.119}
+\contentsline {subsection}{Test Harness}{67}{section*.120}
+\contentsline {subsection}{Results}{68}{section*.121}
+\contentsline {paragraph}{Overall Picture}{68}{section*.122}
+\contentsline {paragraph}{Redundancy}{68}{section*.123}
+\contentsline {paragraph}{Intersections and Unions}{69}{section*.124}
+\contentsline {paragraph}{Tests that involve repetitions}{71}{section*.125}
+\contentsline {subparagraph}{Exactly Test}{71}{section*.126}
+\contentsline {subparagraph}{Exactly Pairs}{72}{section*.127}
+\contentsline {subparagraph}{UptoTest}{73}{section*.128}
+\contentsline {subparagraph}{UptoLarge}{74}{section*.129}
+\contentsline {paragraph}{JoinSpeed}{75}{section*.130}
+\contentsline {paragraph}{Closing Thoughts}{77}{section*.131}
 \contentsline {chapter}{\numberline {5}Conclusion}{81}{chapter.5}
-\contentsline {section}{\numberline {5.1}Successes}{81}{section.5.1}
-\contentsline {section}{\numberline {5.2}Further extensions}{81}{section.5.2}
-\contentsline {section}{\numberline {5.3}Lessons learned}{82}{section.5.3}
-\contentsline {section}{\numberline {5.4}Concluding Thoughts}{82}{section.5.4}
-\contentsline {chapter}{Bibliography}{82}{section.5.4}
-\contentsline {chapter}{Appendix}{84}{chapter*.59}
+\contentsline {section}{Successes}{81}{section*.132}
+\contentsline {section}{Further extensions}{81}{section*.133}
+\contentsline {section}{Lessons learned}{82}{section*.134}
+\contentsline {section}{Concluding Thoughts}{82}{section*.135}
+\contentsline {chapter}{Bibliography}{82}{section*.135}
+\contentsline {chapter}{Appendix}{84}{chapter*.136}
 \contentsline {chapter}{\numberline {A}The Domain closure(A, v)}{85}{appendix.A}
-\contentsline {paragraph}{$closure(A, v)$ is a domain}{85}{section*.60}
-\contentsline {paragraph}{proof:}{85}{section*.61}
+\contentsline {paragraph}{$closure(A, v)$ is a domain}{86}{section*.137}
+\contentsline {paragraph}{proof:}{86}{section*.138}
 \contentsline {chapter}{\numberline {B}Correspondence of Operational and Denotational Semantics}{87}{appendix.B}
-\contentsline {paragraph}{Proof: }{87}{section*.62}
-\contentsline {paragraph}{FindSingle Queries:}{87}{section*.63}
-\contentsline {subparagraph}{$S = AndS(S', S'')$}{87}{equation.B.0.1}
-\contentsline {subparagraph}{Case $S = OrS(S', S'')$}{88}{equation.B.0.2}
-\contentsline {subparagraph}{Case $S = From(S', P)$}{88}{equation.B.0.3}
-\contentsline {subparagraph}{Case $S = Find(f)$}{88}{equation.B.0.4}
-\contentsline {paragraph}{FindPair Queries:}{88}{section*.68}
-\contentsline {subparagraph}{Case $P = Rel(r)$}{88}{equation.B.0.5}
-\contentsline {subparagraph}{Case $P = RevRel(r)$}{88}{equation.B.0.6}
-\contentsline {subparagraph}{Case $P = Id_A$}{88}{equation.B.0.7}
-\contentsline {subparagraph}{Case $P = Chain(P', Q)$}{88}{section*.72}
-\contentsline {subparagraph}{Case $P = And(P', Q)$}{89}{equation.B.0.9}
-\contentsline {subparagraph}{Case $P = Or(P', Q)$}{89}{equation.B.0.10}
-\contentsline {subparagraph}{Case $P = AndLeft(P', S)$}{89}{equation.B.0.11}
-\contentsline {subparagraph}{Case $P = AndRight(P', S)$}{89}{equation.B.0.12}
-\contentsline {subparagraph}{Case $P = Distinct(P')$}{89}{equation.B.0.13}
-\contentsline {subparagraph}{Case $P = Exactly(n, P')$}{89}{section*.78}
-\contentsline {subparagraph}{Case $Exactly(0, P'):$}{90}{section*.79}
-\contentsline {subparagraph}{Case $Exactly(n+1, P')$, assuming $\Phi (\Sigma , Exactly(n, P'), A, A)$:}{90}{section*.80}
-\contentsline {subparagraph}{Case $P = Upto(n, P')$}{90}{section*.81}
-\contentsline {subparagraph}{Case $Upto(0, P')$}{90}{equation.B.0.21}
-\contentsline {subparagraph}{Case $Upto(n+1, P')$}{91}{equation.B.0.22}
-\contentsline {subparagraph}{case $P = FixedPoint(P')$}{91}{section*.84}
-\contentsline {subparagraph}{Lemma: f is continuous in the domain $closure(A, v)$}{91}{section*.85}
-\contentsline {subparagraph}{Firstly, f is monotonous.}{91}{section*.86}
-\contentsline {subparagraph}{Secondly, $f$ preserves the $lub$s of chains.}{91}{section*.87}
-\contentsline {subparagraph}{Lemma $(a, b) \triangleleft _{(A, A), v} FixedPoint(P') \Leftrightarrow \exists n. (a, b) \in f^n(\bot )$}{92}{section*.88}
-\contentsline {subparagraph}{Case $(a,b) \triangleleft _{A, A, v} Id_A$:\\}{92}{section*.89}
-\contentsline {subparagraph}{Case $(a, b) \triangleleft _{(A,A), v} P' \wedge (b, c) \triangleleft _{(A,A), v} FixedPoint(P')\\ $}{92}{section*.90}
-\contentsline {subparagraph}{Case $(a, b) \in \bot $}{93}{equation.B.0.28}
-\contentsline {subparagraph}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{93}{equation.B.0.29}
+\contentsline {paragraph}{Proof: }{87}{section*.139}
+\contentsline {paragraph}{FindSingle Queries:}{87}{section*.140}
+\contentsline {subparagraph}{$S = AndS(S', S'')$}{87}{section*.141}
+\contentsline {subparagraph}{Case $S = OrS(S', S'')$}{88}{section*.142}
+\contentsline {subparagraph}{Case $S = From(S', P)$}{88}{section*.143}
+\contentsline {subparagraph}{Case $S = Find(f)$}{88}{section*.144}
+\contentsline {paragraph}{FindPair Queries:}{88}{section*.145}
+\contentsline {subparagraph}{Case $P = Rel(r)$}{88}{section*.146}
+\contentsline {subparagraph}{Case $P = RevRel(r)$}{88}{section*.147}
+\contentsline {subparagraph}{Case $P = Id_A$}{88}{section*.148}
+\contentsline {subparagraph}{Case $P = Chain(P', Q)$}{88}{section*.149}
+\contentsline {subparagraph}{Case $P = And(P', Q)$}{89}{section*.150}
+\contentsline {subparagraph}{Case $P = Or(P', Q)$}{89}{section*.151}
+\contentsline {subparagraph}{Case $P = AndLeft(P', S)$}{89}{section*.152}
+\contentsline {subparagraph}{Case $P = AndRight(P', S)$}{89}{section*.153}
+\contentsline {subparagraph}{Case $P = Distinct(P')$}{89}{section*.154}
+\contentsline {subparagraph}{Case $P = Exactly(n, P')$}{90}{section*.155}
+\contentsline {subparagraph}{Case $Exactly(0, P'):$}{90}{section*.156}
+\contentsline {subparagraph}{Case $Exactly(n+1, P')$, assuming $\Phi (\Sigma , Exactly(n, P'), A, A)$:}{90}{section*.157}
+\contentsline {subparagraph}{Case $P = Upto(n, P')$}{90}{section*.158}
+\contentsline {subparagraph}{Case $Upto(0, P')$}{91}{section*.159}
+\contentsline {subparagraph}{Case $Upto(n+1, P')$}{91}{section*.160}
+\contentsline {subparagraph}{case $P = FixedPoint(P')$}{91}{section*.161}
+\contentsline {subparagraph}{Lemma: f is continuous in the domain $closure(A, v)$}{91}{section*.162}
+\contentsline {subparagraph}{Firstly, f is monotonous.}{91}{section*.163}
+\contentsline {subparagraph}{Secondly, $f$ preserves the $lub$s of chains.}{92}{section*.164}
+\contentsline {subparagraph}{Lemma $(a, b) \triangleleft _{(A, A), v} FixedPoint(P') \Leftrightarrow \exists n. (a, b) \in f^n(\bot )$}{92}{section*.165}
+\contentsline {subparagraph}{Case $(a,b) \triangleleft _{A, A, v} Id_A$:\\}{92}{section*.166}
+\contentsline {subparagraph}{Case $(a, b) \triangleleft _{(A,A), v} P' \wedge (b, c) \triangleleft _{(A,A), v} FixedPoint(P')\\ $}{93}{section*.167}
+\contentsline {subparagraph}{Case $(a, b) \in \bot $}{93}{section*.168}
+\contentsline {subparagraph}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{93}{section*.169}
 \contentsline {chapter}{\numberline {C}Properties of the Join Denotation}{95}{appendix.C}
-\contentsline {section}{\numberline {C.1}Join as a monoid operation}{95}{section.C.1}
-\contentsline {subsection}{\numberline {C.1.1}Join is closed on $Query_{A}(v)$}{95}{subsection.C.1.1}
-\contentsline {paragraph}{Proof:}{95}{section*.93}
-\contentsline {subsection}{\numberline {C.1.2}Lemma: Join is associative on $Query_{A}(v)$}{95}{subsection.C.1.2}
-\contentsline {paragraph}{Proof:}{95}{section*.94}
-\contentsline {subsection}{\numberline {C.1.3}${\bf [\tmspace -\thinmuskip {.1667em}[}Id_A{\bf ]\tmspace -\thinmuskip {.1667em}]}(v)$ As an Identity of Join}{96}{subsection.C.1.3}
-\contentsline {paragraph}{Proof:}{96}{section*.95}
-\contentsline {section}{\numberline {C.2}Usages of Join as a Monoid}{96}{section.C.2}
-\contentsline {section}{\numberline {C.3}Joins distribute over Or}{97}{section.C.3}
-\contentsline {section}{\numberline {C.4}$Upto(n, P)$ expressed as $Exactly(n, P')$}{97}{section.C.4}
-\contentsline {section}{\numberline {C.5}Joins do not distribute over And}{97}{section.C.5}
+\contentsline {section}{Join as a monoid operation}{95}{section*.170}
+\contentsline {subsection}{Join is closed on $Query_{A}(v)$}{95}{section*.171}
+\contentsline {paragraph}{Proof:}{95}{section*.172}
+\contentsline {subsection}{Lemma: Join is associative on $Query_{A}(v)$}{95}{section*.173}
+\contentsline {paragraph}{Proof:}{95}{section*.174}
+\contentsline {subsection}{${\bf [\tmspace -\thinmuskip {.1667em}[}Id_A{\bf ]\tmspace -\thinmuskip {.1667em}]}(v)$ As an Identity of Join}{96}{section*.175}
+\contentsline {paragraph}{Proof:}{96}{section*.176}
+\contentsline {section}{Usages of Join as a Monoid}{97}{section*.177}
+\contentsline {section}{Joins distribute over Or}{97}{section*.178}
+\contentsline {section}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{97}{section*.179}
+\contentsline {section}{Joins do not distribute over And}{98}{section*.180}
 \contentsline {chapter}{\numberline {D}Scala Algebraic Data Type Definitions}{99}{appendix.D}
 \contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{103}{appendix.E}
-\contentsline {section}{\numberline {E.1}FindPairs}{103}{section.E.1}
-\contentsline {section}{\numberline {E.2}FindSingle}{104}{section.E.2}
+\contentsline {section}{FindPairs}{103}{section*.181}
+\contentsline {section}{FindSingle}{104}{section*.182}
 \contentsline {chapter}{\numberline {F}DSL Examples}{107}{appendix.F}
-\contentsline {section}{\numberline {F.1}Simple Transitive Queries}{107}{section.F.1}
-\contentsline {section}{\numberline {F.2}FindSingle queries}{108}{section.F.2}
-\contentsline {section}{\numberline {F.3}Union and Intersection}{108}{section.F.3}
-\contentsline {section}{\numberline {F.4}Repetition}{109}{section.F.4}
+\contentsline {section}{Simple Transitive Queries}{107}{section*.183}
+\contentsline {section}{FindSingle queries}{108}{section*.184}
+\contentsline {section}{Union and Intersection}{108}{section*.185}
+\contentsline {section}{Repetition}{109}{section*.186}
 \contentsline {chapter}{\numberline {G}Example of SchemaObject implementation}{111}{appendix.G}
+\contentsline {chapter}{\numberline {H}Proposal}{113}{appendix.H}
+\contentsline {subsection}{Computer Science Tripos -- Part II -- Project Proposal}{113}{section*.187}
+\contentsline {section}{A purely functional approach to graph queries on a database}{113}{section*.188}
+\contentsline {subsection}{Introduction}{113}{section*.189}
+\contentsline {subsection}{Project Description}{114}{section*.190}
+\contentsline {subsection}{Starting point}{114}{section*.191}
+\contentsline {subsection}{Resources required}{114}{section*.192}
+\contentsline {subsubsection}{Software}{114}{section*.193}
+\contentsline {subsubsection}{Hardware}{114}{section*.194}
+\contentsline {subsection}{Project Structure}{114}{section*.195}
+\contentsline {subsection}{Success Criteria}{115}{section*.196}
+\contentsline {subsection}{Extensions}{115}{section*.197}
+\contentsline {subsection}{Evaluation}{115}{section*.198}
+\contentsline {subsection}{Timetable}{115}{section*.199}
+\contentsline {subsubsection}{Michaelmas week 2}{115}{section*.200}
+\contentsline {subsubsection}{Michaelmas week 3}{116}{section*.201}
+\contentsline {subsubsection}{Michaelmas week 3-4}{116}{section*.202}
+\contentsline {subsubsection}{Michaelmas week 5-6}{116}{section*.203}
+\contentsline {subsubsection}{Michaelmas 7-8}{116}{section*.204}
+\contentsline {subsubsection}{Michaelmas Vacation}{116}{section*.205}
+\contentsline {subsubsection}{Lent Week 1-2}{116}{section*.206}
+\contentsline {subsubsection}{Lent Week 3}{116}{section*.207}
+\contentsline {subsubsection}{Lent Week 4-5}{117}{section*.208}
+\contentsline {subsubsection}{Lent Week 6}{117}{section*.209}
+\contentsline {subsubsection}{Lent Week 7-8}{117}{section*.210}
+\contentsline {subsubsection}{Easter Vacation}{117}{section*.211}
+\contentsline {subsubsection}{Easter Week 1-3}{117}{section*.212}

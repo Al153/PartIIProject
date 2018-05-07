@@ -13,7 +13,6 @@
 \usepackage{float}
 \usepackage{framed}
 \usepackage{tikz}
-
 \usepackage{natbib}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -224,6 +223,61 @@ $\begin{aligned}
                                         % more readable
 
 \bibliographystyle{plain}
+
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{hyphens}{url}
+%
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\usepackage{hyperref}
+\hypersetup{
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
+\date{}
 
 \begin{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3217,5 +3271,311 @@ implicit def movieSchema = new SchemaObject2[Movie, String, String] {
 \end{verbatim}
 \end{framed}
 \renewcommand{\baselinestretch}{1.1}
+
+\chapter{Proposal}
+
+\hypertarget{computer-science-tripos-part-ii-project-proposal}{%
+\subsection{Computer Science Tripos -- Part II -- Project
+Proposal}\label{computer-science-tripos-part-ii-project-proposal}}
+
+\hypertarget{a-purely-functional-approach-to-graph-queries-on-a-database}{%
+\section{A purely functional approach to graph queries on a
+database}\label{a-purely-functional-approach-to-graph-queries-on-a-database}}
+
+Alexander Taylor
+
+St John's College
+
+Originator: Adapted from Eiko Yoneki's project
+\texttt{http://www.cl.cam.ac.uk/research/srg/netos/stud-projs/current/\#QueryLayer}
+
+Supervisor: Dr.~Timothy Jones
+
+Director of Studies: Dr.~Robert Mullins
+
+Project overseers: Dr.~Thomas Sauerwald, Prof Jon Crowcroft
+
+\hypertarget{introduction}{%
+\subsection{Introduction}\label{introduction}}
+
+Databases are ubiquitous in modern industrial programming. However,
+there are several properties of leading database technologies which
+hinder programming using them. Firstly, SQL databases are poorly suited
+to transitive operations over relations. Queries end up being
+unnecessarily bloated and slow. Secondly, database systems often come
+with a query language, such as SQL, or Cipher. Usage of the database
+then often involves constructing a query for the database language as a
+string and then submitting it to the database system, then interpreting
+the results, which are typed in the style of the underlying database, as
+objects in the native language. This leads to issues with security and
+type safety, along with limiting the capability of compile-time checks.
+Finally, the model of most databases appears to be that of unsafe,
+imperative code. This obscures semantics and hides data dependencies.
+
+\hypertarget{project-description}{%
+\subsection{Project Description}\label{project-description}}
+
+This project is a proposed solution to these difficulties. Written in
+Scala, it shall provide a typesafe abstraction over an underlying SQL
+database to allow for easy, composable graph queries, allowing the
+application programmer to treat the database as a purely functional data
+structures. Furthermore, it shall return its results in a monadic,
+asynchronous container, which will allow the user to chain together the
+results of queries in an efficient, meaningful way.
+
+\hypertarget{starting-point}{%
+\subsection{Starting point}\label{starting-point}}
+
+I shall be writing the module in Scala, using the ScalaZ
+(\texttt{https://github.com/scalaz/scalaz}), and ScalikeJDBC
+(\texttt{http://scalikejdbc.org/}) dependencies. These provide a library
+of useful purely functional definitions, such as type classes and monad
+transformers, and database access to scala, respectively.
+
+\hypertarget{resources-required}{%
+\subsection{Resources required}\label{resources-required}}
+
+\hypertarget{software}{%
+\subsubsection{Software}\label{software}}
+
+I intend to track progress and back up work using a Github repository
+and google drive.
+
+\hypertarget{hardware}{%
+\subsubsection{Hardware}\label{hardware}}
+
+\begin{itemize}
+\tightlist
+\item
+  I will be using a pair of computers for development: desktop + laptop.
+  They both have 16GB of RAM and a quad core intel processor and run
+  windows 8.
+\item
+  I will keep my work synchronised between both using a GitHub
+  repository.
+\item
+  I expect that this triple setup will provide enough redundancy in the
+  event of hardware failure.
+\item
+  For my evaluation, I expect to use my desktop which has an SSD
+\end{itemize}
+
+\hypertarget{project-structure}{%
+\subsection{Project Structure}\label{project-structure}}
+
+The project can be broken down into four linked parts: - A system of
+views that allow us to treat the database as a purely functional data
+structure. A view is the state of the database at a given logical point
+in time. Any operation repeated on the same view gives the same result
+no matter the number of repetitions. Write operations that mutate a view
+instead create a new view with the changes applied. - An execution
+system that runs internally represented queries against a particular
+view. This will utilise a simple internal bytecode like ADT to represent
+queries before they are executed. - A set of return types, primarily a
+monadic, generic result container that combines monadic asynchrony
+(Queries take time to execute), error handling (Queries should be able
+to fail in type-safe ways), and nondeterminism (Queries may return a set
+of results). We also need a datatype, which is held by the result
+container, to represent paths through the graph. This should also permit
+various manipulations, such as folds. - An integrated, type-safe DSL for
+constructing and composing queries. This should be algebraic in style,
+and allow users to build queries using valid scala code.
+
+\hypertarget{success-criteria}{%
+\subsection{Success Criteria}\label{success-criteria}}
+
+The project will be a success if a user can write a composable query
+with the DSL and receive correct results with appropriate error checking
+
+\hypertarget{extensions}{%
+\subsection{Extensions}\label{extensions}}
+
+\begin{itemize}
+\tightlist
+\item
+  The immediate extension is to add write queries to the database,
+  generating new immutable views in the database. This will also require
+  garbage collection of unreachable views and commits
+\item
+  Next is to add some optimisations to queries before they are executed.
+\end{itemize}
+
+\hypertarget{evaluation}{%
+\subsection{Evaluation}\label{evaluation}}
+
+There are several potential means of evaluation: - Performance against
+pure SQL - A bare minimum is within a factor of 2 against well-written
+SQL over short queries - It's not feasible to directly outperform
+perfectly written SQL because the system effectively compiles to SQL to
+make queries. - But on the other hand, there should not be a significant
+performance difference, other than that caused by filtering the database
+entries for those that match a particular logical view. - A proof of
+type safety/that errors can be bound within a sealed trait, allowing us
+to pattern match all possible error cases - A set of semantics for
+queries - If I manage to complete my primary extension, write queries,
+then I also intend to evaluate the performance of the garbage collector,
+and the database's disk footprint - Evaluation of any optimisations I
+add to the project against the unoptimised project
+
+\hypertarget{timetable}{%
+\subsection{Timetable}\label{timetable}}
+
+\hypertarget{michaelmas-week-2}{%
+\subsubsection{Michaelmas week 2}\label{michaelmas-week-2}}
+
+\begin{itemize}
+\tightlist
+\item
+  Configure Github repository
+\item
+  I will write up some motivating examples of what syntax I want in the
+  DSL
+\item
+  This will also require some research of how I want to use advanced
+  features of the scala type system, such as implicits to implement
+  syntax features
+\end{itemize}
+
+\hypertarget{michaelmas-week-3}{%
+\subsubsection{Michaelmas week 3}\label{michaelmas-week-3}}
+
+\begin{itemize}
+\tightlist
+\item
+  I will draw up the main interfaces between the main classes in the
+  project
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Results container
+  \item
+    In memory view objects
+  \item
+    DSL query methods
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{michaelmas-week-3-4}{%
+\subsubsection{Michaelmas week 3-4}\label{michaelmas-week-3-4}}
+
+\begin{itemize}
+\tightlist
+\item
+  I will start looking at the low-level implementation of the project.
+\item
+  This involves implementing a conversion of user-level case classes to
+  database schema and building a views-and-commits table.
+\end{itemize}
+
+\hypertarget{michaelmas-week-5-6}{%
+\subsubsection{Michaelmas week 5-6}\label{michaelmas-week-5-6}}
+
+\begin{itemize}
+\tightlist
+\item
+  I will start building the intermediate language ADT
+\end{itemize}
+
+\hypertarget{michaelmas-7-8}{%
+\subsubsection{Michaelmas 7-8}\label{michaelmas-7-8}}
+
+\begin{itemize}
+\tightlist
+\item
+  Construction of DSL according to the desired syntax
+\item
+  I will then implement the methods for converting DSL expressions into
+  the intermediate language
+\end{itemize}
+
+\hypertarget{michaelmas-vacation}{%
+\subsubsection{Michaelmas Vacation}\label{michaelmas-vacation}}
+
+\begin{itemize}
+\tightlist
+\item
+  2 Weeks of buffering, in case I have got behind
+\item
+  2 Weeks spent implementing execution of the simpler read commands of
+  the intermediate language against a view as SQL. This will require
+  some research into building especially efficient SQL queries
+\item
+  2 weeks I will consolidate everything from my project log book along
+  with any code written into a document, this will be a starting point
+  for my dissertation draft. I will also work on my Progress Report for
+  Lent Term.
+\end{itemize}
+
+\hypertarget{lent-week-1-2}{%
+\subsubsection{Lent Week 1-2}\label{lent-week-1-2}}
+
+\begin{itemize}
+\tightlist
+\item
+  I will implement the remaining read commands of the intermediate
+  language (such as pathfinding)
+\end{itemize}
+
+\hypertarget{lent-week-3}{%
+\subsubsection{Lent Week 3}\label{lent-week-3}}
+
+\begin{itemize}
+\tightlist
+\item
+  Initial performance tests
+\item
+  At this point, the initial success criteria will have been met
+\end{itemize}
+
+\hypertarget{lent-week-4-5}{%
+\subsubsection{Lent Week 4-5}\label{lent-week-4-5}}
+
+\begin{itemize}
+\tightlist
+\item
+  Extension of the project to include monadic writes to the database
+\end{itemize}
+
+\hypertarget{lent-week-6}{%
+\subsubsection{Lent Week 6}\label{lent-week-6}}
+
+\begin{itemize}
+\tightlist
+\item
+  Since the system will now be able to generate new views, I will need
+  to implement a simple garbage collector to remove views and commits
+  when the memory representations of them become unreachable
+\end{itemize}
+
+\hypertarget{lent-week-7-8}{%
+\subsubsection{Lent Week 7-8}\label{lent-week-7-8}}
+
+\begin{itemize}
+\tightlist
+\item
+  Buffer weeks and further performance evaluation
+\end{itemize}
+
+\hypertarget{easter-vacation}{%
+\subsubsection{Easter Vacation}\label{easter-vacation}}
+
+\begin{itemize}
+\tightlist
+\item
+  I shall consolidate from my project log book, along with any code
+  written into a document, combining it with my draft from Michaelmas,
+  and start drafting my dissertation.
+\end{itemize}
+
+\hypertarget{easter-week-1-3}{%
+\subsubsection{Easter Week 1-3}\label{easter-week-1-3}}
+
+\begin{itemize}
+\tightlist
+\item
+  I shall iterate over drafting my dissertation and redrafting according
+  to feedback from my supervisor and DoS
+\end{itemize}
 
 \end{document}
