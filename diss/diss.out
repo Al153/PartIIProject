@@ -55,63 +55,63 @@
 \BOOKMARK [2][-]{section*.75}{Pathfinding and fixed point traversal}{section*.68}% 55
 \BOOKMARK [1][-]{section*.76}{PostgreSQL back-end}{chapter.3}% 56
 \BOOKMARK [2][-]{section*.77}{Table Structure}{section*.76}% 57
-\BOOKMARK [2][-]{section*.81}{Query Structure}{section*.76}% 58
-\BOOKMARK [2][-]{section*.82}{Monadic Compilation}{section*.76}% 59
-\BOOKMARK [2][-]{section*.83}{Writes}{section*.76}% 60
-\BOOKMARK [2][-]{section*.84}{Mutability}{section*.76}% 61
-\BOOKMARK [2][-]{section*.85}{Pathfinding and Fixed Point Traversal}{section*.76}% 62
-\BOOKMARK [2][-]{section*.86}{Object Storage}{section*.76}% 63
-\BOOKMARK [1][-]{section*.87}{LMDB Back-ends}{chapter.3}% 64
-\BOOKMARK [2][-]{section*.88}{Common}{section*.87}% 65
-\BOOKMARK [2][-]{section*.96}{Original LMDB Implementation}{section*.87}% 66
-\BOOKMARK [2][-]{section*.97}{Batched}{section*.87}% 67
-\BOOKMARK [2][-]{section*.101}{Common Sub-Expression Elimination}{section*.87}% 68
-\BOOKMARK [2][-]{section*.105}{Complex Common sub-expression Elimination}{section*.87}% 69
-\BOOKMARK [1][-]{section*.109}{Summary}{chapter.3}% 70
+\BOOKMARK [2][-]{section*.80}{Query Structure}{section*.76}% 58
+\BOOKMARK [2][-]{section*.81}{Monadic Compilation}{section*.76}% 59
+\BOOKMARK [2][-]{section*.82}{Writes}{section*.76}% 60
+\BOOKMARK [2][-]{section*.83}{Mutability}{section*.76}% 61
+\BOOKMARK [2][-]{section*.84}{Pathfinding and Fixed Point Traversal}{section*.76}% 62
+\BOOKMARK [2][-]{section*.85}{Object Storage}{section*.76}% 63
+\BOOKMARK [1][-]{section*.86}{LMDB Back-ends}{chapter.3}% 64
+\BOOKMARK [2][-]{section*.87}{Common}{section*.86}% 65
+\BOOKMARK [2][-]{section*.95}{Original LMDB Implementation}{section*.86}% 66
+\BOOKMARK [2][-]{section*.96}{Batched}{section*.86}% 67
+\BOOKMARK [2][-]{section*.100}{Common Sub-Expression Elimination}{section*.86}% 68
+\BOOKMARK [2][-]{section*.104}{Complex Common Sub-Expression Elimination}{section*.86}% 69
+\BOOKMARK [1][-]{section*.108}{Summary}{chapter.3}% 70
 \BOOKMARK [0][-]{chapter.4}{Evaluation}{}% 71
-\BOOKMARK [1][-]{section*.110}{Unit Tests}{chapter.4}% 72
-\BOOKMARK [1][-]{section*.111}{Performance Tests}{chapter.4}% 73
-\BOOKMARK [2][-]{section*.112}{Hardware}{section*.111}% 74
-\BOOKMARK [2][-]{section*.113}{Datasets}{section*.111}% 75
-\BOOKMARK [2][-]{section*.120}{Test Harness}{section*.111}% 76
-\BOOKMARK [2][-]{section*.121}{Results}{section*.111}% 77
+\BOOKMARK [1][-]{section*.109}{Unit Tests}{chapter.4}% 72
+\BOOKMARK [1][-]{section*.110}{Performance Tests}{chapter.4}% 73
+\BOOKMARK [2][-]{section*.111}{Hardware}{section*.110}% 74
+\BOOKMARK [2][-]{section*.112}{Datasets}{section*.110}% 75
+\BOOKMARK [2][-]{section*.119}{Test Harness}{section*.110}% 76
+\BOOKMARK [2][-]{section*.120}{Results}{section*.110}% 77
 \BOOKMARK [0][-]{chapter.5}{Conclusion}{}% 78
-\BOOKMARK [1][-]{section*.132}{Successes}{chapter.5}% 79
-\BOOKMARK [1][-]{section*.133}{Further extensions}{chapter.5}% 80
-\BOOKMARK [1][-]{section*.134}{Lessons learned}{chapter.5}% 81
-\BOOKMARK [1][-]{section*.135}{Concluding Thoughts}{chapter.5}% 82
-\BOOKMARK [0][-]{section*.135}{Bibliography}{}% 83
-\BOOKMARK [0][-]{chapter*.136}{Appendix}{}% 84
+\BOOKMARK [1][-]{section*.131}{Successes}{chapter.5}% 79
+\BOOKMARK [1][-]{section*.132}{Further extensions}{chapter.5}% 80
+\BOOKMARK [1][-]{section*.133}{Lessons learned}{chapter.5}% 81
+\BOOKMARK [1][-]{section*.134}{Concluding Thoughts}{chapter.5}% 82
+\BOOKMARK [0][-]{section*.134}{Bibliography}{}% 83
+\BOOKMARK [0][-]{chapter*.135}{Appendix}{}% 84
 \BOOKMARK [0][-]{appendix.A}{The Domain closure\(A, v\)}{}% 85
 \BOOKMARK [0][-]{appendix.B}{Correspondence of Operational and Denotational Semantics}{}% 86
 \BOOKMARK [0][-]{appendix.C}{Properties of the Join Denotation}{}% 87
-\BOOKMARK [1][-]{section*.170}{Join as a monoid operation}{appendix.C}% 88
-\BOOKMARK [2][-]{section*.171}{Join is closed on QueryA\(v\)}{section*.170}% 89
-\BOOKMARK [2][-]{section*.173}{Lemma: Join is associative on QueryA\(v\)}{section*.170}% 90
-\BOOKMARK [2][-]{section*.175}{[[Id_A]]\(v\) As an Identity of Join}{section*.170}% 91
-\BOOKMARK [1][-]{section*.177}{Usages of Join as a Monoid}{appendix.C}% 92
-\BOOKMARK [1][-]{section*.178}{Joins distribute over Or}{appendix.C}% 93
-\BOOKMARK [1][-]{section*.179}{Upto\(n, P\) expressed as Exactly\(n, P'\)}{appendix.C}% 94
-\BOOKMARK [1][-]{section*.180}{Joins do not distribute over And}{appendix.C}% 95
+\BOOKMARK [1][-]{section*.169}{Join as a monoid operation}{appendix.C}% 88
+\BOOKMARK [2][-]{section*.170}{Join is closed on QueryA\(v\)}{section*.169}% 89
+\BOOKMARK [2][-]{section*.172}{Lemma: Join is associative on QueryA\(v\)}{section*.169}% 90
+\BOOKMARK [2][-]{section*.174}{[[Id_A]]\(v\) As an Identity of Join}{section*.169}% 91
+\BOOKMARK [1][-]{section*.176}{Usages of Join as a Monoid}{appendix.C}% 92
+\BOOKMARK [1][-]{section*.177}{Joins distribute over Or}{appendix.C}% 93
+\BOOKMARK [1][-]{section*.178}{Upto\(n, P\) expressed as Exactly\(n, P'\)}{appendix.C}% 94
+\BOOKMARK [1][-]{section*.179}{Joins do not distribute over And}{appendix.C}% 95
 \BOOKMARK [0][-]{appendix.D}{Scala Algebraic Data Type Definitions}{}% 96
 \BOOKMARK [0][-]{appendix.E}{Denotational Semantics Based Memory Implementation}{}% 97
-\BOOKMARK [1][-]{section*.181}{FindPairs}{appendix.E}% 98
-\BOOKMARK [1][-]{section*.182}{FindSingle}{appendix.E}% 99
+\BOOKMARK [1][-]{section*.180}{FindPairs}{appendix.E}% 98
+\BOOKMARK [1][-]{section*.181}{FindSingle}{appendix.E}% 99
 \BOOKMARK [0][-]{appendix.F}{DSL Examples}{}% 100
-\BOOKMARK [1][-]{section*.183}{Simple Transitive Queries}{appendix.F}% 101
-\BOOKMARK [1][-]{section*.184}{FindSingle queries}{appendix.F}% 102
-\BOOKMARK [1][-]{section*.185}{Union and Intersection}{appendix.F}% 103
-\BOOKMARK [1][-]{section*.186}{Repetition}{appendix.F}% 104
+\BOOKMARK [1][-]{section*.182}{Simple Transitive Queries}{appendix.F}% 101
+\BOOKMARK [1][-]{section*.183}{FindSingle queries}{appendix.F}% 102
+\BOOKMARK [1][-]{section*.184}{Union and Intersection}{appendix.F}% 103
+\BOOKMARK [1][-]{section*.185}{Repetition}{appendix.F}% 104
 \BOOKMARK [0][-]{appendix.G}{Example of SchemaObject implementation}{}% 105
 \BOOKMARK [0][-]{appendix.H}{Proposal}{}% 106
-\BOOKMARK [1][-]{section*.187}{Computer Science Tripos \205 Part II \205 Project Proposal}{appendix.H}% 107
-\BOOKMARK [1][-]{section*.188}{A purely functional approach to graph queries on a database}{appendix.H}% 108
-\BOOKMARK [2][-]{section*.189}{Introduction}{section*.188}% 109
-\BOOKMARK [2][-]{section*.190}{Project Description}{section*.188}% 110
-\BOOKMARK [2][-]{section*.191}{Starting point}{section*.188}% 111
-\BOOKMARK [2][-]{section*.192}{Resources required}{section*.188}% 112
-\BOOKMARK [2][-]{section*.195}{Project Structure}{section*.188}% 113
-\BOOKMARK [2][-]{section*.196}{Success Criteria}{section*.188}% 114
-\BOOKMARK [2][-]{section*.197}{Extensions}{section*.188}% 115
-\BOOKMARK [2][-]{section*.198}{Evaluation}{section*.188}% 116
-\BOOKMARK [2][-]{section*.199}{Timetable}{section*.188}% 117
+\BOOKMARK [1][-]{section*.186}{Computer Science Tripos \205 Part II \205 Project Proposal}{appendix.H}% 107
+\BOOKMARK [1][-]{section*.187}{A purely functional approach to graph queries on a database}{appendix.H}% 108
+\BOOKMARK [2][-]{section*.188}{Introduction}{section*.187}% 109
+\BOOKMARK [2][-]{section*.189}{Project Description}{section*.187}% 110
+\BOOKMARK [2][-]{section*.190}{Starting point}{section*.187}% 111
+\BOOKMARK [2][-]{section*.191}{Resources required}{section*.187}% 112
+\BOOKMARK [2][-]{section*.194}{Project Structure}{section*.187}% 113
+\BOOKMARK [2][-]{section*.195}{Success Criteria}{section*.187}% 114
+\BOOKMARK [2][-]{section*.196}{Extensions}{section*.187}% 115
+\BOOKMARK [2][-]{section*.197}{Evaluation}{section*.187}% 116
+\BOOKMARK [2][-]{section*.198}{Timetable}{section*.187}% 117

@@ -13,8 +13,7 @@
 \usepackage{float}
 \usepackage{framed}
 \usepackage{tikz}
-
-%\usepackage{natbib}
+\usepackage{natbib}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Imports and commands for drawing graphs, reproduced from ELGraphExample
@@ -225,6 +224,57 @@ $\begin{aligned}
 
 %\bibliographystyle{plain}
 
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{hyphens}{url}
+%
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\usepackage{hyperref}
+\hypersetup{
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
 \begin{document}
 
 \pagestyle{headings}
@@ -333,7 +383,7 @@ Existing graph databases typically fall into two classes: property graphs and ed
 		\end{tikzpicture}
 	\end{center}
 
-\caption{An example of an edge-labelled graph. Reproduced from Angles et al \cite{ELGraphExample}.}
+\caption{An example of an edge-labelled graph. Reproduced from Angles et al.  \cite{ELGraphExample}.}
   \label{fig:ELGraph}
 \end{figure}
 
@@ -403,7 +453,7 @@ node[above, erect] (e3)
 \end{tikzpicture}
 
 \end{center}
-\caption{An example of a property graph. Reproduced from Angles et al \cite{PropertyGraphExample}}
+\caption{An example of a property graph. Reproduced from Angles et al.  \cite{PropertyGraphExample}.}
   \label{fig:PropertyGraph}
 \end{figure}
 
@@ -415,7 +465,7 @@ Current graph database systems often do not have rigid schema \cite{QueryLanguag
 \subsection{Mutability}
 Current graph databases tend to be mutable. In order to express concepts that require immutability, such as time-dependent data, the user must impose extra constraints, such as adding time-stamps to the schema of  nodes and relations. A lack of immutability also complicates concurrent semantics and implementation of ACID (Atomic, Consistent, Independent, and Durable) transactions. I decided to introduce immutable data structures  to the database, which yields ACID properties effectively for free. This is explained in section \ref{immutability}.
 \subsection{Query Languages}
-Typically, graph database systems have their own query language, the most ubiquitous of which is Neo4j's language, Cypher \footnote{https://neo4j.com/docs/developer-manual/current/cypher/}. This provides ML-style pattern matching of queries against the stored graph, allowing the user to extract arbitrary fields from nodes. In most cases, these are used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query a given program could generate is valid is intractable to undecidable for non-trivial programs. Therefore, I decided to embed the query language in the host language. This allows the query language's type system to be checked by the host compiler, so we can get much stronger guarantees about program correctness.
+Typically, graph database systems have their own query language, the most ubiquitous of which is Neo4j's language, Cypher\footnote{https://neo4j.com/docs/developer-manual/current/cypher/}. This provides ML-style pattern matching of queries against the stored graph, allowing the user to extract arbitrary fields from nodes. In most cases, these are used by generating a query string and submitting it to the database engine. This is inherently not type-safe. The job of ensuring that absolutely every query a given program could generate is valid is intractable to undecidable for non-trivial programs. Therefore, I decided to embed the query language in the host language. This allows the query language's type system to be checked by the host compiler, so we can get much stronger guarantees about program correctness.
 
 \section{Immutability}\label{immutability}
 In order to implement immutability, I needed a way of creating an immutable snapshot of the database at a given point in time. This is achieved using a system of views. A \codeName{View} is such an immutable snapshot. When we read from the database, we read from a particular given view. When we write to a particular view of the database, we copy the view, update it, and return the new view. Reads and writes now never interfere with each other. By utilising structure sharing, the impact of storing views can be mitigated.
@@ -497,36 +547,40 @@ S & \rightarrow Find(F) \mbox{ Find values that match the findable F}\\
 \end{equation} 
 \codeName{FindSingle} queries look up sets of single objects.\\
 
-\paragraph{Other Definitions}
+\paragraph{Other Definitions}\\
 In order to model the operation of queries correctly, we need to define the environment in which they operate.
 
-\subparagraph{Object Types} are the ``real world'' types stored in the database. These correspond to the user's Scala classes.
+\subparagraph{Object Types}\\
+Object types are the ``real world'' types stored in the database. These correspond to the user's Scala classes.
 
 \[ \tau \rightarrow A \mid B \mid C \mid .. \]
 
-\subparagraph{Named relations} are the primitive relations between objects
+\subparagraph{Named relations}\\
+Named relations are the primitive relations between objects
 
 \[R \rightarrow r_1 \mid r_2 \mid .. \]
 
-\subparagraph{Findables} are names for defined partial functions
+\subparagraph{Findables}\\
+\codeName{Findable}s are names for defined partial functions
 
 \[F_A \rightarrow f_1 \mid f_2 \mid ... \]
 
 \[f \colon A \rightharpoonup \{True, False\} \]
 
-for some given object type A. (i.e. a findable is an index into the database)
+for some given object type A. (i.e. a findable is an index into the database.)
 
-\subparagraph{A schema,}$\Sigma$, is made up of three partial functions:
+\subparagraph{Schema}\\
+A schema, $\Sigma$, is made up of three partial functions:
 
 \[\Sigma_{rel}\colon R \rightharpoonup \tau\times\tau \]
 \[\Sigma_{findable}\colon F \rightharpoonup \tau \]
 \[\Sigma_{table}\colon \tau \rightharpoonup \{True, False\} \]
 
-which give the types of relations and findables, and validiate the existence of a type. When it is obvious from the context, I shall simply use $\Sigma(x)$ to signify application of the appropriate function.
+which give the types of relations and \codeName{findable}s, and validiate the existence of a type. When it is obvious from the context, I shall simply use $\Sigma(x)$ to signify application of the appropriate function.
  
-\subparagraph{A view,} $v \in V_\Sigma$, for a given schema $\Sigma$ represents an immutable state of a database.
+\subparagraph{Views}
 
-It represents a pair of partial functions. Firstly the named-relation look up function.
+A view $v \in V_\Sigma$, for a given schema $\Sigma$ represents an immutable state of a database. It consists of a pair of partial functions. Firstly the named-relation look up function:
 
 \begin{equation}
 v \in V_\Sigma \Rightarrow v_{rel}(r) \in \wp(A \times B)\mbox{ if $\Sigma(r)\downarrow (A, B)$}
@@ -553,7 +607,7 @@ Which means ``under the schema $\Sigma$, pair query $P$ returns a subset of $A \
 
 Which means ``under the schema $\Sigma$ single query returns a subset of $A$''\\
 
-The rules of the first kind are as follows
+The rules of the first kind are as follows:
 
 \begin{align}
 &\displaystyle\mbox{(Rel)}\frac{\Sigma(r)\downarrow(A, B)}{\typeRule{Rel(r)}{(A, B)}} \\[3ex]
@@ -584,7 +638,7 @@ The rules for types of Single queries are similar:
    To fully define the query language, we need to define the semantics. I have defined two collections of semantics: operational style and denotational style.
 \paragraph{Operational Semantics}   
 
-Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We are interested in forming an approximation relation $a \triangleleft_A Q$ to mean``$a$ is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$.
+Now we shall define a set of rules for determining if a pair of objects is a valid result of a query. We are interested in forming an approximation relation $a \triangleleft_A Q$ to mean``$a$ is a valid result of query Q with type A''. This is dependent on the current view $v: View_{\Sigma}$. Hence we define $\opRule{(a, b)}{(A, B)}{P}$ for pair queries $P$ and $\opRule{a}{A}{S}$ for single queries $S$:
 
 \begin{align}
 &\displaystyle\mbox{(Rel)}\frac{(a,b) \in v(r)}{\opRule{(a, b)}{(A, B)}{Rel(r)}} \\[3ex]
@@ -606,7 +660,7 @@ Now we shall define a set of rules for determining if a pair of objects is a val
 &\displaystyle\mbox{(fix2)}\frac{\opRule{(a,b)}{(A, A)}{P} \indent \opRule{(b, c)}{(A, A)}{FixedPoint(P)}}{\opRule{(a, b)}{(A, A)}{FixedPoint(P)}}
 \end{align}
 
-And the FindSingle rules
+And the \codeName{FindSingle} rules:
 
 \begin{align}
 &\displaystyle\mbox{(Find)}\frac{a \in v(A) \indent f(a)\downarrow True}{\opRule{a}{A}{Find(f)}} \\[3ex]
@@ -618,7 +672,7 @@ And the FindSingle rules
 \paragraph{Denotational Semantics}
 The operational semantics clearly demonstrate membership of a query, but do not give a means to efficiently generate the results of query. To this end, we introduce denotations $\llbracket P \rrbracket$ and $\llbracket S \rrbracket$ such that \[\Sigma \vdash P \colon (A, B) \Rightarrow\llbracket P \rrbracket \colon View_{\Sigma} \rightarrow \wp(A \times B)\]
 
-and \[\Sigma \vdash S \colon A \Rightarrow\llbracket S \rrbracket \colon View_{\Sigma} \rightarrow \wp(A)\] Such denotations should be compositional and syntax directed, whilst still corresponding to the operational semantics.
+and \[\Sigma \vdash S \colon A \Rightarrow\llbracket S \rrbracket \colon View_{\Sigma} \rightarrow \wp(A)\] Such denotations should be compositional and syntax directed, whilst still corresponding to the operational semantics. The denotations for \codeName{FindPair} queries are as follows:
 
 \begin{align}
 & \deno{Rel(r)} = v(r) \\[3ex]
@@ -635,7 +689,7 @@ and \[\Sigma \vdash S \colon A \Rightarrow\llbracket S \rrbracket \colon View_{\
 & \deno{FixedPoint(P)} = fix (\lambda pairs. join(\deno{P}, pairs) \cup pairs)  \mbox{ in the domain $\clos$}
 \end{align}
 
-And similarly with single queries
+And similarly with single queries:
 
 \begin{align}
 &\deno{Find(f)} = \setComp{a \in v(A)}{f(a)\downarrow True} \mbox{ for $\Sigma(f) = A$} \\[3ex]
@@ -653,7 +707,7 @@ with the following definitions:
     
    I have also proved in appendix \ref{DenoOper} the correspondence of these two formulations of semantics.
 \subsection{Commands}
-In addition to the query construction language, there are five commands which make use of the queries.
+In addition to the query construction language, there are five commands which make use of the queries:
 
 \[\label{CommandSemantics}
 \begin{split}
@@ -665,7 +719,7 @@ allShortestPaths(a, P, v) &= \mbox{The set of the shortest path to each element 
  & \indent \mbox{from $a$ in the graph defined by $\deno{P}$}\\
 \end{split}\]
 
-The definition of the write command is slightly more complicated. It needs to return an updated view with its look up functions now returning the inserted objects. Write takes a collection, $rs$, of correctly typed named relations instances.
+The definition of the write command is slightly more complicated. It needs to return an updated view with its look up functions now returning the inserted objects. Write takes a collection, $rs$, of correctly typed named relation instances.
 
 
 \[rs = \setComp{(a_i, r_i, b_i) \in (A \times R \times B)}{0 < i \leqslant n} \mbox{for some $n$ being the size of the set.}\]
@@ -686,25 +740,25 @@ To summarise, this past section defines a query DSL, a type system for checking 
 In addition to Scala, I have made use of several libraries and tools, some of which were not foreseen in my project proposal. Some were used for the actual construction of the project, whereas others were used for auxiliary tasks such as testing and debugging or  generating datasets. All of these tools have licenses allowing free usage (the exact license for each is given in the footnotes) and no modifications to these libraries were performed.\\
 
 \begin{tabular}{p{4cm}p{11cm}}
-\textbf{SBT}\footnote{//www.Scala-sbt.org/} & Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries. \footnote{https://github.com/sbt/sbt/blob/1.x/LICENSE}\\
+\textbf{SBT}\footnote{//www.Scala-sbt.org/} & Scala Build Tool (SBT) is a package manager and build tool for Scala which allows access to Java libraries.\footnote{https://github.com/sbt/sbt/blob/1.x/LICENSE}\\
 \\
 \textbf{PostgreSQL}\footnote{//www.postgresql.org/} & An open-source, multi-platform SQL implementation.\footnote{https://opensource.org/licenses/postgresql}\\\\
 
-\textbf{LMDB}\footnote{//symas.com/lmdb/}&An open source, highly optimised key-value datastore. \footnote{http://www.openldap.org/software/release/license.html}\\\\
+\textbf{LMDB}\footnote{//symas.com/lmdb/}&An open source, highly optimised key-value datastore.\footnote{http://www.openldap.org/software/release/license.html}\\\\
 
 \textbf{Scalaz}\footnote{https://github.com/Scalaz/Scalaz} & A library for Scala providing typeclasses and syntax to aid advanced functional programming.\footnote{https://github.com/scalaz/scalaz/blob/series/7.3.x/LICENSE.txt} \\\\
 
-\textbf{JDBC}\footnote{http://www.oracle.com/technetwork/java/javase/jdbc/index.html} & Java's standard library support for SQL connections. Used to interact with a postgres database. I had originally planned to use the higher level wrapper scalikeJDBC,\footnote{http://scalikejdbc.org/} however, this did not allow such fine control over queries as I would have liked. \footnote{https://jdbc.postgresql.org/about/license.html}\\\\
+\textbf{JDBC}\footnote{http://www.oracle.com/technetwork/java/javase/jdbc/index.html} & Java's standard library support for SQL connections. Used to interact with a postgres database. I had originally planned to use the higher level wrapper scalikeJDBC,\footnote{http://scalikejdbc.org/} however, this did not allow such fine control over queries as I would have liked.\footnote{https://jdbc.postgresql.org/about/license.html}\\\\
 
 \textbf{LMDBJava}\footnote{//github.com/lmdbjava/lmdbjava} & A JNI library allowing access to the LMDB datastore. Previously, I experimented with another library, LMDBJni. However, upon discovery of a bug in the JNI code, I switched to LMDBJava.\footnote{https://github.com/lmdbjava/lmdbjava/blob/master/LICENSE.txt}\\\\
 
 \textbf{Junit}\footnote{https://junit.org/junit5/} & A unit testing library for JVM languages.\footnote{https://junit.org/junit4/license.html}\\\\
 
-\textbf{SLF4J}\footnote{https://www.slf4j.org/} & A logging library for JVM languages. \footnote{https://www.slf4j.org/license.html} \\\\
+\textbf{SLF4J}\footnote{https://www.slf4j.org/} & A logging library for JVM languages.\footnote{https://www.slf4j.org/license.html} \\\\
 
-\textbf{Spray-JSON}\footnote{https://github.com/spray/spray-json}& A JSON library for Scala, used to generate benchmarking datasets. \footnote{https://github.com/spray/spray-json/blob/master/LICENSE} \\\\
+\textbf{Spray-JSON}\footnote{https://github.com/spray/spray-json}& A JSON library for Scala, used to generate benchmarking datasets.\footnote{https://github.com/spray/spray-json/blob/master/LICENSE} \\\\
 
-\textbf{Python}\footnote{https://www.python.org/} & A scripting language used to generate test datasets. \footnote{https://docs.python.org/3/license.html}
+\textbf{Python}\footnote{https://www.python.org/} & A scripting language used to generate test datasets.\footnote{https://docs.python.org/3/license.html}
 \\\\
 
 \end{tabular}
@@ -1054,7 +1108,7 @@ The underlying \codeName{Future} is kept private, and can only be accessed via t
 
 	
 	\subsection{Local and Global State}
-Although it would be preferable to only use purely functional folds, maps, and immutable data structures everywhere within the project, for certain, high frequency, performance critical tasks, using purely immutable structures slows us down. Recursive functions tend to use more stack space than the JVM has available in many situations. Hence for tasks such as retrieving values for result sets,  pathfinding across large relations, and building indices, I have opted to make use of mutable data structures locally, using builders \footnote{https://docs.scala-lang.org/overviews/core/architecture-of-scala-collections.html\#builders} for collections such as sets. This leads to a dramatic increase in speed, especially for when large numbers of elements are added sequentially to collections that are not lists. In these cases, the mutable state never leaks out of the functions that make use of the mutability.	
+Although it would be preferable to only use purely functional folds, maps, and immutable data structures everywhere within the project, for certain, high frequency, performance critical tasks, using purely immutable structures slows us down. Recursive functions tend to use more stack space than the JVM has available in many situations. Hence for tasks such as retrieving values for result sets,  pathfinding across large relations, and building indices, I have opted to make use of mutable data structures locally, using builders\footnote{https://docs.scala-lang.org/overviews/core/architecture-of-scala-collections.html\#builders} for collections such as sets. This leads to a dramatic increase in speed, especially for when large numbers of elements are added sequentially to collections that are not lists. In these cases, the mutable state never leaks out of the functions that make use of the mutability.	
 	
 \section{Schema Implementation}
 	One of the goals of the project was to allow close to arbitrary user objects (assuming that they are finite) to be inserted and retrieved from the database. This was achieved using the typeclass pattern.
@@ -1136,10 +1190,10 @@ As specified in the previous chapter, each back-end needs to implement five comm
 \end{itemize}
 Each command should return an \codeName{Operation} of the correct type.
 \section{DSL}
-The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL opertors. The main thing to note in the DSL is the use of arrows to chain relations together. Examples of the DSL can be seen in appendix \ref{DSLExamples}
+The DSL mostly consists of syntactic sugar to make queries easier to read. It is implemented using the type-enrichment pattern. Both \codeName{Relation} and \codeName{FindPair} implement the trait (interface) \codeName{FindSingleAble}, so we can use type-enrichment to write new DSL operators. The main thing to note in the DSL is the use of arrows to chain relations together. Examples of the DSL can be seen in appendix \ref{DSLExamples}.
 
 \section{Common Generic Algorithms}
-During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different back-ends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}
+During construction of the database, several common patterns of problems emerged with slight differences. Hence, I have written relatively optimised generic versions of these algorithms such that different back-ends can make use of them regardless of the underlying types. These algorithms are found in \codeName{core.utils.algorithms}.
 
 
 	\subsection{Simple Traversal}\label{SimpleFixedPoint}
@@ -1168,9 +1222,9 @@ The next algorithm is for computing \codeName{Upto}. This is computed in a simil
 The  final algorithm is to calculate \codeName{FixedPoint}. This works slightly differently. As before, we keep an accumulator of reached nodes, but unlike before, the generation number of each node is not important, only that a node is reachable is important. Hence, the fringe is a queue rather than a set, and we iterate until the fringe is empty. In each iteration, we pop off the top value of the fringe queue, compute all immediately reachable nodes. The difference of this reachable set is taken with the accumulator to find the newly reached nodes. These are now added to the fringe queue and the accumulator. When the fringe is empty, we return the accumulator.
 	
 	\subsection{Full traversal}
-		The next set of algorithms build on the \codeName{SimpleFixedPoint} algorithms to return not just those nodes reachable from a single root, but the set of all reachable pairs with the left hand pair derived from a root set (using the left-hand optimisation explained is section \ref{leftOpt}). As such, the algorithms need to do some more work to reconstruct which nodes are reachable from each root, while still eliminating redundancies.
+		The next set of algorithms build on the \codeName{SimpleFixedPoint} algorithms to return not just those nodes reachable from a single root, but the set of all reachable pairs with the left hand pair derived from a root set (using the left-hand optimisation explained in section \ref{leftOpt}). As such, the algorithms need to do some more work to reconstruct which nodes are reachable from each root, while still eliminating redundancies.
 		\paragraph{Exactly}
-The first such algorithm is for computing \codeName{Exactly}. This is similar to the original version, except we now store a fringe for each root in a map of \codeName{Root => Set[Node]}. We also memoise the search function in a Map to avoid computing it redundantly. In each iteration, we simply expand the fringe for each root as before by mapping the fringe expansion loop body over the values of the fringe map. An illustration can be found in \ref{fig:ExactlyPairs}.
+The first such algorithm is for computing \codeName{Exactly}. This is similar to the original version, except we now store a fringe for each root in a map of \codeName{Root => Set[Node]}. We also memoise the search function in a Map to avoid computing it redundantly. In each iteration, we simply expand the fringe for each root as before by mapping the fringe expansion loop body over the values of the fringe map. An illustration can be found in figure \ref{fig:ExactlyPairs}.
 
 \begin{figure}[ht]
 \centering
@@ -1180,7 +1234,7 @@ The first such algorithm is for computing \codeName{Exactly}. This is similar to
 \end{figure}
 		
 		\paragraph{Upto}
-The next algorithm is to compute \codeName{Upto}. This is again accomplished like before, but with a map of root to accumulator set as the accumulator. As with \codeName{Exactly}, the fringes of each root are expanded simultaneously, sharing redundant results via the memo, while the accumulators are unioned with the fringe of the appropriate root with each iteration. An illustration can be found in \ref{fig:UptoPairs}.
+The next algorithm is to compute \codeName{Upto}. This is again accomplished like before, but with a map of root to accumulator set as the accumulator. As with \codeName{Exactly}, the fringes of each root are expanded simultaneously, sharing redundant results via memoisation, while the accumulators are unioned with the fringe of the appropriate root with each iteration. An illustration can be found in \ref{fig:UptoPairs}.
 
 \begin{figure}[ht]
 \centering
@@ -1190,7 +1244,7 @@ The next algorithm is to compute \codeName{Upto}. This is again accomplished lik
 \end{figure}
 		
 		\paragraph{FixedPoint}
-Finally, the \codeName{FixedPoint} implementation takes a departure from the parallel implementations above. The reachable set of each node is calculated sequentially using a similar algorithm to above. However the memo now contains all nodes reachable from previously processed roots, allowing for fast convergence of dense graphs.	
+Finally, the \codeName{FixedPoint} implementation takes a departure from the parallel implementations above. The reachable set of each node is calculated sequentially using a similar algorithm to above. However the cached memo now contains all nodes reachable from previously processed roots, allowing for fast convergence of dense graphs.	
 	
 	\subsection{Pathfinding}
 	The \codeName{ShortestPath} and \codeName{AllShortestPaths} commands require us to search a subgraph generated by a relation. Since all edges have unit weight, the pathfinding algorithm reduces to breadth-first-search, which I have implemented in an imperative format while wrapping up error cases in an Either. These functions take, as a parameter, the search step \codeName{ A\ $\Rightarrow$ E \either Set[A]} which represents the edges going out of a node. 
@@ -1329,7 +1383,6 @@ Upon completion of the initial memory back-end, I started work on a PostgreSQL b
 \note{Note: \codeName{ViewId} is a foreign key into the views registry, \codeName{CommitId} is a foreign key into Commits Registry. The Dummy column is needed to fix postgresql syntax when we try to get the next key for a table with one column.}		
 		
 		\paragraph{Schema defined Tables}
-				\paragraph{Control Tables}
 		\begin{center}
 			\begin{tabular}{|p{4cm}||p{4cm}|p{4cm}|} \hline
 			Name & Schema & Description \\ \hline
@@ -1414,7 +1467,7 @@ A CTE is created for the main query, which exposes a \codeName{leftId} and \code
 }
 \end{framed}
 
-Finally, the main query CTE is joined to fragments which extract the left and rights .
+Finally, the main query CTE is joined to fragments which extract the left and rights.
 \begin{framed}
 \noindent
 \mbox{\texttt{(}}\\
@@ -1554,7 +1607,7 @@ Fixed point traversal and repetitions are performed natively in SQL. \codeName{F
 	Objects are stored as in the appropriate \codeName{ObjectTable} in a manner derived from the \codeName{DBObject} of each object. Each \codeName{DBCell} is converted to appropriate SQL type.
 
 \section{LMDB Back-ends}
-The final family of back-ends are the LMDB back-ends. LMDB is a lightweight, efficient memory mapped file based Key-Value datastore. \footnote{https://symas.com/lmdb/}.
+The final family of back-ends are the LMDB back-ends. LMDB is a lightweight, efficient memory mapped file based Key-Value datastore\footnote{https://symas.com/lmdb/}.
 
 	\subsection{Common}
 	Although I have written several versions of the LMDB back-end, there are several over-arching similarities.
@@ -1564,7 +1617,7 @@ The final family of back-ends are the LMDB back-ends. LMDB is a lightweight, eff
 			\subparagraph{Transactions}
 				LMDB's transactional model differs from more traditional systems. In short, we need to create a transaction to do read but not write to the database. This stems from LMDB delegating as much work as possible to the OS kernel's memory-mapped file system. All writes are immediately written to the database, whereas starting a read transaction gives a view of the \term{Env} as it was at the start of  the transaction, ensuring that concurrent writes do not affect what is read from the database. Writes may be included in transactions to allow atomic get-and-sets. In practice, the transactions used are very short lived.
 			\subparagraph{JVM API}
-			The LMDB back-end uses the \codeName{LMDBJava} API \footnote{//github.com/lmdbjava/lmdbjava} to allow access to an LMDB Database from JVM languages (such as Scala). For each \term{DBI}, we have a \codeName{ByteArray} to \codeName{ByteArray} key-value map, much like a \codeName{Map[Array[Byte], Array[Byte]]}.
+			The LMDB back-end uses the \codeName{LMDBJava} API\footnote{http://github.com/lmdbjava/lmdbjava} to allow access to an LMDB Database from JVM languages (such as Scala). For each \term{DBI}, we have a \codeName{ByteArray} to \codeName{ByteArray} key-value map, much like a \codeName{Map[Array[Byte], Array[Byte]]}.
 			
 		\paragraph{Storage and Keys}
 			In order to write to the database using the LMDBJava API, we need to write the key and value to \codeName{ByteBuffer}s. To generify this process I have introduced two type-classes: \codeName{Keyable} and \codeName{Storable}.
@@ -1683,7 +1736,7 @@ class QueryMemo(
 
 		The compilation function checks the memo for a precomputed retriever for a query. If a matching retriever is not found, it recurses to compute and compose subtree results to produce a new retriever. The new retriever is added to the compilation state.
 		
-	\subsection{Complex Common sub-expression Elimination}
+	\subsection{Complex Common Sub-Expression Elimination}
 	\note{impl.lmdb.fastjoins}
 Despite these optimisations, there are still sources of redundancy.
 
@@ -2092,11 +2145,11 @@ There are some things to note from these figures. Firstly, around 7\% of the LMD
 To the best of my knowledge, the graph database system I have built over the last seven months is one of the, if not the, first explicitly purely functional graph database systems in existence. This project is a demonstration that complex, performant software projects can be built using purely functional languages, whilst keeping the benefits of strong type systems. I feel that despite having written the project in Scala, a high level, often inefficient language I have achieved an acceptable level of performance for graph traversal. Although the system would need significant work in the areas of security, networked access, and tuning to real-world use cases to become commercially viable, it stands as a solid prototype for potential future systems.
 
 \section{Further extensions}
-Interesting extensions to the core project that, given more time, I would have been interested to explore include
+Interesting extensions to the core project that, given more time, I would have been interested to explore include:
 \begin{itemize}
- \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by how large the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
+ \item An increase in the use of laziness to allow larger queries over larger graphs. Currently, the size of queries are limited by the size of the result sets of sub-queries. However, the Postgres implementation typically runs out of temporary file space before this happens.
  \item The implementation of deletions and garbage collection of unused views in the database. Garbage collection in particular might be difficult, as the database is not required to store any state about client instances.
- \item Exploration of  improvement of the schema system using a dependent types library, such as shapeless.
+ \item Exploration of  improvement of the schema system using a dependent types library, such as \codeName{Shapeless}.
  \item Rewriting the lowest layer of the LMDB back-ends' interpreters in C or another low level language to extract maximum performance from the LMDB system, without having to construct Scala collections at every step.
 \end{itemize}
 

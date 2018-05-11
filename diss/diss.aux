@@ -36,10 +36,10 @@
 \citation{QueryLanguageSchema}
 \@writefile{toc}{\contentsline {section}{Existing Graph Databases}{16}{section*.10}}
 \@writefile{toc}{\contentsline {subsection}{Classes of Database}{16}{section*.11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces An example of an edge-labelled graph. Reproduced from Angles et al \cite  {ELGraphExample}.}}{16}{figure.2.1}}
-\newlabel{fig:ELGraph}{{2.1}{16}{An example of an edge-labelled graph. Reproduced from Angles et al \cite {ELGraphExample}}{figure.2.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces An example of a property graph. Reproduced from Angles et al \cite  {PropertyGraphExample}}}{16}{figure.2.2}}
-\newlabel{fig:PropertyGraph}{{2.2}{16}{An example of a property graph. Reproduced from Angles et al \cite {PropertyGraphExample}}{figure.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces An example of an edge-labelled graph. Reproduced from Angles et al. \cite  {ELGraphExample}.}}{16}{figure.2.1}}
+\newlabel{fig:ELGraph}{{2.1}{16}{An example of an edge-labelled graph. Reproduced from Angles et al. \cite {ELGraphExample}}{figure.2.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces An example of a property graph. Reproduced from Angles et al. \cite  {PropertyGraphExample}.}}{16}{figure.2.2}}
+\newlabel{fig:PropertyGraph}{{2.2}{16}{An example of a property graph. Reproduced from Angles et al. \cite {PropertyGraphExample}}{figure.2.2}{}}
 \@writefile{toc}{\contentsline {subsection}{Schema}{17}{section*.12}}
 \@writefile{toc}{\contentsline {subsection}{Mutability}{17}{section*.13}}
 \@writefile{toc}{\contentsline {subsection}{Query Languages}{17}{section*.14}}
@@ -59,12 +59,12 @@
 \@writefile{toc}{\contentsline {subparagraph}{Object Types}{20}{section*.22}}
 \@writefile{toc}{\contentsline {subparagraph}{Named relations}{20}{section*.23}}
 \@writefile{toc}{\contentsline {subparagraph}{Findables}{20}{section*.24}}
-\@writefile{toc}{\contentsline {subparagraph}{A schema,}{20}{section*.25}}
-\@writefile{toc}{\contentsline {subparagraph}{A view,}{21}{section*.26}}
+\@writefile{toc}{\contentsline {subparagraph}{Schema}{21}{section*.25}}
+\@writefile{toc}{\contentsline {subparagraph}{Views}{21}{section*.26}}
 \@writefile{toc}{\contentsline {subsection}{Typing}{21}{section*.27}}
 \@writefile{toc}{\contentsline {subsection}{Semantics}{23}{section*.28}}
 \@writefile{toc}{\contentsline {paragraph}{Operational Semantics}{23}{section*.29}}
-\@writefile{toc}{\contentsline {paragraph}{Denotational Semantics}{24}{section*.30}}
+\@writefile{toc}{\contentsline {paragraph}{Denotational Semantics}{25}{section*.30}}
 \@writefile{toc}{\contentsline {subsection}{Commands}{26}{section*.31}}
 \newlabel{CommandSemantics}{{2}{26}{Commands}{section*.31}{}}
 \@writefile{toc}{\contentsline {subsection}{Summary}{27}{section*.32}}
@@ -136,107 +136,106 @@
 \@writefile{toc}{\contentsline {section}{PostgreSQL back-end}{49}{section*.76}}
 \@writefile{toc}{\contentsline {subsection}{Table Structure}{49}{section*.77}}
 \@writefile{toc}{\contentsline {paragraph}{Control Tables}{49}{section*.78}}
-\@writefile{toc}{\contentsline {paragraph}{Schema defined Tables}{50}{section*.79}}
-\@writefile{toc}{\contentsline {paragraph}{Control Tables}{50}{section*.80}}
 \citation{CTEs}
-\@writefile{toc}{\contentsline {subsection}{Query Structure}{51}{section*.81}}
-\@writefile{toc}{\contentsline {subsection}{Monadic Compilation}{54}{section*.82}}
-\@writefile{toc}{\contentsline {subsection}{Writes}{54}{section*.83}}
-\@writefile{toc}{\contentsline {subsection}{Mutability}{55}{section*.84}}
-\@writefile{toc}{\contentsline {subsection}{Pathfinding and Fixed Point Traversal}{55}{section*.85}}
-\@writefile{toc}{\contentsline {subsection}{Object Storage}{56}{section*.86}}
-\@writefile{toc}{\contentsline {section}{LMDB Back-ends}{56}{section*.87}}
-\@writefile{toc}{\contentsline {subsection}{Common}{56}{section*.88}}
-\@writefile{toc}{\contentsline {paragraph}{LMDB API}{56}{section*.89}}
-\@writefile{toc}{\contentsline {subparagraph}{Terminology}{56}{section*.90}}
-\@writefile{toc}{\contentsline {subparagraph}{Transactions}{56}{section*.91}}
-\@writefile{toc}{\contentsline {subparagraph}{JVM API}{56}{section*.92}}
-\@writefile{toc}{\contentsline {paragraph}{Storage and Keys}{56}{section*.93}}
-\@writefile{toc}{\contentsline {paragraph}{Table Structure}{57}{section*.94}}
-\@writefile{toc}{\contentsline {paragraph}{Writes}{59}{section*.95}}
-\@writefile{toc}{\contentsline {subsection}{Original LMDB Implementation}{59}{section*.96}}
-\@writefile{toc}{\contentsline {subsection}{Batched}{59}{section*.97}}
-\@writefile{toc}{\contentsline {paragraph}{Read Batching}{59}{section*.98}}
-\@writefile{toc}{\contentsline {paragraph}{Pre-Caching}{59}{section*.99}}
-\@writefile{toc}{\contentsline {paragraph}{FindFrom}{59}{section*.100}}
-\@writefile{toc}{\contentsline {subsection}{Common Sub-Expression Elimination}{60}{section*.101}}
-\@writefile{toc}{\contentsline {paragraph}{The Memoisation Problem}{60}{section*.102}}
-\@writefile{toc}{\contentsline {paragraph}{Retrievers}{60}{section*.103}}
-\@writefile{toc}{\contentsline {paragraph}{Monadic Compilation}{61}{section*.104}}
-\@writefile{toc}{\contentsline {subsection}{Complex Common sub-expression Elimination}{61}{section*.105}}
-\@writefile{toc}{\contentsline {paragraph}{Index Building}{61}{section*.106}}
-\@writefile{toc}{\contentsline {paragraph}{Exactly}{62}{section*.107}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces Sequential joins provide little common substructure to eliminate.}}{62}{figure.3.7}}
-\newlabel{fig:SequentialJoins}{{3.7}{62}{Sequential joins provide little common substructure to eliminate}{figure.3.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.8}{\ignorespaces By reordering joins, we gain significant common substructure to eliminate.}}{63}{figure.3.8}}
-\newlabel{fig:CommonJoins}{{3.8}{63}{By reordering joins, we gain significant common substructure to eliminate}{figure.3.8}{}}
-\@writefile{toc}{\contentsline {paragraph}{Upto Optimisation}{63}{section*.108}}
-\@writefile{toc}{\contentsline {section}{Summary}{64}{section*.109}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Evaluation}{65}{chapter.4}}
+\@writefile{toc}{\contentsline {paragraph}{Schema defined Tables}{50}{section*.79}}
+\@writefile{toc}{\contentsline {subsection}{Query Structure}{51}{section*.80}}
+\@writefile{toc}{\contentsline {subsection}{Monadic Compilation}{53}{section*.81}}
+\@writefile{toc}{\contentsline {subsection}{Writes}{53}{section*.82}}
+\@writefile{toc}{\contentsline {subsection}{Mutability}{54}{section*.83}}
+\@writefile{toc}{\contentsline {subsection}{Pathfinding and Fixed Point Traversal}{54}{section*.84}}
+\@writefile{toc}{\contentsline {subsection}{Object Storage}{55}{section*.85}}
+\@writefile{toc}{\contentsline {section}{LMDB Back-ends}{55}{section*.86}}
+\@writefile{toc}{\contentsline {subsection}{Common}{55}{section*.87}}
+\@writefile{toc}{\contentsline {paragraph}{LMDB API}{55}{section*.88}}
+\@writefile{toc}{\contentsline {subparagraph}{Terminology}{55}{section*.89}}
+\@writefile{toc}{\contentsline {subparagraph}{Transactions}{55}{section*.90}}
+\@writefile{toc}{\contentsline {subparagraph}{JVM API}{56}{section*.91}}
+\@writefile{toc}{\contentsline {paragraph}{Storage and Keys}{56}{section*.92}}
+\@writefile{toc}{\contentsline {paragraph}{Table Structure}{56}{section*.93}}
+\@writefile{toc}{\contentsline {paragraph}{Writes}{58}{section*.94}}
+\@writefile{toc}{\contentsline {subsection}{Original LMDB Implementation}{58}{section*.95}}
+\@writefile{toc}{\contentsline {subsection}{Batched}{58}{section*.96}}
+\@writefile{toc}{\contentsline {paragraph}{Read Batching}{58}{section*.97}}
+\@writefile{toc}{\contentsline {paragraph}{Pre-Caching}{58}{section*.98}}
+\@writefile{toc}{\contentsline {paragraph}{FindFrom}{58}{section*.99}}
+\@writefile{toc}{\contentsline {subsection}{Common Sub-Expression Elimination}{59}{section*.100}}
+\@writefile{toc}{\contentsline {paragraph}{The Memoisation Problem}{59}{section*.101}}
+\@writefile{toc}{\contentsline {paragraph}{Retrievers}{59}{section*.102}}
+\@writefile{toc}{\contentsline {paragraph}{Monadic Compilation}{60}{section*.103}}
+\@writefile{toc}{\contentsline {subsection}{Complex Common Sub-Expression Elimination}{60}{section*.104}}
+\@writefile{toc}{\contentsline {paragraph}{Index Building}{60}{section*.105}}
+\@writefile{toc}{\contentsline {paragraph}{Exactly}{61}{section*.106}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces Sequential joins provide little common substructure to eliminate.}}{61}{figure.3.7}}
+\newlabel{fig:SequentialJoins}{{3.7}{61}{Sequential joins provide little common substructure to eliminate}{figure.3.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Upto Optimisation}{61}{section*.107}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.8}{\ignorespaces By reordering joins, we gain significant common substructure to eliminate.}}{62}{figure.3.8}}
+\newlabel{fig:CommonJoins}{{3.8}{62}{By reordering joins, we gain significant common substructure to eliminate}{figure.3.8}{}}
+\@writefile{toc}{\contentsline {section}{Summary}{62}{section*.108}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Evaluation}{63}{chapter.4}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{Unit Tests}{65}{section*.110}}
-\@writefile{toc}{\contentsline {section}{Performance Tests}{65}{section*.111}}
-\@writefile{toc}{\contentsline {subsection}{Hardware}{65}{section*.112}}
+\@writefile{toc}{\contentsline {section}{Unit Tests}{63}{section*.109}}
+\@writefile{toc}{\contentsline {section}{Performance Tests}{63}{section*.110}}
+\@writefile{toc}{\contentsline {subsection}{Hardware}{63}{section*.111}}
 \citation{TMDB5000}
 \citation{IMDB}
-\@writefile{toc}{\contentsline {subsection}{Datasets}{66}{section*.113}}
-\@writefile{toc}{\contentsline {paragraph}{IMDB and TMDB}{66}{section*.114}}
-\@writefile{toc}{\contentsline {paragraph}{Objects}{66}{section*.115}}
+\@writefile{toc}{\contentsline {subsection}{Datasets}{64}{section*.112}}
+\@writefile{toc}{\contentsline {paragraph}{IMDB and TMDB}{64}{section*.113}}
+\@writefile{toc}{\contentsline {paragraph}{Objects}{64}{section*.114}}
 \citation{UFC}
-\@writefile{toc}{\contentsline {paragraph}{Relations}{67}{section*.116}}
-\@writefile{toc}{\contentsline {paragraph}{UFC}{67}{section*.117}}
-\@writefile{toc}{\contentsline {paragraph}{Objects}{67}{section*.118}}
-\@writefile{toc}{\contentsline {paragraph}{Relations}{67}{section*.119}}
-\@writefile{toc}{\contentsline {subsection}{Test Harness}{67}{section*.120}}
-\@writefile{toc}{\contentsline {subsection}{Results}{68}{section*.121}}
-\@writefile{toc}{\contentsline {paragraph}{Overall Picture}{68}{section*.122}}
-\@writefile{toc}{\contentsline {paragraph}{Redundancy}{68}{section*.123}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{69}{figure.4.1}}
-\newlabel{fig:RedundancyResult}{{4.1}{69}{Read performance for redundancy queries}{figure.4.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Intersections and Unions}{69}{section*.124}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for intersection queries}}{71}{figure.4.2}}
-\newlabel{fig:IntersectionResults}{{4.2}{71}{Read performance for intersection queries}{figure.4.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Tests that involve repetitions}{71}{section*.125}}
-\@writefile{toc}{\contentsline {subparagraph}{Exactly Test}{71}{section*.126}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for union queries}}{72}{figure.4.3}}
-\newlabel{fig:UnionResults}{{4.3}{72}{Read performance for union queries}{figure.4.3}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Exactly Pairs}{72}{section*.127}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt  {Exactly} queries}}{73}{figure.4.4}}
-\newlabel{fig:ExactlyResults}{{4.4}{73}{Read performance for \codeName {Exactly} queries}{figure.4.4}{}}
-\@writefile{toc}{\contentsline {subparagraph}{UptoTest}{73}{section*.128}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt  {Exactly} queries}}{74}{figure.4.5}}
-\newlabel{fig:ExactlyTestLog}{{4.5}{74}{Log-Read performance for \codeName {Exactly} queries}{figure.4.5}{}}
-\@writefile{toc}{\contentsline {subparagraph}{UptoLarge}{74}{section*.129}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt  {FindPair} queries}}{75}{figure.4.6}}
-\newlabel{fig:ExactlyPairsResults}{{4.6}{75}{Read performance for exactly \codeName {FindPair} queries}{figure.4.6}{}}
-\@writefile{toc}{\contentsline {paragraph}{JoinSpeed}{75}{section*.130}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt  {Upto} queries.}}{76}{figure.4.7}}
-\newlabel{fig:UptoTestResult}{{4.7}{76}{Read performance for \codeName {Upto} queries}{figure.4.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt  {Upto} queries.}}{77}{figure.4.8}}
-\newlabel{fig:UptoLogResult}{{4.8}{77}{Log-Read performance for \codeName {Upto} queries}{figure.4.8}{}}
-\@writefile{toc}{\contentsline {paragraph}{Closing Thoughts}{77}{section*.131}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for \texttt  {Upto} queries with increasing \texttt  {n}.}}{78}{figure.4.9}}
-\newlabel{fig:UptoTrend}{{4.9}{78}{Read performance for \codeName {Upto} queries with increasing \codeName {n}}{figure.4.9}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.10}{\ignorespaces Log-Read performance for \texttt  {Upto} queries with increasing \texttt  {n}.}}{78}{figure.4.10}}
-\newlabel{fig:UptoLogTrend}{{4.10}{78}{Log-Read performance for \codeName {Upto} queries with increasing \codeName {n}}{figure.4.10}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.11}{\ignorespaces Read performance for large \texttt  {Upto} queries}}{79}{figure.4.11}}
-\newlabel{fig:UptoLargeResults}{{4.11}{79}{Read performance for large \codeName {Upto} queries}{figure.4.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.12}{\ignorespaces Read performance for large \texttt  {Upto} queries with increasing n. Error bars are 1 standard deviation.}}{79}{figure.4.12}}
-\newlabel{fig:UptoLargeTrend}{{4.12}{79}{Read performance for large \codeName {Upto} queries with increasing n. Error bars are 1 standard deviation}{figure.4.12}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.13}{\ignorespaces Overall read performance for Join-Speed queries}}{80}{figure.4.13}}
-\newlabel{fig:JoinSpeedResults}{{4.13}{80}{Overall read performance for Join-Speed queries}{figure.4.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.14}{\ignorespaces The distribution of values for the \textit  {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. }}{80}{figure.4.14}}
-\newlabel{fig:LatencyDensity}{{4.14}{80}{The distribution of values for the \mathName {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph}{figure.4.14}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Conclusion}{81}{chapter.5}}
+\@writefile{toc}{\contentsline {paragraph}{Relations}{65}{section*.115}}
+\@writefile{toc}{\contentsline {paragraph}{UFC}{65}{section*.116}}
+\@writefile{toc}{\contentsline {paragraph}{Objects}{65}{section*.117}}
+\@writefile{toc}{\contentsline {paragraph}{Relations}{65}{section*.118}}
+\@writefile{toc}{\contentsline {subsection}{Test Harness}{65}{section*.119}}
+\@writefile{toc}{\contentsline {subsection}{Results}{66}{section*.120}}
+\@writefile{toc}{\contentsline {paragraph}{Overall Picture}{66}{section*.121}}
+\@writefile{toc}{\contentsline {paragraph}{Redundancy}{66}{section*.122}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Read performance for redundancy queries}}{67}{figure.4.1}}
+\newlabel{fig:RedundancyResult}{{4.1}{67}{Read performance for redundancy queries}{figure.4.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Intersections and Unions}{67}{section*.123}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Read performance for intersection queries}}{69}{figure.4.2}}
+\newlabel{fig:IntersectionResults}{{4.2}{69}{Read performance for intersection queries}{figure.4.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Tests that involve repetitions}{69}{section*.124}}
+\@writefile{toc}{\contentsline {subparagraph}{Exactly Test}{69}{section*.125}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Read performance for union queries}}{70}{figure.4.3}}
+\newlabel{fig:UnionResults}{{4.3}{70}{Read performance for union queries}{figure.4.3}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Exactly Pairs}{70}{section*.126}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Read performance for \texttt  {Exactly} queries}}{71}{figure.4.4}}
+\newlabel{fig:ExactlyResults}{{4.4}{71}{Read performance for \codeName {Exactly} queries}{figure.4.4}{}}
+\@writefile{toc}{\contentsline {subparagraph}{UptoTest}{71}{section*.127}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Log-Read performance for \texttt  {Exactly} queries}}{72}{figure.4.5}}
+\newlabel{fig:ExactlyTestLog}{{4.5}{72}{Log-Read performance for \codeName {Exactly} queries}{figure.4.5}{}}
+\@writefile{toc}{\contentsline {subparagraph}{UptoLarge}{72}{section*.128}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.6}{\ignorespaces Read performance for exactly \texttt  {FindPair} queries}}{73}{figure.4.6}}
+\newlabel{fig:ExactlyPairsResults}{{4.6}{73}{Read performance for exactly \codeName {FindPair} queries}{figure.4.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{JoinSpeed}{73}{section*.129}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.7}{\ignorespaces Read performance for \texttt  {Upto} queries.}}{74}{figure.4.7}}
+\newlabel{fig:UptoTestResult}{{4.7}{74}{Read performance for \codeName {Upto} queries}{figure.4.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.8}{\ignorespaces Log-Read performance for \texttt  {Upto} queries.}}{75}{figure.4.8}}
+\newlabel{fig:UptoLogResult}{{4.8}{75}{Log-Read performance for \codeName {Upto} queries}{figure.4.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{Closing Thoughts}{75}{section*.130}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.9}{\ignorespaces Read performance for \texttt  {Upto} queries with increasing \texttt  {n}.}}{76}{figure.4.9}}
+\newlabel{fig:UptoTrend}{{4.9}{76}{Read performance for \codeName {Upto} queries with increasing \codeName {n}}{figure.4.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.10}{\ignorespaces Log-Read performance for \texttt  {Upto} queries with increasing \texttt  {n}.}}{76}{figure.4.10}}
+\newlabel{fig:UptoLogTrend}{{4.10}{76}{Log-Read performance for \codeName {Upto} queries with increasing \codeName {n}}{figure.4.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.11}{\ignorespaces Read performance for large \texttt  {Upto} queries}}{77}{figure.4.11}}
+\newlabel{fig:UptoLargeResults}{{4.11}{77}{Read performance for large \codeName {Upto} queries}{figure.4.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.12}{\ignorespaces Read performance for large \texttt  {Upto} queries with increasing n. Error bars are 1 standard deviation.}}{77}{figure.4.12}}
+\newlabel{fig:UptoLargeTrend}{{4.12}{77}{Read performance for large \codeName {Upto} queries with increasing n. Error bars are 1 standard deviation}{figure.4.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.13}{\ignorespaces Overall read performance for Join-Speed queries}}{78}{figure.4.13}}
+\newlabel{fig:JoinSpeedResults}{{4.13}{78}{Overall read performance for Join-Speed queries}{figure.4.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.14}{\ignorespaces The distribution of values for the \textit  {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph. }}{78}{figure.4.14}}
+\newlabel{fig:LatencyDensity}{{4.14}{78}{The distribution of values for the \mathName {And} query of JoinSpeed. Around 7\% of values fall into the density on the right of the graph}{figure.4.14}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Conclusion}{79}{chapter.5}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{Successes}{81}{section*.132}}
-\@writefile{toc}{\contentsline {section}{Further extensions}{81}{section*.133}}
+\@writefile{toc}{\contentsline {section}{Successes}{79}{section*.131}}
+\@writefile{toc}{\contentsline {section}{Further extensions}{79}{section*.132}}
 \bibdata{diss}
-\@writefile{toc}{\contentsline {section}{Lessons learned}{82}{section*.134}}
-\@writefile{toc}{\contentsline {section}{Concluding Thoughts}{82}{section*.135}}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{82}{section*.135}}
+\@writefile{toc}{\contentsline {section}{Lessons learned}{80}{section*.133}}
+\@writefile{toc}{\contentsline {section}{Concluding Thoughts}{80}{section*.134}}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{80}{section*.134}}
 \bibcite{HaskellDB}{{1}{}{{}}{{}}}
 \bibcite{IMDB}{{2}{}{{}}{{}}}
 \bibcite{TMDB5000}{{3}{}{{}}{{}}}
@@ -249,168 +248,168 @@
 \bibcite{CTEs}{{10}{}{{}}{{}}}
 \bibcite{HashJoins}{{11}{}{{}}{{}}}
 \bibcite{ExceptionMonad}{{12}{}{{}}{{}}}
-\@writefile{toc}{\contentsline {chapter}{Appendix}{84}{chapter*.136}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}The Domain closure(A, v)}{85}{appendix.A}}
+\@writefile{toc}{\contentsline {chapter}{Appendix}{82}{chapter*.135}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}The Domain closure(A, v)}{83}{appendix.A}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {paragraph}{$closure(A, v)$ is a domain}{86}{section*.137}}
-\@writefile{toc}{\contentsline {paragraph}{proof:}{86}{section*.138}}
-\newlabel{LeastUpperBound}{{A.1}{86}{proof:}{equation.A.0.1}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {B}Correspondence of Operational and Denotational Semantics}{87}{appendix.B}}
+\@writefile{toc}{\contentsline {paragraph}{$closure(A, v)$ is a domain}{84}{section*.136}}
+\@writefile{toc}{\contentsline {paragraph}{proof:}{84}{section*.137}}
+\newlabel{LeastUpperBound}{{A.1}{84}{proof:}{equation.A.0.1}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {B}Correspondence of Operational and Denotational Semantics}{85}{appendix.B}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{DenoOper}{{B}{87}{Correspondence of Operational and Denotational Semantics}{appendix.B}{}}
-\@writefile{toc}{\contentsline {paragraph}{Proof: }{87}{section*.139}}
-\@writefile{toc}{\contentsline {paragraph}{FindSingle Queries:}{87}{section*.140}}
-\@writefile{toc}{\contentsline {subparagraph}{$S = AndS(S', S'')$}{87}{section*.141}}
-\newlabel{case AndS}{{B.1}{87}{$S = AndS(S', S'')$}{equation.B.0.1}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $S = OrS(S', S'')$}{88}{section*.142}}
-\newlabel{case OrS}{{B.2}{88}{Case $S = OrS(S', S'')$}{equation.B.0.2}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $S = From(S', P)$}{88}{section*.143}}
-\newlabel{case From}{{B.3}{88}{Case $S = From(S', P)$}{equation.B.0.3}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $S = Find(f)$}{88}{section*.144}}
-\newlabel{case Find}{{B.4}{88}{Case $S = Find(f)$}{equation.B.0.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{FindPair Queries:}{88}{section*.145}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Rel(r)$}{88}{section*.146}}
-\newlabel{case Rel}{{B.5}{88}{Case $P = Rel(r)$}{equation.B.0.5}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = RevRel(r)$}{88}{section*.147}}
-\newlabel{case RevRel}{{B.6}{88}{Case $P = RevRel(r)$}{equation.B.0.6}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Id_A$}{88}{section*.148}}
-\newlabel{case Id_A}{{B.7}{88}{Case $P = Id_A$}{equation.B.0.7}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Chain(P', Q)$}{88}{section*.149}}
-\newlabel{case Chain(P', Q)}{{B.8}{89}{Case $P = Chain(P', Q)$}{equation.B.0.8}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = And(P', Q)$}{89}{section*.150}}
-\newlabel{case And(P', Q)}{{B.9}{89}{Case $P = And(P', Q)$}{equation.B.0.9}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Or(P', Q)$}{89}{section*.151}}
-\newlabel{case Or(P', Q)}{{B.10}{89}{Case $P = Or(P', Q)$}{equation.B.0.10}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = AndLeft(P', S)$}{89}{section*.152}}
-\newlabel{case AndLeft(P', Q)}{{B.11}{89}{Case $P = AndLeft(P', S)$}{equation.B.0.11}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = AndRight(P', S)$}{89}{section*.153}}
-\newlabel{case AndRight(P', Q)}{{B.12}{89}{Case $P = AndRight(P', S)$}{equation.B.0.12}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Distinct(P')$}{89}{section*.154}}
-\newlabel{case Distinct(P)}{{B.13}{89}{Case $P = Distinct(P')$}{equation.B.0.13}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Exactly(n, P')$}{90}{section*.155}}
-\newlabel{fDefExactly}{{B.14}{90}{Case $P = Exactly(n, P')$}{equation.B.0.14}{}}
-\newlabel{case Exactly(n, P)}{{B.15}{90}{Case $P = Exactly(n, P')$}{equation.B.0.15}{}}
-\newlabel{exactly Deno}{{B.16}{90}{Case $P = Exactly(n, P')$}{equation.B.0.16}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $Exactly(0, P'):$}{90}{section*.156}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $Exactly(n+1, P')$, assuming $\Phi (\Sigma , Exactly(n, P'), A, A)$:}{90}{section*.157}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $P = Upto(n, P')$}{90}{section*.158}}
-\newlabel{fDefUpto}{{B.19}{90}{Case $P = Upto(n, P')$}{equation.B.0.19}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $Upto(0, P')$}{91}{section*.159}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $Upto(n+1, P')$}{91}{section*.160}}
-\@writefile{toc}{\contentsline {subparagraph}{case $P = FixedPoint(P')$}{91}{section*.161}}
-\newlabel{fDef}{{B.23}{91}{case $P = FixedPoint(P')$}{equation.B.0.23}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Lemma: f is continuous in the domain $closure(A, v)$}{91}{section*.162}}
-\@writefile{toc}{\contentsline {subparagraph}{Firstly, f is monotonous.}{91}{section*.163}}
-\newlabel{continuousLemma}{{B.24}{91}{Firstly, f is monotonous}{equation.B.0.24}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Secondly, $f$ preserves the $lub$s of chains.}{92}{section*.164}}
-\@writefile{toc}{\contentsline {subparagraph}{Lemma $(a, b) \triangleleft _{(A, A), v} FixedPoint(P') \Leftrightarrow \exists n. (a, b) \in f^n(\bot )$}{92}{section*.165}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $(a,b) \triangleleft _{A, A, v} Id_A$:\\}{92}{section*.166}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $(a, b) \triangleleft _{(A,A), v} P' \wedge (b, c) \triangleleft _{(A,A), v} FixedPoint(P')\\ $}{93}{section*.167}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $(a, b) \in \bot $}{93}{section*.168}}
-\newlabel{Case Bottom}{{B.28}{93}{Case $(a, b) \in \bot $}{equation.B.0.28}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{93}{section*.169}}
-\newlabel{Case n+1}{{B.29}{93}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{equation.B.0.29}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {C}Properties of the Join Denotation}{95}{appendix.C}}
+\newlabel{DenoOper}{{B}{85}{Correspondence of Operational and Denotational Semantics}{appendix.B}{}}
+\@writefile{toc}{\contentsline {paragraph}{Proof: }{85}{section*.138}}
+\@writefile{toc}{\contentsline {paragraph}{FindSingle Queries:}{85}{section*.139}}
+\@writefile{toc}{\contentsline {subparagraph}{$S = AndS(S', S'')$}{85}{section*.140}}
+\newlabel{case AndS}{{B.1}{85}{$S = AndS(S', S'')$}{equation.B.0.1}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $S = OrS(S', S'')$}{86}{section*.141}}
+\newlabel{case OrS}{{B.2}{86}{Case $S = OrS(S', S'')$}{equation.B.0.2}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $S = From(S', P)$}{86}{section*.142}}
+\newlabel{case From}{{B.3}{86}{Case $S = From(S', P)$}{equation.B.0.3}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $S = Find(f)$}{86}{section*.143}}
+\newlabel{case Find}{{B.4}{86}{Case $S = Find(f)$}{equation.B.0.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{FindPair Queries:}{86}{section*.144}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Rel(r)$}{86}{section*.145}}
+\newlabel{case Rel}{{B.5}{86}{Case $P = Rel(r)$}{equation.B.0.5}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = RevRel(r)$}{86}{section*.146}}
+\newlabel{case RevRel}{{B.6}{86}{Case $P = RevRel(r)$}{equation.B.0.6}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Id_A$}{86}{section*.147}}
+\newlabel{case Id_A}{{B.7}{86}{Case $P = Id_A$}{equation.B.0.7}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Chain(P', Q)$}{86}{section*.148}}
+\newlabel{case Chain(P', Q)}{{B.8}{87}{Case $P = Chain(P', Q)$}{equation.B.0.8}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = And(P', Q)$}{87}{section*.149}}
+\newlabel{case And(P', Q)}{{B.9}{87}{Case $P = And(P', Q)$}{equation.B.0.9}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Or(P', Q)$}{87}{section*.150}}
+\newlabel{case Or(P', Q)}{{B.10}{87}{Case $P = Or(P', Q)$}{equation.B.0.10}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = AndLeft(P', S)$}{87}{section*.151}}
+\newlabel{case AndLeft(P', Q)}{{B.11}{87}{Case $P = AndLeft(P', S)$}{equation.B.0.11}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = AndRight(P', S)$}{87}{section*.152}}
+\newlabel{case AndRight(P', Q)}{{B.12}{87}{Case $P = AndRight(P', S)$}{equation.B.0.12}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Distinct(P')$}{87}{section*.153}}
+\newlabel{case Distinct(P)}{{B.13}{87}{Case $P = Distinct(P')$}{equation.B.0.13}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Exactly(n, P')$}{88}{section*.154}}
+\newlabel{fDefExactly}{{B.14}{88}{Case $P = Exactly(n, P')$}{equation.B.0.14}{}}
+\newlabel{case Exactly(n, P)}{{B.15}{88}{Case $P = Exactly(n, P')$}{equation.B.0.15}{}}
+\newlabel{exactly Deno}{{B.16}{88}{Case $P = Exactly(n, P')$}{equation.B.0.16}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $Exactly(0, P'):$}{88}{section*.155}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $Exactly(n+1, P')$, assuming $\Phi (\Sigma , Exactly(n, P'), A, A)$:}{88}{section*.156}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $P = Upto(n, P')$}{88}{section*.157}}
+\newlabel{fDefUpto}{{B.19}{88}{Case $P = Upto(n, P')$}{equation.B.0.19}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $Upto(0, P')$}{89}{section*.158}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $Upto(n+1, P')$}{89}{section*.159}}
+\@writefile{toc}{\contentsline {subparagraph}{case $P = FixedPoint(P')$}{89}{section*.160}}
+\newlabel{fDef}{{B.23}{89}{case $P = FixedPoint(P')$}{equation.B.0.23}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Lemma: f is continuous in the domain $closure(A, v)$}{89}{section*.161}}
+\@writefile{toc}{\contentsline {subparagraph}{Firstly, f is monotonous.}{89}{section*.162}}
+\newlabel{continuousLemma}{{B.24}{89}{Firstly, f is monotonous}{equation.B.0.24}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Secondly, $f$ preserves the $lub$s of chains.}{90}{section*.163}}
+\@writefile{toc}{\contentsline {subparagraph}{Lemma $(a, b) \triangleleft _{(A, A), v} FixedPoint(P') \Leftrightarrow \exists n. (a, b) \in f^n(\bot )$}{90}{section*.164}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $(a,b) \triangleleft _{A, A, v} Id_A$:\\}{90}{section*.165}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $(a, b) \triangleleft _{(A,A), v} P' \wedge (b, c) \triangleleft _{(A,A), v} FixedPoint(P')\\ $}{91}{section*.166}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $(a, b) \in \bot $}{91}{section*.167}}
+\newlabel{Case Bottom}{{B.28}{91}{Case $(a, b) \in \bot $}{equation.B.0.28}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{91}{section*.168}}
+\newlabel{Case n+1}{{B.29}{91}{Case $\exists n \geq 0. (a, b) \in f^{n+1}(\bot ) \wedge \neg ((a, b) \in f^n(\bot ))$}{equation.B.0.29}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {C}Properties of the Join Denotation}{93}{appendix.C}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{MonoidJoins}{{C}{95}{Properties of the Join Denotation}{appendix.C}{}}
-\@writefile{toc}{\contentsline {section}{Join as a monoid operation}{95}{section*.170}}
-\@writefile{toc}{\contentsline {subsection}{Join is closed on $Query_{A}(v)$}{95}{section*.171}}
-\@writefile{toc}{\contentsline {paragraph}{Proof:}{95}{section*.172}}
-\@writefile{toc}{\contentsline {subsection}{Lemma: Join is associative on $Query_{A}(v)$}{95}{section*.173}}
-\@writefile{toc}{\contentsline {paragraph}{Proof:}{95}{section*.174}}
-\newlabel{Well typed}{{C.4}{96}{Proof:}{equation.C.0.4}{}}
-\@writefile{toc}{\contentsline {subsection}{${\bf  [\tmspace  -\thinmuskip {.1667em}[}Id_A{\bf  ]\tmspace  -\thinmuskip {.1667em}]}(v)$ As an Identity of Join}{96}{section*.175}}
-\@writefile{toc}{\contentsline {paragraph}{Proof:}{96}{section*.176}}
-\newlabel{LeftID}{{C.5}{96}{Proof:}{equation.C.0.5}{}}
-\newlabel{RightID}{{C.6}{96}{Proof:}{equation.C.0.6}{}}
-\@writefile{toc}{\contentsline {section}{Usages of Join as a Monoid}{97}{section*.177}}
-\newlabel{exactlyOpt}{{C}{97}{Usages of Join as a Monoid}{section*.177}{}}
-\newlabel{ExactlyReordering}{{C.7}{97}{Usages of Join as a Monoid}{equation.C.0.7}{}}
-\@writefile{toc}{\contentsline {section}{Joins distribute over Or}{97}{section*.178}}
-\newlabel{typeEquality}{{C.9}{97}{Joins distribute over Or}{equation.C.0.9}{}}
-\newlabel{denotationalEquality}{{C.10}{97}{Joins distribute over Or}{equation.C.0.10}{}}
-\@writefile{toc}{\contentsline {section}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{97}{section*.179}}
-\newlabel{UptoOpt}{{C}{97}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{section*.179}{}}
-\newlabel{UptoToExactly}{{C.11}{97}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{equation.C.0.11}{}}
-\@writefile{toc}{\contentsline {section}{Joins do not distribute over And}{98}{section*.180}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {D}Scala Algebraic Data Type Definitions}{99}{appendix.D}}
+\newlabel{MonoidJoins}{{C}{93}{Properties of the Join Denotation}{appendix.C}{}}
+\@writefile{toc}{\contentsline {section}{Join as a monoid operation}{93}{section*.169}}
+\@writefile{toc}{\contentsline {subsection}{Join is closed on $Query_{A}(v)$}{93}{section*.170}}
+\@writefile{toc}{\contentsline {paragraph}{Proof:}{93}{section*.171}}
+\@writefile{toc}{\contentsline {subsection}{Lemma: Join is associative on $Query_{A}(v)$}{93}{section*.172}}
+\@writefile{toc}{\contentsline {paragraph}{Proof:}{93}{section*.173}}
+\newlabel{Well typed}{{C.4}{94}{Proof:}{equation.C.0.4}{}}
+\@writefile{toc}{\contentsline {subsection}{${\bf  [\tmspace  -\thinmuskip {.1667em}[}Id_A{\bf  ]\tmspace  -\thinmuskip {.1667em}]}(v)$ As an Identity of Join}{94}{section*.174}}
+\@writefile{toc}{\contentsline {paragraph}{Proof:}{94}{section*.175}}
+\newlabel{LeftID}{{C.5}{94}{Proof:}{equation.C.0.5}{}}
+\newlabel{RightID}{{C.6}{94}{Proof:}{equation.C.0.6}{}}
+\@writefile{toc}{\contentsline {section}{Usages of Join as a Monoid}{95}{section*.176}}
+\newlabel{exactlyOpt}{{C}{95}{Usages of Join as a Monoid}{section*.176}{}}
+\newlabel{ExactlyReordering}{{C.7}{95}{Usages of Join as a Monoid}{equation.C.0.7}{}}
+\@writefile{toc}{\contentsline {section}{Joins distribute over Or}{95}{section*.177}}
+\newlabel{typeEquality}{{C.9}{95}{Joins distribute over Or}{equation.C.0.9}{}}
+\newlabel{denotationalEquality}{{C.10}{95}{Joins distribute over Or}{equation.C.0.10}{}}
+\@writefile{toc}{\contentsline {section}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{95}{section*.178}}
+\newlabel{UptoOpt}{{C}{95}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{section*.178}{}}
+\newlabel{UptoToExactly}{{C.11}{95}{$Upto(n, P)$ expressed as $Exactly(n, P')$}{equation.C.0.11}{}}
+\@writefile{toc}{\contentsline {section}{Joins do not distribute over And}{96}{section*.179}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {D}Scala Algebraic Data Type Definitions}{97}{appendix.D}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{ScalaADT}{{D}{99}{Scala Algebraic Data Type Definitions}{appendix.D}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{103}{appendix.E}}
+\newlabel{ScalaADT}{{D}{97}{Scala Algebraic Data Type Definitions}{appendix.D}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {E}Denotational Semantics Based Memory Implementation}{101}{appendix.E}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{MemoryInterpreter}{{E}{103}{Denotational Semantics Based Memory Implementation}{appendix.E}{}}
-\@writefile{toc}{\contentsline {section}{FindPairs}{103}{section*.181}}
-\@writefile{toc}{\contentsline {section}{FindSingle}{104}{section*.182}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {F}DSL Examples}{107}{appendix.F}}
+\newlabel{MemoryInterpreter}{{E}{101}{Denotational Semantics Based Memory Implementation}{appendix.E}{}}
+\@writefile{toc}{\contentsline {section}{FindPairs}{101}{section*.180}}
+\@writefile{toc}{\contentsline {section}{FindSingle}{102}{section*.181}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {F}DSL Examples}{105}{appendix.F}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{DSLExamples}{{F}{107}{DSL Examples}{appendix.F}{}}
-\@writefile{toc}{\contentsline {section}{Simple Transitive Queries}{107}{section*.183}}
-\@writefile{toc}{\contentsline {section}{FindSingle queries}{108}{section*.184}}
-\@writefile{toc}{\contentsline {section}{Union and Intersection}{108}{section*.185}}
-\@writefile{toc}{\contentsline {section}{Repetition}{109}{section*.186}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {G}Example of SchemaObject implementation}{111}{appendix.G}}
+\newlabel{DSLExamples}{{F}{105}{DSL Examples}{appendix.F}{}}
+\@writefile{toc}{\contentsline {section}{Simple Transitive Queries}{105}{section*.182}}
+\@writefile{toc}{\contentsline {section}{FindSingle queries}{106}{section*.183}}
+\@writefile{toc}{\contentsline {section}{Union and Intersection}{106}{section*.184}}
+\@writefile{toc}{\contentsline {section}{Repetition}{107}{section*.185}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {G}Example of SchemaObject implementation}{109}{appendix.G}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{SchemaObjectDemo}{{G}{111}{Example of SchemaObject implementation}{appendix.G}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {H}Proposal}{113}{appendix.H}}
+\newlabel{SchemaObjectDemo}{{G}{109}{Example of SchemaObject implementation}{appendix.G}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {H}Proposal}{111}{appendix.H}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {subsection}{Computer Science Tripos -- Part II -- Project Proposal}{113}{section*.187}}
-\newlabel{computer-science-tripos-part-ii-project-proposal}{{H}{113}{Computer Science Tripos -- Part II -- Project Proposal}{section*.187}{}}
-\@writefile{toc}{\contentsline {section}{A purely functional approach to graph queries on a database}{113}{section*.188}}
-\newlabel{a-purely-functional-approach-to-graph-queries-on-a-database}{{H}{113}{A purely functional approach to graph queries on a database}{section*.188}{}}
-\@writefile{toc}{\contentsline {subsection}{Introduction}{113}{section*.189}}
-\newlabel{introduction}{{H}{113}{Introduction}{section*.189}{}}
-\@writefile{toc}{\contentsline {subsection}{Project Description}{114}{section*.190}}
-\newlabel{project-description}{{H}{114}{Project Description}{section*.190}{}}
-\@writefile{toc}{\contentsline {subsection}{Starting point}{114}{section*.191}}
-\newlabel{starting-point}{{H}{114}{Starting point}{section*.191}{}}
-\@writefile{toc}{\contentsline {subsection}{Resources required}{114}{section*.192}}
-\newlabel{resources-required}{{H}{114}{Resources required}{section*.192}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Software}{114}{section*.193}}
-\newlabel{software}{{H}{114}{Software}{section*.193}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Hardware}{114}{section*.194}}
-\newlabel{hardware}{{H}{114}{Hardware}{section*.194}{}}
-\@writefile{toc}{\contentsline {subsection}{Project Structure}{114}{section*.195}}
-\newlabel{project-structure}{{H}{114}{Project Structure}{section*.195}{}}
-\@writefile{toc}{\contentsline {subsection}{Success Criteria}{115}{section*.196}}
-\newlabel{success-criteria}{{H}{115}{Success Criteria}{section*.196}{}}
-\@writefile{toc}{\contentsline {subsection}{Extensions}{115}{section*.197}}
-\newlabel{extensions}{{H}{115}{Extensions}{section*.197}{}}
-\@writefile{toc}{\contentsline {subsection}{Evaluation}{115}{section*.198}}
-\newlabel{evaluation}{{H}{115}{Evaluation}{section*.198}{}}
-\@writefile{toc}{\contentsline {subsection}{Timetable}{115}{section*.199}}
-\newlabel{timetable}{{H}{115}{Timetable}{section*.199}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 2}{115}{section*.200}}
-\newlabel{michaelmas-week-2}{{H}{115}{Michaelmas week 2}{section*.200}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 3}{116}{section*.201}}
-\newlabel{michaelmas-week-3}{{H}{116}{Michaelmas week 3}{section*.201}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 3-4}{116}{section*.202}}
-\newlabel{michaelmas-week-3-4}{{H}{116}{Michaelmas week 3-4}{section*.202}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 5-6}{116}{section*.203}}
-\newlabel{michaelmas-week-5-6}{{H}{116}{Michaelmas week 5-6}{section*.203}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Michaelmas 7-8}{116}{section*.204}}
-\newlabel{michaelmas-7-8}{{H}{116}{Michaelmas 7-8}{section*.204}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Michaelmas Vacation}{116}{section*.205}}
-\newlabel{michaelmas-vacation}{{H}{116}{Michaelmas Vacation}{section*.205}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Lent Week 1-2}{116}{section*.206}}
-\newlabel{lent-week-1-2}{{H}{116}{Lent Week 1-2}{section*.206}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Lent Week 3}{116}{section*.207}}
-\newlabel{lent-week-3}{{H}{116}{Lent Week 3}{section*.207}{}}
+\@writefile{toc}{\contentsline {subsection}{Computer Science Tripos -- Part II -- Project Proposal}{111}{section*.186}}
+\newlabel{computer-science-tripos-part-ii-project-proposal}{{H}{111}{Computer Science Tripos -- Part II -- Project Proposal}{section*.186}{}}
+\@writefile{toc}{\contentsline {section}{A purely functional approach to graph queries on a database}{111}{section*.187}}
+\newlabel{a-purely-functional-approach-to-graph-queries-on-a-database}{{H}{111}{A purely functional approach to graph queries on a database}{section*.187}{}}
+\@writefile{toc}{\contentsline {subsection}{Introduction}{111}{section*.188}}
+\newlabel{introduction}{{H}{111}{Introduction}{section*.188}{}}
+\@writefile{toc}{\contentsline {subsection}{Project Description}{112}{section*.189}}
+\newlabel{project-description}{{H}{112}{Project Description}{section*.189}{}}
+\@writefile{toc}{\contentsline {subsection}{Starting point}{112}{section*.190}}
+\newlabel{starting-point}{{H}{112}{Starting point}{section*.190}{}}
+\@writefile{toc}{\contentsline {subsection}{Resources required}{112}{section*.191}}
+\newlabel{resources-required}{{H}{112}{Resources required}{section*.191}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Software}{112}{section*.192}}
+\newlabel{software}{{H}{112}{Software}{section*.192}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Hardware}{112}{section*.193}}
+\newlabel{hardware}{{H}{112}{Hardware}{section*.193}{}}
+\@writefile{toc}{\contentsline {subsection}{Project Structure}{112}{section*.194}}
+\newlabel{project-structure}{{H}{112}{Project Structure}{section*.194}{}}
+\@writefile{toc}{\contentsline {subsection}{Success Criteria}{113}{section*.195}}
+\newlabel{success-criteria}{{H}{113}{Success Criteria}{section*.195}{}}
+\@writefile{toc}{\contentsline {subsection}{Extensions}{113}{section*.196}}
+\newlabel{extensions}{{H}{113}{Extensions}{section*.196}{}}
+\@writefile{toc}{\contentsline {subsection}{Evaluation}{113}{section*.197}}
+\newlabel{evaluation}{{H}{113}{Evaluation}{section*.197}{}}
+\@writefile{toc}{\contentsline {subsection}{Timetable}{113}{section*.198}}
+\newlabel{timetable}{{H}{113}{Timetable}{section*.198}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 2}{113}{section*.199}}
+\newlabel{michaelmas-week-2}{{H}{113}{Michaelmas week 2}{section*.199}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 3}{114}{section*.200}}
+\newlabel{michaelmas-week-3}{{H}{114}{Michaelmas week 3}{section*.200}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 3-4}{114}{section*.201}}
+\newlabel{michaelmas-week-3-4}{{H}{114}{Michaelmas week 3-4}{section*.201}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Michaelmas week 5-6}{114}{section*.202}}
+\newlabel{michaelmas-week-5-6}{{H}{114}{Michaelmas week 5-6}{section*.202}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Michaelmas 7-8}{114}{section*.203}}
+\newlabel{michaelmas-7-8}{{H}{114}{Michaelmas 7-8}{section*.203}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Michaelmas Vacation}{114}{section*.204}}
+\newlabel{michaelmas-vacation}{{H}{114}{Michaelmas Vacation}{section*.204}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Lent Week 1-2}{114}{section*.205}}
+\newlabel{lent-week-1-2}{{H}{114}{Lent Week 1-2}{section*.205}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Lent Week 3}{114}{section*.206}}
+\newlabel{lent-week-3}{{H}{114}{Lent Week 3}{section*.206}{}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
-\@writefile{toc}{\contentsline {subsubsection}{Lent Week 4-5}{117}{section*.208}}
-\newlabel{lent-week-4-5}{{H}{117}{Lent Week 4-5}{section*.208}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Lent Week 6}{117}{section*.209}}
-\newlabel{lent-week-6}{{H}{117}{Lent Week 6}{section*.209}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Lent Week 7-8}{117}{section*.210}}
-\newlabel{lent-week-7-8}{{H}{117}{Lent Week 7-8}{section*.210}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Easter Vacation}{117}{section*.211}}
-\newlabel{easter-vacation}{{H}{117}{Easter Vacation}{section*.211}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Easter Week 1-3}{117}{section*.212}}
-\newlabel{easter-week-1-3}{{H}{117}{Easter Week 1-3}{section*.212}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Lent Week 4-5}{115}{section*.207}}
+\newlabel{lent-week-4-5}{{H}{115}{Lent Week 4-5}{section*.207}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Lent Week 6}{115}{section*.208}}
+\newlabel{lent-week-6}{{H}{115}{Lent Week 6}{section*.208}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Lent Week 7-8}{115}{section*.209}}
+\newlabel{lent-week-7-8}{{H}{115}{Lent Week 7-8}{section*.209}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Easter Vacation}{115}{section*.210}}
+\newlabel{easter-vacation}{{H}{115}{Easter Vacation}{section*.210}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Easter Week 1-3}{115}{section*.211}}
+\newlabel{easter-week-1-3}{{H}{115}{Easter Week 1-3}{section*.211}{}}
