@@ -113,7 +113,7 @@ trait RelationSyntax {
 
     private def createUpto(n: Int): FindPair[A, A] =
       if (n >= 0) Upto(n, u.toFindPair)
-      else Exactly(-n, u.toFindPair.reverse)
+      else Upto(-n, u.toFindPair.reverse)
   }
 
 
