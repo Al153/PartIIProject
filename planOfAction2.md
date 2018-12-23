@@ -13,7 +13,7 @@
 - Results container
     - Needs monadic methods (`flatMap` - scala for `bind`, map, point)
     - and other nice combinators (foreach, recover - recover error cases, recoverWith)
-- Return types that are stored in the results container - can be simple things like generic classes, but some queries may want to return paths through the database, or other non-trivial datatypes
+- Return types that are stored in the results container - can be simple things like generic classes, but some queries may want to return paths through the database, or other non-impl.trivial datatypes
 - A set of DSL syntax we want to allow
 
 ### Come up with motivating examples - *3-4 hours*

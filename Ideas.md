@@ -13,7 +13,7 @@
         - we need to do garbage collection. when an in-memory `core.view` runs out of objects holding it, it should garbage collect itself from the SQL implementation - could be very tricky over a distributed system.
             - so distributed semantics are probably a major extension/out of current scope
     - An execution engine to compile the core.backend.intermediate language to an SQL query that executes the graph level query represented against the internal database 
-        - This should start out relatively trivial and if I have time left over, I might look at doing some simple optimisations, since we have some nice functional features to exploit
+        - This should start out relatively impl.trivial and if I have time left over, I might look at doing some simple optimisations, since we have some nice functional features to exploit
        
 ## Motivating example
 - The above would hopefully make the scala code below a valid program:
